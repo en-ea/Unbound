@@ -1,5 +1,5 @@
 extends Node3D
-## A tiny village by the path: three houses in three styles (for the owner to compare) and the
+## A tiny village by the path: five houses in five styles (for the owner to compare) and the
 ## Merchant, a heavy-set NPC who turns to greet you when you come close.
 
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
@@ -7,6 +7,8 @@ const HOUSES := [
 	{"model": "res://assets/buildings/house_cottage.glb", "at": Vector2(-5.5, 11.5), "size": Vector3(4.6, 4, 3.6)},
 	{"model": "res://assets/buildings/house_cabin.glb", "at": Vector2(10.5, 13.0), "size": Vector3(4.4, 4, 3.6)},
 	{"model": "res://assets/buildings/house_round.glb", "at": Vector2(-9.0, 23.0), "size": Vector3(4.4, 4, 4.4)},
+	{"model": "res://assets/buildings/house_crooked.glb", "at": Vector2(14.0, 3.0), "size": Vector3(3.4, 4, 3.4)},
+	{"model": "res://assets/buildings/house_tree.glb", "at": Vector2(-13.0, 2.0), "size": Vector3(4.0, 4, 3.6)},
 ]
 const MERCHANT_AT := Vector2(5.4, 16.0)
 const GREETINGS := ["Fine goods today, traveller!", "Wood, stone, hides... I buy it all. Soon.",
