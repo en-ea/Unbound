@@ -48,10 +48,27 @@ The big shape of the game. DESIGN.md has the look and feel; PLAN.md has the buil
   once the forest, money and classes exist. Until then numbers are placeholders.
 - Older notes worth keeping: story and idea bank in DESIGN.md; parked ideas in PLAN.md.
 
-## Build order (most playable game soonest)
-1. **Forest region + region travel** (path out of the meadow, loading, new enemy and resource).
-2. **Food and cooking** (heals and buffs).
-3. **Money, the trader and the first village project.**
-4. **Class unlock at the shrine + first abilities.**
-5. **Forest boss** and the full rarity list.
-Then more regions, home, the special companion, the second land.
+## World persistence and building
+- **Resources:** each region has fixed spawn points saved per region. Trees, rocks and so on regrow on timers, which
+  keep counting while you are away (worked out from the elapsed time when the region loads).
+- **Village buildings:** pre-set spots. Village projects make a building appear at its spot (scaffolding, then built).
+- **Your base (one per land):** pick a pre-set home, then place things freely around and in it on a grid
+  (stations, furniture, garden, decorations). Free placement only at bases, which keeps the world tidy and fast.
+
+## Armour and looks
+- Armour has stats and its own look. The best armour clearly looks the best (trims, glow), so by the end you look strong.
+- Some sets suit certain things (e.g. a class or an activity) with set bonuses; optional, never forced.
+- **No clash with the character screen:** face, hair and body are always yours. Each armour slot has a "show armour /
+  show my style" toggle, so the outfit pieces you picked become a style layer. A shown helmet replaces the hat.
+
+## Build order (owner's pick)
+Must do, in this order:
+1. **Region travel + the forest.**
+2. **Food and cooking.**
+3. **Money, the trader, the first village project.**
+4. **Class tree + first abilities** (with the story start: ordinary day, shrine wakes, class unlocks; two weapon
+   slots come in here because abilities use weapons).
+5. **Forest boss, full rarities, relics, and the first armour.**
+6. **Balance pass** (all numbers in one file).
+7. **Your home base** (free placement).
+Kept in mind for later: more weapons, more regions (highlands, caves), special companion, fishing, then the 2nd land.
