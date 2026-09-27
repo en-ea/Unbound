@@ -20,4 +20,5 @@ func _ready() -> void:
 	$Player/Sounds.shape = shape
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)
+	player.spawn_point = player.global_position
 	camera_rig.snap()

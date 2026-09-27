@@ -11,6 +11,12 @@ const ROLL_SPEED := 7.5
 const ROLL_TIME := 0.55
 
 signal verb_changed(verb: String)       # what the action button does right now
+signal health_changed(health: int, max_health: int)
+
+const MAX_HEALTH := 5
+const REGEN_DELAY := 6.0       # seconds without being hit before hearts come back
+const REGEN_EVERY := 4.0
+const DOWN_TIME := 2.4         # lying on the ground before getting back up at the start
 
 @onready var visual: CharacterVisual = $Visual
 @onready var gatherer: Node = $Gatherer
@@ -21,6 +27,11 @@ var _roll := 0.0
 var _roll_dir := Vector3.FORWARD
 var _stun := 0.0
 var _knock := Vector3.ZERO
+var health := MAX_HEALTH
+var spawn_point := Vector3.ZERO
+var _since_hit := 99.0
+var _regen := 0.0
+var _down := 0.0
 
 
 func is_rolling() -> bool:
@@ -53,7 +64,7 @@ func roll() -> void:
 
 ## Something hit us (a boar charge): pushed back and briefly stunned. No damage for now.
 func knockback(push: Vector3) -> void:
-	if _roll > 0.0:
+	if _roll > 0.0 or _down > 0.0:
 		return
 	_knock = push
 	_stun = 0.45
@@ -69,7 +80,37 @@ func _unhandled_input(event: InputEvent) -> void:
 			roll()
 
 
+## The action: something hurts the player (a boar charge). At 0 hearts they are knocked down
+## and get back up at the start with full hearts; nothing is lost.
+func take_damage(amount: int) -> void:
+	if _roll > 0.0 or _down > 0.0:
+		return
+	health = maxi(health - amount, 0)
+	_since_hit = 0.0
+	health_changed.emit(health, MAX_HEALTH)
+	if health == 0:
+		_down = DOWN_TIME
+		_stun = 0.0
+		visual.play_action("Death01", 1.0)
+
+
 func _physics_process(delta: float) -> void:
+	_since_hit += delta
+	if health < MAX_HEALTH and _since_hit > REGEN_DELAY and _down <= 0.0:
+		_regen += delta
+		if _regen >= REGEN_EVERY:
+			_regen = 0.0
+			health += 1
+			health_changed.emit(health, MAX_HEALTH)
+	if _down > 0.0:
+		_down -= delta
+		velocity = Vector3.ZERO
+		if _down <= 0.0:
+			global_position = spawn_point
+			health = MAX_HEALTH
+			health_changed.emit(health, MAX_HEALTH)
+			get_tree().call_group("camera_rig", "snap")
+		return
 	var new_verb: String = fighter.verb if fighter.verb != "" else gatherer.verb
 	if new_verb != verb:
 		verb = new_verb

@@ -76,6 +76,7 @@ func _physics_process(delta: float) -> void:
 			want = _charge_dir * CHARGE_SPEED
 			if dist < 1.3 and not player.is_rolling():
 				player.knockback(_charge_dir * 9.0)
+				player.take_damage(1)
 				get_tree().call_group("camera_rig", "shake", 0.12)
 				_enter(State.RECOVER)
 			elif _t > 1.5 or (_t > 0.2 and is_on_wall()):

@@ -146,6 +146,12 @@ func _run_gather_test() -> void:
 			var n: Dictionary = WorldResources.get_node_data(id)
 			if n["type"] != "tree":
 				continue
+			var near_boar := false
+			for h: Vector2 in preload("res://scripts/creatures/enemies.gd").BOAR_HOMES:
+				if Vector2(n["pos"].x, n["pos"].z).distance_to(h) < 16.0:
+					near_boar = true
+			if near_boar:
+				continue
 			var d: float = (n["pos"] as Vector3).distance_to(player.global_position)
 			if d < best_d:
 				best_d = d
@@ -154,6 +160,8 @@ func _run_gather_test() -> void:
 		player.global_position = at + _gather_offset
 		get_node("../CameraRig").snap()
 	if _frames in [40, 70, 100, 165]:
+		if _frames == 40:
+			print("GATHERTEST at ", player.global_position.snapped(Vector3.ONE * 0.1), " target ", gatherer.target, " verb ", gatherer.verb, " locked ", Controls.locked)
 		gatherer.act()
 	if _frames == 179 or _frames == 260:
 		print("GATHERTEST frame ", _frames, " inventory ", Inventory.items().map(func(i: String) -> String: return "%s x%d" % [i, Inventory.count(i)]))

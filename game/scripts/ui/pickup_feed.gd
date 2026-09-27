@@ -5,7 +5,7 @@ extends Control
 const INVENTORY_PANEL := preload("res://scripts/ui/inventory_panel.gd")
 const LIFETIME := 2.6
 const MAX_ROWS := 5
-const TOP_LEFT := Vector2(64, 92)
+const TOP_LEFT := Vector2(64, 128)
 
 var _rows := {}              # item -> {node: PanelContainer, amount: int, age: float, label: Label}
 var _box: VBoxContainer

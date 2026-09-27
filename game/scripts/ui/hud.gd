@@ -25,6 +25,7 @@ var _roll: Control
 var _corner: HBoxContainer
 var _feed: Control
 var _title: Control
+var _hearts: Control
 var _worst := 0.0
 var _worst_shown := 0.0
 var _timer := 0.0
@@ -58,6 +59,11 @@ func _ready() -> void:
 	add_child(_corner)
 	UIStyle.icon_button(_corner, "menuGrid").pressed.connect(open_bag)
 	UIStyle.icon_button(_corner, "gear").pressed.connect(open_menu)
+
+	_hearts = Control.new()
+	_hearts.set_script(preload("res://scripts/ui/hearts.gd"))
+	add_child(_hearts)
+	player.health_changed.connect(_hearts.show_health)
 
 	_feed = Control.new()
 	_feed.set_script(PICKUP_FEED)
@@ -176,6 +182,7 @@ func _set_play_ui(on: bool) -> void:
 	_roll.visible = on
 	_corner.visible = on
 	_feed.visible = on
+	_hearts.visible = on
 
 
 func _on_settings_changed() -> void:
