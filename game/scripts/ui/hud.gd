@@ -2,6 +2,7 @@ extends CanvasLayer
 ## Development HUD: FPS stats, plus a small "Dev" menu with the 30/60 FPS toggle and skip-time.
 
 @export var day_night: Node
+@export var character: CharacterVisual
 
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
 
@@ -42,6 +43,7 @@ func _ready() -> void:
 	_cap_button = _make_button(_menu, "")
 	_cap_button.pressed.connect(_toggle_cap)
 	_make_button(_menu, "Time +").pressed.connect(func() -> void: day_night.skip(0.125))
+	_make_button(_menu, "Swap look").pressed.connect(func() -> void: character.next_look())
 	_refresh_cap()
 
 

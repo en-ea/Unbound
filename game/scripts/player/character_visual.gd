@@ -1,13 +1,16 @@
 class_name CharacterVisual
 extends Node3D
-## Assembles the villager (peasant outfit + head + hair) on the Quaternius animation rig
-## and plays idle / walk / run.
+## Puts a character look on the Quaternius animation rig and plays idle / walk / run.
+## Looks: "wanderer" (our own style, tools-src/blender/make_wanderer.py) or "villager"
+## (Quaternius peasant outfit + head + hair).
 
 const DIR := "res://assets/quaternius_characters/"
 const RIG := DIR + "UAL1_Standard.glb"
 const OUTFIT := DIR + "Male_Peasant.gltf"
 const BASE_BODY := DIR + "Superhero_Male_FullBody.gltf"
 const HAIR := DIR + "Hair_SimpleParted.gltf"
+const WANDERER := "res://assets/characters/wanderer.glb"
+const LOOKS := ["wanderer", "villager"]
 const HAIR_COLOR := Color(0.36, 0.22, 0.13)   # the hair textures are grey, made for tinting
 const NECK_Y := 1.47          # keep only the base body's head (the outfit covers the rest)
 
@@ -20,6 +23,8 @@ const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 5.36}
 var _anim: AnimationPlayer
 var _skeleton: Skeleton3D
 var _current := ""
+var _parts: Array[Node] = []   # everything the current look added to the skeleton
+var look := ""
 
 
 func _ready() -> void:
@@ -29,12 +34,27 @@ func _ready() -> void:
 	_anim = rig.find_children("*", "AnimationPlayer", true, false)[0]
 	for mi in _skeleton.find_children("*", "MeshInstance3D", true, false):
 		mi.free()   # the grey mannequin
-	_attach_meshes(OUTFIT, false)
-	_attach_meshes(BASE_BODY, true)
-	_attach_hair()
+	set_look(LOOKS[0])
 	for anim_name in [IDLE, WALK, RUN]:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	play_motion(0.0)
+
+
+func set_look(new_look: String) -> void:
+	for part in _parts:
+		part.queue_free()
+	_parts.clear()
+	look = new_look
+	if look == "wanderer":
+		_attach_meshes(WANDERER, false)
+	else:
+		_attach_meshes(OUTFIT, false)
+		_attach_meshes(BASE_BODY, true)
+		_attach_hair()
+
+
+func next_look() -> void:
+	set_look(LOOKS[(LOOKS.find(look) + 1) % LOOKS.size()])
 
 
 func play_motion(speed: float) -> void:
@@ -57,6 +77,7 @@ func _attach_meshes(path: String, head_only: bool) -> void:
 		if head_only:
 			mi.mesh = _above_neck(mi.mesh)
 		_skeleton.add_child(mi)
+		_parts.append(mi)
 		mi.skeleton = NodePath("..")
 		_tint_hair(mi)
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -68,6 +89,7 @@ func _attach_hair() -> void:
 	var attach := BoneAttachment3D.new()
 	attach.bone_name = "Head"
 	_skeleton.add_child(attach)
+	_parts.append(attach)
 	var hair := (load(HAIR) as PackedScene).instantiate() as Node3D
 	attach.add_child(hair)
 	# The hair was modelled in place on the rest pose, so undo the head's rest transform.

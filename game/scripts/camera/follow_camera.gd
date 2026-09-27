@@ -16,9 +16,14 @@ func _ready() -> void:
 	camera.fov = fov
 	camera.far = 220.0
 	camera.near = 0.5
+	set_distance(distance)
+	snap()
+
+
+func set_distance(d: float) -> void:
+	distance = d
 	camera.position = Basis(Vector3.RIGHT, deg_to_rad(pitch_degrees)) * Vector3(0, 0, distance)
 	camera.rotation = Vector3(deg_to_rad(pitch_degrees), 0, 0)
-	snap()
 
 
 func snap() -> void:

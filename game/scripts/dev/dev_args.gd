@@ -4,6 +4,7 @@ extends Node
 ##   --time=0.5        start at this time of day
 ##   --walk=x,y        hold the joystick in this direction
 ##   --at=x,z          start the player at this spot
+##   --zoom=5          camera distance (for close-up checks)
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 
 @export var day_night: Node
@@ -29,6 +30,8 @@ func _ready() -> void:
 		elif arg.begins_with("--at="):
 			var v := arg.trim_prefix("--at=").split(",")
 			_start_at = Vector2(float(v[0]), float(v[1]))
+		elif arg.begins_with("--zoom="):
+			get_node("../CameraRig").set_distance.call_deferred(float(arg.trim_prefix("--zoom=")))
 		elif arg == "--touchtest":
 			_touch_test = true
 	if _shot_path == "" and not _touch_test:

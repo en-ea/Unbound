@@ -58,9 +58,10 @@ script = ExtResource("7")
 day_night = NodePath("../WorldEnvironment")
 follow = NodePath("../Player")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("day_night")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("day_night", "character")]
 script = ExtResource("8")
 day_night = NodePath("../WorldEnvironment")
+character = NodePath("../Player/Visual")
 
 [node name="DevArgs" type="Node" parent="." node_paths=PackedStringArray("day_night")]
 script = ExtResource("9")
