@@ -5,6 +5,7 @@ extends Node
 ## craft(), give(), equip(), drop_tool() and craft_bag().
 
 signal changed
+signal tool_dropped(slot: String, tool: Dictionary)
 
 const SLOTS := {"axe": "Axe", "pickaxe": "Pickaxe", "sword": "Sword"}
 ## power: hits taken off a tree or rock per swing; damage: sword damage (boar 10, wolf 6);
@@ -25,26 +26,27 @@ const RECIPES := [
 	{"slot": "axe", "tier": 0, "cost": {"wood": 3, "stone": 2}},
 	{"slot": "pickaxe", "tier": 0, "cost": {"wood": 3, "stone": 2}},
 	{"slot": "sword", "tier": 0, "cost": {"wood": 3, "stone": 2}},
-	{"slot": "axe", "tier": 1, "cost": {"wood": 4, "stone": 3, "flint": 1}},
-	{"slot": "pickaxe", "tier": 1, "cost": {"wood": 4, "stone": 4, "flint": 1}},
-	{"slot": "sword", "tier": 1, "cost": {"wood": 3, "stone": 5, "flint": 2}},
-	{"slot": "axe", "tier": 2, "cost": {"wood": 4, "copper": 5, "hide": 1}},
-	{"slot": "pickaxe", "tier": 2, "cost": {"wood": 4, "copper": 6, "hide": 1}},
-	{"slot": "sword", "tier": 2, "cost": {"wood": 3, "copper": 7, "hide": 2}},
-	{"slot": "axe", "tier": 3, "cost": {"wood": 4, "iron": 5, "resin": 1}},
-	{"slot": "pickaxe", "tier": 3, "cost": {"wood": 4, "iron": 6, "resin": 1}},
-	{"slot": "sword", "tier": 3, "cost": {"wood": 3, "iron": 7, "pelt": 2, "fang": 1}},
+	{"slot": "axe", "tier": 1, "cost": {"wood": 6, "stone": 5, "flint": 2}},
+	{"slot": "pickaxe", "tier": 1, "cost": {"wood": 6, "stone": 6, "flint": 2}},
+	{"slot": "sword", "tier": 1, "cost": {"wood": 5, "stone": 8, "flint": 3}},
+	{"slot": "axe", "tier": 2, "cost": {"wood": 8, "copper": 10, "hide": 2}},
+	{"slot": "pickaxe", "tier": 2, "cost": {"wood": 8, "copper": 12, "hide": 2}},
+	{"slot": "sword", "tier": 2, "cost": {"wood": 6, "copper": 14, "hide": 3}},
+	{"slot": "axe", "tier": 3, "cost": {"wood": 10, "iron": 12, "resin": 2}},
+	{"slot": "pickaxe", "tier": 3, "cost": {"wood": 10, "iron": 14, "resin": 2}},
+	{"slot": "sword", "tier": 3, "cost": {"wood": 8, "iron": 16, "pelt": 4, "fang": 2}},
 ]
 ## Bags: how many different kinds of item you can carry. The first is what you start with.
 const BAGS := [
 	{"name": "Pouch", "slots": 12},
-	{"name": "Leather Bag", "slots": 16, "cost": {"hide": 4, "wood": 4, "flint": 2}},
-	{"name": "Traveller's Pack", "slots": 22, "cost": {"pelt": 3, "hide": 3, "resin": 2}},
+	{"name": "Leather Bag", "slots": 16, "cost": {"hide": 8, "wood": 6, "flint": 4}},
+	{"name": "Traveller's Pack", "slots": 22, "cost": {"pelt": 6, "hide": 6, "resin": 3, "fang": 1}},
 ]
 
 var owned := {"axe": [_tool(0)], "pickaxe": [_tool(0)], "sword": [_tool(0)]}
 var equipped := {"axe": 0, "pickaxe": 0, "sword": 0}      # index into owned[slot], -1 = fists
 var bag := 0
+var unlocked := {"axe": 0, "pickaxe": 0, "sword": 0}   # best tier you have ever had
 
 
 static func _tool(tier_index: int, rarity := 0, bonuses: Array = []) -> Dictionary:
@@ -128,10 +130,27 @@ func _spend(cost: Dictionary) -> void:
 		Inventory.remove(item, cost[item])
 
 
+## Tiers the workbench can make for a slot: any up to one past the best you've ever had,
+## except ones you're carrying already.
+func craftable_tiers(slot: String) -> Array[int]:
+	var out: Array[int] = []
+	for t in mini(unlocked[slot] + 1, TIERS.size() - 1) + 1:
+		if not owned[slot].any(func(o: Dictionary) -> bool: return o["tier"] == t):
+			out.append(t)
+	return out
+
+
+func recipe_for(slot: String, t: int) -> Dictionary:
+	for r: Dictionary in RECIPES:
+		if r["slot"] == slot and r["tier"] == t:
+			return r
+	return {}
+
+
 ## The action: craft a tool recipe. Spends the items and gives (and equips) a plain tool.
 func craft(recipe: Dictionary) -> bool:
 	var slot: String = recipe["slot"]
-	if recipe["tier"] != best_tier(slot) + 1 or not can_afford(recipe["cost"]):
+	if not recipe["tier"] in craftable_tiers(slot) or not can_afford(recipe["cost"]):
 		return false
 	_spend(recipe["cost"])
 	give(slot, _tool(recipe["tier"]))
@@ -141,6 +160,7 @@ func craft(recipe: Dictionary) -> bool:
 ## The action: a tool joins your gear (crafted or found). It's equipped if it beats yours.
 func give(slot: String, t: Dictionary) -> void:
 	owned[slot].append(t)
+	unlocked[slot] = maxi(unlocked[slot], t["tier"])
 	var now := current(slot)
 	if now.is_empty() or t["tier"] > now["tier"] or (t["tier"] == now["tier"] and t["rarity"] > now["rarity"]):
 		equipped[slot] = owned[slot].size() - 1
@@ -154,12 +174,15 @@ func equip(slot: String, index: int) -> void:
 		changed.emit()
 
 
-## The action: throw away the equipped tool; the best one left takes its place (or fists).
+## The action: put down the equipped tool (it lands in the world, see tool_drop.gd); the best one
+## left takes its place, or fists.
 func drop_tool(slot: String) -> void:
 	var i: int = equipped[slot]
 	if i < 0:
 		return
+	var t: Dictionary = owned[slot][i]
 	owned[slot].remove_at(i)
+	tool_dropped.emit(slot, t)
 	var best := -1
 	for k in owned[slot].size():
 		if best < 0 or owned[slot][k]["tier"] > owned[slot][best]["tier"]:
@@ -172,7 +195,7 @@ func drop_tool(slot: String) -> void:
 ## better; uncommon (one bonus) or rare (two). Returns [slot, tool].
 func roll_found() -> Array:
 	var slot: String = SLOTS.keys().pick_random()
-	var t := clampi(best_tier(slot) + (1 if randf() < 0.2 else -randi_range(0, 1)), 0, TIERS.size() - 1)
+	var t := clampi(unlocked[slot] + (1 if randf() < 0.15 else -randi_range(0, 1)), 0, TIERS.size() - 1)
 	var rare := randf() < 0.25
 	var pool := BONUSES.keys()
 	pool.shuffle()
@@ -194,7 +217,7 @@ func craft_bag() -> bool:
 
 
 func to_data() -> Dictionary:
-	return {"owned": owned, "equipped": equipped, "bag": bag}
+	return {"owned": owned, "equipped": equipped, "bag": bag, "unlocked": unlocked}
 
 
 func load_data(data: Dictionary) -> void:
@@ -217,4 +240,6 @@ func load_data(data: Dictionary) -> void:
 			e = at
 		equipped[slot] = clampi(e, -1, owned[slot].size() - 1)
 	bag = clampi(int(data.get("bag", 0)), 0, BAGS.size() - 1)
+	for slot: String in SLOTS:
+		unlocked[slot] = clampi(maxi(int(data.get("unlocked", {}).get(slot, 0)), best_tier(slot)), 0, TIERS.size() - 1)
 	changed.emit()

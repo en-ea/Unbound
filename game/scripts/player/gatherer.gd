@@ -28,6 +28,7 @@ var _queued := false
 var _shake := 0.0
 var _power := 1
 var _luck := 0.0
+var _left_punch := false
 var _skill := ""         # the skill this swing trains ("" for picking by hand)
 
 
@@ -51,7 +52,7 @@ func _physics_process(delta: float) -> void:
 			var hits_full: int = WorldResources.type_info(_swing_target)["hits"]
 			var done := WorldResources.hit_node(_swing_target, _power, _luck)
 			if _power > 0 and _skill != "":
-				Skills.add(_skill, 2 + (hits_full if done else 0))
+				Skills.add(_skill, 2 + (hits_full / 2 if done else 0))
 			if _shake > 0.0:
 				visual.hit_stop()
 				get_tree().call_group("camera_rig", "shake", _shake)
@@ -79,7 +80,9 @@ func act() -> void:
 	_luck = Gear.luck(tool) + Skills.luck_bonus(_skill) if tool != "" else 0.0
 	var shown := tool
 	if tool == "axe" and Gear.tier("axe") < 0:
-		swing = SWINGS["fists"]          # no axe: punch the tree (half an axe's worth per hit)
+		swing = SWINGS["fists"].duplicate()  # no axe: punch the tree (half an axe's worth per hit)
+		_left_punch = not _left_punch
+		swing["anim"] = "Punch_Jab" if _left_punch else "Punch_Cross"
 		shown = ""
 	elif tool != "" and Gear.tier(tool) < info.get("min_tier", 0):
 		_power = 0                     # too hard for this pickaxe: it just glances off

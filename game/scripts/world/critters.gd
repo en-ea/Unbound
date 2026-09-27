@@ -36,7 +36,8 @@ func build(shape: WorldShape) -> void:
 		var c: Color = BUTTERFLY_COLORS[i % BUTTERFLY_COLORS.size()]
 		_bf_mm.set_instance_color(i, c.srgb_to_linear())
 		_bf_mm.set_instance_custom_data(i, Color(_rng.randf(), 0.9, 0.45, 0.0))
-		_butterflies.append({"home": _spot(), "phase": _rng.randf() * TAU, "speed": _rng.randf_range(0.7, 1.2)})
+		var home := _spot()
+		_butterflies.append({"home": home, "ground": _shape.height_at(home.x, home.y), "phase": _rng.randf() * TAU, "speed": _rng.randf_range(0.7, 1.2)})
 	for i in RABBITS:
 		var home := _spot()
 		_rabbits.append({"home": home, "pos": _ground(home), "from": _ground(home), "to": _ground(home), "hop": 1.0,
@@ -77,7 +78,7 @@ func _butterfly_at(b: Dictionary, t: float) -> Vector3:
 	var home: Vector2 = b["home"]
 	var x := home.x + sin(t * 0.45 * s + ph) * 2.6 + sin(t * 1.3 * s + ph * 3.0) * 0.5
 	var z := home.y + sin(t * 0.33 * s + ph * 2.0) * 2.6 + cos(t * 1.1 * s + ph) * 0.5
-	return Vector3(x, _shape.height_at(x, z) + 0.8 + sin(t * 2.1 + ph) * 0.25, z)
+	return Vector3(x, b["ground"] + 0.9 + sin(t * 2.1 + ph) * 0.25, z)      # ground height cached per home
 
 
 func _update_rabbits(delta: float, me: Vector3) -> void:

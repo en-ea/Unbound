@@ -48,3 +48,6 @@ Don't start the next milestone until the current one feels good on the phone.
 - **Fishing** at the pond: a timing game with rare fish. Will be in the game, just not yet.
 - **Expand ruins and chests** once the map grows (the concept is in: `treasure.gd`).
 - **House style:** four styles now stand in the village (cottage, cabin, round house, longhouse). The owner picks a favourite vibe.
+- **Crafting beyond tools:** the workbench stays for tools and bags; other things (armour, food, furniture...) may get their own crafting places. Recipe costs are still test values and should get harder with progression.
+- **Talk with the owner:** how many rarities, and how progression works overall (after the M4 fixes).
+- **Dropped and found tools on the ground aren't saved yet** (they vanish on reload).

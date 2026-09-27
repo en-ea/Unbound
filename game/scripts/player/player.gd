@@ -18,7 +18,7 @@ signal got_up
 const MAX_HEALTH := 5
 const REGEN_DELAY := 6.0       # seconds without being hit before hearts come back
 const REGEN_EVERY := 4.0
-const DOWN_TIME := 2.4         # lying on the ground before getting back up at the start
+const DOWN_TIME := 3.2         # lying on the ground before getting back up at the start
 const INVULNERABLE := 1.2      # after a hit, enemies can't hurt you again for a moment
 
 @onready var visual: CharacterVisual = $Visual
@@ -32,6 +32,8 @@ var _stun := 0.0
 var _knock := Vector3.ZERO
 var health := MAX_HEALTH
 var spawn_point := Vector3.ZERO
+const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
+
 var _station: Node3D = null     # a workbench (or other "interactable") in reach
 var _since_hit := 99.0
 var _regen := 0.0
@@ -53,6 +55,15 @@ func act() -> void:
 		_station.interact()
 	else:
 		gatherer.act()
+
+
+func _ready() -> void:
+	_ready_drops()
+
+
+func _ready_drops() -> void:
+	Gear.tool_dropped.connect(func(slot: String, t: Dictionary) -> void:
+		TOOL_DROP.spawn(get_parent(), slot, t, global_position, self, false))
 
 
 ## The closest node in group "interactable" whose `reach` we are inside (it has `verb` and interact()).

@@ -11,6 +11,7 @@ const GAINS := {"axe": "Fells trees faster", "pickaxe": "Mines rock faster", "sw
 
 var _cards: HBoxContainer
 var _audio: AudioStreamPlayer
+var _pick := {}          # slot -> the tier this card is showing
 
 
 func _ready() -> void:
@@ -62,15 +63,30 @@ func _refresh() -> void:
 	for slot: String in Gear.SLOTS:
 		_cards.add_child(_card(slot))
 	_cards.add_child(_bag_card())
+	for l: Label in _cards.find_children("*", "Label", true, false):    # text wraps; cards keep their size
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		if l.custom_minimum_size.x < 1.0:
+			l.custom_minimum_size.x = 60
 
 
 func _card(slot: String) -> Control:
 	var now := Gear.tier(slot)
-	var recipe := _next_recipe(slot, Gear.best_tier(slot))
+	var options := Gear.craftable_tiers(slot)
+	if not _pick.has(slot) or not _pick[slot] in options:
+		_pick[slot] = options.max() if not options.is_empty() else -1
+	var recipe := Gear.recipe_for(slot, _pick[slot]) if not options.is_empty() else {}
 	var v := _card_box()
 	var card: Control = v.get_parent()
-	var head := UIStyle.label(v, Gear.SLOTS[slot].to_upper(), 15, true)
+	var top := HBoxContainer.new()
+	top.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(top)
+	if options.size() > 1:                    # several tiers to choose from: browse them
+		UIStyle.button(top, "‹", Vector2(40, 34), 20).pressed.connect(_browse.bind(slot, options, -1))
+	var head := UIStyle.label(top, Gear.SLOTS[slot].to_upper(), 15, true)
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	head.custom_minimum_size.x = 110
+	if options.size() > 1:
+		UIStyle.button(top, "›", Vector2(40, 34), 20).pressed.connect(_browse.bind(slot, options, 1))
 	var pics := HBoxContainer.new()
 	pics.alignment = BoxContainer.ALIGNMENT_CENTER
 	pics.add_theme_constant_override("separation", 6)
@@ -134,6 +150,7 @@ func _card_box() -> VBoxContainer:
 	box.set_content_margin_all(16)
 	card.add_theme_stylebox_override("panel", box)
 	card.custom_minimum_size = Vector2(236, 360)
+	card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 10)
 	card.add_child(v)
@@ -166,11 +183,9 @@ func _craft_button(parent: Control, cost: Dictionary, color: Color, on_press: Ca
 	button.pressed.connect(on_press)
 
 
-func _next_recipe(slot: String, best_owned: int) -> Dictionary:
-	for r: Dictionary in Gear.RECIPES:
-		if r["slot"] == slot and r["tier"] == best_owned + 1:
-			return r
-	return {}
+func _browse(slot: String, options: Array[int], step: int) -> void:
+	_pick[slot] = options[posmod(options.find(_pick[slot]) + step, options.size())]
+	_refresh()
 
 
 func _name(parent: Control, text: String, tier: int) -> void:

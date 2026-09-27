@@ -33,6 +33,7 @@ var _bar_time := 0.0
 var _phase := 0.0
 var _time := 0.0
 var _flash := 0.0
+var _flash_set := 0.0
 var _fall := 0.0
 
 
@@ -97,13 +98,17 @@ func reset() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
-	_flash = maxf(_flash - delta * 5.0, 0.0)
-	for m in _materials:
-		m.set_shader_parameter("flash", _flash)
+	if _flash > 0.0 or _flash_set > 0.0:        # only touch the materials while flashing
+		_flash = maxf(_flash - delta * 5.0, 0.0)
+		for m in _materials:
+			m.set_shader_parameter("flash", _flash)
+		_flash_set = _flash
 	var warn := mode in ["alert", "charge", "stalk"]
-	_eyes = move_toward(_eyes, 1.0 if warn else 0.0, delta * 4.0)
-	for m in _eye_materials:
-		m.set_shader_parameter("glow", _eyes * 2.5)
+	var eyes := move_toward(_eyes, 1.0 if warn else 0.0, delta * 4.0)
+	if eyes != _eyes:
+		_eyes = eyes
+		for m in _eye_materials:
+			m.set_shader_parameter("glow", _eyes * 2.5)
 	var mark_a := move_toward(_alert_mark.modulate.a, 1.0 if mode == "alert" else 0.0, delta * 6.0)
 	_alert_mark.modulate.a = mark_a
 	_alert_mark.outline_modulate.a = mark_a
@@ -114,8 +119,10 @@ func _process(delta: float) -> void:
 	_trail_wait -= delta
 	if _trail_wait <= 0.0:
 		_trail = move_toward(_trail, _fill, delta * 1.2)
-	_bar_mat.set_shader_parameter("trail", _trail)
-	_bar_mat.set_shader_parameter("alpha", _bar_alpha)
+	_bar.visible = _bar_alpha > 0.001 or _time < 1.0    # drawn at the start so its shader gets ready
+	if _bar.visible:
+		_bar_mat.set_shader_parameter("trail", _trail)
+		_bar_mat.set_shader_parameter("alpha", _bar_alpha)
 	if mode == "dead":
 		_fall = minf(_fall + delta * 3.0, 1.0)
 		rotation.z = ease(_fall, 0.4) * PI * 0.5

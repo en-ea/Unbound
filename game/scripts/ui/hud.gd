@@ -29,6 +29,7 @@ var _title: Control
 var _hearts: Control
 var _map: Control
 var _hint: Label
+var _down_cover: ColorRect
 var _skill_box: VBoxContainer          # "Woodcutting  Lv 3" with a bar, shown briefly on gaining xp
 var _skill_label: Label
 var _skill_fill: ColorRect
@@ -82,6 +83,7 @@ func _ready() -> void:
 	add_child(_hearts)
 	player.health_changed.connect(_hearts.show_health)
 	player.knocked_out.connect(_knocked_out)
+	player.got_up.connect(_got_up)
 
 	_feed = Control.new()
 	_feed.set_script(PICKUP_FEED)
@@ -213,8 +215,8 @@ func _on_skill_leveled(skill: String, level: int) -> void:
 
 ## A tool turned up in a chest or on an enemy.
 func found_tool(slot: String, tool: Dictionary) -> void:
-	var rarity: String = ["", "Uncommon", "Rare"][tool["rarity"]]
-	hint("Found a %s %s!" % [rarity, Gear.name_of(slot, tool)])
+	var rarity: String = ["Common", "Uncommon", "Rare"][tool["rarity"]]
+	hint("New tool: %s (%s)" % [Gear.name_of(slot, tool), rarity])
 	_fanfare.pitch_scale = 0.9
 	_fanfare.play()
 
@@ -319,19 +321,59 @@ func _add_vignette() -> void:
 
 
 ## A dark fade with a message while the player is down, lifting as they get back up.
+## Knocked out: a beat of slow motion with a red flash, the camera leans in, then a fade to black
+## with "KNOCKED OUT" in the title's style. It lifts when the player gets up (player.got_up).
 func _knocked_out() -> void:
-	var cover := ColorRect.new()
-	cover.color = Color(0.03, 0.03, 0.06, 0.0)
-	cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(cover)
-	var text := UIStyle.label(cover, "Knocked out...", 40)
-	text.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	text.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var fade := create_tween()
-	fade.tween_property(cover, "color:a", 0.85, 0.9).set_delay(0.6)
-	fade.tween_interval(0.8)
-	fade.tween_property(cover, "color:a", 0.0, 0.6)
-	fade.parallel().tween_property(text, "modulate:a", 0.0, 0.4)
-	fade.tween_callback(cover.queue_free)
+	_set_play_ui(false)
+	Engine.time_scale = 0.35
+	get_tree().call_group("camera_rig", "shake", 0.25)
+	camera_rig.set_view(11.0, -58.0, Vector3.ZERO, 0.8)
+	var flash := ColorRect.new()
+	flash.color = Color(0.75, 0.08, 0.06, 0.45)
+	flash.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(flash)
+	_down_cover = ColorRect.new()
+	_down_cover.color = Color(0.02, 0.02, 0.05, 0.0)
+	_down_cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_down_cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_down_cover)
+	var column := VBoxContainer.new()
+	column.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	column.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	column.grow_vertical = Control.GROW_DIRECTION_BOTH
+	column.add_theme_constant_override("separation", 14)
+	column.modulate.a = 0.0
+	_down_cover.add_child(column)
+	var title := UIStyle.label(column, "K N O C K E D   O U T", 52)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color(1.0, 0.93, 0.82))
+	title.add_theme_color_override("font_outline_color", Color(0.45, 0.12, 0.08, 0.9))
+	title.add_theme_constant_override("outline_size", 6)
+	var line := ColorRect.new()
+	line.color = Color(0.93, 0.8, 0.52, 0.85)
+	line.custom_minimum_size = Vector2(0, 3)
+	line.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	column.add_child(line)
+	var sub := UIStyle.label(column, "You come to by the village...", 22, true)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var t := create_tween().set_ignore_time_scale(true)
+	t.tween_property(flash, "color:a", 0.0, 0.7)
+	t.tween_callback(func() -> void: Engine.time_scale = 1.0)
+	t.tween_property(_down_cover, "color:a", 0.92, 0.6)
+	t.parallel().tween_property(column, "modulate:a", 1.0, 0.6)
+	t.parallel().tween_property(line, "custom_minimum_size:x", 260.0, 0.9).set_trans(Tween.TRANS_SINE)
+	t.tween_callback(flash.queue_free)
+
+
+func _got_up() -> void:
+	Engine.time_scale = 1.0
+	if not is_instance_valid(_down_cover):
+		return
+	var cover := _down_cover
+	_down_cover = null
+	camera_rig.reset_view(0.01)
+	_set_play_ui(true)
+	var t := create_tween().set_ignore_time_scale(true)
+	t.tween_property(cover, "modulate:a", 0.0, 0.8)
+	t.tween_callback(cover.queue_free)

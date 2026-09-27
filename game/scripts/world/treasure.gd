@@ -2,10 +2,11 @@ extends Node3D
 ## Old ruins and treasure chests hidden around the meadow. A chest is a gatherable in
 ## WorldResources (type "chest": "Open", no tool), so reach, the action button, loot and saving all
 ## work like trees; this script shows it: a glint while it's full, the lid swinging open, the loot.
-## It refills after a long while.
+## Every chest also holds a tool with a bonus (a tool_drop to pick up). It refills after a long while.
 
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const DROP := preload("res://scripts/world/drop.gd")
+const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
 const RUIN := preload("res://assets/props/ruin_arch.glb")
 const CHEST_BASE := preload("res://assets/props/chest_base.glb")
 const CHEST_LID := preload("res://assets/props/chest_lid.glb")
@@ -64,10 +65,8 @@ func _on_opened(id: int, drops: Array) -> void:
 	t.tween_property(c["lid"], "rotation:x", LID_OPEN, 0.45)
 	_play("open", 1.7)
 	get_tree().create_timer(0.25).timeout.connect(func() -> void: _play("rare", 1.0))
-	if randf() < 0.4:                      # sometimes a tool with a bonus is inside
-		var found := Gear.roll_found()
-		Gear.give(found[0], found[1])
-		get_tree().call_group("hud", "found_tool", found[0], found[1])
+	var found := Gear.roll_found()          # every chest holds a tool with a bonus
+	TOOL_DROP.spawn(self, found[0], found[1], at, player)
 	for i in drops.size():
 		var drop := Node3D.new()
 		drop.set_script(DROP)

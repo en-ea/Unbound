@@ -91,6 +91,14 @@ func _process(delta: float) -> void:
 
 
 func _collect() -> void:
+	if not Inventory.has_room(item):         # filled up while this one was flying in: back down
+		_collecting = false
+		_landed = true
+		_landed_at = _age
+		global_position = _player.global_position + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)).normalized() * 1.2
+		_ground_y = _player.global_position.y
+		global_position.y = _ground_y + 0.15
+		return
 	Inventory.add(item, 1)
 	var rare := Items.rarity_of(item) != Items.Rarity.COMMON
 	var now := Time.get_ticks_msec() / 1000.0
@@ -167,8 +175,12 @@ func _burst(rare: bool) -> void:
 ## A soft light beam with a pool of light under it, in the rarity colour, so good drops stand out
 ## (also used for warm-up).
 static func make_beam(item: String) -> Node3D:
+	return make_beam_color(Items.RARITY_COLORS[Items.rarity_of(item)], 0.9 if Items.rarity_of(item) == Items.Rarity.RARE else 0.6)
+
+
+static func make_beam_color(color: Color, strength: float) -> Node3D:
 	var root := Node3D.new()
-	var c: Color = Items.RARITY_COLORS[Items.rarity_of(item)]
+	var c := color
 	c.a = 1.0
 	for disc in [false, true]:
 		var mi := MeshInstance3D.new()
@@ -184,7 +196,7 @@ static func make_beam(item: String) -> Node3D:
 		mat.shader = GLOW_SHADER
 		mat.set_shader_parameter("color", c)
 		mat.set_shader_parameter("disc", disc)
-		mat.set_shader_parameter("strength", 0.9 if Items.rarity_of(item) == Items.Rarity.RARE else 0.6)
+		mat.set_shader_parameter("strength", strength)
 		quad.material = mat
 		mi.mesh = quad
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

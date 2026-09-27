@@ -1,6 +1,6 @@
 extends Node
 ## Skills that grow as you use them (game state): woodcutting, mining and combat. Each hit gives
-## a little experience, finishing a tree, rock or enemy gives more. Levels give small perks:
+## a little experience, finishing a tree, rock or enemy gives more (see SYSTEMS.md for amounts). Levels give small perks:
 ## faster swings and a chance of extra drops for gathering, more sword damage for combat.
 
 signal gained(skill: String, amount: int)
@@ -14,9 +14,10 @@ const FOR_TOOL := {"axe": "woodcutting", "pickaxe": "mining", "sword": "combat"}
 var xp := {"woodcutting": 0, "mining": 0, "combat": 0}
 
 
-## Total experience needed to reach a level (level 2 after about one tree).
+## Total experience needed to reach a level: level 2 after a few trees or fights, level 10 after
+## a good while, 30 is a long-term goal.
 static func xp_for(lvl: int) -> int:
-	return int(15.0 * pow(lvl - 1, 1.6))
+	return int(40.0 * pow(lvl - 1, 1.8))
 
 
 func level(skill: String) -> int:

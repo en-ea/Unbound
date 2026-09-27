@@ -21,6 +21,7 @@ const SOUNDS := {
 	"thud": preload("res://assets/sounds/tree_thud.wav"),
 }
 const DROP := preload("res://scripts/world/drop.gd")
+const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
 
 enum State { WANDER, ALERT, CIRCLE, WINDUP, LUNGE, RETREAT, HURT, DEAD }
 
@@ -159,11 +160,10 @@ func take_hit(from: Vector3, damage := 1) -> void:
 
 func _die() -> void:
 	_enter(State.DEAD)
-	Skills.add("combat", 20)
+	Skills.add("combat", 10)
 	if randf() < 0.08:                       # now and then it was carrying a tool
 		var found := Gear.roll_found()
-		Gear.give(found[0], found[1])
-		get_tree().call_group("hud", "found_tool", found[0], found[1])
+		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.5))
 	var items: Array[String] = ["pelt"]
