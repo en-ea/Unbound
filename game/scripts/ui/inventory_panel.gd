@@ -46,6 +46,11 @@ func _ready() -> void:
 	_grid.add_theme_constant_override("v_separation", 12)
 	scroll.add_child(_grid)
 	Inventory.changed.connect(_on_changed)
+	ItemIcons.icon_ready.connect(_on_icon_ready)
+	_refresh()
+
+
+func _on_icon_ready(_item: String) -> void:
 	_refresh()
 
 
@@ -76,16 +81,7 @@ func _card(item: String) -> Control:
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_theme_constant_override("separation", 6)
 	card.add_child(v)
-	var icon := Panel.new()
-	icon.custom_minimum_size = Vector2(52, 52)
-	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var dot := StyleBoxFlat.new()
-	dot.bg_color = Items.color_of(item)
-	dot.set_corner_radius_all(26)
-	dot.border_color = Items.color_of(item).lightened(0.35)
-	dot.set_border_width_all(3)
-	icon.add_theme_stylebox_override("panel", dot)
-	v.add_child(icon)
+	v.add_child(item_icon(item, 64))
 	var name_label := UIStyle.label(v, Items.name_of(item), 17)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var count := UIStyle.label(v, "× %d" % Inventory.count(item), 20)
@@ -93,7 +89,32 @@ func _card(item: String) -> Control:
 	return card
 
 
+## The item's rendered picture, or a colour dot while it is still being drawn.
+static func item_icon(item: String, size: float) -> Control:
+	var tex := ItemIcons.icon(item)
+	if tex:
+		var rect := TextureRect.new()
+		rect.texture = tex
+		rect.custom_minimum_size = Vector2(size, size)
+		rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		return rect
+	var dot := Panel.new()
+	dot.custom_minimum_size = Vector2(size, size) * 0.6
+	dot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var box := StyleBoxFlat.new()
+	box.bg_color = Items.color_of(item)
+	box.set_corner_radius_all(int(size))
+	dot.add_theme_stylebox_override("panel", box)
+	return dot
+
+
 func _close() -> void:
 	Inventory.changed.disconnect(_on_changed)
+	ItemIcons.icon_ready.disconnect(_on_icon_ready)
 	closed.emit()
 	queue_free()

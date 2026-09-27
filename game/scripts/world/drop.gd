@@ -23,6 +23,7 @@ func launch(item_id: String, from: Vector3, velocity: Vector3, ground_y: float, 
 	_player = player
 	global_position = from
 	_mesh = make_mesh(item)
+	_mesh.scale = Vector3.ONE * 1.3
 	add_child(_mesh)
 	if Items.rarity_of(item) == Items.Rarity.RARE:
 		_add_sparkle()
@@ -83,60 +84,9 @@ func _add_sparkle() -> void:
 	add_child(p)
 
 
-## A small faceted mesh for an item (also used for warm-up).
+## The item's model as a node (also used for warm-up).
 static func make_mesh(item_id: String) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
-	var color := Items.color_of(item_id)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.8
-	match Items.DEFS[item_id]["shape"]:
-		"log":
-			var m := CylinderMesh.new()
-			m.top_radius = 0.07
-			m.bottom_radius = 0.075
-			m.height = 0.32
-			m.radial_segments = 6
-			m.rings = 1
-			mi.mesh = m
-			mi.rotation = Vector3(0, 0, PI / 2)
-		"rock":
-			var m := SphereMesh.new()
-			m.radius = 0.1
-			m.height = 0.16
-			m.radial_segments = 6
-			m.rings = 3
-			mi.mesh = m
-		"cap":
-			var m := CylinderMesh.new()
-			m.top_radius = 0.03
-			m.bottom_radius = 0.1
-			m.height = 0.08
-			m.radial_segments = 7
-			m.rings = 1
-			mi.mesh = m
-		"gem":
-			var m := CylinderMesh.new()
-			m.top_radius = 0.0
-			m.bottom_radius = 0.07
-			m.height = 0.2
-			m.radial_segments = 5
-			m.rings = 1
-			mi.mesh = m
-			mat.emission_enabled = true
-			mat.emission = color
-			mat.emission_energy_multiplier = 1.5
-		_:
-			var m := SphereMesh.new()
-			m.radius = 0.08
-			m.height = 0.16
-			m.radial_segments = 7
-			m.rings = 4
-			mi.mesh = m
-	if item_id == "glowcap":
-		mat.emission_enabled = true
-		mat.emission = color
-		mat.emission_energy_multiplier = 1.2
-	mi.material_override = mat
+	mi.mesh = Items.mesh(item_id)
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return mi

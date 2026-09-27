@@ -21,6 +21,7 @@ Settings="*res://scripts/core/settings.gd"
 Controls="*res://scripts/core/controls.gd"
 Inventory="*res://scripts/state/inventory.gd"
 WorldResources="*res://scripts/state/world_resources.gd"
+ItemIcons="*res://scripts/ui/item_icons.gd"
 
 [display]
 

@@ -2,6 +2,7 @@ extends Control
 ## Pickup feed: small pills under the FPS text ("● Wood  +3"). Repeat pickups of the same item
 ## merge into one pill and bump its count; pills fade out after a moment.
 
+const INVENTORY_PANEL := preload("res://scripts/ui/inventory_panel.gd")
 const LIFETIME := 2.6
 const MAX_ROWS := 5
 const TOP_LEFT := Vector2(64, 92)
@@ -65,14 +66,7 @@ func _make_row(item: String, amount: int) -> Dictionary:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 10)
 	pill.add_child(h)
-	var dot := Panel.new()
-	dot.custom_minimum_size = Vector2(18, 18)
-	dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var dot_box := StyleBoxFlat.new()
-	dot_box.bg_color = Items.color_of(item)
-	dot_box.set_corner_radius_all(9)
-	dot.add_theme_stylebox_override("panel", dot_box)
-	h.add_child(dot)
+	h.add_child(INVENTORY_PANEL.item_icon(item, 34))
 	var name_label := UIStyle.label(h, Items.name_of(item), 20)
 	if rare:
 		name_label.add_theme_color_override("font_color", Items.RARITY_COLORS[Items.rarity_of(item)])

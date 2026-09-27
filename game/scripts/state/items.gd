@@ -14,7 +14,14 @@ const DEFS := {
 	"resin": {"name": "Amber Resin", "color": Color(1.0, 0.68, 0.2), "rarity": Rarity.RARE, "shape": "gem"},
 	"glowcap": {"name": "Glowcap", "color": Color(0.45, 1.0, 0.75), "rarity": Rarity.RARE, "shape": "cap"},
 	"shard": {"name": "Glimmer Shard", "color": Color(0.5, 0.85, 1.0), "rarity": Rarity.RARE, "shape": "gem"},
+	"hide": {"name": "Boar Hide", "color": Color(0.42, 0.34, 0.38), "rarity": Rarity.COMMON, "shape": "hide"},
+	"tusk": {"name": "Boar Tusk", "color": Color(0.93, 0.88, 0.74), "rarity": Rarity.UNCOMMON, "shape": "tusk"},
 }
+
+const MODELS := "res://assets/items/%s.glb"      # tools-src/blender/make_items.py
+const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
+
+static var _meshes := {}
 
 const RARITY_COLORS := {
 	Rarity.COMMON: Color(1, 1, 1, 0.25),
@@ -33,3 +40,22 @@ static func color_of(id: String) -> Color:
 
 static func rarity_of(id: String) -> int:
 	return DEFS[id]["rarity"]
+
+
+## The item's faceted model, with the shared solid shader (glowing parts shine a little).
+static func mesh(id: String) -> Mesh:
+	if _meshes.has(id):
+		return _meshes[id]
+	var scene := (load(MODELS % id) as PackedScene).instantiate()
+	var m := (scene.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D).mesh.duplicate() as Mesh
+	scene.free()
+	for s in m.get_surface_count():
+		var src := m.surface_get_material(s) as StandardMaterial3D
+		var mat := ShaderMaterial.new()
+		mat.shader = SOLID_SHADER
+		mat.set_shader_parameter("albedo", Color.WHITE)
+		mat.set_shader_parameter("sway", 0.0)
+		mat.set_shader_parameter("glow", 0.9 if src and src.resource_name == "Glow" else 0.0)
+		m.surface_set_material(s, mat)
+	_meshes[id] = m
+	return m

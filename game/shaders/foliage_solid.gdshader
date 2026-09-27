@@ -5,6 +5,7 @@ shader_type spatial;
 uniform vec4 albedo : source_color = vec4(0.4, 0.58, 0.3, 1.0);
 uniform float sway = 0.06;          // metres of movement at the top
 uniform float sway_height = 6.0;    // model height where the sway is full
+uniform float glow = 0.0;           // gentle self-light (glowing items)
 
 varying float top_light;
 varying vec3 tint;
@@ -27,6 +28,7 @@ void vertex() {
 void fragment() {
 	vec3 clump = vec3(UV.x, UV.y, UV2.x);
 	ALBEDO = albedo.rgb * clump * tint * mix(0.76, 1.02, top_light);
+	EMISSION = ALBEDO * glow;
 	ROUGHNESS = 0.95;
 	SPECULAR = 0.1;
 	RIM = 0.18;
