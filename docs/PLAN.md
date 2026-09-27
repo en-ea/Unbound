@@ -42,3 +42,10 @@ Don't start the next milestone until the current one feels good on the phone.
 - **M5 · Save and offline:** save anywhere, instantly (on-device storage), plus an iPhone-friendly offline mode so it works on the train without the PC. Then move hosting off the PC (free GitHub Pages).
 - **M6 · Village and people:** a village hub, NPCs with routines, the shrine that wakes (the story start), the first companion.
 - **After M6:** more zones and underground, fishing/farming/animals, bosses, the second land, the third land, co-op.
+
+## Parked ideas (owner wants these later)
+- **Night-only creature** with special loot (the owner picked this for nights).
+- **Punching trees** when you have no axe (about double the hits); the axe may be a bit fast now. Do it with M4 tool tiers.
+- **Fishing** at the pond: a timing game with rare fish. Will be in the game, just not yet.
+- **Expand ruins and chests** once the map grows (the concept is in: `treasure.gd`).
+- **House style:** four styles now stand in the village (cottage, cabin, round house, longhouse). The owner picks a favourite vibe.
