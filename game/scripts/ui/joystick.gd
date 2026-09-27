@@ -17,7 +17,7 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
-		if touch.pressed and _finger == -1 and touch.position.x < size.x * 0.5:
+		if touch.pressed and _finger == -1 and touch.position.x < get_viewport().get_visible_rect().size.x * 0.5:
 			_finger = touch.index
 			_origin = touch.position
 			_knob = Vector2.ZERO
