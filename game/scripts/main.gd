@@ -1,5 +1,5 @@
 extends Node3D
-## Builds the meadow slice and places the player.
+## Builds the current region (Region.current: the meadow, the forest...) and places the player.
 
 @onready var terrain: Node = $Terrain
 @onready var scatter: Node = $Scatter
@@ -8,6 +8,10 @@ extends Node3D
 
 
 func _ready() -> void:
+	var first_load := Region.arrive == Vector2.INF
+	if first_load:
+		Region.current = SaveGame.saved_region()
+	var meadow := Region.current == "meadow"
 	var shape := WorldShape.new()
 	terrain.build(shape)
 	scatter.build(shape)
@@ -16,17 +20,24 @@ func _ready() -> void:
 	$ResourceVisuals.setup(scatter.gatherables)
 	$OcclusionFader.setup(scatter.trees)
 	$Enemies.spawn(shape)
-	$Village.build(shape)
+	if meadow:
+		$Village.build(shape)
 	$HUD.setup_map(shape, scatter.tree_points(), $Landmark)
 	var treasure := Node3D.new()
 	treasure.set_script(preload("res://scripts/world/treasure.gd"))
 	treasure.player = player
 	add_child(treasure)
 	treasure.build(shape)
-	var workbench := Node3D.new()
-	workbench.set_script(preload("res://scripts/world/workbench.gd"))
-	add_child(workbench)
-	workbench.build(shape, Vector2(-1.0, 7.0))
+	if meadow:
+		var workbench := Node3D.new()
+		workbench.set_script(preload("res://scripts/world/workbench.gd"))
+		add_child(workbench)
+		workbench.build(shape, Vector2(-1.0, 7.0))
+	var gates := Node3D.new()
+	gates.set_script(preload("res://scripts/world/region_gates.gd"))
+	gates.player = player
+	add_child(gates)
+	gates.build(shape)
 	var lab := Node3D.new()
 	lab.set_script(preload("res://scripts/dev/build_lab.gd"))
 	lab.player = player
@@ -41,5 +52,10 @@ func _ready() -> void:
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)
 	player.spawn_point = player.global_position
+	var arrive := Region.arrive
 	SaveGame.attach(player, $WorldEnvironment)
+	if arrive != Vector2.INF:          # came through a gate: stand just inside it, facing in
+		player.global_position = Vector3(arrive.x, shape.height_at(arrive.x, arrive.y) + 0.3, arrive.y)
+		player.visual.rotation.y = atan2(-arrive.x, -arrive.y)
 	camera_rig.snap()
+	Region.arrived(not first_load)

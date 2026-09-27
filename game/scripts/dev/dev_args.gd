@@ -171,7 +171,7 @@ func _run_gather_test() -> void:
 			if n["type"] != "tree":
 				continue
 			var near_boar := false
-			for h: Vector2 in preload("res://scripts/creatures/enemies.gd").BOAR_HOMES:
+			for h: Vector2 in preload("res://scripts/creatures/enemies.gd").HOMES["meadow"]["boars"]:
 				if Vector2(n["pos"].x, n["pos"].z).distance_to(h) < 16.0:
 					near_boar = true
 			if near_boar:

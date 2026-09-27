@@ -20,6 +20,8 @@ const DEFS := {
 	"iron": {"name": "Iron Ore", "color": Color(0.72, 0.76, 0.84), "rarity": Rarity.UNCOMMON},
 	"pelt": {"name": "Wolf Pelt", "color": Color(0.6, 0.64, 0.72), "rarity": Rarity.UNCOMMON},
 	"fang": {"name": "Wolf Fang", "color": Color(0.97, 0.95, 0.88), "rarity": Rarity.RARE},
+	"pinewood": {"name": "Pinewood", "color": Color(0.5, 0.33, 0.22), "rarity": Rarity.UNCOMMON},
+	"shadow_pelt": {"name": "Shadow Pelt", "color": Color(0.36, 0.32, 0.55), "rarity": Rarity.RARE},
 }
 
 const MODELS := "res://assets/items/%s.glb"      # tools-src/blender/make_items.py

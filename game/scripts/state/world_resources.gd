@@ -16,6 +16,9 @@ const TYPES := {
 		"drops": [["wood", 2, 3, 1.0], ["resin", 1, 1, 0.08]]},
 	"apple_tree": {"hits": 8, "respawn": 60.0, "radius": 0.6, "tool": "axe", "verb": "Chop",
 		"drops": [["wood", 2, 2, 1.0], ["apple", 1, 3, 1.0], ["resin", 1, 1, 0.08]]},
+	# Forest pines: tougher wood that needs a Stone axe or better.
+	"pine": {"hits": 10, "respawn": 90.0, "radius": 0.6, "tool": "axe", "verb": "Chop", "min_tier": 1,
+		"wood_item": "pinewood", "drops": [["pinewood", 2, 3, 1.0], ["resin", 1, 1, 0.12]]},
 	"rock": {"hits": 10, "respawn": 90.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine",
 		"drops": [["stone", 2, 3, 1.0], ["flint", 1, 1, 0.15], ["shard", 1, 1, 0.04]]},
 	# Ore rocks need a better pickaxe (min_tier, see Gear.TIERS).
@@ -73,7 +76,7 @@ func type_info(id: int) -> Dictionary:
 
 
 func is_tree(id: int) -> bool:
-	return _nodes[id]["type"] in ["tree", "apple_tree"]
+	return _nodes[id]["type"] in ["tree", "apple_tree", "pine"]
 
 
 ## How big the thing looks right now, as a fraction of its full scatter size (saplings < 1).
@@ -136,7 +139,7 @@ func hit_node(id: int, power := 1, luck := 0.0) -> bool:
 	var table: Array = info["drops"]
 	if is_tree(id):
 		var stage := tree_stage(id)
-		table = [["wood", stage["wood"][0], stage["wood"][1], 1.0], ["resin", 1, 1, stage["resin"]]]
+		table = [[info.get("wood_item", "wood"), stage["wood"][0], stage["wood"][1], 1.0], ["resin", 1, 1, stage["resin"]]]
 		if n["type"] == "apple_tree":
 			table.append(["apple", 1, 3, 1.0])
 	for d: Array in table:
@@ -193,16 +196,30 @@ func layout_id() -> int:
 
 
 ## Applies a save (after the world has been placed). Ignored if the world layout changed.
-func load_data(data: Array) -> void:
+## `away` is how many seconds passed since it was saved: things keep growing back while you're gone.
+func load_data(data: Array, away := 0.0) -> void:
 	if data.size() != _nodes.size():
 		return
 	var now := _now()
+	away = maxf(away, 0.0)
 	for id in _nodes.size():
 		var d: Array = data[id]
 		var n := _nodes[id]
-		n["growth"] = clampf(d[1], 0.0, 1.0)
-		n["respawn_at"] = now + maxf(d[2], 0.0) if d[2] >= 0.0 else -1.0
-		n["hits_left"] = clampi(int(d[0]), 1, _hits_for(id))
+		var growth := clampf(d[1], 0.0, 1.0)
+		var wait: float = d[2]
+		var full := false
+		if wait >= 0.0:
+			wait -= away
+			if wait < 0.0:                         # grew back while you were away
+				if is_tree(id):
+					growth = minf(1.0, -wait / GROW_TIME)
+				wait = -1.0
+				full = true
+		elif growth < 1.0:
+			growth = minf(1.0, growth + away / GROW_TIME)
+		n["growth"] = growth
+		n["respawn_at"] = now + wait if wait >= 0.0 else -1.0
+		n["hits_left"] = _hits_for(id) if full else clampi(int(d[0]), 1, _hits_for(id))
 	loaded.emit()
 
 

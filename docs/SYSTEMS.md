@@ -36,6 +36,19 @@ functions; visual scripts listen to signals. Keep it that way (co-op later).
 kills (boar 25, wolf 20). Perks: gathering speed +1.5% and extra-drop chance +1% per level, sword
 damage +1 per 10 combat levels. The HUD shows a small bar on gains and a message on level-up.
 
+## Regions and travel
+- `game/scripts/core/region.gd` (autoload `Region`): the current region, its display name (`NAMES`) and its
+  gates (`GATES`: trigger spot, the region it leads to, where you arrive). `travel()` saves, fades, and
+  reloads the main scene, which builds the new region; `arrived()` fades in and shows the name.
+- `WorldShape.REGIONS`: each region's pond, hill (standing stones), spawn, path, clearings, roughness, seed.
+  Scripts read `WorldShape.POND_CENTER` etc., set by `WorldShape.use()` for the current region.
+- Per-region content: trees and plants (`scatter.gd`, `_scatter_forest_trees`), enemies (`enemies.gd` HOMES),
+  ruins and chests (`treasure.gd`), gates (`world/region_gates.gd`). The village and workbench are meadow only.
+- Saving: each region's trees/rocks/chests are saved separately with the time they were saved; on load the
+  time away is applied, so things grow back while you are elsewhere or the app is closed.
+- Add a region: an entry in `WorldShape.REGIONS`, `Region.NAMES` and `Region.GATES` (both directions), then its
+  scatter, enemies and treasure lists. Dev: `--region=forest`.
+
 ## Minimap
 Anything in group `"map_building"` with a `"map_size"` meta (Vector2 footprint) shows as a building.
 

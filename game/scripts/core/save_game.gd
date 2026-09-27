@@ -12,6 +12,7 @@ var _day_night: Node
 var _timer := AUTOSAVE_EVERY
 var _enabled := true
 var paused := false     # the build lab turns saving off while you are in it
+var _regions := {}      # region -> {"layout", "world", "saved_at"}: every region's trees, rocks and chests
 
 
 ## Called by main once the world is built: remembers what to save and loads the last save.
@@ -40,13 +41,18 @@ func save_game() -> void:
 	if not _enabled or paused or not is_instance_valid(_player):
 		return
 	var p := _player.global_position
+	_regions[Region.current] = {
+		"world": WorldResources.to_data(),
+		"layout": str(WorldResources.layout_id()),     # as text: JSON would round a big number
+		"saved_at": Time.get_unix_time_from_system(),
+	}
 	var data := {
 		"version": VERSION,
 		"inventory": Inventory.to_data(),
 		"gear": Gear.to_data(),
 		"skills": Skills.to_data(),
-		"world": WorldResources.to_data(),
-		"layout": str(WorldResources.layout_id()),     # as text: JSON would round a big number
+		"region": Region.current,
+		"regions": _regions,
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y},
 		"time_of_day": _day_night.time_of_day,
 	}
@@ -55,20 +61,40 @@ func save_game() -> void:
 		file.store_string(JSON.stringify(data))
 
 
-func load_game() -> void:
+func _read() -> Dictionary:
 	if not FileAccess.file_exists(PATH):
-		return
+		return {}
 	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
 	if not data is Dictionary or data.get("version", 0) != VERSION:
+		return {}
+	return data
+
+
+## The region the save was made in, so main can build it before loading (real runs only).
+func saved_region() -> String:
+	if not OS.get_cmdline_user_args().is_empty():
+		return Region.current
+	return _read().get("region", "meadow")
+
+
+func load_game() -> void:
+	var data := _read()
+	if data.is_empty():
 		return
 	Inventory.load_data(data.get("inventory", {}))
 	Gear.load_data(data.get("gear", {}))
 	Skills.load_data(data.get("skills", {}))
-	if data.get("layout", "") == str(WorldResources.layout_id()):
-		WorldResources.load_data(data.get("world", []))
+	_regions = data.get("regions", {})
+	if not data.has("regions") and data.has("world"):       # a save from before regions: the meadow
+		_regions = {"meadow": {"world": data["world"], "layout": data.get("layout", ""), "saved_at": Time.get_unix_time_from_system()}}
+	var here: Dictionary = _regions.get(Region.current, {})
+	if here.get("layout", "") == str(WorldResources.layout_id()):
+		WorldResources.load_data(here.get("world", []), Time.get_unix_time_from_system() - float(here.get("saved_at", 0.0)))
 	var pl: Dictionary = data.get("player", {})
 	var pos: Array = pl.get("pos", [])
-	if pos.size() == 3:
+	if Region.arrive != Vector2.INF or data.get("region", "meadow") != Region.current:
+		pass                     # just came through a gate: main places the player there
+	elif pos.size() == 3:
 		_player.global_position = Vector3(pos[0], pos[1] + 0.1, pos[2])
 		_player.visual.rotation.y = pl.get("facing", 0.0)
 	_day_night.time_of_day = data.get("time_of_day", _day_night.time_of_day)
@@ -78,6 +104,8 @@ func load_game() -> void:
 func start_over() -> void:
 	DirAccess.remove_absolute(PATH)
 	_enabled = false        # don't save the old world on the way out
+	_regions = {}
+	Region.current = "meadow"
 	Inventory.load_data({})
 	Gear.load_data({})
 	Skills.load_data({})

@@ -43,7 +43,10 @@ func build(shape: WorldShape) -> void:
 	_rng.seed = 1234
 	_colliders = StaticBody3D.new()
 	add_child(_colliders)
-	_scatter_trees()
+	if WorldShape.region == "forest":
+		_scatter_forest_trees()
+	else:
+		_scatter_trees()
 	_scatter_landmarks()
 	_scatter_path_stones()
 	_scatter_rocks()
@@ -80,6 +83,28 @@ func _scatter_trees() -> void:
 		var gather := "" if model == "tree_dead_1" else ("apple_tree" if model == "tree_apple_1" else "tree")
 		# Sizes vary a lot: young, grown and old trees take different work and give different wood.
 		_place(model, "tree", p, _rng.randf_range(0.72, 1.4), 0.2, gather)
+
+
+## The Whispering Wood: close-packed old pines and oaks everywhere but the path, the pool and the
+## shrine. Pines here are "pine" (pinewood, needs a Stone axe); the rest give plain wood.
+func _scatter_forest_trees() -> void:
+	var leafy := ["tree_oak_1", "tree_oak_2", "tree_round_2", "tree_tall_1", "tree_small_2", "tree_dead_1"]
+	var pines := ["tree_pine_1", "tree_pine_2"]
+	for i in 9000:
+		if _trees.size() >= 380:
+			break
+		var p := _random_point(72.0)
+		var edge := maxf(absf(p.x), absf(p.y))
+		var thick := _shape.meadow_noise(p.x * 0.5 - 30.0, p.y * 0.5)
+		if _rng.randf() > (0.95 if edge > 50.0 else 0.35 + thick * 0.6) or not _clear_of_features(p, 3.5, 6.0):
+			continue
+		if _near_tree(p, 3.1 if edge > 50.0 else 3.6):
+			continue
+		_add_tree(p)
+		var pine := _rng.randf() < 0.55
+		var model: String = _pick(pines) if pine else _pick(leafy)
+		var gather := "" if model == "tree_dead_1" else ("pine" if pine else "tree")
+		_place(model, "tree", p, _rng.randf_range(0.8, 1.55) if pine else _rng.randf_range(0.75, 1.3), 0.15, gather)
 
 
 func _scatter_landmarks() -> void:
@@ -143,7 +168,8 @@ func _scatter_ores() -> void:
 	for i in 200:
 		if placed >= 5:
 			break
-		var p := Vector2(_rng.randf_range(-30, 40), _rng.randf_range(-52, -36))
+		var p := Vector2(_rng.randf_range(-30, 40), _rng.randf_range(-52, -36)) if WorldShape.region == "meadow" \
+			else Vector2(_rng.randf_range(-48, -14), _rng.randf_range(34, 52))
 		if _clear_of_features(p, 2.5, 9.0) and not _near_tree(p, 2.5):
 			_place("ore_iron", "rock", p, _rng.randf_range(0.7, 0.9), 0.2, "iron_rock")
 			_ore_spots.append(p)
@@ -194,6 +220,9 @@ func _plant_at(p: Vector2) -> void:
 			return
 	var m := _shape.meadow_noise(p.x, p.y)
 	var near_tree := _near_tree(p, 3.5)
+	if WorldShape.region == "forest":
+		_forest_plant_at(p, m, near_tree)
+		return
 	var r := _rng.randf()
 	if near_tree:
 		if r < 0.12:
@@ -214,6 +243,26 @@ func _plant_at(p: Vector2) -> void:
 		pass                          # open ground
 	elif r < 0.665:
 		_place(_pick(["bush_1", "bush_2", "bush_flower_1"]), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
+
+
+## Forest floor: ferns and mushrooms under the trees (glowcaps show up more here), moss grass,
+## a few bushes, and flowers only in the odd sunny gap.
+func _forest_plant_at(p: Vector2, m: float, near_tree: bool) -> void:
+	var r := _rng.randf()
+	if near_tree:
+		if r < 0.22:
+			_place("fern_1", "small", p, _rng.randf_range(0.9, 1.4), 0.2)
+		elif r < 0.28:
+			_place(_pick(["mushroom_1", "mushroom_2"]), "small", p, _rng.randf_range(0.9, 1.3), 0.15, "mushroom")
+		elif r < 0.33:
+			_place(_pick(["bush_1", "bush_2"]), "bush", p, _rng.randf_range(0.8, 1.2), 0.1)
+		return
+	if r < 0.14 + m * 0.12:
+		_place(_pick(["grass_1", "grass_2", "grass_3"]), "small", p, _rng.randf_range(0.9, 1.5), 0.2)
+	elif r < 0.2:
+		_place("fern_1", "small", p, _rng.randf_range(0.8, 1.2), 0.2)
+	elif m > 0.6 and r < 0.3:
+		_place(_pick(["flower_2", "flower_4"]), "small", p, _rng.randf_range(0.85, 1.1), 0.2, "flower")
 
 
 # --- helpers -------------------------------------------------------------------

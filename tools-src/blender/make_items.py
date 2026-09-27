@@ -25,14 +25,14 @@ def tube_faces(b, pts, radii, color, seg=7, mat="Item", ref=V((0, 0, 1))):
     b.paint(b.new_faces(lambda: rk.tube(b.bm, pts, radii, ref=ref, seg=seg)), mat, color)
 
 
-def log():
+def log(bark=(0.58, 0.4, 0.25), cut=(0.82, 0.66, 0.44)):
     b = Builder(["Item"])
-    tube_faces(b, [V((-0.17, 0, 0)), V((0.17, 0, 0))], [(0.075, 0.075)] * 2, (0.58, 0.4, 0.25))
+    tube_faces(b, [V((-0.17, 0, 0)), V((0.17, 0, 0))], [(0.075, 0.075)] * 2, bark)
     # Light cut ends.
     for f in b.bm.faces:
         f.normal_update()
         if abs(f.normal.x) > 0.9:
-            b.paint([f], "Item", (0.82, 0.66, 0.44))
+            b.paint([f], "Item", cut)
     return b
 
 
@@ -145,3 +145,5 @@ export("pelt", hide((0.6, 0.64, 0.72)), OUT)
 export("copper", ore_chunk((0.93, 0.55, 0.3), 5), OUT)
 export("iron", ore_chunk((0.8, 0.84, 0.92), 6), OUT)
 export("fang", fang(), OUT)
+export("pinewood", log((0.36, 0.24, 0.17), (0.93, 0.78, 0.5)), OUT)
+export("shadow_pelt", hide((0.2, 0.19, 0.3)), OUT)

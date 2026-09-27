@@ -137,7 +137,10 @@ func _ready() -> void:
 	Skills.gained.connect(_on_skill_gained)
 	Skills.leveled.connect(_on_skill_leveled)
 
-	show_title()
+	if Region.arrive != Vector2.INF:      # just travelled to another region: straight back to playing
+		start_game.call_deferred(true)
+	else:
+		show_title()
 
 
 func _process(delta: float) -> void:

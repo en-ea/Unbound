@@ -1,52 +1,88 @@
 class_name WorldShape
 extends RefCounted
-## The shape of the starting meadow: ground height, the dirt path and the pond.
+## The shape of the current region: ground height, the dirt path, the pond and the hill.
 ## Pure functions, shared by the terrain mesh and the scatter, so they always agree.
+## Each region sets its features with use() (called by _init from Region.current).
 
 const HALF_SIZE := 80.0          # the ground mesh covers -80..80 on x and z
 const PLAY_HALF := 58.0          # invisible walls keep the player inside this
 const WATER_Y := -0.45
-const POND_CENTER := Vector2(24.0, -6.0)
-const POND_RADIUS := 10.0
-const HILL_CENTER := Vector2(-26.0, -30.0)
-const HILL_RADIUS := 16.0
-const HILL_HEIGHT := 4.5
-const SPAWN := Vector2(0.0, 22.0)
 
-## The dirt path, from the south edge through the meadow up onto the hill.
-static var path := PackedVector2Array([
-	Vector2(2, 75), Vector2(-3, 52), Vector2(3, 34), Vector2(0, 18), Vector2(7, 4),
-	Vector2(4, -10), Vector2(-8, -20), Vector2(-20, -26), Vector2(-26, -30),
-])
+## Per region: pond, hill (the standing stones), spawn, path, clearings (flattened: x, z, radius),
+## keep_clear (not flattened), ground roughness and noise seed.
+const REGIONS := {
+	"meadow": {
+		"pond": Vector2(24.0, -6.0), "pond_r": 10.0, "hill": Vector2(-26.0, -30.0), "hill_r": 16.0, "hill_h": 4.5,
+		"spawn": Vector2(0.0, 22.0), "rough": 3.4, "seed": 7,
+		"path": [Vector2(2, 75), Vector2(-3, 52), Vector2(3, 34), Vector2(0, 18), Vector2(7, 4),
+			Vector2(4, -10), Vector2(-8, -20), Vector2(-20, -26), Vector2(-26, -30)],
+		"clearings": [Vector3(-5.5, 11.5, 4.2), Vector3(10.5, 13.0, 4.6), Vector3(5.4, 16.0, 1.5),
+			Vector3(-9.0, 23.0, 4.4), Vector3(14.0, 3.0, 4.0), Vector3(-13.0, 2.0, 5.0),
+			Vector3(9.0, 22.0, 5.0), Vector3(-6.0, 31.0, 5.0), Vector3(-1.0, 7.0, 3.0)],
+		"keep_clear": [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5)],
+	},
+	"forest": {
+		"pond": Vector2(-24.0, -8.0), "pond_r": 8.0, "hill": Vector2(18.0, 30.0), "hill_r": 14.0, "hill_h": 3.5,
+		"spawn": Vector2(-1.0, -50.0), "rough": 4.6, "seed": 21,
+		"path": [Vector2(0, -75), Vector2(-3, -52), Vector2(5, -36), Vector2(0, -20), Vector2(-9, -6),
+			Vector2(-4, 8), Vector2(6, 18), Vector2(12, 25), Vector2(18, 30)],
+		"clearings": [Vector3(-1.0, -48.0, 4.0)],
+		"keep_clear": [Vector3(34, -18, 4.0), Vector3(-36, 30, 1.5), Vector3(-40, -40, 1.5)],
+	},
+}
 
+static var region := "meadow"
+static var POND_CENTER := Vector2(24.0, -6.0)
+static var POND_RADIUS := 10.0
+static var HILL_CENTER := Vector2(-26.0, -30.0)
+static var HILL_RADIUS := 16.0
+static var HILL_HEIGHT := 4.5
+static var SPAWN := Vector2(0.0, 22.0)
+static var ROUGH := 3.4
+## The dirt path, from the edge of the region to the hill.
+static var path := PackedVector2Array()
 ## Spots kept clear of trees, rocks and plants (houses, the merchant): (x, z, radius).
-static var clearings := [Vector3(-5.5, 11.5, 4.2), Vector3(10.5, 13.0, 4.6), Vector3(5.4, 16.0, 1.5),
-	Vector3(-9.0, 23.0, 4.4), Vector3(14.0, 3.0, 4.0), Vector3(-13.0, 2.0, 5.0),
-	Vector3(9.0, 22.0, 5.0), Vector3(-6.0, 31.0, 5.0),
-	Vector3(-1.0, 7.0, 3.0)]
+static var clearings := []
 ## Spots kept free of scatter without flattening the ground (ruins, treasure chests): (x, z, radius).
-static var keep_clear := [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5)]
+static var keep_clear := []
 
 var _noise := FastNoiseLite.new()
 var _detail := FastNoiseLite.new()
 
 
 func _init() -> void:
-	_noise.seed = 7
+	use(Region.current)
+	_noise.seed = REGIONS[region]["seed"]
 	_noise.frequency = 0.02
 	_noise.fractal_octaves = 3
 	_detail.seed = 11
 	_detail.frequency = 0.09
 
 
+static func use(id: String) -> void:
+	region = id if REGIONS.has(id) else "meadow"
+	var r: Dictionary = REGIONS[region]
+	POND_CENTER = r["pond"]
+	POND_RADIUS = r["pond_r"]
+	HILL_CENTER = r["hill"]
+	HILL_RADIUS = r["hill_r"]
+	HILL_HEIGHT = r["hill_h"]
+	SPAWN = r["spawn"]
+	ROUGH = r["rough"]
+	path = PackedVector2Array(r["path"])
+	clearings = r["clearings"]
+	keep_clear = r["keep_clear"]
+
+
 func height_at(x: float, z: float) -> float:
 	var p := Vector2(x, z)
 	var path_d := path_distance(p)
 	# Gentle rolling ground, calmer along the path.
-	var h := (_noise.get_noise_2d(x, z) * 0.5 + 0.5) * 3.4 * lerpf(0.35, 1.0, smoothstep(1.5, 6.0, path_d))
+	var h := (_noise.get_noise_2d(x, z) * 0.5 + 0.5) * ROUGH * lerpf(0.35, 1.0, smoothstep(1.5, 6.0, path_d))
 	# Hills rise around the edges and close the meadow in.
 	var edge := maxf(absf(x), absf(z)) / HALF_SIZE
-	h += smoothstep(0.6, 1.0, edge) * 16.0
+	# The path out of the region cuts a notch through them (the way to the next region).
+	h += smoothstep(0.6, 1.0, edge) * 16.0 * lerpf(0.2, 1.0, smoothstep(3.0, 12.0, path_d))
 	# The hill with the old tree.
 	var hill_d := p.distance_to(HILL_CENTER)
 	h += (1.0 - smoothstep(HILL_RADIUS * 0.4, HILL_RADIUS, hill_d)) * HILL_HEIGHT

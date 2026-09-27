@@ -15,8 +15,10 @@ const LID_HINGE := Vector3(0, 0.47, -0.3)
 const LID_OPEN := -1.9
 
 ## Ruins (x, z) and chests (x, z, turn in degrees, lift: chests in a ruin sit on its platform). Chest spots are also in WorldShape.keep_clear.
-const RUINS := [Vector2(-38, -12), Vector2(40, 22)]
-const CHESTS := [Vector4(-38, -11.2, 0, 0.37), Vector4(40, 22.8, 0, 0.37), Vector4(31, -40, 25, 0)]
+## Per region.
+const RUINS := {"meadow": [Vector2(-38, -12), Vector2(40, 22)], "forest": [Vector2(34, -18)]}
+const CHESTS := {"meadow": [Vector4(-38, -11.2, 0, 0.37), Vector4(40, 22.8, 0, 0.37), Vector4(31, -40, 25, 0)],
+	"forest": [Vector4(34, -17.2, 0, 0.37), Vector4(-36, 30, -30, 0), Vector4(-40, -40, 60, 0)]}
 
 @export var player: Node3D
 
@@ -28,13 +30,13 @@ func build(shape: WorldShape) -> void:
 	_audio = AudioStreamPlayer3D.new()
 	_audio.unit_size = 6.0
 	add_child(_audio)
-	for r: Vector2 in RUINS:
+	for r: Vector2 in RUINS.get(Region.current, []):
 		var ruin := _solid(RUIN.instantiate())
 		add_child(ruin)
 		ruin.global_position = Vector3(r.x, shape.height_at(r.x, r.y) - 0.1, r.y)
 		for x in [-1.3, 1.3]:
 			_collider(ruin, Vector3(x, 1.5, 0), Vector3(0.7, 3.0, 0.7))
-	for c: Vector4 in CHESTS:
+	for c: Vector4 in CHESTS.get(Region.current, []):
 		var at := Vector3(c.x, shape.height_at(c.x, c.y) + c.w, c.y)
 		var id := WorldResources.add_node("chest", at)
 		var root := Node3D.new()

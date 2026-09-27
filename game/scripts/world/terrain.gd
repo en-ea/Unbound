@@ -9,6 +9,9 @@ const WATER_SHADER := preload("res://shaders/water.gdshader")
 const GRASS_LIGHT := Color(0.58, 0.68, 0.38)
 const GRASS_DARK := Color(0.36, 0.52, 0.30)
 const ROCK := Color(0.47, 0.46, 0.42)
+# The forest floor: mossy and darker.
+const MOSS_LIGHT := Color(0.44, 0.55, 0.30)
+const MOSS_DARK := Color(0.25, 0.38, 0.24)
 
 var material: ShaderMaterial
 
@@ -111,7 +114,8 @@ func bake_shade(spots: Array[Vector4]) -> void:
 
 
 func _ground_color(shape: WorldShape, x: float, z: float, _h: float, up: float) -> Color:
-	var c := GRASS_DARK.lerp(GRASS_LIGHT, shape.meadow_noise(x, z))
+	var forest := WorldShape.region == "forest"
+	var c := (MOSS_DARK if forest else GRASS_DARK).lerp(MOSS_LIGHT if forest else GRASS_LIGHT, shape.meadow_noise(x, z))
 	return c.lerp(ROCK, smoothstep(0.86, 0.72, up))
 
 

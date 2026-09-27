@@ -29,6 +29,8 @@ static var _lunge_free_at := 0.0     # pack rule: one lunge at a time
 
 var player: Node3D
 var home := Vector3.ZERO
+var shadow := false                 # a shadow wolf: bigger, darker, tougher, rarer loot (set before adding)
+var max_health := MAX_HEALTH
 var health := MAX_HEALTH
 var state := State.WANDER
 
@@ -51,6 +53,12 @@ func _ready() -> void:
 	add_child(_audio)
 	_goal = global_position
 	_side = 1.0 if randf() < 0.5 else -1.0
+	if shadow:
+		max_health = 16
+		health = max_health
+		visual.scale = Vector3.ONE * _size()
+		for m in visual._materials:          # dusky violet fur
+			m.set_shader_parameter("albedo", Color(0.42, 0.38, 0.62))
 
 
 func is_alive() -> bool:
@@ -69,7 +77,7 @@ func _physics_process(delta: float) -> void:
 	match state:
 		State.WANDER:
 			if _t > 4.0:
-				health = MAX_HEALTH       # calm again: healed
+				health = max_health       # calm again: healed
 			var to_goal := _goal - global_position
 			to_goal.y = 0.0
 			if dist < SIGHT and player.can_be_targeted() and _home_distance() < LEASH:
@@ -112,7 +120,7 @@ func _physics_process(delta: float) -> void:
 				_bit = true
 				_play("snap", randf_range(0.95, 1.1))
 				player.knockback(_lunge_dir * 5.0)
-				player.take_damage(1)
+				player.take_damage(2 if shadow else 1)
 				get_tree().call_group("camera_rig", "shake", 0.08)
 			if _t > 0.4 or (_t > 0.1 and is_on_wall()):
 				_enter(State.RETREAT)
@@ -147,7 +155,7 @@ func take_hit(from: Vector3, damage := 1) -> void:
 		return
 	health -= damage
 	visual.flash()
-	visual.show_health(float(health) / MAX_HEALTH, MAX_HEALTH / 2)
+	visual.show_health(float(health) / max_health, max_health / 2)
 	var away := global_position - from
 	away.y = 0.0
 	_push = away.normalized() * 5.0
@@ -160,14 +168,14 @@ func take_hit(from: Vector3, damage := 1) -> void:
 
 func _die() -> void:
 	_enter(State.DEAD)
-	Skills.add("combat", 10)
-	if randf() < 0.08:                       # now and then it was carrying a tool
+	Skills.add("combat", 30 if shadow else 10)
+	if randf() < (0.25 if shadow else 0.08):                       # now and then it was carrying a tool
 		var found := Gear.roll_found()
 		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.5))
-	var items: Array[String] = ["pelt"]
-	if randf() < 0.3:
+	var items: Array[String] = ["shadow_pelt"] if shadow else ["pelt"]
+	if randf() < (0.6 if shadow else 0.3):
 		items.append("fang")
 	for item in items:
 		var drop := Node3D.new()
@@ -184,13 +192,17 @@ func _die() -> void:
 
 func _respawn() -> void:
 	global_position = home + Vector3(0, 0.5, 0)
-	health = MAX_HEALTH
+	health = max_health
 	collision_layer = 1
 	visual.reset()
 	visible = true
 	visual.scale = Vector3.ONE * 0.01
-	create_tween().tween_property(visual, "scale", Vector3.ONE, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	create_tween().tween_property(visual, "scale", Vector3.ONE * _size(), 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_enter(State.WANDER)
+
+
+func _size() -> float:
+	return 1.3 if shadow else 1.0
 
 
 func _give_up() -> void:
