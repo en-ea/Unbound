@@ -5,6 +5,7 @@ extends Node
 ##   --walk=x,y        hold the joystick in this direction
 ##   --at=x,z          start the player at this spot
 ##   --zoom=5          camera distance (for close-up checks)
+##   --picker          open the look picker
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 
 @export var day_night: Node
@@ -32,6 +33,8 @@ func _ready() -> void:
 			_start_at = Vector2(float(v[0]), float(v[1]))
 		elif arg.begins_with("--zoom="):
 			get_node("../CameraRig").set_distance.call_deferred(float(arg.trim_prefix("--zoom=")))
+		elif arg == "--picker":
+			get_node("../HUD").open_look_picker.call_deferred()
 		elif arg == "--touchtest":
 			_touch_test = true
 	if _shot_path == "" and not _touch_test:

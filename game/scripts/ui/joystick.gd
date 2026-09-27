@@ -10,11 +10,13 @@ var _knob := Vector2.ZERO
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _input(event: InputEvent) -> void:
+	if not visible:
+		return
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
 		if touch.pressed and _finger == -1 and touch.position.x < get_viewport().get_visible_rect().size.x * 0.5:

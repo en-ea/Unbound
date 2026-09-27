@@ -4,11 +4,15 @@ extends Node
 
 ## Set by the joystick: x = right, y = down the screen, length 0..1.
 var joystick := Vector2.ZERO
+## True while a menu (like the look picker) has the player's attention.
+var locked := false
 
 
 ## Returns the wanted movement on the ground plane, length 0..1.
 ## Joystick past ~75% means run; the keyboard runs unless Shift is held.
 func get_move() -> Vector2:
+	if locked:
+		return Vector2.ZERO
 	if joystick != Vector2.ZERO:
 		return joystick.limit_length(1.0)
 	var k := Vector2(
