@@ -11,10 +11,10 @@ const GRASS_TINT := Color(0.78, 0.84, 0.72)   # the pack's grass is a bit neon
 const KINDS := {
 	"tree": {"shadow": true, "range": 0.0, "sway": 0.12, "sway_h": 7.0, "collide": 0.35},
 	"big_tree": {"shadow": true, "range": 0.0, "sway": 0.2, "sway_h": 15.0, "collide": 1.1},
-	"bush": {"shadow": false, "range": 70.0, "sway": 0.05, "sway_h": 1.4, "collide": 0.0},
+	"bush": {"shadow": false, "range": 50.0, "sway": 0.05, "sway_h": 1.4, "collide": 0.0},
 	"rock": {"shadow": true, "range": 0.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.8},
-	"small": {"shadow": false, "range": 48.0, "sway": 0.08, "sway_h": 1.2, "collide": 0.0},
-	"ground": {"shadow": false, "range": 48.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.0},
+	"small": {"shadow": false, "range": 36.0, "sway": 0.08, "sway_h": 1.2, "collide": 0.0},
+	"ground": {"shadow": false, "range": 36.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.0},
 }
 
 var _shape: WorldShape
@@ -116,7 +116,7 @@ func _scatter_rocks() -> void:
 
 
 func _scatter_plants() -> void:
-	var step := 1.5
+	var step := 1.8
 	var x := -56.0
 	while x < 56.0:
 		var z := -56.0
