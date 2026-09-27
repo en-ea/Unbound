@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c35b27vsfypee"
-path="res://.godot/imported/bush_flower_1.glb-72958a38b8c02b3443ea467b13679b54.scn"
+uid="uid://bmkxgbgclqpgv"
+path="res://.godot/imported/stones_1.glb-95f5de6dc872006e1b1c115663d04727.scn"
 
 [deps]
 
-source_file="res://assets/nature/bush_flower_1.glb"
-dest_files=["res://.godot/imported/bush_flower_1.glb-72958a38b8c02b3443ea467b13679b54.scn"]
+source_file="res://assets/nature/stones_1.glb"
+dest_files=["res://.godot/imported/stones_1.glb-95f5de6dc872006e1b1c115663d04727.scn"]
 
 [params]
 

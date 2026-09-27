@@ -1,21 +1,18 @@
 extends Node3D
-## Scatters the Quaternius nature models over the meadow.
+## Scatters our faceted nature models over the meadow.
 ## Each model is drawn with MultiMeshes split into chunks, so off-screen chunks are culled.
 
-const NATURE := "res://assets/quaternius_nature/%s.gltf"
-const OWN := "res://assets/nature/%s.glb"          # our own models (tools-src/blender/make_trees.py)
-const FOLIAGE_SHADER := preload("res://shaders/foliage.gdshader")
+const OWN := "res://assets/nature/%s.glb"          # all models: tools-src/blender/make_trees.py
 const SOLID_FOLIAGE_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const CHUNK := 30.0
 const TREE_CELL := 5.0      # grid cell for fast "is there a tree near here" checks
-const GRASS_TINT := Color(0.72, 0.78, 0.64)   # the pack's grass is a bit neon
 
 ## Per model: cast shadows, visibility range (0 = always), wind sway (metres), sway height.
 const KINDS := {
 	"tree": {"shadow": true, "range": 0.0, "sway": 0.08, "sway_h": 6.0, "collide": 0.35},
 	"bush": {"shadow": false, "range": 50.0, "sway": 0.04, "sway_h": 1.2, "collide": 0.0},
 	"rock": {"shadow": true, "range": 0.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.8},
-	"small": {"shadow": false, "range": 36.0, "sway": 0.08, "sway_h": 1.2, "collide": 0.0},
+	"small": {"shadow": false, "range": 36.0, "sway": 0.06, "sway_h": 0.5, "collide": 0.0},
 	"ground": {"shadow": false, "range": 36.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.0},
 }
 
@@ -79,13 +76,13 @@ func _scatter_trees() -> void:
 func _scatter_landmarks() -> void:
 	# A ring of standing stones on the hilltop (the light beams are in landmark_light.gd),
 	# and a dead tree by the pond.
-	var rocks := ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"]
+	var rocks := ["rock_1", "rock_2", "rock_3"]
 	for i in 7:
 		var p := WorldShape.HILL_CENTER + Vector2.from_angle(i * TAU / 7.0 + 0.3) * 4.2
 		_place_stone(rocks[i % 3], p)
 	_add_tree(WorldShape.HILL_CENTER)
 	var pond := WorldShape.POND_CENTER + Vector2(-WorldShape.POND_RADIUS - 3.0, -6.0)
-	_place("DeadTree_2", "tree", pond, 0.5, 0.0)
+	_place("tree_dead_1", "tree", pond, 1.2, 0.0)
 
 
 ## A tall, narrow standing stone (a rock stretched upwards).
@@ -101,8 +98,7 @@ func _place_stone(model: String, p: Vector2) -> void:
 
 
 func _scatter_path_stones() -> void:
-	var stones := ["RockPath_Round_Small_1", "RockPath_Round_Small_2", "RockPath_Round_Small_3",
-		"RockPath_Square_Small_1", "RockPath_Square_Small_2"]
+	var stones := ["stones_1", "stones_2", "stones_3"]
 	var path := WorldShape.path
 	for i in path.size() - 1:
 		var a := path[i]
@@ -119,7 +115,7 @@ func _scatter_path_stones() -> void:
 
 
 func _scatter_rocks() -> void:
-	var rocks := ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"]
+	var rocks := ["rock_1", "rock_2", "rock_3"]
 	# Around the hill and the pond shore, plus a few loose ones.
 	for i in 10:
 		var ang := _rng.randf() * TAU
@@ -134,7 +130,7 @@ func _scatter_rocks() -> void:
 		var p := _random_point(54.0)
 		if _rng.randf() < 0.05 and _clear_of_features(p, 3.0, 9.0) and not _near_tree(p, 2.5):
 			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.2), 0.3, "rock")
-	var pebbles := ["Pebble_Round_1", "Pebble_Round_2", "Pebble_Round_3", "Pebble_Square_1", "Pebble_Square_3", "Pebble_Square_5"]
+	var pebbles := ["pebble_1", "pebble_2"]
 	for i in 1500:
 		var p := _random_point(56.0)
 		var pd := _shape.path_distance(p)
@@ -162,20 +158,20 @@ func _plant_at(p: Vector2) -> void:
 	var r := _rng.randf()
 	if near_tree:
 		if r < 0.12:
-			_place(["Fern_1", "Plant_1"].pick_random(), "small", p, _rng.randf_range(0.35, 0.5), 0.3)
+			_place("fern_1", "small", p, _rng.randf_range(0.8, 1.2), 0.2)
 		elif r < 0.16:
-			_place(["Mushroom_Common", "Mushroom_Laetiporus"].pick_random(), "small", p, _rng.randf_range(0.6, 0.9), 0.2, "mushroom")
+			_place(["mushroom_1", "mushroom_2"].pick_random(), "small", p, _rng.randf_range(0.9, 1.2), 0.15, "mushroom")
 		elif r < 0.2:
 			_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
 		return
 	if r < 0.30 + m * 0.3:
-		_place("Grass_Common_Short", "small", p, _rng.randf_range(0.45, 0.75), 0.25)
+		_place(["grass_1", "grass_2"].pick_random(), "small", p, _rng.randf_range(1.1, 1.7), 0.2)
 	elif r < 0.36 + m * 0.3:
-		_place("Grass_Wispy_Short", "small", p, _rng.randf_range(0.5, 0.8), 0.25)
-	elif m > 0.55 and r < 0.52 + m * 0.2:
-		_place(["Flower_3_Single", "Flower_4_Single", "Flower_3_Group"].pick_random(), "small", p, _rng.randf_range(0.25, 0.4), 0.3, "flower")
+		_place("grass_3", "small", p, _rng.randf_range(1.2, 1.8), 0.2)
+	elif m > 0.45 and r < 0.54 + m * 0.2:
+		_place(["flower_1", "flower_2", "flower_3", "flower_4", "flower_5"].pick_random(), "small", p, _rng.randf_range(0.85, 1.15), 0.2, "flower")
 	elif r < 0.66:
-		_place(["Clover_1", "Plant_7", "Petal_1", "Petal_3"].pick_random(), "small", p, _rng.randf_range(0.5, 0.8), 0.2)
+		_place(["grass_1", "grass_2", "grass_3"].pick_random(), "small", p, _rng.randf_range(0.6, 0.9), 0.2)
 	elif r < 0.665:
 		_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
 
@@ -212,7 +208,7 @@ func _near_tree(p: Vector2, gap: float) -> bool:
 
 
 func _place(model: String, kind: String, p: Vector2, scale: float, tilt: float, gather := "") -> void:
-	var y := _shape.height_at(p.x, p.y) - 0.05 * scale
+	var y := _shape.height_at(p.x, p.y) - (0.0 if kind == "ground" else 0.05 * scale)
 	var basis := Basis(Vector3.UP, _rng.randf() * TAU)
 	if tilt > 0.0:
 		basis = Basis(Vector3(_rng.randf_range(-1, 1), 0, _rng.randf_range(-1, 1)).normalized(), _rng.randf() * tilt) * basis
@@ -281,13 +277,13 @@ func _tint(at: Vector3) -> Color:
 
 
 
-## Loads a model once and swaps foliage materials for the wind-sway shader.
+## Loads a model once. Every surface except bare wood uses the solid foliage shader, which reads
+## the per-face colours from the model's UVs (and sways leaves, grass and flowers in the wind).
 func _mesh_for(model: String, kind_name: String) -> Mesh:
 	var key := model + "|" + kind_name
 	if _meshes.has(key):
 		return _meshes[key]
-	var path := OWN % model if (model.begins_with("tree_") or model.begins_with("bush_")) else NATURE % model
-	var scene := (load(path) as PackedScene).instantiate()
+	var scene := (load(OWN % model) as PackedScene).instantiate()
 	var src := scene.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
 	var mesh := src.mesh.duplicate() as Mesh
 	scene.free()
@@ -297,21 +293,12 @@ func _mesh_for(model: String, kind_name: String) -> Mesh:
 		if std == null:
 			continue
 		var name := std.resource_name
-		if name in ["Canopy", "Needles", "Blossom", "Fruit", "Flower"]:
+		if name not in ["Trunk", "Stump"]:
 			var solid := ShaderMaterial.new()
 			solid.shader = SOLID_FOLIAGE_SHADER
 			solid.set_shader_parameter("albedo", std.albedo_color)
 			solid.set_shader_parameter("sway", kind["sway"])
 			solid.set_shader_parameter("sway_height", kind["sway_h"])
 			mesh.surface_set_material(s, solid)
-		elif name.begins_with("Leaves") or name.begins_with("Leaf") or name == "Grass" or name == "Flowers":
-			var mat := ShaderMaterial.new()
-			mat.shader = FOLIAGE_SHADER
-			mat.set_shader_parameter("albedo_tex", std.albedo_texture)
-			var tint := GRASS_TINT if name == "Grass" else Color.WHITE
-			mat.set_shader_parameter("albedo", std.albedo_color * tint)
-			mat.set_shader_parameter("sway", kind["sway"])
-			mat.set_shader_parameter("sway_height", kind["sway_h"])
-			mesh.surface_set_material(s, mat)
 	_meshes[key] = mesh
 	return mesh

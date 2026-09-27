@@ -31,8 +31,14 @@ COLORS = {
     "Fruit": (0.82, 0.18, 0.14),
     "Flower": (0.92, 0.42, 0.55),
     "Stump": (0.66, 0.52, 0.36),
+    "Stone": (1.0, 1.0, 1.0),
+    "Grass": (1.0, 1.0, 1.0),
+    "Plant": (1.0, 1.0, 1.0),
 }
-GREENS = [(0.47, 0.64, 0.28), (0.36, 0.55, 0.27), (0.60, 0.72, 0.31), (0.72, 0.79, 0.36), (0.30, 0.47, 0.26)]
+GREYS = [(0.62, 0.62, 0.6), (0.55, 0.56, 0.55), (0.68, 0.67, 0.63), (0.5, 0.51, 0.52)]
+GRASS = [(0.52, 0.7, 0.32), (0.45, 0.65, 0.3), (0.6, 0.75, 0.36), (0.4, 0.6, 0.28)]
+PETALS = [(0.95, 0.55, 0.7), (0.98, 0.85, 0.35), (0.97, 0.96, 0.92), (0.66, 0.5, 0.9), (0.5, 0.7, 0.98), (0.98, 0.5, 0.35)]
+GREENS = [(0.47, 0.64, 0.28), (0.36, 0.55, 0.27), (0.56, 0.68, 0.3), (0.63, 0.72, 0.34), (0.30, 0.47, 0.26)]
 PINE_GREENS = [(0.28, 0.50, 0.33), (0.34, 0.58, 0.36), (0.24, 0.43, 0.30)]
 PINKS = [(0.97, 0.76, 0.82), (0.93, 0.62, 0.72), (0.99, 0.88, 0.90)]
 
@@ -204,6 +210,114 @@ def bush(seed, flowers=False):
     return b
 
 
+def rock(seed, squash=0.72):
+    """A faceted boulder, each face a slightly different grey."""
+    rnd = random.Random(seed)
+    b = Builder(["Stone"])
+
+    def make():
+        geom = bmesh.ops.create_icosphere(b.bm, subdivisions=2, radius=1.0)
+        for v in geom["verts"]:
+            d = v.co.normalized()
+            v.co = V((d.x * rnd.uniform(0.8, 1.15), d.y * rnd.uniform(0.8, 1.15), d.z * squash * rnd.uniform(0.85, 1.1)))
+            v.co.z += 0.35
+    faces = b.new_faces(make)
+    for f in faces:
+        b.paint([f], "Stone", rnd.choice(GREYS))
+    return b
+
+
+def stones(seed, count=4):
+    """A few flat faceted slabs, for stepping stones along the path."""
+    rnd = random.Random(seed)
+    b = Builder(["Stone"])
+    for i in range(count):
+        c = V((rnd.uniform(-0.45, 0.45), rnd.uniform(-0.45, 0.45), 0.0))
+        r = rnd.uniform(0.16, 0.3)
+        seg = rnd.randint(5, 7)
+        faces = b.new_faces(lambda c=c, r=r, seg=seg: rk.tube(b.bm, [c + V((0, 0, -0.04)), c + V((0, 0, 0.05))],
+                                                              [(r, r * rnd.uniform(0.7, 1.0))] * 2, seg=seg))
+        for f in faces:
+            for v in f.verts:
+                v.co.z = max(v.co.z, -0.01) + 0.03        # sit just above the worn path
+        b.paint(faces, "Stone", rnd.choice(GREYS))
+    return b
+
+
+def pebbles(seed):
+    rnd = random.Random(seed)
+    b = Builder(["Stone"])
+    for i in range(3):
+        c = V((rnd.uniform(-0.2, 0.2), rnd.uniform(-0.2, 0.2), 0.02))
+        clump(b, c, rnd.uniform(0.05, 0.09), 1, rnd, rnd.choice(GREYS), "Stone", 0.5)
+    return b
+
+
+def blade(bm, base, tip, width):
+    """A thin three-sided grass blade (looks right from every side)."""
+    d = (tip - base).normalized()
+    a = d.cross(V((0, 0, 1))).normalized() if abs(d.z) < 0.99 else V((1, 0, 0))
+    bcross = d.cross(a).normalized()
+    ring = [bm.verts.new(base + a * width), bm.verts.new(base - a * width * 0.5 + bcross * width * 0.8),
+            bm.verts.new(base - a * width * 0.5 - bcross * width * 0.8)]
+    t = bm.verts.new(tip)
+    for k in range(3):
+        bm.faces.new((ring[k], ring[(k + 1) % 3], t))
+    bm.faces.new((ring[2], ring[1], ring[0]))     # closed, so its faces point outwards
+
+
+def grass(seed):
+    rnd = random.Random(seed)
+    b = Builder(["Grass"])
+    for i in range(rnd.randint(8, 10)):
+        ang = rnd.uniform(0, math.tau)
+        base = V((math.cos(ang) * rnd.uniform(0, 0.12), math.sin(ang) * rnd.uniform(0, 0.12), -0.02))
+        lean = V((math.cos(ang) * rnd.uniform(0.05, 0.18), math.sin(ang) * rnd.uniform(0.05, 0.18), 0))
+        tip = base + lean + V((0, 0, rnd.uniform(0.28, 0.5)))
+        faces = b.new_faces(lambda base=base, tip=tip: blade(b.bm, base, tip, 0.042))
+        b.paint(faces, "Grass", rnd.choice(GRASS))
+    return b
+
+
+def flower(seed, count=3):
+    rnd = random.Random(seed)
+    b = Builder(["Plant"])
+    petal = rnd.choice(PETALS)
+    for i in range(count):
+        base = V((rnd.uniform(-0.15, 0.15), rnd.uniform(-0.15, 0.15), -0.02))
+        top = base + V((rnd.uniform(-0.05, 0.05), rnd.uniform(-0.05, 0.05), rnd.uniform(0.3, 0.5)))
+        b.paint(b.new_faces(lambda base=base, top=top: rk.tube(b.bm, [base, top], [(0.012, 0.012)] * 2, seg=3)), "Plant", GRASS[1])
+        b.paint(b.new_faces(lambda top=top: blade(b.bm, top - V((0, 0, 0.22)), top - V((0, 0, 0.22)) + V((0.12, 0.02, 0.08)), 0.025)), "Plant", GRASS[0])
+        clump(b, top, 0.075, 1, rnd, petal, "Plant", 0.6)
+        clump(b, top + V((0, 0, 0.035)), 0.028, 1, rnd, (0.98, 0.85, 0.3), "Plant", 1.0)
+    return b
+
+
+def mushroom(seed, cap_color):
+    rnd = random.Random(seed)
+    b = Builder(["Plant"])
+    for i in range(rnd.randint(1, 3)):
+        c = V((rnd.uniform(-0.12, 0.12), rnd.uniform(-0.12, 0.12), 0))
+        h = rnd.uniform(0.12, 0.22)
+        b.paint(b.new_faces(lambda c=c, h=h: rk.tube(b.bm, [c + V((0, 0, -0.02)), c + V((0, 0, h))], [(0.03, 0.03), (0.026, 0.026)], seg=6)),
+                "Plant", (0.93, 0.9, 0.82))
+        r = h * 0.7
+        b.paint(b.new_faces(lambda c=c, h=h, r=r: rk.tube(b.bm, [c + V((0, 0, h - 0.02)), c + V((0, 0, h + r * 0.35)), c + V((0, 0, h + r * 0.6))],
+                                                          [(r, r), (r * 0.7, r * 0.7), (0.01, 0.01)], seg=7)), "Plant", cap_color)
+    return b
+
+
+def fern(seed):
+    rnd = random.Random(seed)
+    b = Builder(["Plant"])
+    for i in range(7):
+        ang = i * math.tau / 7 + rnd.uniform(-0.2, 0.2)
+        tip = V((math.cos(ang) * 0.45, math.sin(ang) * 0.45, rnd.uniform(0.2, 0.35)))
+        faces = b.new_faces(lambda tip=tip: blade(b.bm, V((0, 0, 0.02)), tip, 0.07))
+        b.paint(faces, "Plant", rnd.choice(GRASS[:3]))
+    return b
+
+
 def stump(seed):
     b = Builder(["Trunk", "Stump"])
     b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, -0.1)), V((0, 0, 0.25)), V((0, 0, 0.42))],
@@ -258,3 +372,16 @@ export("bush_1", bush(3))
 export("bush_2", bush(8))
 export("bush_flower_1", bush(13, flowers=True))
 export("tree_stump", stump(1))
+for i in range(3):
+    export(f"rock_{i + 1}", rock(100 + i))
+for i in range(3):
+    export(f"stones_{i + 1}", stones(110 + i))
+for i in range(2):
+    export(f"pebble_{i + 1}", pebbles(120 + i))
+for i in range(3):
+    export(f"grass_{i + 1}", grass(130 + i))
+for i in range(5):
+    export(f"flower_{i + 1}", flower(140 + i * 3, 2 + i % 2))
+export("mushroom_1", mushroom(150, (0.82, 0.24, 0.18)))
+export("mushroom_2", mushroom(151, (0.72, 0.5, 0.32)))
+export("fern_1", fern(160))
