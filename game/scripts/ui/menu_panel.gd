@@ -36,6 +36,11 @@ func _ready() -> void:
 	UIStyle.menu_button(column, "Settings").pressed.connect(func() -> void:
 		open_settings.emit()
 		queue_free())
+	var lab := get_tree().get_first_node_in_group("build_lab")
+	if lab and lab.active:
+		UIStyle.menu_button(column, "Leave build lab").pressed.connect(func() -> void:
+			lab.leave()
+			_close())
 	UIStyle.menu_button(column, "Title screen").pressed.connect(func() -> void:
 		to_title.emit()
 		queue_free())

@@ -14,6 +14,7 @@ extends Node
 ##   --title           keep the title screen (otherwise any dev argument skips it)
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 ##   --craft / --bag   open the workbench / Bag screen with a few items to show
+##   --lab             go straight to the build lab
 
 @export var day_night: Node
 
@@ -41,6 +42,8 @@ func _ready() -> void:
 			_shot_path = arg.trim_prefix("--shot=")
 		elif arg.begins_with("--shotframe="):
 			_shot_frame = int(arg.trim_prefix("--shotframe="))
+		elif arg == "--lab":
+			get_tree().call_group.call_deferred("build_lab", "enter")
 		elif arg == "--craft" or arg == "--bag":      # open a screen (with some items to show)
 			for item in ["wood", "stone", "flint", "copper", "hide", "apple", "resin"]:
 				Inventory.add(item, 5)

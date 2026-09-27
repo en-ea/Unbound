@@ -12,6 +12,8 @@
                  windows in the grass, chimney and a little tree on top, lantern post.
   house_lodge:   tall A-frame whose roof sweeps nearly to the ground with flaring eaves and a prow
                  ridge; wood front, wheel window, deck, hanging lanterns.
+  house_hex / house_grotto / house_tower: the dark diorama style from the owner's references
+                 (faceted slate, stepped hex/octagon bases, glowing crystals and runes, gold trims).
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -645,6 +647,176 @@ def swoop_lodge():
     return b
 
 
+# --- Dark diorama style (owner's references): faceted slate, stepped hex/octagon bases, soft
+# --- glowing crystals and runes, gold trims, warm windows. Flat colours, few big shapes.
+DK_SLATE = (0.46, 0.49, 0.56)
+DK_SLATE_D = (0.33, 0.35, 0.42)
+DK_SLATE_L = (0.58, 0.6, 0.66)
+ROOF_D = (0.24, 0.28, 0.38)
+TIMBER_D = (0.36, 0.25, 0.19)
+GOLD = (0.95, 0.72, 0.3)
+CYAN = (0.45, 0.95, 1.0)
+TEAL = (0.4, 0.95, 0.82)
+AMBER = (1.0, 0.72, 0.36)
+EMBER = (1.0, 0.45, 0.16)
+MOSS_D = (0.3, 0.46, 0.28)
+
+
+def prism_n(b, n, r0, r1, z0, z1, color, bevel=0.05, mat="Build", turn=0.0):
+    """An n-sided prism (hexagon, octagon...) from z0 to z1, radius r0 at the bottom, r1 at the top."""
+    def make():
+        rk.tube(b.bm, [V((0, 0, z0)), V((0, 0, z1))], [(r0, r0), (r1, r1)], ref=V((math.cos(turn), math.sin(turn), 0)), seg=n)
+    if bevel > 0:
+        soft(b, make, color, bevel, 1, mat)
+    else:
+        b.paint(b.new_faces(make), mat, color)
+
+
+def crystal(b, base, direction, length, width, color):
+    """A four-sided glowing crystal: a short prism ending in a point."""
+    d = direction.normalized()
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [base, base + d * length * 0.7, base + d * length],
+                                        [(width, width), (width * 0.95, width * 0.95), (0.005, 0.005)], ref=V((1, 0, 0)) if abs(d.z) > 0.9 else V((0, 0, 1)), seg=4)), "Glow", color)
+
+
+def face_point(n, apothem, k, z, turn=0.0):
+    """The centre of side k of an n-sided prism (whose corners start at angle `turn`) and its outward direction."""
+    a = turn + (k + 0.5) * math.tau / n
+    out = V((math.cos(a), math.sin(a), 0))
+    return out * apothem + V((0, 0, z)), out
+
+
+def hex_window(b, p, out, r, glow=AMBER):
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [p - out * 0.05, p + out * 0.1], [(r, r)] * 2, ref=V((0, 0, 1)), seg=6)), "Build", TIMBER_D)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [p + out * 0.1, p + out * 0.13], [(r * 0.75, r * 0.75)] * 2, ref=V((0, 0, 1)), seg=6)), "Glow", glow)
+
+
+def hex_house():
+    """A six-sided stone house on a stepped hex base: slate walls with darker corner pillars and
+    gold caps, a timber band, a dark hex roof with gold ridges and a floating cyan crystal, glowing
+    hex windows, and a stone kiln with a glowing ember mouth beside it."""
+    b = Builder(["Build", "Glow"])
+    t = math.pi / 6                                            # corners at 30 deg: a flat side faces front
+    prism_n(b, 6, 3.1, 3.1, -0.1, 0.25, DK_SLATE_D, 0.06, turn=t)
+    prism_n(b, 6, 2.75, 2.75, 0.25, 0.5, DK_SLATE_L, 0.06, turn=t)
+    R = 2.35
+    prism_n(b, 6, R, R, 0.5, 2.3, DK_SLATE, 0.06, turn=t)
+    for k in range(6):                                         # corner pillars with gold caps
+        a = t + k * math.tau / 6
+        c = V((math.cos(a) * R, math.sin(a) * R, 0))
+        soft(b, cube_at(b, c + V((0, 0, 1.45)), (0.42, 0.42, 1.9), Euler((0, 0, a))), DK_SLATE_D, 0.05)
+        soft(b, cube_at(b, c + V((0, 0, 2.45)), (0.5, 0.5, 0.12), Euler((0, 0, a))), GOLD, 0.03)
+    prism_n(b, 6, R - 0.12, R - 0.12, 2.3, 2.95, TIMBER_D, 0.04, turn=t)
+    # Roof: a dark hex pyramid with a thick eave, gold ridges, a floating crystal.
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, 2.8)), V((0, 0, 3.05)), V((0, 0, 5.3))], [(3.05, 3.05), (2.95, 2.95), (0.12, 0.12)],
+                                        ref=V((math.cos(t), math.sin(t), 0)), seg=6)), "Build", ROOF_D)
+    for k in range(6):
+        a = t + k * math.tau / 6
+        beam(b, V((math.cos(a) * 3.08, math.sin(a) * 3.08, 3.02)), V((0, 0, 5.28)), 0.05, GOLD)
+    prism_n(b, 6, 0.2, 0.2, 5.25, 5.4, GOLD, 0.02, turn=t)
+    crystal(b, V((0, 0, 5.62)), V((0, 0, 1)), 0.75, 0.2, CYAN)
+    crystal(b, V((0, 0, 5.62)), V((0, 0, -1)), 0.22, 0.2, CYAN)
+    ap = R * math.cos(math.pi / 6)
+    # Door on the front side, glowing hex windows on the two front-angled sides.
+    fy = -ap - 0.02
+    soft(b, outline_prism(b, arch_outline(0, 0.5, 1.2, 1.95), fy - 0.1, fy + 0.05), DK_SLATE_D, 0.04)
+    soft(b, outline_prism(b, arch_outline(0, 0.5, 0.92, 1.8), fy - 0.14, fy - 0.09), TIMBER_D, 0.03)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.28, fy - 0.17, 1.35)), (0.05, 0.03, 0.05), 6, 4)), "Build", GOLD)
+    for k in (3, 5):                                           # sides at -150 and -30 deg
+        p, out = face_point(6, ap, k, 1.55, t)
+        hex_window(b, p, out, 0.34)
+    p, out = face_point(6, ap - 0.1, 4, 2.62, t)               # a small glowing slot in the timber band
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [p - out * 0.02, p + out * 0.08], [(0.5, 0.07)] * 2, ref=V((1, 0, 0)), seg=4)), "Glow", AMBER)
+    # The kiln: a stone dome on a block, a glowing ember mouth, logs, a chimney pipe.
+    k0 = V((3.2, 0.8, 0))
+    soft(b, cube_at(b, k0 + V((0, 0, 0.45)), (1.6, 1.5, 0.9)), DK_SLATE_L, 0.06)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, k0 + V((0, 0, 0.9)), (0.72, 0.68, 0.75), 12, 8, keep=lambda q: q.z >= k0.z + 0.88)), "Build", (0.62, 0.62, 0.64))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [k0 + V((0, -0.55, 1.15)), k0 + V((0, -0.75, 1.15))], [(0.3, 0.3)] * 2, ref=V((1, 0, 0)), seg=10)), "Build", DK_SLATE_D)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [k0 + V((0, -0.7, 1.12)), k0 + V((0, -0.77, 1.12))], [(0.22, 0.22)] * 2, ref=V((1, 0, 0)), seg=10)), "Glow", EMBER)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [k0 + V((0, -0.76, 0.4)), k0 + V((0, -0.79, 0.4))], [(0.45, 0.18)] * 2, ref=V((1, 0, 0)), seg=6)), "Glow", EMBER)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [k0 + V((0.1, 0.1, 1.5)), k0 + V((0.1, 0.1, 2.3))], [(0.13, 0.13)] * 2, seg=8)), "Build", DK_SLATE_D)
+    for i in range(3):
+        log(b, k0 + V((-0.5 + i * 0.35, -1.15, 0.12)), k0 + V((-0.5 + i * 0.35, -1.7, 0.12)), 0.11)
+    # A lantern by the door.
+    soft(b, cube_at(b, V((-1.0, fy - 0.3, 1.9)), (0.06, 0.5, 0.06)), DK_SLATE_D, 0.01, 1)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-1.0, fy - 0.52, 1.72)), V((-1.0, fy - 0.52, 1.5))], [(0.1, 0.1), (0.08, 0.08)], seg=6)), "Glow", AMBER)
+    return b
+
+
+def grotto_house():
+    """A home built into an outcrop of faceted dark rock: a timber front with a round door and lit
+    windows, glowing teal crystals growing from the rock, moss on top, carved steps."""
+    b = Builder(["Build", "Glow"])
+    rocks = [(V((0, 0.6, 1.2)), 2.4, DK_SLATE), (V((-1.9, 0.9, 0.9)), 1.7, DK_SLATE_D), (V((1.9, 0.8, 1.0)), 1.8, DK_SLATE),
+             (V((0.4, 1.3, 2.7)), 1.6, DK_SLATE_L), (V((-1.2, 1.5, 2.3)), 1.2, DK_SLATE_D), (V((2.6, -0.2, 0.4)), 0.8, DK_SLATE_D)]
+    for c, r, col in rocks:
+        clump(b, c, r, 1, rnd, col, "Build", 0.85)
+    # Timber front set into the rock.
+    fy = -1.25
+    soft(b, outline_prism(b, [(-1.6, 0.0), (1.6, 0.0), (1.6, 2.1), (0.8, 2.75), (-0.8, 2.75), (-1.6, 2.1)], fy, fy + 1.2), TIMBER_D, 0.06)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy - 0.02, 1.05)), V((0, fy - 0.14, 1.05))], [(0.72, 0.72)] * 2, ref=V((1, 0, 0)), seg=14)), "Build", DK_SLATE_D)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy - 0.14, 1.05)), V((0, fy - 0.2, 1.05))], [(0.6, 0.6)] * 2, ref=V((1, 0, 0)), seg=14)), "Build", (0.55, 0.36, 0.24))
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.3, fy - 0.24, 1.05)), (0.06, 0.04, 0.06), 6, 4)), "Build", GOLD)
+    for x in (-1.1, 1.1):
+        soft(b, cube_at(b, V((x, fy - 0.05, 1.6)), (0.5, 0.1, 0.55)), DK_SLATE_D, 0.03)
+        soft(b, cube_at(b, V((x, fy - 0.09, 1.6)), (0.38, 0.06, 0.42)), AMBER, 0.02, 1, "Glow")
+    soft(b, cube_at(b, V((0, fy - 0.45, 2.35)), (2.2, 0.9, 0.1), Euler((-0.3, 0, 0))), TIMBER_D, 0.04)        # little awning
+    # Crystals growing out of the rock, glowing teal.
+    for base, d, ln, w in ((V((1.3, 0.4, 3.0)), V((0.3, -0.2, 1)), 1.4, 0.26), (V((1.7, 0.7, 2.7)), V((0.8, 0.1, 1)), 1.0, 0.2),
+                           (V((0.9, 0.2, 3.1)), V((-0.2, -0.4, 1)), 0.8, 0.16), (V((-1.6, 0.4, 2.4)), V((-0.6, -0.2, 1)), 0.9, 0.18),
+                           (V((-1.9, 0.0, 1.8)), V((-1, -0.4, 0.6)), 0.6, 0.14), (V((2.5, -0.5, 0.8)), V((0.7, -0.5, 0.8)), 0.6, 0.14)):
+        crystal(b, base, d, ln, w, TEAL)
+    for p, r in ((V((-0.4, 1.0, 3.6)), 0.5), (V((0.6, 1.4, 3.8)), 0.4), (V((-1.3, 1.6, 3.2)), 0.4)):
+        clump(b, p, r, 1, rnd, MOSS_D, "Build", 0.5)
+    for i in range(3):                                          # carved steps
+        soft(b, cube_at(b, V((0, fy - 0.55 - i * 0.4, 0.12 - i * 0.08)), (1.6 - i * 0.1, 0.42, 0.2)), DK_SLATE_L, 0.05)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-0.9, 1.6, 2.6)), V((-0.9, 1.6, 4.3))], [(0.16, 0.16)] * 2, seg=8)), "Build", DK_SLATE_D)   # chimney
+    soft(b, cube_at(b, V((1.9, fy - 1.1, 0.9)), (0.12, 0.12, 1.8)), TIMBER_D, 0.02)                    # lantern post
+    soft(b, cube_at(b, V((1.75, fy - 1.1, 1.78)), (0.4, 0.08, 0.08)), TIMBER_D, 0.02, 1)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((1.6, fy - 1.1, 1.62)), V((1.6, fy - 1.1, 1.38))], [(0.11, 0.11), (0.09, 0.09)], seg=6)), "Glow", AMBER)
+    return b
+
+
+def rune_tower():
+    """A slim octagonal stone tower on stepped octagon bases: glowing rune strips, gold bands, a lit
+    lantern room at the top under a dark spire with a small crystal."""
+    b = Builder(["Build", "Glow"])
+    t = math.pi / 8
+    prism_n(b, 8, 2.9, 2.9, -0.1, 0.25, DK_SLATE_D, 0.06, turn=t)
+    prism_n(b, 8, 2.5, 2.5, 0.25, 0.55, DK_SLATE_L, 0.06, turn=t)
+    prism_n(b, 8, 1.8, 1.55, 0.55, 5.3, DK_SLATE, 0.05, turn=t)
+    for z, r in ((0.6, 1.86), (2.9, 1.74), (5.25, 1.62)):       # gold bands
+        prism_n(b, 8, r, r, z, z + 0.14, GOLD, 0.02, turn=t)
+    ap = lambda r: r * math.cos(math.pi / 8)
+    for k in (1, 3, 5, 7):                                      # rune strips on alternate sides
+        for z0, z1, r in ((0.95, 2.6, 1.72), (3.25, 4.9, 1.6)):
+            p, out = face_point(8, ap(r) + 0.01, k, (z0 + z1) / 2, t)
+            b.paint(b.new_faces(lambda p=p, out=out, h=(z1 - z0): rk.tube(b.bm, [p - out * 0.02, p + out * 0.05], [(0.07, h / 2)] * 2, ref=V((out.y, -out.x, 0)), seg=4)), "Glow", CYAN)
+    # Lantern room: wider, glowing panes all round, then the spire.
+    prism_n(b, 8, 2.0, 2.0, 5.35, 5.55, DK_SLATE_D, 0.04, turn=t)
+    prism_n(b, 8, 1.75, 1.75, 5.55, 6.75, AMBER, 0.0, "Glow", turn=t)
+    for k in range(8):
+        a = t + k * math.tau / 8
+        soft(b, cube_at(b, V((math.cos(a) * 1.8, math.sin(a) * 1.8, 6.15)), (0.2, 0.2, 1.25), Euler((0, 0, a))), DK_SLATE_D, 0.03)
+    prism_n(b, 8, 2.15, 2.15, 6.75, 6.95, GOLD, 0.03, turn=t)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, 6.9)), V((0, 0, 7.1)), V((0, 0, 9.4))], [(2.2, 2.2), (2.05, 2.05), (0.08, 0.08)],
+                                        ref=V((math.cos(t), math.sin(t), 0)), seg=8)), "Build", ROOF_D)
+    crystal(b, V((0, 0, 9.5)), V((0, 0, 1)), 0.6, 0.15, CYAN)
+    crystal(b, V((0, 0, 9.5)), V((0, 0, -1)), 0.18, 0.15, CYAN)
+    # Door on the front with a glowing rune above it; two slim obelisks either side.
+    fy = -ap(1.8) - 0.02
+    soft(b, outline_prism(b, arch_outline(0, 0.55, 1.1, 1.95), fy - 0.12, fy + 0.05), DK_SLATE_D, 0.04)
+    soft(b, outline_prism(b, arch_outline(0, 0.55, 0.84, 1.8), fy - 0.16, fy - 0.11), TIMBER_D, 0.03)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy - 0.12, 2.75)), V((0, fy - 0.18, 2.75))], [(0.16, 0.16)] * 2, ref=V((1, 0, 0)), seg=6)), "Glow", CYAN)
+    for x in (-1.9, 1.9):
+        soft(b, cube_at(b, V((x, fy - 0.9, 0.95)), (0.36, 0.36, 1.8)), DK_SLATE_D, 0.05)
+        b.paint(b.new_faces(lambda x=x: rk.tube(b.bm, [V((x, fy - 0.9, 1.85)), V((x, fy - 0.9, 2.35))], [(0.2, 0.2), (0.005, 0.005)], ref=V((1, 0, 0)), seg=4)), "Build", DK_SLATE_D)
+        soft(b, cube_at(b, V((x, fy - 1.09, 1.1)), (0.1, 0.03, 0.9)), CYAN, 0.01, 1, "Glow")
+    for i in range(2):
+        soft(b, cube_at(b, V((0, fy - 0.45 - i * 0.4, 0.4 - i * 0.18)), (1.5, 0.42, 0.18)), DK_SLATE_L, 0.05)
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -656,3 +828,6 @@ export("windmill", windmill(), OUT)
 export("windmill_sails", windmill_sails(), OUT)
 export("house_hill", hill_house(), OUT)
 export("house_lodge", swoop_lodge(), OUT)
+export("house_hex", hex_house(), OUT)
+export("house_grotto", grotto_house(), OUT)
+export("house_tower", rune_tower(), OUT)

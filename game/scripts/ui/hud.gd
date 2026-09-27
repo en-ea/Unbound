@@ -171,6 +171,9 @@ func show_title() -> void:
 	_title.play.connect(start_game)
 	_title.open_character.connect(open_look_picker)
 	_title.open_settings.connect(open_settings)
+	_title.build_lab.connect(func() -> void:
+		start_game(true)
+		get_tree().call_group("build_lab", "enter"))
 	_title_camera()
 
 

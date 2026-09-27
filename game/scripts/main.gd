@@ -27,6 +27,10 @@ func _ready() -> void:
 	workbench.set_script(preload("res://scripts/world/workbench.gd"))
 	add_child(workbench)
 	workbench.build(shape, Vector2(-1.0, 7.0))
+	var lab := Node3D.new()
+	lab.set_script(preload("res://scripts/dev/build_lab.gd"))
+	lab.player = player
+	add_child(lab)
 	var critters := Node3D.new()
 	critters.set_script(preload("res://scripts/world/critters.gd"))
 	critters.player = player

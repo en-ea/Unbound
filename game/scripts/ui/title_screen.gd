@@ -5,6 +5,7 @@ extends Control
 signal play
 signal open_character
 signal open_settings
+signal build_lab
 
 const VERSION := "early build"
 
@@ -98,6 +99,18 @@ func _ready() -> void:
 	UIStyle.menu_button(_buttons, "Play", true).pressed.connect(_on_play)
 	UIStyle.menu_button(_buttons, "Character").pressed.connect(func() -> void: open_character.emit())
 	UIStyle.menu_button(_buttons, "Settings").pressed.connect(func() -> void: open_settings.emit())
+
+	# Bottom-left: the build lab (compare every building style on a flat floor).
+	var lab := UIStyle.button(self, "Build lab", Vector2(150, 44), 18)
+	lab.anchor_top = 1.0
+	lab.anchor_bottom = 1.0
+	lab.offset_left = 110
+	lab.offset_top = -120
+	lab.offset_bottom = -76
+	lab.pressed.connect(func() -> void:
+		_buttons.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		build_lab.emit()
+		queue_free())
 
 	var version := UIStyle.label(self, VERSION, 16, true)
 	version.anchor_top = 1.0

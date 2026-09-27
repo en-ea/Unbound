@@ -11,6 +11,7 @@ var _player: Node3D
 var _day_night: Node
 var _timer := AUTOSAVE_EVERY
 var _enabled := true
+var paused := false     # the build lab turns saving off while you are in it
 
 
 ## Called by main once the world is built: remembers what to save and loads the last save.
@@ -36,7 +37,7 @@ func _notification(what: int) -> void:
 
 
 func save_game() -> void:
-	if not _enabled or not is_instance_valid(_player):
+	if not _enabled or paused or not is_instance_valid(_player):
 		return
 	var p := _player.global_position
 	var data := {
