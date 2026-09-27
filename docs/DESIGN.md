@@ -64,7 +64,7 @@ https://claude.ai/artifact/GguWfzpYKvqzLmG4MFiSDz (db doc `picks/round3`, includ
   - nights when the veil thins,
   - legendary wandering beasts,
   - the deepest underground holding the Fourth's lost land.
-- **Excluded:** curse outbreaks (or at most a very minor version), seasons that change routes, prestige resets, turn-based or auto combat, romance, museum-style collection logs, festivals, and plot-buying.
+- **Excluded:** curse outbreaks (or at most a very minor version), seasons that change routes, prestige resets, turn-based or auto combat, museum-style collection logs, and plot-buying. (Romance and festivals are back in: see GAME_PLAN.md.)
 
 ## World
 - **Start:** the mainland only, a normal but varied land. It has underground pockets and distinct areas (an Omno-style shrine zone, a village, forests, ruins).

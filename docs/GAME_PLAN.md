@@ -33,6 +33,19 @@ The big shape of the game. DESIGN.md has the look and feel; PLAN.md has the buil
 - **One special companion** you keep: fights beside you and does special tasks only they can do.
 - **A few casual ones:** each has a purpose, or you send them on trips to gather or explore.
 
+## Owner notes (round 2)
+- **Romance (light):** one townsperson you slowly warm up to, picked at random per save, so friends compare who they got.
+- **Festivals:** fine, much later.
+- **Betrayal:** one of the main people (not the big three) betrays you a little. In co-op this can be a player, told in secret.
+- **Weapons:** shield is always optional. Full weapon list: questionnaire pending.
+- **Knock-out:** a toggle (lose nothing / drop items where you fell).
+- **Bases:** one per land.
+- **Blacksmithing minigame:** maybe, much later.
+- **Getting to the 2nd land:** open (boat, bridge, horse?).
+- **Balancing:** all numbers (costs, drops, XP curves, damage, prices) live in one data file with formulas, tuned together
+  once the forest, money and classes exist. Until then numbers are placeholders.
+- Older notes worth keeping: story and idea bank in DESIGN.md; parked ideas in PLAN.md.
+
 ## Build order (most playable game soonest)
 1. **Forest region + region travel** (path out of the meadow, loading, new enemy and resource).
 2. **Food and cooking** (heals and buffs).
