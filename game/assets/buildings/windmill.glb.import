@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://6fsi7lyrv12k"
-path="res://.godot/imported/house_crooked.glb-e09bb3790c43a4afb7f2e3c325b27335.scn"
+uid="uid://bbno1w50jxate"
+path="res://.godot/imported/windmill.glb-4cd99b19435ad47c058ab1174fa0b33a.scn"
 
 [deps]
 
-source_file="res://assets/buildings/house_crooked.glb"
-dest_files=["res://.godot/imported/house_crooked.glb-e09bb3790c43a4afb7f2e3c325b27335.scn"]
+source_file="res://assets/buildings/windmill.glb"
+dest_files=["res://.godot/imported/windmill.glb-4cd99b19435ad47c058ab1174fa0b33a.scn"]
 
 [params]
 

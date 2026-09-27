@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c3fjxf6qwoj7k"
-path="res://.godot/imported/house_tree.glb-af30ed5c58e4827744aaf5501ee91b08.scn"
+uid="uid://cp8ctf45rg21d"
+path="res://.godot/imported/windmill_sails.glb-3fb9227432f635564b4b5e82defeb177.scn"
 
 [deps]
 
-source_file="res://assets/buildings/house_tree.glb"
-dest_files=["res://.godot/imported/house_tree.glb-af30ed5c58e4827744aaf5501ee91b08.scn"]
+source_file="res://assets/buildings/windmill_sails.glb"
+dest_files=["res://.godot/imported/windmill_sails.glb-3fb9227432f635564b4b5e82defeb177.scn"]
 
 [params]
 
