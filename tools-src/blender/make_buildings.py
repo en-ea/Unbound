@@ -18,6 +18,7 @@
   house_gable:   raised on a plinth, pale walls, tall off-centre charcoal roof with a prow, window slit.
   house_storybook: stone ground floor, cream plaster above, tall flared blue-slate roof, big arched
                  gable window, arched door with hood and lanterns, side porch.
+  house_turret:  curved oval body, bell roof in tile rows, round dormer, turret, shell canopy door.
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -1109,6 +1110,142 @@ def storybook_cottage():
     return b
 
 
+def turret_cottage():
+    """A curved, crafted-looking cottage: an oval two-storey body tapering a little upward (warm
+    cream, darker at the foot) on a ring of rounded stones; a tall bell-shaped roof laid in tile rows
+    of alternating blues with flared eaves; a round-topped dormer with a barrel roof and a big
+    glowing arched window; a round turret with its own taller bell roof and a glowing round window;
+    an arched door under a shell canopy with a hanging lantern; a curving stone chimney; stepping
+    stones curving up to the door and a low curved flower-bed wall. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    WALL_LO, WALL_HI = (0.84, 0.72, 0.58), (0.97, 0.91, 0.8)
+    STONES = [(0.72, 0.67, 0.6), (0.66, 0.61, 0.55), (0.78, 0.72, 0.64), (0.62, 0.58, 0.53)]
+    TILES = [(0.26, 0.41, 0.52), (0.31, 0.47, 0.58), (0.28, 0.44, 0.55)]
+    WOOD_D = (0.42, 0.28, 0.19)
+    DOOR = (0.66, 0.3, 0.24)
+    LIGHT = (1.0, 0.8, 0.46)
+    RX, RY = 2.4, 2.0                                   # the oval body
+    WZ0, WZ1 = 0.45, 3.5                                # wall bottom and top
+
+    def on_oval(x, z, grow=0.0):
+        """Point on the oval wall's front at x (height z, tapering) and its outward direction."""
+        k = 1.0 - 0.07 * (z - WZ0) / (WZ1 - WZ0)
+        rx, ry = RX * k + grow, RY * k + grow
+        y = -ry * math.sqrt(max(0.0, 1 - (x / rx) ** 2))
+        n = V((x / rx ** 2, y / ry ** 2, 0)).normalized()
+        return V((x, y, z)), n
+
+    def bell(center, rx, ry, z0, height, flare=1.3, rows=11, palette=TILES):
+        """A bell-shaped roof in tile rows: a thick flared rim, then a concave sweep to a point."""
+        prof = [(0.0, flare * 0.98), (0.03, flare)]
+        for k in range(1, rows):
+            t = k / rows
+            prof.append((0.03 + t * 0.97, flare * 0.94 * (1 - t) ** 1.55 + 0.02))
+        pts = [center + V((0, 0, z0 - 0.14 + p[0] * height)) for p in prof]
+        radii = [(rx * p[1], ry * p[1]) for p in prof]
+        faces = b.new_faces(lambda: rk.tube(b.bm, pts, radii, seg=18))
+        for f in faces:
+            zc = sum(v.co.z for v in f.verts) / len(f.verts)
+            band = int((zc - z0) / (height / rows) + 10)
+            base = palette[band % len(palette)]
+            k = 1.0 + rnd.uniform(-0.035, 0.035) + max(0.0, (zc - z0) / height) * 0.08
+            b.paint([f], "Build", tuple(min(1.0, c * k) for c in base))
+
+    # --- stone footing: a flat oval slab ringed with rounded stones -------------------------------
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, 0.0)), V((0, 0, 0.42))], [(RX + 0.12, RY + 0.12)] * 2, seg=20)), "Build", STONES[1])
+    for i in range(26):
+        a = i / 26 * math.tau + 0.1
+        p = V((math.cos(a) * (RX + 0.08), math.sin(a) * (RY + 0.08), 0.28))
+        clump(b, p, rnd.uniform(0.26, 0.34), 1, rnd, rnd.choice(STONES), "Build", 0.75)
+    # --- the oval walls, cream warming toward the foot --------------------------------------------
+    walls = b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, WZ0)), V((0, 0, 2.0)), V((0, 0, WZ1))],
+                                        [(RX, RY), (RX * 0.975, RY * 0.975), (RX * 0.93, RY * 0.93)], seg=20))
+    b.gradient(walls, WALL_LO, WALL_HI)
+    # --- main bell roof, and a little moss on its rim ------------------------------------------------
+    bell(V((0, 0, 0)), RX, RY, WZ1 - 0.2, 4.4, 1.3)
+    for a in (-2.4, -0.3, 2.2, 3.7):
+        clump(b, V((math.cos(a) * RX * 1.22, math.sin(a) * RY * 1.22, WZ1 - 0.12)), 0.2, 1, rnd, (0.42, 0.58, 0.3), "Build", 0.5)
+    # --- the front dormer: round-topped, a barrel roof, a big glowing arched window ---------------
+    dx = -0.35
+    front_y = -RY * 0.93 - 0.02
+    dor = b.new_faces(outline_prism(b, arch_outline(dx, WZ1 - 0.6, 1.9, 2.55, 10), front_y, front_y + 1.9))
+    b.gradient(dor, WALL_LO, WALL_HI)
+    def barrel():
+        rk.tube(b.bm, [V((dx, front_y - 0.28, WZ1 + 1.0)), V((dx, front_y + 2.2, WZ1 + 1.0))], [(1.12, 1.12)] * 2, ref=V((1, 0, 0)), seg=16, caps=False)
+    rim = b.new_faces(barrel)
+    for f in rim:
+        for v in f.verts:
+            v.co.z = max(v.co.z, WZ1 + 0.98)
+    for f in rim:
+        b.paint([f], "Build", rnd.choice(TILES))
+    soft(b, outline_prism(b, arch_outline(dx, WZ1 - 0.35, 1.32, 2.05, 10), front_y - 0.12, front_y + 0.04), WOOD_D, 0.05)
+    b.paint(b.new_faces(outline_prism(b, arch_outline(dx, WZ1 - 0.25, 1.02, 1.85, 10), front_y - 0.15, front_y - 0.11)), "Glow", LIGHT)
+    for off in (-0.26, 0.26):
+        soft(b, cube_at(b, V((dx + off, front_y - 0.17, WZ1 + 0.62)), (0.045, 0.04, 1.66)), WOOD_D, 0.01, 1)
+    soft(b, cube_at(b, V((dx, front_y - 0.17, WZ1 + 0.35)), (0.98, 0.04, 0.045)), WOOD_D, 0.01, 1)
+    soft(b, cube_at(b, V((dx, front_y - 0.2, WZ1 - 0.45)), (1.6, 0.34, 0.12)), WOOD_D, 0.03)
+    for k in range(5):
+        clump(b, V((dx - 0.6 + k * 0.3, front_y - 0.3, WZ1 - 0.3)), 0.09, 1, rnd, FLOWERS[k % len(FLOWERS)], "Build", 1.0)
+    # --- the turret: a round tower with its own taller bell roof and a round window ---------------
+    tc = V((2.05, -1.15, 0))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [tc + V((0, 0, 0.0)), tc + V((0, 0, 0.55))], [(1.12, 1.12)] * 2, seg=16)), "Build", STONES[3])
+    tw = b.new_faces(lambda: rk.tube(b.bm, [tc + V((0, 0, 0.5)), tc + V((0, 0, 4.6))], [(0.98, 0.98), (0.9, 0.9)], seg=16))
+    b.gradient(tw, WALL_LO, WALL_HI)
+    bell(tc, 0.95, 0.95, 4.6, 3.5, 1.38, 9)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [tc + V((0, 0, 8.02)), tc + V((0, 0, 8.35))], [(0.05, 0.05), (0.02, 0.02)], seg=5)), "Build", WOOD_D)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, tc + V((0, 0, 8.38)), (0.09, 0.09, 0.09), 6, 4)), "Glow", LIGHT)
+    a = -1.95
+    out = V((math.cos(a), math.sin(a), 0))
+    wp = tc + out * 0.94 + V((0, 0, 3.05))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [wp - out * 0.04, wp + out * 0.12], [(0.4, 0.4)] * 2, ref=V((0, 0, 1)), seg=14)), "Build", WOOD_D)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [wp + out * 0.1, wp + out * 0.14], [(0.3, 0.3)] * 2, ref=V((0, 0, 1)), seg=14)), "Glow", LIGHT)
+    side = V((-out.y, out.x, 0))
+    beam(b, wp + out * 0.15 - V((0, 0, 0.3)), wp + out * 0.15 + V((0, 0, 0.3)), 0.025, WOOD_D)
+    beam(b, wp + out * 0.15 - side * 0.3, wp + out * 0.15 + side * 0.3, 0.025, WOOD_D)
+    # --- the door: arched, under a shell-shaped canopy, a lantern hanging beside it -----------------
+    dp, dn = on_oval(dx, 1.4)
+    door_y = dp.y - 0.02
+    soft(b, outline_prism(b, arch_outline(dx, WZ0 - 0.05, 1.3, 2.2, 10), door_y - 0.1, door_y + 0.12), WOOD_D, 0.05)
+    soft(b, outline_prism(b, arch_outline(dx, WZ0 - 0.05, 1.02, 2.05, 10), door_y - 0.14, door_y - 0.09), DOOR, 0.03)
+    for off in (-0.25, 0.25):
+        soft(b, cube_at(b, V((dx + off, door_y - 0.155, 1.3)), (0.035, 0.03, 1.6)), (0.52, 0.24, 0.19), 0.008, 1)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((dx + 0.3, door_y - 0.19, 1.35)), (0.055, 0.04, 0.055), 6, 4)), "Build", (0.95, 0.78, 0.42))
+    shell = b.new_faces(lambda: rk.blob(b.bm, V((dx, door_y - 0.3, 2.62)), (0.95, 0.62, 0.42), 12, 8, keep=lambda q: q.z >= 2.6 and q.y <= door_y + 0.1))
+    for f in shell:
+        b.paint([f], "Build", rnd.choice(TILES))
+    beam(b, V((dx + 0.78, door_y - 0.05, 2.35)), V((dx + 0.78, door_y - 0.45, 2.35)), 0.03, WOOD_D)
+    beam(b, V((dx + 0.78, door_y - 0.45, 2.35)), V((dx + 0.78, door_y - 0.45, 2.1)), 0.012, (0.25, 0.22, 0.2))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((dx + 0.78, door_y - 0.45, 2.1)), V((dx + 0.78, door_y - 0.45, 1.84))], [(0.11, 0.11), (0.09, 0.09)], seg=8)), "Glow", LIGHT)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((dx + 0.78, door_y - 0.45, 2.1)), V((dx + 0.78, door_y - 0.45, 2.2))], [(0.13, 0.13), (0.03, 0.03)], seg=8)), "Build", WOOD_D)
+    # --- an oval window left of the door, with a flower pot under it ---------------------------------
+    wp2, wn2 = on_oval(-1.45, 1.55)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [wp2 - wn2 * 0.05, wp2 + wn2 * 0.12], [(0.36, 0.5)] * 2, ref=V((-wn2.y, wn2.x, 0)), seg=14)), "Build", WOOD_D)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [wp2 + wn2 * 0.1, wp2 + wn2 * 0.14], [(0.26, 0.39)] * 2, ref=V((-wn2.y, wn2.x, 0)), seg=14)), "Glow", LIGHT)
+    beam(b, wp2 + wn2 * 0.15 - V((0, 0, 0.38)), wp2 + wn2 * 0.15 + V((0, 0, 0.38)), 0.022, WOOD_D)
+    for x, y in ((dx - 0.95, door_y - 0.35), (dx + 1.2, door_y - 0.3)):
+        b.paint(b.new_faces(lambda x=x, y=y: rk.tube(b.bm, [V((x, y, 0.4)), V((x, y, 0.72))], [(0.17, 0.17), (0.21, 0.21)], seg=10)), "Build", (0.76, 0.46, 0.33))
+        clump(b, V((x, y, 0.86)), 0.22, 1, rnd, (0.42, 0.62, 0.3), "Build", 0.85)
+        clump(b, V((x + 0.05, y - 0.08, 1.02)), 0.07, 1, rnd, rnd.choice(FLOWERS), "Build", 1.0)
+    # --- a curving stone chimney hugging the left side ------------------------------------------------
+    cpts = [V((-RX - 0.12, 0.35, 0.3)), V((-RX - 0.22, 0.35, 2.0)), V((-RX * 0.93 - 0.12, 0.38, 4.0)), V((-RX * 0.72, 0.42, 6.3))]
+    ch = b.new_faces(lambda: rk.tube(b.bm, cpts, [(0.46, 0.5), (0.4, 0.44), (0.34, 0.36), (0.3, 0.3)], ref=V((0, 1, 0)), seg=8))
+    b.gradient(ch, STONES[3], STONES[2])
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [cpts[-1], cpts[-1] + V((0, 0, 0.16))], [(0.4, 0.4)] * 2, seg=8)), "Build", STONES[1])
+    # --- stepping stones curving to the door, and a low curved flower-bed wall ------------------------
+    for i in range(4):
+        t = i / 3
+        x = dx + math.sin(t * 2.2) * 0.9
+        y = door_y - 0.95 - i * 0.78
+        soft(b, cube_at(b, V((x, y, 0.03)), (0.8 - i * 0.04, 0.56, 0.12), Euler((0, 0, 0.4 * math.sin(i * 1.7)))), rnd.choice(STONES), 0.06)
+    for i in range(9):
+        a = math.pi * (0.62 + i * 0.075)
+        p = V((-1.1 + math.cos(a) * 1.9, -RY - 0.6 + math.sin(a) * 1.3 - 0.9, 0.18))
+        clump(b, p, 0.2, 1, rnd, rnd.choice(STONES), "Build", 0.8)
+    for i in range(7):
+        clump(b, V((-2.3 + i * 0.28, -RY - 1.05 - (i % 2) * 0.2, 0.28)), 0.14, 1, rnd, rnd.choice([(0.42, 0.62, 0.3)] + FLOWERS), "Build", 0.9)
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -1126,3 +1263,4 @@ export("house_tower", rune_tower(), OUT)
 export("house_arch", arch_cottage(), OUT)
 export("house_gable", gable_house(), OUT)
 export("house_storybook", storybook_cottage(), OUT)
+export("house_turret", turret_cottage(), OUT)
