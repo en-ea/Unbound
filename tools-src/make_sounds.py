@@ -50,42 +50,95 @@ def steps():
         save(f"step_water_{i}", splash, 0.55)
 
 
+def reverb(x, seconds=0.7, wet=0.25):
+    """A soft outdoor tail: convolve with decaying noise."""
+    n = int(seconds * RATE)
+    ir = rng.normal(size=n) * np.exp(-np.linspace(0, 6, n))
+    ir = low(ir, 3500)
+    tail = np.concatenate([np.convolve(x, ir), [0.0]])[: len(x) + n]
+    tail /= np.max(np.abs(tail)) + 1e-9
+    dry = np.concatenate([x, np.zeros(n)])
+    return dry * (1 - wet) + tail * wet * np.max(np.abs(x))
+
+
+def pink(n):
+    """Pink-ish noise (softer than white), for wind and water."""
+    white = rng.normal(size=n)
+    return low(white, 900) * 0.7 + low(np.cumsum(white) * 0.02, 300)
+
+
 def ambience():
-    secs = 14
+    # Day: layered wind with slow gusts, and leaves that rustle harder in the gusts.
+    secs = 20
     n = secs * RATE
     t = np.arange(n) / RATE
-    wind = low(np.cumsum(rng.normal(size=n)) * 0.02, 500)
-    wind = wind - low(wind, 40)
-    gust = 0.6 + 0.4 * np.sin(2 * np.pi * t / secs) * np.sin(2 * np.pi * 3 * t / secs)
-    leaves = band(rng.normal(size=n), 2000, 6000) * 0.04 * (0.5 + 0.5 * np.sin(2 * np.pi * 2 * t / secs) ** 2)
-    save("amb_day", loopable(wind * gust + leaves, 1.0), 0.5)
+    gust = 0.45 + 0.35 * np.sin(2 * np.pi * t / secs) ** 2 + 0.2 * np.sin(2 * np.pi * 3 * t / secs + 1.3) ** 2
+    wind = band(pink(n), 60, 700) * gust
+    leaves = band(rng.normal(size=n), 2500, 7500) * (gust - 0.4).clip(0, None) ** 2 * 0.5
+    save("amb_day", loopable(wind + leaves, 1.5), 0.45)
 
+    # Night: a few crickets with their own rhythm and pitch, over a low hush.
+    secs = 16
+    n = secs * RATE
+    t = np.arange(n) / RATE
+    night = band(pink(n), 60, 400) * 0.25
+    for c in range(4):
+        freq = 4200 + c * 260 + rng.uniform(-60, 60)
+        rate = rng.uniform(1.6, 3.0)                     # chirp groups per second
+        phase = rng.uniform(0, 1)
+        group = ((t * rate + phase) % 1.0) < 0.28          # a chirp group lasts a moment
+        pulses = (np.sin(2 * np.pi * rng.uniform(28, 45) * t) > 0.2)
+        amp = low((group & pulses).astype(float), 300) * (0.5 + 0.5 * np.sin(2 * np.pi * t / secs * (c + 1) + c) ** 2)
+        night += np.sin(2 * np.pi * freq * t) * amp * (0.22 - c * 0.035)
+    save("amb_night", loopable(reverb(night, 0.4, 0.15)[:n], 1.0), 0.4)
+
+    # Pond: gentle lapping water (placed at the pond in the game).
     secs = 12
     n = secs * RATE
     t = np.arange(n) / RATE
-    night = low(rng.normal(size=n), 300) * 0.05
-    for c in range(3):
-        freq = 4300 + c * 350
-        rate = 2.6 + c * 0.7
-        pulse = (np.sin(2 * np.pi * rate * t + c) > 0.55).astype(float)
-        trill = (np.sin(2 * np.pi * 38 * t) > 0).astype(float)
-        crick = np.sin(2 * np.pi * freq * t) * low(pulse * trill, 400) * (0.3 + 0.2 * np.sin(2 * np.pi * t / secs * (c + 1)))
-        night += crick * (0.25 - c * 0.05)
-    save("amb_night", loopable(night, 1.0), 0.45)
+    lap = band(pink(n), 200, 1800) * (0.5 + 0.5 * np.sin(2 * np.pi * 0.35 * t) ** 4)
+    plips = np.zeros(n)
+    for i in range(10):
+        start = int(rng.uniform(0, secs - 0.2) * RATE)
+        m = int(0.08 * RATE)
+        tt = np.arange(m) / RATE
+        f = rng.uniform(700, 1400)
+        plips[start:start + m] += np.sin(2 * np.pi * (f + 900 * tt / tt[-1]) * tt) * np.exp(-tt * 45) * 0.5
+    save("amb_pond", loopable(lap + plips, 1.0), 0.4)
+
+
+def chirp(f0, f1, dur, shape=1.0, harmonics=0.25):
+    n = int(dur * RATE)
+    t = np.linspace(0, 1, n)
+    f = f0 + (f1 - f0) * t ** shape
+    ph = 2 * np.pi * np.cumsum(f) / RATE
+    e = np.sin(np.pi * t) ** 1.5
+    return (np.sin(ph) + harmonics * np.sin(2 * ph)) * e
+
+
+def gap(dur):
+    return np.zeros(int(dur * RATE))
 
 
 def birds():
-    for i in range(4):
-        dur = 0.25 + 0.15 * i
-        n = int(dur * RATE)
-        t = np.arange(n) / RATE
-        notes = 2 + i
-        seg = np.floor(t / dur * notes)
-        base = 2200 + 500 * np.sin(seg * 1.7 + i)
-        sweep = base + 900 * np.sin(np.pi * (t * notes / dur % 1)) * (1 if i % 2 else -1)
-        phase = 2 * np.pi * np.cumsum(sweep) / RATE
-        note_env = np.sin(np.pi * (t * notes / dur % 1)) ** 2
-        save(f"bird_{i}", np.sin(phase + 0.8 * np.sin(phase * 0.5)) * note_env * env(n, 0.02, 0.5), 0.35)
+    songs = [
+        # a two-note whistle, "fee-bee"
+        np.concatenate([chirp(3900, 3800, 0.22), gap(0.05), chirp(3300, 3200, 0.3)]),
+        # a quick descending chirp series
+        np.concatenate(sum([[chirp(5200 - i * 250, 3600 - i * 200, 0.07, 0.6), gap(0.05)] for i in range(6)], [])),
+        # a bubbly warble
+        np.concatenate([chirp(2800 + 900 * np.sin(i * 1.7), 3400 + 700 * np.cos(i * 2.3), 0.06, 1.0, 0.4) for i in range(12)]),
+        # a rising "tweet?" call, twice
+        np.concatenate([chirp(2500, 4800, 0.18, 2.0), gap(0.25), chirp(2500, 5000, 0.18, 2.0)]),
+        # a soft trill
+        np.concatenate([chirp(4300, 4500, 0.035) for i in range(14)]),
+        # a far-off dove, "hoo-hooo"
+        np.concatenate([chirp(520, 560, 0.25, 1.0, 0.1), gap(0.12), chirp(560, 500, 0.55, 1.0, 0.1)]),
+    ]
+    for i, song in enumerate(songs):
+        save(f"bird_{i}", reverb(song, 0.9, 0.3), 0.35)
+    # A night owl.
+    save("owl", reverb(np.concatenate([chirp(380, 400, 0.35, 1.0, 0.05), gap(0.2), chirp(400, 360, 0.7, 1.0, 0.05)]), 1.2, 0.35), 0.35)
 
 
 def hum():

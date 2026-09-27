@@ -1,6 +1,6 @@
 extends Node
-## Background sound: wind by day, crickets by night, birds calling around the player,
-## and a low hum at the standing stones.
+## Background sound: wind and leaves by day, crickets by night, birds calling around the player
+## (an owl at night), lapping water at the pond, and a low hum at the standing stones.
 
 const DIR := "res://assets/sounds/"
 
@@ -13,13 +13,24 @@ var _night: AudioStreamPlayer
 var _birds: Array[AudioStream] = []
 var _bird_player: AudioStreamPlayer3D
 var _bird_timer := 3.0
+var _owl: AudioStream
+var _owl_timer := 12.0
 
 
 func _ready() -> void:
 	_day = _loop_player("amb_day")
 	_night = _loop_player("amb_night")
-	for i in 4:
+	for i in 6:
 		_birds.append(load(DIR + "bird_%d.wav" % i))
+	_owl = load(DIR + "owl.wav")
+	var pond := AudioStreamPlayer3D.new()
+	pond.stream = _looping(load(DIR + "amb_pond.wav"))
+	pond.unit_size = 5.0
+	pond.max_distance = 26.0
+	pond.volume_db = -6.0
+	pond.autoplay = true
+	pond.position = Vector3(WorldShape.POND_CENTER.x, WorldShape.WATER_Y, WorldShape.POND_CENTER.y)
+	add_child(pond)
 	_bird_player = AudioStreamPlayer3D.new()
 	_bird_player.unit_size = 12.0
 	_bird_player.volume_db = -6.0
@@ -42,10 +53,21 @@ func _process(delta: float) -> void:
 	if _bird_timer <= 0.0:
 		_bird_timer = randf_range(2.5, 7.0)
 		if night < 0.3:
-			var around := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(6.0, 14.0)
+			var around := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(6.0, 16.0)
 			_bird_player.global_position = listener_target.global_position + around + Vector3(0, 5, 0)
 			_bird_player.stream = _birds.pick_random()
-			_bird_player.pitch_scale = randf_range(0.9, 1.15)
+			_bird_player.pitch_scale = randf_range(0.92, 1.1)
+			_bird_player.volume_db = randf_range(-10.0, -4.0)
+			_bird_player.play()
+	_owl_timer -= delta
+	if _owl_timer <= 0.0:
+		_owl_timer = randf_range(15.0, 35.0)
+		if night > 0.6:
+			var far := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * 20.0
+			_bird_player.global_position = listener_target.global_position + far + Vector3(0, 6, 0)
+			_bird_player.stream = _owl
+			_bird_player.pitch_scale = randf_range(0.95, 1.05)
+			_bird_player.volume_db = -6.0
 			_bird_player.play()
 
 
