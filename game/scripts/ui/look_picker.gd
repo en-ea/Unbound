@@ -6,7 +6,7 @@ signal closed
 var _visual: CharacterVisual
 var _camera_rig: Node3D
 var _rows: VBoxContainer
-var _tab := "parts"
+var _tab := "face"
 var _tab_buttons := {}
 var _rng := RandomNumberGenerator.new()
 
@@ -43,8 +43,8 @@ func _build() -> void:
 	column.add_child(header)
 	var title := UIStyle.label(header, "Your look", 26)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for tab in ["parts", "colours"]:
-		var b := UIStyle.button(header, tab.capitalize(), Vector2(112, 42), 18)
+	for tab in ["face", "outfit", "colours"]:
+		var b := UIStyle.button(header, tab.capitalize(), Vector2(104, 42), 18)
 		b.pressed.connect(_show_tab.bind(tab))
 		_tab_buttons[tab] = b
 	_rows = VBoxContainer.new()
@@ -71,9 +71,13 @@ func _refresh() -> void:
 	for tab: String in _tab_buttons:
 		_tab_buttons[tab].modulate = Color(1, 1, 1, 1.0 if tab == _tab else 0.55)
 	var look := _visual.hero_look
-	if _tab == "parts":
+	if _tab == "outfit":
 		_rows.add_child(_option_row("Outfit", look.outfit, _cycle_outfit))
-	var slots: Array = CharacterLook.PARTS.keys() if _tab == "parts" else []
+	var slots: Array = []
+	if _tab == "face":
+		slots = CharacterLook.FACE_SLOTS
+	elif _tab == "outfit":
+		slots = CharacterLook.PARTS.keys().filter(func(k: String) -> bool: return not k in CharacterLook.FACE_SLOTS)
 	for slot: String in slots:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)

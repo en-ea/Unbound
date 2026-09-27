@@ -7,18 +7,24 @@ const SAVE_PATH := "user://look.cfg"
 
 ## Part slots and their choices (the first is the default). Mesh names in hero.glb follow them.
 const PARTS := {
-	"face": ["calm", "happy", "bright", "stern"],
+	"eyes": ["calm", "happy", "bright", "narrow", "sleepy", "fierce"],
+	"brows": ["soft", "arched", "raised", "stern", "thick"],
+	"mouth": ["smile", "grin", "open", "flat", "smirk"],
 	"cheeks": ["none", "blush"],
 	"hair": ["short", "messy", "long", "ponytail", "bun", "none"],
-	"beard": ["none", "short", "full", "goatee", "mustache"],
-	"head": ["none", "hat", "band", "hood"],
+	"beard": ["none", "stubble", "short", "full", "braided", "goatee", "mustache", "chinstrap"],
+	"head": ["none", "hat", "band", "bandana", "circlet"],
 	"top": ["tunic", "jacket", "coat"],
 	"chest": ["none", "strap", "vest"],
 	"shoulders": ["none", "pads", "plates"],
 	"back": ["none", "scarf", "backpack", "cape"],
+	"feet": ["boots", "shoes", "wraps"],
 }
-const PART_LABELS := {"face": "Face", "cheeks": "Cheeks", "hair": "Hair", "beard": "Beard", "head": "Headwear",
-	"top": "Top", "chest": "Chest", "shoulders": "Shoulders", "back": "Back"}
+const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "cheeks": "Cheeks", "hair": "Hair",
+	"beard": "Beard", "head": "Headwear", "top": "Top", "chest": "Chest", "shoulders": "Shoulders", "back": "Back",
+	"feet": "Feet"}
+## Which slots the look picker shows on its "Face" tab (the rest go on "Outfit").
+const FACE_SLOTS := ["eyes", "brows", "mouth", "cheeks", "hair", "beard"]
 
 const EARTHY: Array[Color] = [
 	Color(0.42, 0.48, 0.32), Color(0.85, 0.64, 0.25), Color(0.52, 0.2, 0.22), Color(0.26, 0.32, 0.46),
@@ -39,21 +45,26 @@ const COLOR_LABELS := {"Skin": "Skin", "Hair": "Hair", "Main": "Top", "Second": 
 
 ## Ready-made outfits (from the owner's reference sheets); pick one, then tweak.
 const OUTFITS := {
-	"Wanderer": {"parts": {"hair": "short", "beard": "none", "head": "none", "top": "tunic", "chest": "strap", "shoulders": "none", "back": "scarf"},
+	"Wanderer": {"parts": {"hair": "short", "beard": "none", "head": "none", "feet": "boots", "top": "tunic", "chest": "strap", "shoulders": "none", "back": "scarf"},
 		"colors": {"Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0}},
-	"Explorer": {"parts": {"hair": "long", "beard": "none", "head": "hat", "top": "tunic", "chest": "vest", "shoulders": "none", "back": "backpack"},
+	"Explorer": {"parts": {"hair": "long", "beard": "none", "head": "hat", "feet": "boots", "top": "tunic", "chest": "vest", "shoulders": "none", "back": "backpack"},
 		"colors": {"Main": 0, "Second": 3, "Cloth": 5, "Accent": 7, "Leather": 0}},
-	"Fighter": {"parts": {"hair": "ponytail", "beard": "none", "head": "none", "top": "jacket", "chest": "strap", "shoulders": "plates", "back": "scarf"},
+	"Fighter": {"parts": {"hair": "ponytail", "beard": "none", "head": "band", "feet": "wraps", "top": "jacket", "chest": "strap", "shoulders": "plates", "back": "scarf"},
 		"colors": {"Main": 4, "Second": 1, "Cloth": 4, "Accent": 0, "Leather": 1}},
-	"Merchant": {"parts": {"hair": "short", "beard": "short", "head": "hat", "top": "coat", "chest": "strap", "shoulders": "none", "back": "scarf"},
+	"Merchant": {"parts": {"hair": "short", "beard": "short", "head": "hat", "feet": "shoes", "top": "coat", "chest": "strap", "shoulders": "none", "back": "scarf"},
 		"colors": {"Main": 2, "Second": 1, "Cloth": 0, "Accent": 4, "Leather": 2}},
-	"Fisher": {"parts": {"hair": "long", "beard": "full", "head": "hat", "top": "coat", "chest": "none", "shoulders": "none", "back": "backpack"},
+	# Hero looks: someone on the way to becoming one of the great guardians.
+	"Guardian": {"parts": {"hair": "short", "beard": "stubble", "head": "circlet", "feet": "boots", "top": "jacket", "chest": "strap", "shoulders": "plates", "back": "cape"},
+		"colors": {"Main": 3, "Second": 0, "Cloth": 1, "Accent": 6, "Leather": 1}},
+	"Ranger": {"parts": {"hair": "long", "beard": "none", "head": "bandana", "feet": "wraps", "top": "tunic", "chest": "vest", "shoulders": "pads", "back": "scarf"},
+		"colors": {"Main": 0, "Second": 3, "Cloth": 4, "Accent": 3, "Leather": 0}},
+	"Fisher": {"parts": {"hair": "long", "beard": "braided", "head": "bandana", "feet": "boots", "top": "coat", "chest": "none", "shoulders": "none", "back": "backpack"},
 		"colors": {"Main": 1, "Second": 0, "Cloth": 5, "Accent": 1, "Leather": 1}},
 }
 
 var outfit := "Wanderer"
-var parts := {"face": "calm", "cheeks": "none", "hair": "short", "beard": "none", "head": "none", "top": "tunic",
-	"chest": "strap", "shoulders": "none", "back": "scarf"}
+var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "cheeks": "none", "hair": "short", "beard": "none",
+	"head": "none", "top": "tunic", "chest": "strap", "shoulders": "none", "back": "scarf", "feet": "boots"}
 var colors := {"Skin": 1, "Hair": 0, "Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0}   # palette indices
 
 
@@ -70,7 +81,7 @@ func set_color(slot: String, index: int) -> void:
 	colors[slot] = clampi(index, 0, PALETTES[slot].size() - 1)
 
 
-## Applies a ready-made outfit (keeps face, cheeks, skin and hair colour).
+## Applies a ready-made outfit (keeps the face, skin and hair colour).
 func cycle_outfit(step: int) -> void:
 	var names := OUTFITS.keys()
 	outfit = names[posmod(names.find(outfit) + step, names.size())]

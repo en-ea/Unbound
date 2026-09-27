@@ -123,17 +123,16 @@ func show_tool(tool_name: String) -> void:
 ## Shows the hero's chosen parts and applies its colours.
 func apply_hero_look() -> void:
 	var p := hero_look.parts
-	var hooded: bool = p["head"] == "hood"
-	var covered: bool = p["head"] in ["hat", "hood"]
+	var covered: bool = p["head"] in ["hat", "bandana"]
 	for mi in _parts:
 		var n := String(mi.name)
 		if n.begins_with("H_base_"):
 			mi.visible = true
 		elif n == "H_ears":
-			mi.visible = not hooded
+			mi.visible = true
 		elif n.begins_with("H_hair_"):
-			# Hair hides under a hood; spiky "_top" locks also hide under a hat.
-			mi.visible = n.begins_with("H_hair_" + p["hair"]) and not hooded and not (n.ends_with("_top") and covered)
+			# Spiky "_top" locks hide under a hat or bandana.
+			mi.visible = n.begins_with("H_hair_" + p["hair"]) and not (n.ends_with("_top") and covered)
 		else:
 			var bits := n.split("_")   # H_<slot>_<choice>[_extra]
 			mi.visible = bits.size() >= 3 and p.get(bits[1], "") == bits[2]

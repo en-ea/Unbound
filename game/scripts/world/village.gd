@@ -66,8 +66,8 @@ func _add_merchant(shape: WorldShape) -> void:
 		look.cycle_outfit(1)
 	# The big merchant from the owner's reference sheet: red coat with cream cuffs, red hat,
 	# full dark beard, strap and belt, and a huge pack with a bedroll and a lantern.
-	look.parts = {"face": "happy", "cheeks": "blush", "hair": "short", "beard": "full", "head": "hat",
-		"top": "coat", "chest": "strap", "shoulders": "none", "back": "backpack"}
+	look.parts = {"eyes": "happy", "brows": "arched", "mouth": "grin", "cheeks": "blush", "hair": "short", "beard": "full",
+		"head": "hat", "top": "coat", "chest": "strap", "shoulders": "none", "back": "backpack", "feet": "shoes"}
 	look.colors = {"Skin": 2, "Hair": 5, "Main": 2, "Second": 1, "Cloth": 0, "Accent": 0, "Leather": 0}
 	_merchant.hero_look = look
 	add_child(_merchant)

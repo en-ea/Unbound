@@ -204,6 +204,6 @@ func _build_lineup() -> void:
 		v.hero_look = CharacterLook.new()
 		v.hero_look.outfit = names[names.size() - 1]
 		v.hero_look.cycle_outfit(i + 1)
-		v.hero_look.parts["face"] = ["calm", "happy", "stern", "bright", "calm"][i]
+		v.hero_look.parts["eyes"] = ["calm", "happy", "fierce", "bright", "sleepy"][i]
 		add_child(v)
 		v.global_position = player.global_position + Vector3((i - 2) * 1.1, 0, 0)
