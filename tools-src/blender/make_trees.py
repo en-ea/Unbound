@@ -179,12 +179,20 @@ def stones(seed, count=4):
     """A few flat faceted slabs, for stepping stones along the path."""
     rnd = random.Random(seed)
     b = Builder(["Stone"])
+    placed = []    # (centre, radius): slabs never overlap, or their flat tops flicker
     for i in range(count):
-        c = V((rnd.uniform(-0.45, 0.45), rnd.uniform(-0.45, 0.45), 0.0))
-        r = rnd.uniform(0.16, 0.3)
+        for _ in range(30):
+            c = V((rnd.uniform(-0.45, 0.45), rnd.uniform(-0.45, 0.45), 0.0))
+            r = rnd.uniform(0.16, 0.3)
+            if all((c - pc).length > r + pr + 0.03 for pc, pr in placed):
+                break
+        else:
+            continue
+        placed.append((c, r))
+        top = 0.05 + len(placed) * 0.015              # each slab a little higher than the last
         seg = rnd.randint(5, 7)
-        faces = b.new_faces(lambda c=c, r=r, seg=seg: rk.tube(b.bm, [c + V((0, 0, -0.04)), c + V((0, 0, 0.05))],
-                                                              [(r, r * rnd.uniform(0.7, 1.0))] * 2, seg=seg))
+        faces = b.new_faces(lambda c=c, r=r, seg=seg, top=top: rk.tube(b.bm, [c + V((0, 0, -0.04)), c + V((0, 0, top))],
+                                                                       [(r, r * rnd.uniform(0.7, 1.0))] * 2, seg=seg))
         for f in faces:
             for v in f.verts:
                 v.co.z = max(v.co.z, -0.01) + 0.03        # sit just above the worn path

@@ -107,6 +107,7 @@ func _place_stone(model: String, p: Vector2) -> void:
 func _scatter_path_stones() -> void:
 	var stones := ["stones_1", "stones_2", "stones_3"]
 	var path := WorldShape.path
+	var last := Vector2.INF
 	for i in path.size() - 1:
 		var a := path[i]
 		var b := path[i + 1]
@@ -118,6 +119,9 @@ func _scatter_path_stones() -> void:
 			if _rng.randf() < 0.45 or maxf(absf(a.x), absf(a.y)) > WorldShape.PLAY_HALF:
 				continue
 			var p := a.lerp(b, d / length) + side * _rng.randf_range(-0.7, 0.7)
+			if p.distance_to(last) < 1.6:      # groups that overlap flicker
+				continue
+			last = p
 			_place(_pick(stones), "ground", p, _rng.randf_range(0.7, 1.0), 0.02)
 
 
