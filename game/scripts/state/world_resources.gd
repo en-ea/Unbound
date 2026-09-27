@@ -9,19 +9,19 @@ signal respawned(id: int)
 signal grown(id: int, size: float)          # a regrowing tree got bigger (size = scale factor)
 signal loaded                               # a save was loaded: visuals redraw every node
 
-## Per type: hits to deplete, seconds to grow back, reach radius, tool, and drops.
+## Per type: hits to deplete (a Worn tool takes 2 per swing, see Gear.TIERS), seconds to grow back, reach radius, tool, and drops.
 ## Drops: [item, min, max, chance].
 const TYPES := {
-	"tree": {"hits": 4, "respawn": 60.0, "radius": 0.6, "tool": "axe", "verb": "Chop",
+	"tree": {"hits": 8, "respawn": 60.0, "radius": 0.6, "tool": "axe", "verb": "Chop",
 		"drops": [["wood", 2, 3, 1.0], ["resin", 1, 1, 0.08]]},
-	"apple_tree": {"hits": 4, "respawn": 60.0, "radius": 0.6, "tool": "axe", "verb": "Chop",
+	"apple_tree": {"hits": 8, "respawn": 60.0, "radius": 0.6, "tool": "axe", "verb": "Chop",
 		"drops": [["wood", 2, 2, 1.0], ["apple", 1, 3, 1.0], ["resin", 1, 1, 0.08]]},
-	"rock": {"hits": 5, "respawn": 90.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine",
+	"rock": {"hits": 10, "respawn": 90.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine",
 		"drops": [["stone", 2, 3, 1.0], ["flint", 1, 1, 0.15], ["shard", 1, 1, 0.04]]},
 	# Ore rocks need a better pickaxe (min_tier, see Gear.TIERS).
-	"copper_rock": {"hits": 6, "respawn": 120.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine", "min_tier": 1,
+	"copper_rock": {"hits": 12, "respawn": 120.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine", "min_tier": 1,
 		"drops": [["copper", 2, 3, 1.0], ["stone", 1, 2, 1.0]]},
-	"iron_rock": {"hits": 8, "respawn": 150.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine", "min_tier": 2,
+	"iron_rock": {"hits": 16, "respawn": 150.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine", "min_tier": 2,
 		"drops": [["iron", 2, 3, 1.0], ["stone", 1, 2, 1.0], ["shard", 1, 1, 0.08]]},
 	"mushroom": {"hits": 1, "respawn": 40.0, "radius": 0.3, "tool": "", "verb": "Pick",
 		"drops": [["mushroom", 1, 1, 1.0], ["glowcap", 1, 1, 0.06]]},
@@ -34,9 +34,9 @@ const TYPES := {
 ## Trees come in sizes by how big they look (their scale). Same size = same work and wood,
 ## whatever the kind of tree. Apple trees add their apples on top.
 const TREE_STAGES := [
-	{"up_to": 0.9, "name": "Young", "hits": 3, "wood": [1, 2], "resin": 0.04},
-	{"up_to": 1.15, "name": "Grown", "hits": 4, "wood": [2, 3], "resin": 0.08},
-	{"up_to": 99.0, "name": "Old", "hits": 6, "wood": [4, 5], "resin": 0.16},
+	{"up_to": 0.9, "name": "Young", "hits": 6, "wood": [1, 2], "resin": 0.04},
+	{"up_to": 1.15, "name": "Grown", "hits": 8, "wood": [2, 3], "resin": 0.08},
+	{"up_to": 99.0, "name": "Old", "hits": 12, "wood": [4, 5], "resin": 0.16},
 ]
 const SAPLING_SIZE := 0.45       # a regrown tree starts at this fraction of its full size
 const GROW_TIME := 240.0         # seconds from sapling to full size

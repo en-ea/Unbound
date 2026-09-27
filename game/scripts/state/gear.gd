@@ -6,13 +6,16 @@ extends Node
 signal changed
 
 const SLOTS := {"axe": "Axe", "pickaxe": "Pickaxe", "sword": "Sword"}
-## power: hits dealt per swing (and sword damage); speed: swing speed multiplier.
+## power: hits taken off a tree or rock per swing; damage: sword damage (boar 10, wolf 6);
+## speed: swing speed multiplier. Every tier is a clear step up.
 const TIERS := [
-	{"name": "Worn", "color": Color(0.58, 0.5, 0.44), "power": 1, "speed": 0.85},
-	{"name": "Stone", "color": Color(0.66, 0.66, 0.64), "power": 1, "speed": 1.0},
-	{"name": "Copper", "color": Color(0.9, 0.52, 0.3), "power": 2, "speed": 1.08},
-	{"name": "Iron", "color": Color(0.82, 0.86, 0.92), "power": 3, "speed": 1.16},
+	{"name": "Worn", "color": Color(0.58, 0.5, 0.44), "power": 2, "damage": 2, "speed": 0.85},
+	{"name": "Stone", "color": Color(0.46, 0.46, 0.44), "power": 3, "damage": 3, "speed": 1.0},
+	{"name": "Copper", "color": Color(0.9, 0.52, 0.3), "power": 4, "damage": 4, "speed": 1.08},
+	{"name": "Iron", "color": Color(0.82, 0.86, 0.92), "power": 6, "damage": 5, "speed": 1.16},
 ]
+## What a tier unlocks for a tool, shown at the workbench.
+const PERKS := {"pickaxe": {1: "Mines copper ore", 2: "Mines iron ore"}}
 ## What each tool costs at the workbench.
 const RECIPES := [
 	{"slot": "axe", "tier": 1, "cost": {"wood": 4, "stone": 3, "flint": 1}},
@@ -36,6 +39,10 @@ func tier(slot: String) -> int:
 
 func power(slot: String) -> int:
 	return TIERS[tier(slot)]["power"]
+
+
+func damage() -> int:
+	return TIERS[tier("sword")]["damage"]
 
 
 func speed(slot: String) -> float:

@@ -1,9 +1,11 @@
 extends Control
-## The in-game menu (gear button): resume, save, change your look, settings, and the dev tools.
+## The in-game menu (gear button): resume, save, change your look, settings, back to the title
+## screen, and the dev tools.
 
 signal closed
 signal open_character
 signal open_settings
+signal to_title
 
 @export var day_night: Node
 @export var character: CharacterVisual
@@ -33,6 +35,9 @@ func _ready() -> void:
 		queue_free())
 	UIStyle.menu_button(column, "Settings").pressed.connect(func() -> void:
 		open_settings.emit()
+		queue_free())
+	UIStyle.menu_button(column, "Title screen").pressed.connect(func() -> void:
+		to_title.emit()
 		queue_free())
 	var dev_title := UIStyle.label(column, "Dev tools", 16, true)
 	dev_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

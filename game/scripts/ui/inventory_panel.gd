@@ -1,6 +1,6 @@
 extends Control
-## The Bag: your tools (tap a tier you own to use it) and a grid of item cards (icon, name, count,
-## rarity edge). Reads Inventory and Gear.
+## The Bag: your equipped tools (tap another tier you own to switch) and a scrolling grid of item
+## cards (icon, name, count, rarity edge). Reads Inventory and Gear.
 
 signal closed
 
@@ -24,11 +24,11 @@ func _ready() -> void:
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", UIStyle.panel())
 	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(700, 460)
-	panel.offset_left = -350
-	panel.offset_right = 350
-	panel.offset_top = -240
-	panel.offset_bottom = 240
+	panel.custom_minimum_size = Vector2(760, 540)
+	panel.offset_left = -380
+	panel.offset_right = 380
+	panel.offset_top = -270
+	panel.offset_bottom = 270
 	add_child(panel)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 14)
@@ -41,15 +41,18 @@ func _ready() -> void:
 	_gear = VBoxContainer.new()
 	_gear.add_theme_constant_override("separation", 6)
 	column.add_child(_gear)
+	UIStyle.label(column, "ITEMS", 15, true)
 	_empty = UIStyle.label(column, "Nothing yet. Chop a tree, mine a rock, or pick a flower.", 20, true)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.scroll_deadzone = 8
 	column.add_child(scroll)
 	_grid = GridContainer.new()
 	_grid.columns = COLUMNS
 	_grid.add_theme_constant_override("h_separation", 12)
 	_grid.add_theme_constant_override("v_separation", 12)
+	_grid.mouse_filter = Control.MOUSE_FILTER_PASS
 	scroll.add_child(_grid)
 	Inventory.changed.connect(_on_changed)
 	ItemIcons.icon_ready.connect(_on_icon_ready)
@@ -58,36 +61,57 @@ func _ready() -> void:
 	_refresh_gear()
 
 
-## One row per tool slot: a badge for every tier you own; the equipped one is bigger.
+## "Equipped": a tile per tool (picture, name, tier-coloured frame). Other tiers you own sit
+## under it as small pictures; tap one to switch.
 func _refresh_gear() -> void:
 	for c in _gear.get_children():
 		c.queue_free()
+	var head := UIStyle.label(_gear, "EQUIPPED", 15, true)
+	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 26)
+	row.add_theme_constant_override("separation", 12)
 	_gear.add_child(row)
 	for slot: String in Gear.SLOTS:
-		var group := HBoxContainer.new()
-		group.add_theme_constant_override("separation", 6)
-		row.add_child(group)
-		for t: int in Gear.owned[slot]:
-			var on := Gear.tier(slot) == t
+		var t := Gear.tier(slot)
+		var tile := PanelContainer.new()
+		var box := StyleBoxFlat.new()
+		box.bg_color = Color(1, 1, 1, 0.07)
+		box.set_corner_radius_all(16)
+		box.border_color = Gear.TIERS[t]["color"]
+		box.set_border_width_all(3)
+		box.set_content_margin_all(8)
+		tile.add_theme_stylebox_override("panel", box)
+		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tile.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_child(tile)
+		var h := HBoxContainer.new()
+		h.add_theme_constant_override("separation", 8)
+		tile.add_child(h)
+		h.add_child(CRAFTING.tool_picture(slot, t, 64))
+		var info := VBoxContainer.new()
+		info.alignment = BoxContainer.ALIGNMENT_CENTER
+		h.add_child(info)
+		UIStyle.label(info, Gear.tool_name(slot, t), 17)
+		var others := HBoxContainer.new()
+		others.add_theme_constant_override("separation", 4)
+		info.add_child(others)
+		for o: int in Gear.owned[slot]:
+			if o == t:
+				continue
 			var b := Button.new()
 			b.flat = true
-			b.custom_minimum_size = Vector2(52, 52)
-			var badge := CRAFTING.badge(slot, t, 44 if on else 32)
-			badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			b.add_child(badge)
-			badge.position = Vector2(4, 4) if on else Vector2(10, 10)
-			b.pressed.connect(Gear.equip.bind(slot, t))
-			group.add_child(b)
-	var names: Array[String] = []
-	for slot: String in Gear.SLOTS:
-		names.append(Gear.tool_name(slot, Gear.tier(slot)))
-	UIStyle.label(_gear, "Using: " + ", ".join(names) + "  (tap a badge to switch)", 16, true)
+			b.custom_minimum_size = Vector2(40, 40)
+			b.icon = ItemIcons.tool_icon(slot, o)
+			b.expand_icon = true
+			b.pressed.connect(Gear.equip.bind(slot, o))
+			others.add_child(b)
 
 
-func _on_icon_ready(_item: String) -> void:
-	_refresh()
+func _on_icon_ready(item: String) -> void:
+	if item.begins_with("tool:"):
+		_refresh_gear()
+	else:
+		_refresh()
 
 
 func _on_changed(_item: String, _count: int) -> void:
@@ -113,6 +137,7 @@ func _card(item: String) -> Control:
 	box.set_content_margin_all(10)
 	card.add_theme_stylebox_override("panel", box)
 	card.custom_minimum_size = Vector2(152, 136)
+	card.mouse_filter = Control.MOUSE_FILTER_PASS      # lets a swipe on the card scroll the Bag
 	var v := VBoxContainer.new()
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_theme_constant_override("separation", 6)

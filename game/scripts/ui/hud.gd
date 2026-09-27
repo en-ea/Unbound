@@ -172,6 +172,9 @@ func open_menu() -> void:
 	var menu := _modal(MENU_PANEL, {"day_night": day_night, "character": character})
 	menu.open_character.connect(open_look_picker)
 	menu.open_settings.connect(open_settings)
+	menu.to_title.connect(func() -> void:
+		SaveGame.save_game()
+		show_title())
 
 
 func open_settings() -> void:

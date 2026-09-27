@@ -16,6 +16,9 @@ func _ready() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not visible:
+		# Hidden behind a screen (Bag, menu): still notice the finger lifting, or the stick sticks.
+		if event is InputEventScreenTouch and not event.pressed and event.index == _finger:
+			_release()
 		return
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
@@ -41,7 +44,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_VISIBILITY_CHANGED:
 		_release()
 
 

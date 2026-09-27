@@ -68,7 +68,7 @@ func act() -> void:
 	var tool: String = info["tool"]
 	var swing: Dictionary = SWINGS[tool]
 	var pace := Gear.speed(tool) if tool != "" else 1.0
-	_power = Gear.power(tool) if tool != "" else 1
+	_power = Gear.power(tool) if tool != "" else 2      # bare hands pick flowers, open chests
 	if tool != "" and Gear.tier(tool) < info.get("min_tier", 0):
 		_power = 0                     # too hard for this pickaxe: it just glances off
 		get_tree().call_group("hud", "hint", "Needs a %s" % Gear.tool_name(tool, info["min_tier"]))

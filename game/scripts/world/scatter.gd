@@ -21,6 +21,7 @@ var _rng := RandomNumberGenerator.new()
 var _batches := {}         # "model|kind|cx|cz" -> Array[Transform3D]
 var _meshes := {}          # "model|kind" -> Mesh with our materials
 var _trees: Array[Vector2] = []
+var _ore_spots: Array[Vector2] = []
 var _tree_grid := {}        # Vector2i cell -> Array[Vector2] of trees in it
 var _colliders: StaticBody3D
 var _pending_gatherables: Array[Dictionary] = []
@@ -46,8 +47,8 @@ func build(shape: WorldShape) -> void:
 	_scatter_landmarks()
 	_scatter_path_stones()
 	_scatter_rocks()
-	_scatter_plants()
 	_scatter_ores()
+	_scatter_plants()
 	_flush()
 
 
@@ -126,7 +127,7 @@ func _scatter_path_stones() -> void:
 			_place(_pick(stones), "ground", p, _rng.randf_range(0.7, 1.0), 0.02)
 
 
-## Ore rocks (placed last so everything else keeps its spot): copper around the hill, iron
+## Ore rocks (before the plants, which keep off them): copper around the hill, iron
 ## deep in the north woods.
 func _scatter_ores() -> void:
 	var placed := 0
@@ -136,6 +137,7 @@ func _scatter_ores() -> void:
 		var p := WorldShape.HILL_CENTER + Vector2.from_angle(_rng.randf() * TAU) * _rng.randf_range(9.0, 17.0)
 		if _clear_of_features(p, 2.5, 9.0) and not _near_tree(p, 2.5):
 			_place("ore_copper", "rock", p, _rng.randf_range(0.7, 0.9), 0.2, "copper_rock")
+			_ore_spots.append(p)
 			placed += 1
 	placed = 0
 	for i in 200:
@@ -144,6 +146,7 @@ func _scatter_ores() -> void:
 		var p := Vector2(_rng.randf_range(-30, 40), _rng.randf_range(-52, -36))
 		if _clear_of_features(p, 2.5, 9.0) and not _near_tree(p, 2.5):
 			_place("ore_iron", "rock", p, _rng.randf_range(0.7, 0.9), 0.2, "iron_rock")
+			_ore_spots.append(p)
 			placed += 1
 
 
@@ -186,6 +189,9 @@ func _scatter_plants() -> void:
 func _plant_at(p: Vector2) -> void:
 	if _shape.pond_distance(p) < WorldShape.POND_RADIUS + 1.5 or _shape.path_distance(p) < 1.6 or _shape.in_clearing(p):
 		return
+	for o in _ore_spots:                  # no grass growing through the ore rocks
+		if o.distance_squared_to(p) < 2.0:
+			return
 	var m := _shape.meadow_noise(p.x, p.y)
 	var near_tree := _near_tree(p, 3.5)
 	var r := _rng.randf()

@@ -11,7 +11,7 @@ const CIRCLE_RADIUS := 3.8
 const SIGHT := 10.0
 const HOME_RADIUS := 8.0
 const LEASH := 22.0
-const MAX_HEALTH := 3
+const MAX_HEALTH := 6          # sword damage is 2 (Worn) to 5 (Iron)
 const RESPAWN_TIME := 50.0
 const GRAVITY := 20.0
 const SOUNDS := {
@@ -146,7 +146,7 @@ func take_hit(from: Vector3, damage := 1) -> void:
 		return
 	health -= damage
 	visual.flash()
-	visual.show_health(float(health) / MAX_HEALTH, MAX_HEALTH)
+	visual.show_health(float(health) / MAX_HEALTH, MAX_HEALTH / 2)
 	var away := global_position - from
 	away.y = 0.0
 	_push = away.normalized() * 5.0

@@ -13,6 +13,7 @@ extends Node
 ##   --lineup          stand every outfit preset in a row in front of the camera
 ##   --title           keep the title screen (otherwise any dev argument skips it)
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
+##   --craft / --bag   open the workbench / Bag screen with a few items to show
 
 @export var day_night: Node
 
@@ -40,6 +41,11 @@ func _ready() -> void:
 			_shot_path = arg.trim_prefix("--shot=")
 		elif arg.begins_with("--shotframe="):
 			_shot_frame = int(arg.trim_prefix("--shotframe="))
+		elif arg == "--craft" or arg == "--bag":      # open a screen (with some items to show)
+			for item in ["wood", "stone", "flint", "copper", "hide", "apple", "resin"]:
+				Inventory.add(item, 5)
+			var hud := get_node("../HUD")
+			(hud.open_crafting if arg == "--craft" else hud.open_bag).call_deferred()
 		elif arg.begins_with("--time="):
 			day_night.time_of_day = float(arg.trim_prefix("--time="))
 		elif arg.begins_with("--walk="):
