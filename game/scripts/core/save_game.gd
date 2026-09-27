@@ -43,6 +43,7 @@ func save_game() -> void:
 		"version": VERSION,
 		"inventory": Inventory.to_data(),
 		"world": WorldResources.to_data(),
+		"layout": str(WorldResources.layout_id()),     # as text: JSON would round a big number
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y},
 		"time_of_day": _day_night.time_of_day,
 	}
@@ -58,7 +59,8 @@ func load_game() -> void:
 	if not data is Dictionary or data.get("version", 0) != VERSION:
 		return
 	Inventory.load_data(data.get("inventory", {}))
-	WorldResources.load_data(data.get("world", []))
+	if data.get("layout", "") == str(WorldResources.layout_id()):
+		WorldResources.load_data(data.get("world", []))
 	var pl: Dictionary = data.get("player", {})
 	var pos: Array = pl.get("pos", [])
 	if pos.size() == 3:

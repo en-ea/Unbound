@@ -64,6 +64,8 @@ func _pose(id: int, xf: Transform3D) -> void:
 
 
 func _on_hit(id: int, hits_left: int) -> void:
+	if not _entries.has(id):      # not ours (treasure chests show themselves)
+		return
 	var g: Dictionary = _entries[id]
 	var tool: String = WorldResources.type_info(id)["tool"]
 	var at: Vector3 = g["xf"].origin
@@ -85,6 +87,8 @@ func _on_hit(id: int, hits_left: int) -> void:
 
 
 func _on_depleted(id: int, drops: Array) -> void:
+	if not _entries.has(id):      # not ours (treasure chests show themselves)
+		return
 	var g: Dictionary = _entries[id]
 	var base: Transform3D = g["xf"]
 	if g["collider"]:
@@ -137,6 +141,8 @@ func _fell(id: int, drops: Array) -> void:
 
 
 func _on_grown(id: int, _size: float) -> void:
+	if not _entries.has(id):      # not ours (treasure chests show themselves)
+		return
 	if WorldResources.is_available(id):
 		_pose(id, _shown(id))
 
@@ -160,6 +166,8 @@ func _on_loaded() -> void:
 
 
 func _on_respawned(id: int) -> void:
+	if not _entries.has(id):      # not ours (treasure chests show themselves)
+		return
 	var g: Dictionary = _entries[id]
 	if _stumps.has(id):
 		_stumps[id].queue_free()

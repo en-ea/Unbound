@@ -20,7 +20,10 @@ static var path := PackedVector2Array([
 ])
 
 ## Spots kept clear of trees, rocks and plants (houses, the merchant): (x, z, radius).
-static var clearings := [Vector3(-5.5, 11.5, 4.2), Vector3(10.5, 13.0, 4.6), Vector3(5.4, 16.0, 1.5)]
+static var clearings := [Vector3(-5.5, 11.5, 4.2), Vector3(10.5, 13.0, 4.6), Vector3(5.4, 16.0, 1.5),
+	Vector3(-9.0, 23.0, 4.4), Vector3(14.0, 2.5, 5.2)]
+## Spots kept free of scatter without flattening the ground (ruins, treasure chests): (x, z, radius).
+static var keep_clear := [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5)]
 
 var _noise := FastNoiseLite.new()
 var _detail := FastNoiseLite.new()
@@ -58,6 +61,9 @@ func height_at(x: float, z: float) -> float:
 
 
 func in_clearing(p: Vector2) -> bool:
+	for c: Vector3 in keep_clear:
+		if p.distance_to(Vector2(c.x, c.y)) < c.z:
+			return true
 	for c: Vector3 in clearings:
 		if p.distance_to(Vector2(c.x, c.y)) < c.z:
 			return true

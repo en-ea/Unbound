@@ -18,6 +18,17 @@ func _ready() -> void:
 	$Enemies.spawn(shape)
 	$Village.build(shape)
 	$HUD.setup_map(shape, scatter.tree_points(), $Landmark)
+	var treasure := Node3D.new()
+	treasure.set_script(preload("res://scripts/world/treasure.gd"))
+	treasure.player = player
+	add_child(treasure)
+	treasure.build(shape)
+	var critters := Node3D.new()
+	critters.set_script(preload("res://scripts/world/critters.gd"))
+	critters.player = player
+	critters.day_night = $WorldEnvironment
+	add_child(critters)
+	critters.build(shape)
 	$Player/Sounds.shape = shape
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)

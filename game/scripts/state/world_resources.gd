@@ -22,6 +22,8 @@ const TYPES := {
 		"drops": [["mushroom", 1, 1, 1.0], ["glowcap", 1, 1, 0.06]]},
 	"flower": {"hits": 1, "respawn": 40.0, "radius": 0.3, "tool": "", "verb": "Pick",
 		"drops": [["flower", 1, 2, 1.0]]},
+	"chest": {"hits": 1, "respawn": 900.0, "radius": 0.5, "tool": "", "verb": "Open",
+		"drops": [["flint", 2, 4, 1.0], ["resin", 1, 2, 0.8], ["shard", 1, 2, 0.7], ["glowcap", 1, 1, 0.5], ["fang", 1, 1, 0.3]]},
 }
 
 ## Trees come in sizes by how big they look (their scale). Same size = same work and wood,
@@ -170,6 +172,15 @@ func to_data() -> Array:
 		var wait: float = n["respawn_at"] - now if n["respawn_at"] >= 0.0 else -1.0
 		out.append([n["hits_left"], snappedf(n["growth"], 0.001), snappedf(wait, 0.1)])
 	return out
+
+
+## A fingerprint of where every node stands, so a save from an older world layout is ignored.
+func layout_id() -> int:
+	var h := _nodes.size()
+	for n in _nodes:
+		var p: Vector3 = n["pos"]
+		h = hash([h, snappedf(p.x, 0.01), snappedf(p.z, 0.01), n["type"]])
+	return h
 
 
 ## Applies a save (after the world has been placed). Ignored if the world layout changed.
