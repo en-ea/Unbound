@@ -12,6 +12,8 @@ M2 "Gather" first pass is in:
 - Trees have sizes (young/grown/old: 3/4/6 hits, 1-2/2-3/4-5 wood), fall over when chopped, and regrow from saplings. Pickup feed pills in the HUD. All nature models are our own faceted ones (make_trees.py); the Quaternius nature pack is gone (download ~6.5 MB).
 - Chop/mine use UAL2's TreeChopping (started part-way for wind-up then strike), picking uses UAL1 PickUp_Table; hit-stop + camera shake. Trees covering the player dither-fade (occlusion_fader.gd). Richer generated ambience (make_sounds.py).
 - Known: item icons are colour dots; hair and the character need a proper art pass (owner wants it better in general); no saving yet (M5).
-- Next per plan: M3 "Fight".
+- Item models (make_items.py) for drops + rendered Bag/feed icons (ItemIcons autoload). Look pass: ground patches/detail, baked shade under objects, warm sun/cool shade, soft shadows, haze, AgX, vignette.
+- M3 started: boar enemy (make_boar.py parts + procedural animation in boar_visual.gd; AI in boar.gd: wander/alert/charge/recover/hurt/dead, respawns). Player: sword 3-hit combo (fighter.gd, UAL2 Sword_Regular_A/B/C), dodge roll, knockback (no player health/death yet). Dev: --fighttest.
+- M3 still to do: player health and death/respawn, enemy variety later, combat polish from the owner's feedback.
 
 Work in small steps, keep usage low (no repeated screenshot loops), keep replies short, check in with me every few steps, and tell me what to test when it's ready.
