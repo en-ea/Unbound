@@ -90,20 +90,26 @@ func _on_depleted(id: int, drops: Array) -> void:
 	if g["collider"]:
 		g["collider"].disabled = true
 	if WorldResources.is_tree(id):
-		_fell(id)
+		_fell(id, drops)         # the loot bursts out where the tree lands
 	else:
 		_pose(id, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), base.origin))
+		_spill(drops, base.origin, base.origin, 1.0)
+
+
+## Throws drops out of the ground between `from` and `to` (a fallen trunk spreads them along it).
+func _spill(drops: Array, from: Vector3, to: Vector3, power: float) -> void:
 	for i in drops.size():
 		var drop := Node3D.new()
 		drop.set_script(DROP)
 		add_child(drop)
-		var dir := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(1.0, 2.2)
-		drop.launch(drops[i], base.origin + Vector3(0, 0.8, 0), dir + Vector3(0, randf_range(3.5, 5.0), 0), base.origin.y, player)
+		var at := from.lerp(to, (i + 0.5) / drops.size())
+		var dir := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(1.0, 2.2) * power
+		drop.launch(drops[i], at + Vector3(0, 0.8, 0), dir + Vector3(0, randf_range(3.5, 5.0) * power, 0), from.y, player)
 
 
 ## The tree tips over away from the player, lands with a thud and a burst of leaves, and
 ## leaves a stump behind.
-func _fell(id: int) -> void:
+func _fell(id: int, drops: Array) -> void:
 	var g: Dictionary = _entries[id]
 	var base: Transform3D = g["xf"]
 	var size := WorldResources.size_factor(id)
@@ -123,7 +129,9 @@ func _fell(id: int) -> void:
 		var landing: Vector3 = base.origin + away * 3.0 * g["scale"] * size
 		_play(landing, "thud", randf_range(0.9, 1.05), 0.0)
 		_play(landing, "rustle", 0.8, -4.0)
-		_burst(landing + Vector3(0, 0.6, 0), Color(0.45, 0.65, 0.3), 24))
+		_burst(landing + Vector3(0, 0.6, 0), Color(0.45, 0.65, 0.3), 24)
+		get_tree().call_group("camera_rig", "shake", 0.05 * size)
+		_spill(drops, base.origin.lerp(landing, 0.35), landing, 1.2))
 	fall.tween_method(func(f: float) -> void:
 		_pose(id, _shown(id, Basis(axis, 1.45), size * f)), 1.0, 0.0, 0.3)
 

@@ -82,3 +82,20 @@ https://claude.ai/artifact/GguWfzpYKvqzLmG4MFiSDz (db doc `picks/round3`, includ
 
 ## Money (someday, not now)
 - Most likely free, with worthwhile optional purchases (cosmetics, expansions). For now it's just for the owner.
+
+## Owner decisions (Q&A, 2026-09-27)
+- **Tools:** can be dropped/lost, but a basic one is always cheap to craft. Without an axe you can punch trees (about double the hits). The current axe may be a bit too fast. No wear or durability.
+- **Tool/gear upgrades:** always carry one axe, one pickaxe and one weapon, used automatically. Better ones (crafted or found, with tiers and rarities; found ones can roll bonuses) are equipped from the Bag.
+- **Knock-out:** option toggle: either nothing lost, or drop some carried items where you fell and go back for them.
+- **Bag:** limited slots, upgraded through crafting.
+- **Enemy strength:** mostly fixed per area, some roaming ones scale. You should clearly get stronger, but never to the point of one-shotting everything.
+- **Classes/abilities (idea):** something like Outriders: pick a class and choose abilities as you go.
+- **Weapon styles eventually:** sword and shield, spear, dual wield, bow, magic/relic powers, big two-handed.
+- **Nights:** special night-only creatures and loot. Nights are currently too dark.
+- **Food:** heals plus short buffs, depending on the food.
+- **Money:** open. Selling to villagers is fine, but money should matter more within the game. Needs ideas.
+- **Home:** maybe purchased, with a few options to choose from; could grow into a base later. Open.
+- **Map:** minimap, which can be hidden (setting).
+- **Travel between lands:** a boat to the second land, later a bridge (maybe with a horse). The third land needs something more special. Loading screens only where performance needs them.
+- **Music:** much later; sounds first. Name: keep "Unbound" for now.
+- **Idea (maybe):** blacksmithing your own gear as a hands-on minigame (like Jacksmith).

@@ -22,9 +22,9 @@ const HORIZON := [Color(0.08, 0.11, 0.24), Color(0.30, 0.26, 0.42), Color(1.00, 
 const SUN_COLOR := [Color(1, 0.8, 0.6), Color(1.0, 0.62, 0.40), Color(1.0, 0.72, 0.48), Color(1.0, 0.88, 0.7),
 	Color(1.0, 0.93, 0.8), Color(1.0, 0.86, 0.66), Color(1.0, 0.62, 0.38), Color(1.0, 0.5, 0.35), Color(1, 0.8, 0.6)]
 const SUN_ENERGY := [0.0, 0.0, 1.05, 1.5, 1.6, 1.55, 1.3, 0.0, 0.0]
-const AMBIENT := [Color(0.30, 0.38, 0.62), Color(0.42, 0.40, 0.58), Color(0.62, 0.6, 0.72), Color(0.56, 0.66, 0.86),
-	Color(0.56, 0.68, 0.9), Color(0.6, 0.66, 0.84), Color(0.66, 0.54, 0.62), Color(0.40, 0.36, 0.56), Color(0.30, 0.38, 0.62)]
-const AMBIENT_ENERGY := [0.6, 0.68, 0.95, 0.92, 0.9, 0.92, 0.98, 0.7, 0.6]
+const AMBIENT := [Color(0.36, 0.45, 0.72), Color(0.42, 0.40, 0.58), Color(0.62, 0.6, 0.72), Color(0.56, 0.66, 0.86),
+	Color(0.56, 0.68, 0.9), Color(0.6, 0.66, 0.84), Color(0.66, 0.54, 0.62), Color(0.42, 0.40, 0.62), Color(0.36, 0.45, 0.72)]
+const AMBIENT_ENERGY := [0.85, 0.85, 0.95, 0.92, 0.9, 0.92, 0.98, 0.85, 0.85]
 
 var _sky_mat := ProceduralSkyMaterial.new()
 var _timer := 0.0
@@ -92,7 +92,7 @@ func _apply() -> void:
 	# Lights stay visible (energy 0 when off): toggling them would make the phone rebuild shaders.
 	sun.shadow_enabled = sun_dir.y > 0.2   # no shadows when the sun is low
 	night = clampf(0.2 - sun_dir.y * 3.0, 0.0, 1.0)
-	moon.light_energy = 0.32 * night
+	moon.light_energy = 0.5 * night
 
 	var env := environment
 	var horizon := _sample_c(HORIZON, t)

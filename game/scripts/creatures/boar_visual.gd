@@ -6,6 +6,7 @@ extends Node3D
 
 const PARTS := ["Body", "Head", "Leg_FL", "Leg_FR", "Leg_BL", "Leg_BR", "Tail", "Jaw"]
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
+const BAR_SHADER := preload("res://shaders/health_bar.gdshader")
 
 var speed := 0.0            # ground speed, set by Boar
 var mode := "walk"          # walk / alert / stalk / charge / hurt / dead
@@ -22,8 +23,12 @@ var _eye_materials: Array[ShaderMaterial] = []
 var _eyes := 0.0            # 0..1 red eye glow (warning before a charge)
 var _alert_mark: Label3D
 var _dust: CPUParticles3D
-var _bar_back: MeshInstance3D
-var _bar_fill: MeshInstance3D
+var _bar: MeshInstance3D
+var _bar_mat: ShaderMaterial
+var _bar_alpha := 0.0
+var _trail := 1.0
+var _fill := 1.0
+var _trail_wait := 0.0
 var _bar_time := 0.0
 var _phase := 0.0
 var _time := 0.0
@@ -64,13 +69,9 @@ func _ready() -> void:
 	add_child(_alert_mark)
 	_dust = _make_dust()
 	add_child(_dust)
-	_bar_back = _bar_quad(Color(0.08, 0.06, 0.08, 0.75), 0.9)
-	_bar_fill = _bar_quad(Color(0.9, 0.28, 0.24), 0.84)
-	_bar_fill.position.z = 0.002
-	_bar_back.add_child(_bar_fill)
-	_bar_back.position = Vector3(0, bar_height, 0)
-	_bar_back.visible = false
-	add_child(_bar_back)
+	_bar = _make_bar()           # always drawn (see-through when hidden), so its shader is ready
+	_bar.position = Vector3(0, bar_height, 0)
+	add_child(_bar)
 
 
 func flash() -> void:
@@ -78,15 +79,19 @@ func flash() -> void:
 
 
 ## Shows the health bar for a few seconds after a hit.
-func show_health(fraction: float) -> void:
-	_bar_time = 3.0
-	_bar_back.visible = fraction > 0.0
-	_bar_fill.scale.x = maxf(fraction, 0.001)
-	_bar_fill.position.x = -0.42 * (1.0 - fraction)
+func show_health(fraction: float, hit_points := 5) -> void:
+	_bar_mat.set_shader_parameter("segments", float(hit_points))
+	_bar_time = 3.0 if fraction > 0.0 else 0.6
+	_fill = fraction
+	_bar_mat.set_shader_parameter("fill", fraction)
+	_trail_wait = 0.35
 
 
 func reset() -> void:
 	_fall = 0.0
+	_trail = 1.0
+	_fill = 1.0
+	_bar_mat.set_shader_parameter("fill", 1.0)
 	rotation = Vector3.ZERO
 
 
@@ -104,9 +109,13 @@ func _process(delta: float) -> void:
 	_alert_mark.outline_modulate.a = mark_a
 	_alert_mark.position.y = mark_height + sin(_time * 10.0) * 0.05
 	_dust.emitting = mode == "charge"
-	if _bar_time > 0.0:
-		_bar_time -= delta
-		_bar_back.visible = _bar_time > 0.0
+	_bar_time -= delta
+	_bar_alpha = move_toward(_bar_alpha, 1.0 if _bar_time > 0.0 else 0.0, delta * 5.0)
+	_trail_wait -= delta
+	if _trail_wait <= 0.0:
+		_trail = move_toward(_trail, _fill, delta * 1.2)
+	_bar_mat.set_shader_parameter("trail", _trail)
+	_bar_mat.set_shader_parameter("alpha", _bar_alpha)
 	if mode == "dead":
 		_fall = minf(_fall + delta * 3.0, 1.0)
 		rotation.z = ease(_fall, 0.4) * PI * 0.5
@@ -142,19 +151,16 @@ func _pose(swing: float, bob: float, head_pitch: float, stride: float) -> void:
 		_parts[leg].transform = _rest[leg] * Transform3D(Basis(Vector3.RIGHT, -swing), Vector3.ZERO)
 
 
-func _bar_quad(color: Color, width: float) -> MeshInstance3D:
+func _make_bar() -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
 	var quad := QuadMesh.new()
-	quad.size = Vector2(width, 0.1)
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	mat.no_depth_test = true
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = color
-	mat.render_priority = 1 if width < 0.88 else 0
-	quad.material = mat
+	quad.size = Vector2(1.05, 0.15)
 	mi.mesh = quad
+	_bar_mat = ShaderMaterial.new()
+	_bar_mat.shader = BAR_SHADER
+	_bar_mat.set_shader_parameter("aspect", 7.0)
+	_bar_mat.render_priority = 2
+	mi.material_override = _bar_mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return mi
 

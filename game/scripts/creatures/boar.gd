@@ -119,7 +119,7 @@ func take_hit(from: Vector3, damage := 1) -> void:
 		return
 	health -= damage
 	visual.flash()
-	visual.show_health(float(health) / MAX_HEALTH)
+	visual.show_health(float(health) / MAX_HEALTH, MAX_HEALTH)
 	var away := global_position - from
 	away.y = 0.0
 	_push = away.normalized() * 4.0

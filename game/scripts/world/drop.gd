@@ -4,11 +4,13 @@ extends Node3D
 ## Pickups in quick succession play at rising pitch.
 
 const MAGNET_RANGE := 2.4
+const GLOW_SHADER := preload("res://shaders/loot_glow.gdshader")
 const AUTO_COLLECT := 0.9      # seconds after landing before it flies to you anyway
 const AUTO_RANGE := 9.0
 
 static var _chain := 0         # pickups in a row (for the rising pitch)
 static var _last_pick := 0.0
+static var _popups := {}       # item -> {"label": Label3D, "count": int, "at": seconds}
 const GRAVITY := 14.0
 const SOUNDS := {"pickup": preload("res://assets/sounds/pickup.wav"), "rare": preload("res://assets/sounds/rare.wav")}
 
@@ -86,7 +88,45 @@ func _collect() -> void:
 	sound.play()
 	sound.finished.connect(sound.queue_free)
 	_burst(rare)
+	_popup(now)
 	queue_free()
+
+
+## "+3 Wood" floating up above the player; quick pickups of the same item add to one popup.
+func _popup(now: float) -> void:
+	var entry: Dictionary = _popups.get(item, {})
+	var label: Label3D = entry.get("label")
+	if label and is_instance_valid(label) and now - entry["at"] < 0.9:
+		entry["count"] += 1
+		entry["at"] = now
+	else:
+		label = Label3D.new()
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		label.no_depth_test = true
+		label.font_size = 64
+		label.outline_size = 16
+		label.pixel_size = 0.005
+		label.outline_modulate = Color(0.08, 0.06, 0.1, 0.85)
+		var rarity := Items.rarity_of(item)
+		label.modulate = Color(1.0, 0.96, 0.86) if rarity == Items.Rarity.COMMON else Items.RARITY_COLORS[rarity]
+		_player.get_parent().add_child(label)
+		entry = {"label": label, "count": 1, "at": now}
+		_popups[item] = entry
+		label.set_meta("slot", _popups.size() % 3)
+	label.text = "+%d %s" % [entry["count"], Items.name_of(item)]
+	label.global_position = _player.global_position + Vector3(0.0, 2.3 + label.get_meta("slot") * 0.32, 0.0)
+	label.scale = Vector3.ONE * 1.25
+	if label.has_meta("tween"):
+		(label.get_meta("tween") as Tween).kill()
+	var t := label.create_tween()
+	label.set_meta("tween", t)
+	t.tween_property(label, "scale", Vector3.ONE, 0.15)
+	t.tween_interval(0.6)
+	t.set_parallel()
+	t.tween_property(label, "position:y", label.position.y + 0.6, 0.7)
+	t.tween_property(label, "modulate:a", 0.0, 0.7)
+	t.tween_property(label, "outline_modulate:a", 0.0, 0.7)
+	t.chain().tween_callback(label.queue_free)
 
 
 ## A quick puff of sparks in the item's colour where it reaches the player.
@@ -107,32 +147,32 @@ func _burst(rare: bool) -> void:
 	p.finished.connect(p.queue_free)
 
 
-## A soft vertical beam in the rarity colour, so good drops stand out (also used for warm-up).
-static func make_beam(item: String) -> MeshInstance3D:
-	var beam := MeshInstance3D.new()
-	var quad := QuadMesh.new()
-	quad.size = Vector2(0.35, 2.4)
-	quad.center_offset = Vector3(0, 1.2, 0)
-	var mat := StandardMaterial3D.new()
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	var grad := Gradient.new()
-	grad.set_color(0, Color(1, 1, 1, 0.0))
-	grad.add_point(0.5, Color(1, 1, 1, 0.55))
-	grad.set_color(1, Color(1, 1, 1, 0.0))
-	var tex := GradientTexture2D.new()
-	tex.gradient = grad
-	tex.width = 32
-	tex.height = 4
-	mat.albedo_texture = tex
+## A soft light beam with a pool of light under it, in the rarity colour, so good drops stand out
+## (also used for warm-up).
+static func make_beam(item: String) -> Node3D:
+	var root := Node3D.new()
 	var c: Color = Items.RARITY_COLORS[Items.rarity_of(item)]
-	mat.albedo_color = Color(c.r, c.g, c.b, 1.0)
-	quad.material = mat
-	beam.mesh = quad
-	beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	return beam
+	c.a = 1.0
+	for disc in [false, true]:
+		var mi := MeshInstance3D.new()
+		var quad := QuadMesh.new()
+		if disc:
+			quad.size = Vector2.ONE * 1.1
+			quad.orientation = PlaneMesh.FACE_Y
+			mi.position.y = -0.12
+		else:
+			quad.size = Vector2(0.5, 1.8)
+			quad.center_offset = Vector3(0, 0.8, 0)
+		var mat := ShaderMaterial.new()
+		mat.shader = GLOW_SHADER
+		mat.set_shader_parameter("color", c)
+		mat.set_shader_parameter("disc", disc)
+		mat.set_shader_parameter("strength", 0.9 if Items.rarity_of(item) == Items.Rarity.RARE else 0.6)
+		quad.material = mat
+		mi.mesh = quad
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mi)
+	return root
 
 
 static func _spark_quad(color: Color, size: float) -> QuadMesh:
