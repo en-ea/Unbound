@@ -1,0 +1,609 @@
+<title>Three Lands</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800&family=Pixelify+Sans:wght@500&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#11162A; --bg-2:#181E36; --card:#1F2744; --line:#3A4574; --line-soft:#2C355C;
+  --ink:#F6F4FF; --muted:#BAC2E6; --dim:#8E97C2;
+  --want:#FFB938; --want-deep:#C98300; --want-ink:#2A1A00;
+  --maybe:#72D6FF; --maybe-deep:#2E9CCB; --maybe-ink:#05263A;
+  --no:#FF7C8A; --no-deep:#C24455; --no-ink:#330810;
+  --display:"Lilita One","Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --pixel:"Pixelify Sans",ui-monospace,monospace;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{background:var(--bg) radial-gradient(1200px 500px at 50% -120px,#27315E 0%,rgba(17,22,42,0) 70%) no-repeat;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:28px 60px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;line-height:1.1;text-wrap:balance}
+p{margin:0}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--maybe);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:34px}
+.kicker{font-family:var(--pixel);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--maybe)}
+header{display:flex;flex-direction:column;gap:8px}
+header h1{font-size:clamp(32px,7vw,48px)}
+.lede{color:var(--muted);font-size:16px;max-width:68ch}
+.save{font-size:12.5px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.save i{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.save[data-s="ok"] i{background:#5BE08A;box-shadow:0 0 8px #5BE08A}
+section{display:flex;flex-direction:column;gap:14px}
+.sec-head{display:flex;flex-direction:column;gap:4px}
+.sec-head h2{font-size:28px}
+.sec-head p{color:var(--muted);max-width:68ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:2px solid var(--line-soft);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 0 #0B0F20;transition:border-color .15s,box-shadow .15s,opacity .15s}
+.card[data-s="want"]{border-color:var(--want);box-shadow:0 0 0 4px rgba(255,185,56,.28),0 3px 0 #0B0F20}
+.card[data-s="maybe"]{border-color:var(--maybe);box-shadow:0 0 0 4px rgba(114,214,255,.25),0 3px 0 #0B0F20}
+.card[data-s="no"]{opacity:.5;border-style:dashed}
+.art{position:relative;aspect-ratio:16/8}
+.art svg{display:block;width:100%;height:100%}
+.pick{position:absolute;top:10px;right:10px;font-family:var(--pixel);font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--want);color:var(--want-ink);border-radius:6px;padding:3px 8px}
+.body{padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px;flex:1}
+.body h3{font-size:22px}
+.body p{color:var(--muted);font-size:14.5px}
+.body .plus{color:var(--ink);font-size:13.5px}
+.body .plus b{color:#5BE08A}
+.body .minus{color:var(--ink);font-size:13.5px}
+.body .minus b{color:var(--no)}
+.card .inpick{position:static;align-self:flex-start;margin:12px 14px 0}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;padding:0 10px 10px}
+.seg button{cursor:pointer;border:0;background:var(--bg-2);border-radius:10px;padding:8px 2px;font-size:13px;font-weight:800;color:var(--muted);box-shadow:inset 0 0 0 1.5px var(--line-soft)}
+.seg button[data-v="want"][aria-pressed="true"]{background:var(--want);color:var(--want-ink);box-shadow:0 2px 0 var(--want-deep)}
+.seg button[data-v="maybe"][aria-pressed="true"]{background:var(--maybe);color:var(--maybe-ink);box-shadow:0 2px 0 var(--maybe-deep)}
+.seg button[data-v="no"][aria-pressed="true"]{background:var(--no);color:var(--no-ink);box-shadow:0 2px 0 var(--no-deep)}
+.zelda{background:var(--card);border:2px solid var(--line-soft);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.zelda h2{font-size:22px;color:var(--want)}
+.zgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px 18px;font-size:14px;color:var(--muted)}
+.zgrid b{color:var(--ink)}
+.zl{font-size:12.5px;font-weight:800;color:var(--dim)}
+.notes{background:var(--bg-2);border:2px dashed var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.notes label{font-family:var(--display);font-size:17px}
+textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--card);border:2px solid var(--line-soft);border-radius:12px;padding:10px 12px;min-height:70px;resize:vertical;width:100%}
+textarea::placeholder{color:var(--dim)}
+textarea:focus{border-color:var(--maybe);outline:none}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="kicker">Round 3 · getting specific</span>
+    <h1>The Three Lands</h1>
+    <p class="lede">Three peoples, three lands. You live on the mainland, you reach a second land, and together you restore the third, which was taken along with its people. You end up as the one who ties them together, with companions you choose. Pick what feels right in each section and add notes. <span class="save" id="save"><i></i><span id="save-t">Saves automatically</span></span></p>
+  </header>
+  <div class="zelda">
+    <h2>Quick Zelda refresher, so you know what's similar</h2>
+    <div class="zgrid">
+      <div><b>Breath of the Wild</b>: one land (Hyrule). An evil called Calamity Ganon wrecked it 100 years ago. You wake from a long sleep and free four giant machines across the regions. The peoples (Zora, Gorons, Rito, Gerudo) aren't fighting each other. They're just recovering.</div>
+      <div><b>Tears of the Kingdom</b>: the same Hyrule plus sky islands above and huge Depths below, so three layers of one land. An ancient people (the Zonai) vanished long ago and left their tech behind. A dark "gloom" spreads from below.</div>
+      <div><b>Older ones</b>: <i>Wind Waker</i>: Hyrule was flooded and sank under the sea, leaving only islands. <i>Skyward Sword</i>: people were lifted to live above the clouds. <i>Twilight Princess</i>: a banished people live in a shadow realm, and their twilight covers parts of the land.</div>
+      <div><b>What's NOT Zelda about ours</b>: three separate peoples who are split and at odds, a whole people who were taken and come back, you <i>becoming</i> the hero through what you build and master rather than being chosen, and an endless gather-and-craft life loop instead of a story that ends.</div>
+    </div>
+  </div>
+  <div id="root" class="wrap" style="gap:40px"></div>
+</div>
+
+<script>
+/* Better scene pictures, keyed by option id. viewBox 320x160. */
+const A = {};
+(function(){
+const sky = (id,a,b) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="320" height="160" fill="url(#${id})"/>`;
+const tree = (x,y,s=1,c="#3F8F45") => `<rect x="${x-1.5*s}" y="${y-8*s}" width="${3*s}" height="${8*s}" fill="#6B4A30"/><circle cx="${x}" cy="${y-12*s}" r="${7*s}" fill="${c}"/><circle cx="${x-2.5*s}" cy="${y-14.5*s}" r="${3*s}" fill="#fff" opacity=".14"/>`;
+const pine = (x,y,s=1,c="#2F6A45") => `<polygon points="${x-7*s},${y} ${x},${y-12*s} ${x+7*s},${y}" fill="${c}"/><polygon points="${x-5.5*s},${y-7*s} ${x},${y-19*s} ${x+5.5*s},${y-7*s}" fill="${c}"/>`;
+const dead = (x,y,s=1) => `<path d="M${x} ${y} L${x} ${y-18*s} M${x} ${y-10*s} L${x-7*s} ${y-16*s} M${x} ${y-14*s} L${x+6*s} ${y-21*s}" stroke="#140A18" stroke-width="${2*s}" stroke-linecap="round"/>`;
+const house = (x,y,s=1,w="#F1E1C2",r="#C4523D",lit=false) => `<rect x="${x}" y="${y-10*s}" width="${14*s}" height="${10*s}" fill="${w}"/><polygon points="${x-2*s},${y-10*s} ${x+7*s},${y-17*s} ${x+16*s},${y-10*s}" fill="${r}"/><rect x="${x+5*s}" y="${y-5.5*s}" width="${4*s}" height="${5.5*s}" fill="${lit?"#FFD27A":"#5A3A22"}"/>`;
+const man = (x,y,s=1,c="#3B6FB6",skin="#F2C9A0") => `<rect x="${x-2.5*s}" y="${y-9*s}" width="${5*s}" height="${9*s}" rx="${1.5*s}" fill="${c}"/><circle cx="${x}" cy="${y-11.6*s}" r="${2.7*s}" fill="${skin}"/>`;
+const glow = (x,y,r,c,o=1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${.12*o}"/><circle cx="${x}" cy="${y}" r="${r*.62}" fill="${c}" opacity="${.18*o}"/><circle cx="${x}" cy="${y}" r="${r*.3}" fill="${c}" opacity="${.3*o}"/>`;
+const shrine = (x,y,s=1,g="#72D6FF") => `${glow(x,y-14*s,18*s,g)}<rect x="${x-5*s}" y="${y-24*s}" width="${10*s}" height="${24*s}" fill="#8C8A84"/><rect x="${x-7*s}" y="${y-27*s}" width="${14*s}" height="${4*s}" fill="#6E6C66"/><rect x="${x-2*s}" y="${y-19*s}" width="${4*s}" height="${12*s}" fill="${g}"/>`;
+const mtn = (x,y,w,h,c="#8A93A8",snow=true) => `<polygon points="${x-w/2},${y} ${x},${y-h} ${x+w/2},${y}" fill="${c}"/><polygon points="${x},${y-h} ${x+w/2},${y} ${x},${y}" fill="#000" opacity=".14"/>${snow?`<polygon points="${x-w*.12},${y-h*.76} ${x},${y-h} ${x+w*.12},${y-h*.76} ${x+w*.04},${y-h*.7} ${x-w*.04},${y-h*.72}" fill="#F2F6F8"/>`:""}`;
+const label = (x,y,t,c="#fff") => `<text x="${x}" y="${y}" font-family="Nunito, Segoe UI, sans-serif" font-weight="800" font-size="10.5" fill="${c}" stroke="#141A2C" stroke-width="3" paint-order="stroke" text-anchor="middle">${t}</text>`;
+const stars = (n,seed,maxY) => { let s = seed, o = ""; const r = () => (s = s*16807 % 2147483647)/2147483647; for(let i=0;i<n;i++) o += `<circle cx="${(r()*320).toFixed(1)}" cy="${(r()*maxY).toFixed(1)}" r="${(r()*.9+.3).toFixed(2)}" fill="#fff" opacity="${(.4+r()*.6).toFixed(2)}"/>`; return o; };
+const waves = (y0,y1,c="#fff",o=.25) => { let s = ""; for(let i=0;i<14;i++){ const x = (i*67)%320, y = y0 + (i*23)%(y1-y0); s += `<path d="M${x} ${y} q5 -3 10 0 q5 3 10 0" stroke="${c}" stroke-width="1.2" fill="none" opacity="${o}"/>`; } return s; };
+const fire = (x,y) => `${glow(x,y-4,26,"#FFB45A",1.4)}<polygon points="${x-5},${y} ${x},${y-12} ${x+5},${y}" fill="#FF8A3A"/><polygon points="${x-2.5},${y} ${x},${y-7} ${x+2.5},${y}" fill="#FFE27A"/><rect x="${x-7}" y="${y}" width="14" height="2.5" fill="#5A3A22"/>`;
+const mapIcons = {
+  tree:(x,y)=>`<circle cx="${x}" cy="${y}" r="3" fill="#2F7A3A"/>`,
+  mtn:(x,y)=>`<polygon points="${x-6},${y+4} ${x},${y-6} ${x+6},${y+4}" fill="#8A8F9E"/><polygon points="${x-2},${y-3} ${x},${y-6} ${x+2},${y-3}" fill="#fff"/>`,
+  town:(x,y)=>`<rect x="${x-4}" y="${y-2}" width="4" height="4" fill="#F1E1C2"/><rect x="${x+1}" y="${y-3}" width="4" height="5" fill="#F1E1C2"/><rect x="${x-4}" y="${y-4}" width="4" height="2" fill="#C4523D"/><rect x="${x+1}" y="${y-5}" width="4" height="2" fill="#C4523D"/>`,
+  shrine:(x,y)=>`<polygon points="${x},${y-5} ${x+4},${y} ${x},${y+5} ${x-4},${y}" fill="#72D6FF" stroke="#fff" stroke-width=".8"/>`,
+  cave:(x,y)=>`<path d="M${x-5} ${y+3} Q${x} ${y-7} ${x+5} ${y+3}Z" fill="#1A1422"/>`,
+  city:(x,y)=>`<rect x="${x-5}" y="${y-5}" width="3" height="8" fill="#E8D8F8"/><rect x="${x-1}" y="${y-8}" width="3" height="11" fill="#E8D8F8"/><rect x="${x+3}" y="${y-4}" width="3" height="7" fill="#E8D8F8"/>`
+};
+const icons = list => list.map(([k,x,y]) => mapIcons[k](x,y)).join("");
+const sea = id => `<defs><pattern id="${id}" width="24" height="16" patternUnits="userSpaceOnUse"><path d="M2 8 q4 -3 8 0" stroke="#fff" stroke-width="1" fill="none" opacity=".18"/></pattern></defs><rect width="320" height="160" fill="#3A7FA8"/><rect width="320" height="160" fill="url(#${id})"/>`;
+const land = (d,fill,stroke="#1F3A2A") => `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-opacity=".45"/>`;
+const veilDome = (cx,cy,rx,ry) => `<path d="M${cx-rx} ${cy} A${rx} ${ry} 0 0 1 ${cx+rx} ${cy}Z" fill="#9FE8F0" opacity=".16"/><path d="M${cx-rx} ${cy} A${rx} ${ry} 0 0 1 ${cx+rx} ${cy}" fill="none" stroke="#C8F6FF" stroke-width="1.6" opacity=".8" stroke-dasharray="6 3"/>`;
+
+/* ---------- lore ---------- */
+A.sundering = sky("ls1","#1C2152","#6E5A9C") + stars(30,3,70) +
+  `<rect y="104" width="320" height="56" fill="#26426E"/>` + waves(110,155,"#9FC8F0",.3) +
+  `<path d="M112 106 L120 90 L132 94 L140 78 L146 60 L152 78 L160 70 L168 82 L176 66 L182 84 L196 88 L208 106Z" fill="#3E3868"/>` +
+  `<rect x="143" y="52" width="6" height="26" fill="#3E3868"/><rect x="173" y="58" width="5" height="24" fill="#3E3868"/>` +
+  `${[132,150,160,176,190].map((x,i)=>`<rect x="${x}" y="${90+i%2*4}" width="2" height="2" fill="#FFD27A" opacity=".7"/>`).join("")}` +
+  `<path d="M96 106 Q160 -8 224 106" fill="#9FE8F0" opacity=".14"/>` +
+  `${[112,128,144,160,176,192,208].map(x=>`<line x1="${x}" y1="${106-Math.sqrt(Math.max(0,1-((x-160)/64)**2))*96}" x2="${x}" y2="106" stroke="#C8F6FF" stroke-width="1" opacity=".25"/>`).join("")}` +
+  `<path d="M96 106 Q160 -8 224 106" fill="none" stroke="#C8F6FF" stroke-width="2" opacity=".85"/>` +
+  `<path d="M0 104 Q30 88 70 96 Q90 100 100 112 L100 160 L0 160Z" fill="#3E6E4A"/>` + house(18,104,1.1,"#E8D8B8","#A8452F",true) + house(40,100,.9,"#E8D8B8","#A8452F",true) + tree(62,102,.9,"#2F6A3E") +
+  shrine(84,108,.8) + `<line x1="84" y1="92" x2="118" y2="70" stroke="#9FE8F0" stroke-width="1.5" stroke-dasharray="3 3" opacity=".9"/>` +
+  `<path d="M232 110 L240 92 L262 90 L276 80 L320 84 L320 160 L226 160Z" fill="#9A7A56"/>` + house(276,90,1,"#D8C8A8","#6A4A8A",true) + house(296,88,.9,"#D8C8A8","#6A4A8A",true) +
+  shrine(244,104,.8) + `<line x1="244" y1="88" x2="204" y2="70" stroke="#9FE8F0" stroke-width="1.5" stroke-dasharray="3 3" opacity=".9"/>` +
+  man(70,112,.9,"#FFB938") + label(52,150,"Mainland") + label(160,124,"Third land, sealed") + label(276,150,"Second land");
+
+A.blight = sky("ls2","#8FC8EC","#EADCC8") +
+  `<path d="M150 0 Q170 40 160 80 Q150 120 170 160 L320 160 L320 0Z" fill="#2A1636" opacity=".92"/>` +
+  `<path d="M0 116 Q80 106 160 118 L160 160 L0 160Z" fill="#6AAE5E"/><path d="M160 118 Q240 104 320 116 L320 160 L160 160Z" fill="#241428"/>` +
+  tree(30,120,1.1) + tree(62,116,.9,"#4E9E56") + tree(118,120,1) + house(84,118,1,"#F1E1C2","#C4523D") +
+  `<path d="M170 128 Q150 132 136 140 Q128 146 118 144" stroke="#7A2A7A" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M175 140 Q160 150 140 152" stroke="#7A2A7A" stroke-width="2.5" fill="none" stroke-linecap="round"/>` +
+  dead(200,118,1.2) + dead(240,114,1) + dead(296,118,1.3) +
+  `${[[216,122],[264,120],[282,126]].map(([x,y])=>glow(x,y-8,12,"#D24AD8")+`<polygon points="${x-3},${y} ${x},${y-16} ${x+3},${y}" fill="#B03AC0"/>`).join("")}` +
+  `<g opacity=".7">${house(250,108,.8,"#4A3A58","#2E2240",true)}${house(268,106,.7,"#4A3A58","#2E2240",true)}</g>` +
+  man(150,124,1.1,"#FFB938") + glow(156,112,14,"#FFD27A",1.3) + `<rect x="155" y="110" width="3" height="5" fill="#FFD27A"/>` +
+  label(60,150,"Mainland") + label(250,150,"The lost land");
+
+A.sunken = sky("ls3","#86C8F0","#E4F4FA") +
+  `<defs><linearGradient id="ls3w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A7AA8"/><stop offset="1" stop-color="#0E2A44"/></linearGradient></defs><rect y="58" width="320" height="102" fill="url(#ls3w)"/>` +
+  `<path d="M0 50 Q30 40 70 48 L86 58 L80 160 L0 160Z" fill="#4E8A4E"/><path d="M0 58 L86 58 L80 160 L0 160Z" fill="#5A4636"/>` + tree(20,50,.9) + house(40,50,.9) + tree(62,50,.8) +
+  `<path d="M246 58 L256 46 Q290 38 320 44 L320 160 L252 160Z" fill="#A88A62"/><path d="M246 58 L320 58 L320 160 L252 160Z" fill="#5A4636"/>` + house(280,46,.9,"#E8D8B8","#6A4A8A") +
+  `<path d="M60 70 Q70 100 96 118 Q110 128 124 132" stroke="#1A1018" stroke-width="7" fill="none" stroke-linecap="round"/>` +
+  `${[[120,150,10,30],[136,150,8,44],[152,150,14,36],[170,150,9,52],[184,150,12,34],[200,150,8,40]].map(([x,y,w,h])=>`<rect x="${x}" y="${y-h}" width="${w}" height="${h}" fill="#2A4A62"/><rect x="${x+w/2-1.5}" y="${y-h+6}" width="3" height="3" fill="#FFD27A"/><rect x="${x+w/2-1.5}" y="${y-h+16}" width="3" height="3" fill="#FFD27A" opacity=".7"/>`).join("")}` +
+  `<path d="M150 116 Q162 100 174 116Z" fill="#2A4A62"/>` + glow(160,130,50,"#FFD27A",.7) +
+  `${[[110,96],[216,90],[190,76],[140,84]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="1.8" fill="none" stroke="#C8F0FF" opacity=".6"/>`).join("")}` +
+  `<path d="M226 104 q6 -4 12 0 q-6 4 -12 0Z" fill="#72D6FF" opacity=".6"/>` +
+  `<rect x="0" y="58" width="320" height="1.5" fill="#C8F0FF" opacity=".7"/>` +
+  label(160,156,"Sunken city, people still below") + label(40,30,"Mainland") + label(286,30,"Second land");
+
+A.stolen = sky("ls4","#5A7AC0","#F0D0C0") +
+  `<path d="M0 132 Q80 120 130 130 L190 130 Q250 120 320 130 L320 160 L0 160Z" fill="#5E9A58"/>` +
+  `<ellipse cx="160" cy="134" rx="40" ry="8" fill="#2A1E1A"/><path d="M122 134 l6 -4 l5 4 l6 -3 M186 131 l6 3 l5 -3" stroke="#6A5040" stroke-width="2" fill="none"/>` +
+  house(30,130,1) + house(52,128,.9) + tree(80,130,.9) + house(262,128,1,"#E8D8B8","#6A4A8A") + tree(292,130,.9,"#4E8A4E") +
+  `<rect x="157" y="64" width="6" height="68" fill="#FFE9B0" opacity=".25"/>` +
+  `<ellipse cx="160" cy="46" rx="84" ry="22" fill="none" stroke="#2A1636" stroke-width="10" opacity=".55"/>` +
+  `<path d="M100 44 L220 44 L206 62 L186 74 L170 84 L150 82 L130 70 L112 58Z" fill="#6E5A7A"/><path d="M140 70 l-2 18 M170 82 l2 16 M196 66 l3 14" stroke="#4A6A3A" stroke-width="1.5"/>` +
+  `<ellipse cx="160" cy="44" rx="60" ry="7" fill="#8FCC7A"/>` +
+  `${[[128,40],[144,36],[160,32],[176,38],[192,40]].map(([x,y],i)=>`<rect x="${x}" y="${y-8-i%2*6}" width="7" height="${10+i%2*6}" fill="#EDE0F4"/><rect x="${x+2}" y="${y-5}" width="3" height="3" fill="#FFD27A"/>`).join("")}` +
+  `<path d="M232 30 l-6 10 l5 0 l-5 10" stroke="#FFE27A" stroke-width="1.8" fill="none"/><path d="M88 34 l5 8 l-4 1 l4 8" stroke="#FFE27A" stroke-width="1.8" fill="none"/>` +
+  label(160,16,"The stolen land, held in the storm") + label(160,152,"Where it was torn from");
+
+A.pact = sky("ls5","#3A1E28","#C8703E") +
+  `<path d="M0 118 Q160 104 320 118 L320 160 L0 160Z" fill="#2E2226"/>` +
+  `<g opacity=".28">${[124,140,156,170,186].map((x,i)=>`<rect x="${x}" y="${50+i%2*10}" width="10" height="${60-i%2*10}" fill="#E8C8F0"/>`).join("")}</g>` +
+  `<path d="M110 126 Q160 110 210 126 Q160 140 110 126Z" fill="#1A0E1E"/><path d="M130 126 l12 -6 l8 8 l12 -9 l10 7 l14 -4" stroke="#C04AD0" stroke-width="2" fill="none"/>` + glow(160,124,34,"#C04AD0",.8) +
+  `${[[40,132,-12],[62,138,8],[258,134,14],[282,130,-8],[96,142,4]].map(([x,y,a])=>`<g transform="rotate(${a} ${x} ${y})"><rect x="${x-1}" y="${y-18}" width="2.5" height="18" fill="#B8B8C0"/><rect x="${x-4}" y="${y-14}" width="8.5" height="2" fill="#6A5A48"/></g>`).join("")}` +
+  `<rect x="20" y="70" width="3" height="50" fill="#5A4A3A"/><path d="M23 72 L50 78 L46 88 L50 98 L23 94Z" fill="#3B6FB6"/>` +
+  `<rect x="297" y="70" width="3" height="50" fill="#5A4A3A"/><path d="M297 72 L270 78 L274 88 L270 98 L297 94Z" fill="#C98A2A"/>` +
+  `<g opacity=".35">${man(146,112,1.2,"#E8C8F0","#E8C8F0")}${man(176,114,1.1,"#E8C8F0","#E8C8F0")}</g>` +
+  label(160,152,"Where the third land used to be") + label(40,62,"Mainland") + label(282,62,"Second land");
+
+A.sleep = sky("ls6","#3A3A7A","#B8A8D8") + stars(20,9,50) + `<circle cx="258" cy="32" r="13" fill="#F4F0FF"/>` + glow(258,32,40,"#E8E0FF",.6) +
+  pine(20,110,1.6,"#3A4A6A") + pine(52,106,1.9,"#34445E") + pine(290,108,1.8,"#3A4A6A") + pine(312,112,1.4,"#34445E") +
+  `<path d="M0 118 Q160 106 320 118 L320 160 L0 160Z" fill="#4A5A6E"/>` +
+  house(92,116,1.5,"#C8C0D8","#6A5A8A",true) + house(140,112,1.3,"#C8C0D8","#6A5A8A") + house(200,116,1.5,"#C8C0D8","#6A5A8A",true) +
+  `<path d="M94 102 q4 6 0 12 M104 100 q-4 8 2 14 M202 102 q4 8 -1 14 M216 100 q-3 6 1 14" stroke="#5E9A6A" stroke-width="2" fill="none"/>` +
+  `<rect x="232" y="118" width="28" height="4" fill="#6A5040"/><rect x="236" y="114" width="16" height="4" rx="2" fill="#8A9AD8"/><circle cx="255" cy="114" r="3" fill="#F2C9A0"/>` +
+  `<text x="258" y="104" fill="#fff" font-size="9" font-family="sans-serif" opacity=".8">z</text><text x="264" y="96" fill="#fff" font-size="11" font-family="sans-serif" opacity=".6">z</text>` +
+  `<ellipse cx="80" cy="124" rx="120" ry="7" fill="#fff" opacity=".22"/><ellipse cx="240" cy="132" rx="120" ry="8" fill="#fff" opacity=".2"/><ellipse cx="160" cy="100" rx="160" ry="6" fill="#fff" opacity=".12"/>` +
+  `${[[70,90],[120,80],[180,92],[228,84],[300,90]].map(([x,y])=>glow(x,y,5,"#FFF3A8",1.5)).join("")}` +
+  label(160,152,"The sleeping land");
+
+/* ---------- maps ---------- */
+A.strait = sea("mp1") +
+  land("M10 40 Q40 18 90 30 Q120 44 124 80 Q126 120 100 142 Q60 154 30 140 Q6 110 10 40Z","#7FBF6A") +
+  land("M196 58 Q236 44 282 58 Q312 86 300 124 Q270 148 228 140 Q196 124 196 58Z","#D4B888","#4A3A22") +
+  land("M150 128 Q162 120 176 128 Q180 140 164 144 Q148 142 150 128Z","#7FBF6A") +
+  `<path d="M190 22 Q230 4 272 16 Q290 26 270 36 Q230 44 196 36Z" fill="#8C7AA8" opacity=".7"/>` + veilDome(232,32,48,24) +
+  icons([["town",50,70],["tree",30,100],["tree",40,110],["tree",80,50],["mtn",96,100],["cave",70,122],["shrine",104,66],["town",250,90],["mtn",280,74],["shrine",222,120],["city",236,30]]) +
+  `<path d="M120 90 Q160 84 196 92" stroke="#fff" stroke-width="1.5" stroke-dasharray="4 4" fill="none"/><path d="M152 80 l10 0 l-3 4 l-4 0Z" fill="#8A5A3A"/>` +
+  label(60,154,"Mainland") + label(250,154,"Second land") + label(232,12,"Third land (veiled)") + label(164,118,"Isle");
+
+A.ring = sea("mp2") +
+  land("M8 14 Q60 10 84 40 Q96 80 84 120 Q66 150 8 150Z","#7FBF6A") +
+  land("M312 14 Q260 10 236 40 Q224 80 236 120 Q254 150 312 150Z","#D4B888","#4A3A22") +
+  land("M122 64 Q160 46 198 64 Q210 90 192 110 Q160 124 128 110 Q112 90 122 64Z","#8C7AA8","#3A2A4A") + veilDome(160,106,60,62) +
+  icons([["town",40,60],["tree",30,100],["mtn",60,120],["shrine",78,80],["cave",40,130],["town",280,60],["mtn",264,110],["shrine",242,80],["city",160,88]]) +
+  label(44,30,"Mainland") + label(276,30,"Second land") + label(160,140,"Third land in the middle");
+
+A.twoisles = sea("mp3") +
+  land("M92 36 Q150 14 214 34 Q236 70 222 112 Q190 146 130 142 Q88 126 84 84 Q82 56 92 36Z","#7FBF6A") +
+  land("M246 72 Q282 58 308 80 Q316 116 290 134 Q256 140 242 112Z","#D4B888","#4A3A22") +
+  land("M26 108 Q46 96 62 108 Q66 126 48 132 Q28 130 26 108Z","#6AAE5E") +
+  `<path d="M14 18 Q40 6 66 16 Q70 30 44 34 Q18 32 14 18Z" fill="#3A2A4A" opacity=".85"/>` +
+  icons([["town",150,70],["town",120,110],["tree",110,60],["tree",200,100],["mtn",190,56],["mtn",176,48],["cave",140,126],["shrine",210,76],["town",276,100],["shrine",294,118],["tree",40,114],["cave",52,122]]) +
+  label(155,154,"Mainland") + label(276,152,"Second land (big isle)") + label(44,146,"Wild isle") + label(42,46,"Third land, far out");
+
+A.layers = sky("mp4","#8FD0F2","#E6F5FA") +
+  `<rect x="190" y="18" width="130" height="44" fill="#D4B888"/><rect x="190" y="16" width="130" height="5" fill="#A8C878"/>` + house(236,16,.8,"#E8D8B8","#6A4A8A") + house(260,16,.8,"#E8D8B8","#6A4A8A") +
+  `<rect x="194" y="16" width="4" height="56" fill="#6A5A48"/><rect x="190" y="40" width="12" height="4" fill="#8A7050"/>` +
+  `<rect y="62" width="320" height="38" fill="#7FBF6A"/><rect y="60" width="320" height="4" fill="#A0D484"/>` + house(30,62,1) + house(56,62,.9) + tree(90,62,1) + tree(140,62,.9) + shrine(170,64,.7) +
+  `<rect y="100" width="320" height="60" fill="#241A30"/><path d="M60 64 L64 100 M120 100 Q130 112 140 120" stroke="#140E1C" stroke-width="6" fill="none"/>` +
+  `${[[120,150,8,22],[132,150,10,30],[146,150,8,18],[160,150,12,34],[176,150,9,24],[190,150,8,28]].map(([x,y,w,h])=>`<rect x="${x}" y="${y-h}" width="${w}" height="${h}" fill="#6A5A8A"/><rect x="${x+w/2-1.5}" y="${y-h+5}" width="3" height="3" fill="#FFD27A"/>`).join("")}` + glow(160,134,46,"#B98CFF",.8) +
+  label(256,52,"Second land (up high)") + label(60,92,"Mainland") + label(250,140,"Third land (deep below)");
+
+A.pass = sea("mp5") +
+  land("M10 24 Q80 8 160 26 Q240 8 310 24 Q318 80 306 132 Q240 150 160 136 Q80 150 14 132 Q2 80 10 24Z","#7FBF6A") +
+  land("M160 26 Q240 8 310 24 Q318 80 306 132 Q240 150 160 136Z","#D4B888","#4A3A22") +
+  `${[40,54,68,82,96,110,124].map((y,i)=>mapIcons.mtn(160+(i%2?4:-4),y)).join("")}` +
+  `<rect x="152" y="74" width="16" height="10" fill="#6A5A48" stroke="#fff" stroke-width="1"/><path d="M156 84 L156 78 Q160 74 164 78 L164 84" fill="#1A1422"/>` +
+  `<path d="M40 60 Q100 110 160 100 Q220 110 280 60 Q300 110 250 124 Q160 142 70 124 Q20 110 40 60Z" fill="none" stroke="#B98CFF" stroke-width="2" stroke-dasharray="5 4"/>` +
+  icons([["town",60,50],["tree",40,90],["tree",100,110],["shrine",110,50],["cave",80,116],["town",250,50],["shrine",220,110],["cave",270,112]]) +
+  label(80,20,"Mainland") + label(240,20,"Second land") + label(160,70,"Pass") + label(160,152,"Third land lies beneath (dotted)");
+
+/* ---------- starts ---------- */
+A.ashore = sky("st1","#F0906A","#FCD8A8") + `<circle cx="240" cy="70" r="22" fill="#FFE2A8"/>` + glow(240,70,60,"#FFE2A8",.6) +
+  `<rect y="80" width="320" height="50" fill="#3A6AA0"/>` + waves(86,126,"#FFD8A8",.35) +
+  `<path d="M0 60 Q40 50 90 62 Q120 70 140 82 L0 82Z" fill="#5A7A5A" opacity=".8"/>` + house(40,64,.7,"#D8C8A8","#8A4A3A") + `<path d="M48 54 q-3 -8 2 -14 q4 -6 0 -12" stroke="#E8E0D8" stroke-width="2.5" fill="none" opacity=".6"/>` +
+  `<path d="M0 124 Q120 112 320 122 L320 160 L0 160Z" fill="#E8C890"/>` +
+  `<rect x="200" y="126" width="18" height="12" fill="#8A5A3A" transform="rotate(-12 209 132)"/><rect x="226" y="134" width="30" height="4" fill="#7A4A2E" transform="rotate(8 241 136)"/><rect x="260" y="130" width="20" height="3" fill="#7A4A2E" transform="rotate(-20 270 131)"/>` +
+  fire(130,142) + man(112,142,1.4,"#6A8AB0") + `<rect x="86" y="126" width="3" height="18" fill="#6A4A30"/><path d="M78 128 L88 118 L98 128Z" fill="#9A8A6A"/>` +
+  label(60,40,"Village in the distance");
+
+A.homestead = sky("st2","#8FD0F2","#E6F5FA") + `<path d="M0 90 Q160 78 320 92 L320 160 L0 160Z" fill="#7FB86A"/>` +
+  house(230,90,.9) + house(252,88,.8) + house(274,90,.9) + label(254,66,"Village") +
+  `<rect x="70" y="72" width="70" height="46" fill="#A8A090"/><polygon points="62,72 105,40 148,72" fill="#7A5A4A"/><polygon points="96,52 112,50 106,60" fill="#8FD0F2"/>` +
+  `<rect x="98" y="94" width="14" height="24" fill="#4A3424"/><rect x="78" y="84" width="12" height="10" fill="#2A2A30"/><path d="M78 84 L90 94 M90 84 L78 94" stroke="#6A5A48" stroke-width="1.5"/>` +
+  `<path d="M70 118 q6 -20 4 -34 M142 118 q-4 -16 -2 -30 M84 118 q-2 -10 2 -16" stroke="#4E8A3A" stroke-width="2.5" fill="none"/>` +
+  `${[20,36,52,168,184,200].map((x,i)=>`<rect x="${x}" y="${112+(i%3)*2}" width="3" height="${14-(i%2)*6}" fill="#8A6040" transform="rotate(${i%2?10:-8} ${x} 120)"/>`).join("")}<rect x="20" y="116" width="36" height="2" fill="#8A6040" transform="rotate(4 38 117)"/>` +
+  `${Array.from({length:18},(_,i)=>`<path d="M${10+i*17} 140 l2 -8 l2 8" stroke="#5E9A3A" stroke-width="1.5" fill="none"/>`).join("")}` +
+  man(160,132,1.4,"#3B6FB6") + `<rect x="166" y="112" width="2" height="18" fill="#7A5A3A" transform="rotate(20 167 121)"/><rect x="168" y="110" width="8" height="4" fill="#B8B8C0" transform="rotate(20 172 112)"/>`;
+
+A.shrine = `<rect width="320" height="160" fill="#16121E"/>` +
+  `<path d="M0 0 L320 0 L320 30 Q160 10 0 30Z" fill="#0C0A12"/><path d="M150 0 L170 0 L200 160 L120 160Z" fill="#FFF3C8" opacity=".08"/>` +
+  `${[40,110,210,280].map(x=>`<rect x="${x-10}" y="30" width="20" height="110" fill="#4A4658"/><rect x="${x-14}" y="26" width="28" height="8" fill="#3A3648"/><rect x="${x-3}" y="56" width="6" height="40" fill="#72D6FF" opacity=".85"/>`+glow(x,76,26,"#72D6FF",.8)).join("")}` +
+  `<path d="M40 30 Q75 0 110 30" stroke="#3A3648" stroke-width="8" fill="none"/><path d="M210 30 Q245 0 280 30" stroke="#3A3648" stroke-width="8" fill="none"/>` +
+  `<rect y="138" width="320" height="22" fill="#2A2634"/><ellipse cx="160" cy="140" rx="46" ry="8" fill="#72D6FF" opacity=".25"/>` +
+  `<path d="M140 140 l6 -2 l6 3 l8 -3 l8 2 l8 -2" stroke="#72D6FF" stroke-width="1.5" fill="none" opacity=".8"/>` +
+  man(160,138,1.7,"#5A6A8A") + glow(168,122,14,"#9FF0FF",2) + `<circle cx="168" cy="122" r="2.5" fill="#E8FCFF"/>` +
+  `${[[64,44],[250,50],[130,20],[196,26]].map(([x,y])=>`<rect x="${x}" y="${y}" width="3" height="3" fill="#4A4658" transform="rotate(20 ${x} ${y})"/>`).join("")}`;
+
+A.villager = sky("st4","#8FD0F2","#E6F5FA") +
+  `<path d="M200 70 Q250 40 320 52 L320 110 L180 110Z" fill="#8FC47A"/>` +
+  `<rect x="252" y="0" width="8" height="46" fill="#C8F6FF" opacity=".55"/>` + glow(256,40,40,"#72D6FF",1.2) + shrine(256,48,1) +
+  `<ellipse cx="256" cy="22" rx="18" ry="4" fill="none" stroke="#C8F6FF" opacity=".7"/><ellipse cx="256" cy="10" rx="12" ry="3" fill="none" stroke="#C8F6FF" opacity=".5"/>` +
+  `<path d="M0 100 Q160 92 320 104 L320 160 L0 160Z" fill="#7FB86A"/><path d="M0 132 Q160 126 320 136 L320 160 L0 160Z" fill="#D8BE92"/>` +
+  house(14,108,1.6) + house(58,104,1.4,"#F0D8B0","#8A5A3A") + house(130,108,1.6,"#F4E4C4","#3A6A9A") + tree(110,106,1.1) +
+  `<rect x="186" y="112" width="16" height="12" rx="2" fill="#8A8A90"/><rect x="184" y="98" width="20" height="3" fill="#6A4A30"/><rect x="186" y="100" width="2" height="12" fill="#6A4A30"/><rect x="200" y="100" width="2" height="12" fill="#6A4A30"/>` +
+  man(210,140,1.5,"#3B6FB6") + `<rect x="214" y="124" width="10" height="7" rx="2" fill="#B08A5A"/>` + man(90,138,1.2,"#C98A5A") + man(160,142,1.2,"#6A9A5A") +
+  `<path d="M214 118 l10 -12" stroke="#fff" stroke-width="1.2" stroke-dasharray="2 2"/>` + label(256,76,"A shrine awakens");
+
+A.together = sky("st5","#86C8F0","#E4F4FA") + `<rect y="96" width="320" height="64" fill="#2A8AB0"/>` + waves(102,156,"#fff",.3) +
+  `<path d="M40 112 Q160 80 280 112 Q260 132 160 134 Q60 132 40 112Z" fill="#E8D8A2"/><path d="M80 104 Q160 84 240 104 Q220 96 160 94 Q100 96 80 104Z" fill="#6AAE5E"/>` +
+  tree(110,100,1) + tree(214,98,.9) +
+  `<path d="M226 118 Q250 128 292 116 L286 104 Q256 112 232 106Z" fill="#7A4A2E"/><rect x="258" y="70" width="3" height="40" fill="#6A4A30" transform="rotate(24 259 90)"/><path d="M262 76 L286 88 L266 96Z" fill="#E8E0D0" opacity=".9"/>` +
+  fire(160,122) + man(122,122,1.3,"#3B6FB6") + man(136,124,1.2,"#3B6FB6") + man(110,126,1.1,"#3B6FB6") +
+  man(186,122,1.3,"#C98A2A","#D8A878") + man(200,124,1.2,"#C98A2A","#D8A878") + man(212,126,1.1,"#C98A2A","#D8A878") +
+  label(118,146,"Mainlanders") + label(204,146,"Second-landers");
+
+/* ---------- camera ---------- */
+A["cam-follow"] = sky("cm1","#9FD6F2","#E6F5FA") +
+  `<path d="M0 50 L320 50 L320 160 L0 160Z" fill="#7FBF6A"/>` +
+  `${[-4,-3,-2,-1,0,1,2,3,4].map(k=>`<line x1="${160+k*22}" y1="50" x2="${160+k*80}" y2="160" stroke="#000" opacity=".06"/>`).join("")}${[64,82,106,140].map(y=>`<line x1="0" y1="${y}" x2="320" y2="${y}" stroke="#000" opacity=".06"/>`).join("")}` +
+  tree(90,70,1) + tree(236,72,1.1) + tree(60,120,1.6) + tree(270,126,1.7) + house(186,70,1.2) +
+  `<ellipse cx="160" cy="118" rx="10" ry="3.5" fill="#000" opacity=".2"/>` + man(160,118,2,"#3B6FB6") + `<circle cx="160" cy="95" r="5.4" fill="#5A3A22"/>` +
+  `<ellipse cx="160" cy="128" rx="70" ry="16" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="6 5" opacity=".9"/><polygon points="226,124 234,130 224,134" fill="#fff"/>` +
+  `<rect x="190" y="18" width="22" height="14" rx="3" fill="#1D2226"/><circle cx="201" cy="25" r="4" fill="#72D6FF"/><line x1="196" y1="34" x2="166" y2="92" stroke="#fff" stroke-dasharray="3 3" opacity=".8"/>` +
+  label(80,152,"Swing the camera around");
+
+A["cam-fixed"] = `<rect width="320" height="160" fill="#7FBF6A"/>` +
+  `${Array.from({length:17},(_,i)=>`<line x1="${i*20}" y1="0" x2="${i*20}" y2="160" stroke="#000" opacity=".06"/>`).join("")}${Array.from({length:9},(_,i)=>`<line x1="0" y1="${i*20}" x2="320" y2="${i*20}" stroke="#000" opacity=".06"/>`).join("")}` +
+  `<rect y="84" width="320" height="16" fill="#D8BE92"/>` + tree(50,60,1.4) + tree(90,50,1.2) + tree(250,140,1.5) + house(210,60,1.8) + house(30,140,1.6,"#F0D8B0","#8A5A3A") +
+  `<ellipse cx="160" cy="92" rx="7" ry="3" fill="#000" opacity=".2"/>` + man(160,92,1.8,"#3B6FB6") +
+  `<rect x="276" y="10" width="34" height="26" rx="6" fill="#1D2226"/><rect x="286" y="20" width="14" height="11" rx="2" fill="#FFB938"/><path d="M289 20 v-4 a4 4 0 0 1 8 0 v4" stroke="#FFB938" stroke-width="2" fill="none"/>` +
+  label(160,152,"One angle, always the same");
+
+A["cam-free"] = sky("cm3","#86C8F0","#E4F3FA") + mtn(60,84,120,46,"#9CB4C8") + mtn(170,84,160,62,"#8EA7BC") + mtn(280,84,120,40,"#A3BACB") +
+  `<path d="M0 84 L320 84 L320 160 L0 160Z" fill="#7FBF6A"/><path d="M156 84 L164 84 L240 160 L80 160Z" fill="#D8BE92"/>` +
+  tree(110,94,.7) + tree(214,96,.8) + tree(70,110,1.2) + tree(262,114,1.3) + tree(30,140,2) + tree(296,146,2.1) +
+  `<rect x="140" y="112" width="40" height="48" rx="10" fill="#3B6FB6"/><rect x="148" y="116" width="24" height="30" rx="5" fill="#8A5A3A"/><circle cx="160" cy="102" r="13" fill="#4A3020"/>` +
+  `<circle cx="28" cy="132" r="16" fill="#fff" opacity=".3" stroke="#fff" stroke-width="1.5"/><circle cx="292" cy="132" r="16" fill="#fff" opacity=".3" stroke="#fff" stroke-width="1.5"/>` +
+  label(28,110,"Move") + label(292,110,"Look");
+})();
+
+</script>
+<script>
+(function(){
+const sky = (id,a,b) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="320" height="160" fill="url(#${id})"/>`;
+const glow = (x,y,r,c,o=1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${.12*o}"/><circle cx="${x}" cy="${y}" r="${r*.62}" fill="${c}" opacity="${.18*o}"/><circle cx="${x}" cy="${y}" r="${r*.3}" fill="${c}" opacity="${.3*o}"/>`;
+const house = (x,y,s=1,w="#F1E1C2",r="#C4523D",lit=false) => `<rect x="${x}" y="${y-10*s}" width="${14*s}" height="${10*s}" fill="${w}"/><polygon points="${x-2*s},${y-10*s} ${x+7*s},${y-17*s} ${x+16*s},${y-10*s}" fill="${r}"/><rect x="${x+5*s}" y="${y-5.5*s}" width="${4*s}" height="${5.5*s}" fill="${lit?"#FFD27A":"#5A3A22"}"/>`;
+const man = (x,y,s=1,c="#3B6FB6",skin="#F2C9A0") => `<rect x="${x-2.5*s}" y="${y-9*s}" width="${5*s}" height="${9*s}" rx="${1.5*s}" fill="${c}"/><circle cx="${x}" cy="${y-11.6*s}" r="${2.7*s}" fill="${skin}"/>`;
+const label = (x,y,t) => `<text x="${x}" y="${y}" font-family="Nunito, Segoe UI, sans-serif" font-weight="800" font-size="10.5" fill="#fff" stroke="#141A2C" stroke-width="3" paint-order="stroke" text-anchor="middle">${t}</text>`;
+const traitor = (x,y,s,c) => `${glow(x,y-10*s,14*s,"#B03AC0",.9)}${man(x,y,s,c)}<circle cx="${x-1*s}" cy="${y-12*s}" r="${.7*s}" fill="#FF6AF0"/><circle cx="${x+1*s}" cy="${y-12*s}" r="${.7*s}" fill="#FF6AF0"/>`;
+
+A.fourth = sky("lf1","#2A2040","#8A6A8A") +
+  `<path d="M200 60 L214 40 L222 50 L234 30 L244 46 L260 36 L272 58Z" fill="#3A2440" opacity=".7"/>` + glow(236,48,40,"#B03AC0",.7) +
+  `<path d="M0 104 Q160 94 320 106 L320 160 L0 160Z" fill="#6A8A5E"/><path d="M0 132 Q160 126 320 136 L320 160 L0 160Z" fill="#B8A07A"/>` +
+  house(14,104,1.5,"#E8D8B8","#A8452F",true) + house(60,100,1.3,"#E8D8B8","#A8452F") + house(250,104,1.5,"#D8C8A8","#6A4A8A",true) + house(290,102,1.2,"#D8C8A8","#6A4A8A") +
+  man(40,140,1.4,"#3B6FB6") + man(86,142,1.3,"#6A9A5A") + traitor(116,140,1.4,"#3B6FB6") + man(150,142,1.4,"#C98A2A","#D8A878") +
+  man(190,140,1.3,"#3B6FB6") + traitor(222,142,1.3,"#C98A2A") + man(258,140,1.4,"#C98A2A","#D8A878") + traitor(296,142,1.2,"#6A9A5A") +
+  label(236,24,"Their lost land") + label(160,120,"Hidden among everyone");
+
+A.bargain = sky("lf2","#1E1A30","#5A4A6A") +
+  `<ellipse cx="200" cy="50" rx="46" ry="22" fill="#0E0A18"/><ellipse cx="200" cy="50" rx="18" ry="12" fill="#FFB938"/><ellipse cx="200" cy="50" rx="5" ry="11" fill="#0E0A18"/>` + glow(200,50,70,"#FFB938",.5) +
+  `<path d="M0 110 L90 104 L110 80 L130 110 L320 118 L320 160 L0 160Z" fill="#2A2436"/>` +
+  `<rect x="100" y="66" width="12" height="16" fill="#4A4060"/><rect x="98" y="62" width="16" height="4" fill="#FFD27A"/>` + man(106,80,1.4,"#8A3A6A") +
+  `<path d="M112 70 Q150 60 176 52" stroke="#FFB938" stroke-width="1.5" stroke-dasharray="3 3"/>` +
+  `<path d="M180 130 Q240 116 300 130 L300 160 L180 160Z" fill="#3A2E4A"/>` + house(200,132,1.2,"#5A4A68","#3A2E48") + house(240,128,1.1,"#5A4A68","#3A2E48") +
+  label(106,48,"The ruler who made the deal") + label(250,150,"The third land's people");
+
+A.heart = sky("lf3","#8FC8EC","#EAF4E4") +
+  `<path d="M0 124 Q160 112 320 124 L320 160 L0 160Z" fill="#6AAE5E"/><path d="M214 116 Q270 110 320 116 L320 160 L214 160Z" fill="#5A4A4A"/>` +
+  `<path d="M150 124 Q140 80 156 44 L166 44 Q180 80 170 124Z" fill="#6A4A30"/>` +
+  `<circle cx="160" cy="36" r="34" fill="#3F9A52"/><circle cx="128" cy="44" r="22" fill="#4EAA5E"/><circle cx="150" cy="16" r="18" fill="#56B866"/>` +
+  `<circle cx="190" cy="42" r="24" fill="#8A7A5A"/><path d="M192 30 l6 -10 M200 40 l10 -6 M188 50 l12 4" stroke="#5A4A3A" stroke-width="2"/>` +
+  `<path d="M156 124 Q110 132 40 128 M160 126 Q160 140 150 158 M168 124 Q220 132 300 130" stroke="#6A4A30" stroke-width="3" fill="none"/>` + glow(160,60,50,"#9FF0A8",.6) +
+  label(60,150,"Mainland") + label(150,110,"The great tree") + label(258,150,"Third land (withered)");
+})();
+
+</script>
+<script>
+(function(){
+const label = (x,y,t) => `<text x="${x}" y="${y}" font-family="Nunito, Segoe UI, sans-serif" font-weight="800" font-size="10.5" fill="#fff" stroke="#141A2C" stroke-width="3" paint-order="stroke" text-anchor="middle">${t}</text>`;
+const glow = (x,y,r,c,o=1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${.12*o}"/><circle cx="${x}" cy="${y}" r="${r*.62}" fill="${c}" opacity="${.18*o}"/>`;
+const man = (x,y,s=1,c="#3B6FB6") => `<rect x="${x-2.5*s}" y="${y-9*s}" width="${5*s}" height="${9*s}" rx="${1.5*s}" fill="${c}"/><circle cx="${x}" cy="${y-11.6*s}" r="${2.7*s}" fill="#F2C9A0"/>`;
+A.bridge = `<defs><linearGradient id="br1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8FC8EC"/><stop offset="1" stop-color="#E6F2F4"/></linearGradient><linearGradient id="br2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A4A6A"/><stop offset="1" stop-color="#0E1220"/></linearGradient></defs><rect width="320" height="160" fill="url(#br1)"/>` +
+  `<path d="M0 60 L90 60 L100 160 L0 160Z" fill="#6AAE5E"/><path d="M0 66 L94 66 L100 160 L0 160Z" fill="#6A5440"/><path d="M230 60 L320 60 L320 160 L222 160Z" fill="#C9A77E"/><path d="M226 66 L320 66 L320 160 L222 160Z" fill="#6A5440"/>` +
+  `<path d="M96 70 L224 70 L226 160 L98 160Z" fill="url(#br2)"/>` +
+  `<rect x="86" y="56" width="62" height="8" fill="#9A968E"/><rect x="100" y="64" width="6" height="30" fill="#8A867E"/><rect x="132" y="64" width="6" height="40" fill="#8A867E"/>` +
+  `<rect x="190" y="56" width="44" height="8" fill="#9A968E"/><rect x="206" y="64" width="6" height="34" fill="#8A867E"/>` +
+  `<rect x="152" y="58" width="6" height="4" fill="#9A968E" transform="rotate(20 155 60)"/><rect x="170" y="70" width="8" height="5" fill="#9A968E" transform="rotate(-30 174 72)"/>` +
+  `<path d="M130 150 L140 132 L150 138 L160 120 L172 136 L186 130 L196 150Z" fill="#6A5A8A"/>` + glow(162,136,40,"#B98CFF",1) +
+  man(140,56,1.3,"#3B6FB6") + `<rect x="144" y="44" width="10" height="3" fill="#6A4A30"/>` +
+  label(46,52,"Mainland") + label(276,52,"Second land") + label(162,158,"Third land, deep in the chasm");
+A.below = `<rect width="320" height="160" fill="#140F1C"/>` +
+  `<path d="M120 0 L200 0 L186 50 L134 50Z" fill="#FFF3C8" opacity=".16"/><path d="M140 0 L180 0 L172 30 L148 30Z" fill="#9ED6F2"/>` + glow(160,20,60,"#FFF3C8",1.2) +
+  `<path d="M0 0 L140 0 L130 60 Q80 70 40 60 L0 70Z" fill="#241A30"/><path d="M320 0 L180 0 L190 60 Q240 70 280 60 L320 70Z" fill="#241A30"/>` +
+  `${[30,70,250,290].map(x=>`<rect x="${x-8}" y="80" width="16" height="70" fill="#3A3048"/><rect x="${x-2}" y="96" width="4" height="22" fill="#B98CFF" opacity=".7"/>`).join("")}` +
+  `<path d="M90 150 L110 130 L130 116 L150 100 L170 86 L184 74 L196 64" stroke="#5A4A6A" stroke-width="10" fill="none" stroke-linecap="round"/>` +
+  `<rect y="148" width="320" height="12" fill="#1E1628"/>` + man(174,86,1.6,"#6A7A9A") +
+  `<path d="M100 150 l8 -6 l6 4" stroke="#B98CFF" stroke-width="1.5" fill="none"/>` + label(160,44,"The surface, finally") + label(70,156,"Ruins of the lost land");
+})();
+</script><script>
+(function(){
+const sky = (id,a,b) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="320" height="160" fill="url(#${id})"/>`;
+const label = (x,y,t) => `<text x="${x}" y="${y}" font-family="Nunito, Segoe UI, sans-serif" font-weight="800" font-size="10.5" fill="#fff" stroke="#141A2C" stroke-width="3" paint-order="stroke" text-anchor="middle">${t}</text>`;
+const glow = (x,y,r,c,o=1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${.12*o}"/><circle cx="${x}" cy="${y}" r="${r*.62}" fill="${c}" opacity="${.18*o}"/><circle cx="${x}" cy="${y}" r="${r*.3}" fill="${c}" opacity="${.3*o}"/>`;
+const house = (x,y,s=1,w="#F1E1C2",r="#C4523D",lit=false) => `<rect x="${x}" y="${y-10*s}" width="${14*s}" height="${10*s}" fill="${w}"/><polygon points="${x-2*s},${y-10*s} ${x+7*s},${y-17*s} ${x+16*s},${y-10*s}" fill="${r}"/><rect x="${x+5*s}" y="${y-5.5*s}" width="${4*s}" height="${5.5*s}" fill="${lit?"#FFD27A":"#5A3A22"}"/>`;
+const man = (x,y,s=1,c="#3B6FB6",skin="#F2C9A0") => `<rect x="${x-2.5*s}" y="${y-9*s}" width="${5*s}" height="${9*s}" rx="${1.5*s}" fill="${c}"/><circle cx="${x}" cy="${y-11.6*s}" r="${2.7*s}" fill="${skin}"/>`;
+A.forgotten = sky("lx1","#9FD0EE","#EEF4EC") + `<path d="M0 110 Q160 100 320 112 L320 160 L0 160Z" fill="#7FB86A"/>` +
+  house(20,110,1.4) + house(70,106,1.2,"#F0D8B0","#8A5A3A") + house(250,110,1.4,"#E8D8B8","#6A4A8A") +
+  man(120,140,1.4) + man(210,142,1.3,"#C98A2A") + `<g opacity=".3">${man(150,140,1.4,"#E8F4FF","#E8F4FF")}${man(170,144,1.3,"#E8F4FF","#E8F4FF")}${man(236,138,1.2,"#E8F4FF","#E8F4FF")}</g>` +
+  `<rect x="112" y="20" width="96" height="64" rx="4" fill="#E8D8B0"/><path d="M122 34 Q140 28 150 40 Q146 60 128 66Z" fill="#8AB870"/><path d="M200 30 Q186 40 190 70 L204 72Z" fill="#C9A77E"/><rect x="156" y="36" width="30" height="34" fill="#E8D8B0" stroke="#8A7A5A" stroke-dasharray="3 3"/><text x="171" y="58" font-size="16" text-anchor="middle" fill="#8A7A5A" font-family="sans-serif">?</text>` +
+  label(160,100,"A blank on every map") + label(190,158,"People no one can see");
+A.warden = sky("lx2","#4A5A7A","#B8A890") + `<path d="M0 124 Q160 112 320 124 L320 160 L0 160Z" fill="#4A5A48"/>` +
+  `<rect x="190" y="40" width="110" height="86" fill="#5A5A64"/><path d="M216 126 L216 76 Q245 50 274 76 L274 126Z" fill="#1A1A24"/>` + glow(245,98,36,"#72D6FF",.9) + `<path d="M226 90 L264 90 M226 104 L264 104 M245 76 L245 124" stroke="#72D6FF" stroke-width="2" opacity=".8"/>` +
+  `<rect x="96" y="44" width="50" height="60" rx="8" fill="#7A7A84"/><rect x="104" y="104" width="14" height="22" fill="#6A6A74"/><rect x="124" y="104" width="14" height="22" fill="#6A6A74"/><circle cx="121" cy="34" r="14" fill="#7A7A84"/><rect x="113" y="30" width="16" height="4" fill="#FFB938"/>` + glow(121,32,18,"#FFB938",.9) +
+  `<rect x="146" y="40" width="6" height="80" fill="#8A8A94"/><polygon points="140,40 149,20 158,40" fill="#9A9AA4"/>` + man(50,140,1.5) +
+  label(121,146,"The Warden") + label(245,32,"The sealed gate");
+A.dreamer = sky("lx3","#2A2A5A","#C8A0C8") + `<g opacity=".9"><ellipse cx="160" cy="60" rx="150" ry="40" fill="#3A2E6A"/><circle cx="60" cy="44" r="26" fill="#3A2E6A"/><path d="M60 44 Q70 38 80 44" stroke="#8A7AC8" stroke-width="2" fill="none"/></g>` +
+  `<text x="92" y="30" fill="#E8E0FF" font-size="12" font-family="sans-serif" opacity=".8">z</text><text x="102" y="20" fill="#E8E0FF" font-size="15" font-family="sans-serif" opacity=".6">z</text>` +
+  `<ellipse cx="160" cy="118" rx="120" ry="16" fill="#fff" opacity=".35"/><path d="M60 118 Q110 96 150 116Z" fill="#6AAE5E"/><path d="M170 116 Q210 96 260 118Z" fill="#C9A77E"/><path d="M130 136 Q160 124 190 136" fill="#1A1028"/>` + glow(160,132,30,"#B03AC0",.9) +
+  label(160,90,"The whole world is its dream") + label(160,154,"The nightmare took the third land");
+A.echo = `<rect width="160" height="160" fill="#7A8A8A"/><rect x="160" width="160" height="160" fill="#8FD0F2"/>` +
+  `<path d="M0 110 L160 108 L160 160 L0 160Z" fill="#5A6050"/><path d="M160 108 Q240 100 320 110 L320 160 L160 160Z" fill="#7FBF6A"/>` +
+  `<path d="M30 110 L30 86 L40 92 L44 80 L52 110Z" fill="#6A6A64"/><path d="M90 110 L90 90 L100 96 L108 86 L110 110Z" fill="#6A6A64"/>` +
+  house(190,108,1.5) + house(240,104,1.3,"#F0D8B0","#8A5A3A") + house(282,108,1.2) + man(214,138,1.3,"#C98A2A") + man(262,140,1.2,"#6A9A5A") + man(70,140,1.4) +
+  `<rect x="156" y="0" width="8" height="160" fill="#C8F6FF" opacity=".7"/>` + glow(160,80,50,"#C8F6FF",.7) +
+  label(80,24,"Today: ruins") + label(240,24,"The same land, one day before");
+A.harvest = `<rect width="320" height="160" fill="#16121E"/>` + `<path d="M0 120 Q160 110 320 122 L320 160 L0 160Z" fill="#2A2430"/>` +
+  `${[[60,120],[160,116],[260,120]].map(([x,y])=>`${glow(x,y-30,40,"#72D6FF",1.1)}<rect x="${x-9}" y="${y-58}" width="18" height="58" fill="#8C8A84"/><rect x="${x-5}" y="${y-50}" width="10" height="34" fill="#9FE8F0"/><g opacity=".55"><circle cx="${x}" cy="${y-40}" r="3" fill="#3A5A6A"/><rect x="${x-2.5}" y="${y-36}" width="5" height="10" fill="#3A5A6A"/><path d="M${x-3} ${y-34} l-3 -4 M${x+3} ${y-34} l3 -4" stroke="#3A5A6A" stroke-width="1.5"/></g>`).join("")}` +
+  `${[[100,138],[210,140]].map(([x,y])=>`${man(x,y,1.4,"#6A5A7A")}<rect x="${x+4}" y="${y-14}" width="5" height="7" rx="1" fill="#9FE8F0"/>`+glow(x+6,y-10,12,"#9FE8F0",1)).join("")}` +
+  label(160,24,"Every glowing stone holds one of them") + label(160,156,"The power everyone uses");
+})();
+</script><script>
+(function(){
+const sky = (id,a,b) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="320" height="160" fill="url(#${id})"/>`;
+const label = (x,y,t) => `<text x="${x}" y="${y}" font-family="Nunito, Segoe UI, sans-serif" font-weight="800" font-size="10.5" fill="#fff" stroke="#141A2C" stroke-width="3" paint-order="stroke" text-anchor="middle">${t}</text>`;
+const glow = (x,y,r,c,o=1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${.12*o}"/><circle cx="${x}" cy="${y}" r="${r*.62}" fill="${c}" opacity="${.18*o}"/><circle cx="${x}" cy="${y}" r="${r*.3}" fill="${c}" opacity="${.3*o}"/>`;
+const house = (x,y,s=1,w="#F1E1C2",r="#C4523D",lit=false) => `<rect x="${x}" y="${y-10*s}" width="${14*s}" height="${10*s}" fill="${w}"/><polygon points="${x-2*s},${y-10*s} ${x+7*s},${y-17*s} ${x+16*s},${y-10*s}" fill="${r}"/><rect x="${x+5*s}" y="${y-5.5*s}" width="${4*s}" height="${5.5*s}" fill="${lit?"#FFD27A":"#5A3A22"}"/>`;
+const man = (x,y,s=1,c="#3B6FB6",skin="#F2C9A0") => `<rect x="${x-2.5*s}" y="${y-9*s}" width="${5*s}" height="${9*s}" rx="${1.5*s}" fill="${c}"/><circle cx="${x}" cy="${y-11.6*s}" r="${2.7*s}" fill="${skin}"/>`;
+const sea = id => `<defs><pattern id="${id}" width="24" height="16" patternUnits="userSpaceOnUse"><path d="M2 8 q4 -3 8 0" stroke="#fff" stroke-width="1" fill="none" opacity=".18"/></pattern></defs><rect width="320" height="160" fill="#3A7FA8"/><rect width="320" height="160" fill="url(#${id})"/>`;
+const land = (d,fill,stroke="#1F3A2A") => `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="1.5" stroke-opacity=".45"/>`;
+const town = (x,y) => `<rect x="${x-4}" y="${y-2}" width="4" height="4" fill="#F1E1C2"/><rect x="${x+1}" y="${y-3}" width="4" height="5" fill="#F1E1C2"/><rect x="${x-4}" y="${y-4}" width="4" height="2" fill="#C4523D"/><rect x="${x+1}" y="${y-5}" width="4" height="2" fill="#C4523D"/>`;
+const dim = (x,y) => `<rect x="${x-4}" y="${y-2}" width="4" height="4" fill="#8C7AA8"/><rect x="${x+1}" y="${y-3}" width="4" height="5" fill="#8C7AA8"/>`;
+const core = (x,y,r=8) => `${glow(x,y,r*3,"#72D6FF",1.3)}<polygon points="${x},${y-r} ${x+r*.7},${y} ${x},${y+r} ${x-r*.7},${y}" fill="#C8F6FF" stroke="#fff" stroke-width="1"/>`;
+const mtn = (x,y) => `<polygon points="${x-6},${y+4} ${x},${y-6} ${x+6},${y+4}" fill="#8A8F9E"/><polygon points="${x-2},${y-3} ${x},${y-6} ${x+2},${y-3}" fill="#fff"/>`;
+
+A.tethered = sky("nt1","#2A2450","#7A5A8A") +
+  `<path d="M0 118 Q160 104 320 118 L320 160 L0 160Z" fill="#4A4A6A"/>` +
+  `<rect x="146" y="40" width="28" height="70" fill="#5A5470"/><polygon points="140,40 160,18 180,40" fill="#6A6480"/>` + core(160,56,9) +
+  house(40,118,1.3,"#9A90B0","#5A4A70") + house(84,114,1.1,"#9A90B0","#5A4A70") + house(224,116,1.2,"#9A90B0","#5A4A70") + house(268,118,1.3,"#9A90B0","#5A4A70") +
+  `${[[60,146],[104,144],[128,148],[200,146],[240,144],[282,148]].map(([x,y])=>man(x,y,1.3,"#6A6090","#C8B8D8")+`<path d="M${x} ${y-15} Q${(x+160)/2} ${y-70} 160 60" stroke="#72D6FF" stroke-width="1" fill="none" opacity=".55"/>`).join("")}` +
+  `<g opacity=".8">${man(300,128,1.2,"#1A1422","#3A2E4A")}</g>` + glow(300,114,12,"#B03AC0",1) +
+  label(160,14,"Their energy drained into the old core") + label(290,104,"a Fourth");
+
+A.splitisle = sky("nt2","#8FC8EC","#E8E0F0") + `<rect y="90" width="320" height="70" fill="#3A7FA8"/>` +
+  `<path d="M20 92 Q80 70 150 84 L150 160 L20 160Z" fill="#7A6A9A"/>` + dim(60,104) + dim(90,112) + dim(120,100) +
+  `<path d="M150 84 L158 96 L150 110 L160 124 L152 140 L160 160" stroke="#FF7CEA" stroke-width="3" fill="none"/>` + glow(155,120,30,"#FF7CEA",.8) +
+  `<path d="M160 160 L160 84 Q230 64 300 88 L300 160Z" fill="#4A4070"/>` +
+  `${[190,214,238,262].map((x,i)=>`<rect x="${x}" y="${70-i%2*8}" width="12" height="${30+i%2*8}" fill="#B8E8F8" opacity=".85"/>`).join("")}` + core(228,64,7) +
+  label(84,150,"Near half: freed village by village") + label(232,150,"Far half: sealed, needs all three");
+
+A.puppets = sky("nt3","#3A2A40","#9A6A6A") + `<path d="M0 120 Q160 108 320 120 L320 160 L0 160Z" fill="#3E4A3A"/>` +
+  house(250,120,1.5,"#F1E1C2","#C4523D",true) + house(286,118,1.2,"#F1E1C2","#C4523D",true) + man(236,146,1.4,"#3B6FB6") +
+  `${[[40,146],[70,142],[100,148],[130,144],[160,146]].map(([x,y])=>man(x,y,1.4,"#6A5A8A","#C8B8D8")+`<line x1="${x-2}" y1="${y-14}" x2="${x-8}" y2="0" stroke="#D080F0" stroke-width=".8" opacity=".7"/><line x1="${x+2}" y1="${y-6}" x2="${x+8}" y2="0" stroke="#D080F0" stroke-width=".8" opacity=".7"/>`).join("")}` +
+  label(100,118,"Third-land people, controlled") + label(262,96,"Mainland village");
+
+A.riftshores = sea("nm1") +
+  land("M8 40 Q40 16 96 26 Q128 44 130 86 Q128 128 98 146 Q52 156 22 136 Q2 96 8 40Z","#7FBF6A") +
+  land("M190 96 Q226 84 262 98 Q276 124 252 142 Q214 150 196 130Z","#D4B888","#4A3A22") +
+  land("M150 138 Q160 132 172 138 Q174 148 160 150 Q146 148 150 138Z","#6AAE5E") +
+  land("M176 12 Q230 4 268 20 L262 72 Q230 80 196 70 Q170 50 176 12Z","#8C7AA8","#3A2A4A") +
+  land("M268 20 Q300 16 314 34 Q316 70 290 80 L262 72Z","#4A4070","#2A1A3A") +
+  `<path d="M268 20 L264 40 L270 56 L262 72" stroke="#FF7CEA" stroke-width="2.5" fill="none"/>` +
+  town(50,70) + town(90,110) + mtn(70,48) + town(226,114) + dim(200,40) + dim(230,30) + dim(220,58) + core(290,48,6) +
+  `<path d="M60 120 Q120 150 180 110 Q210 80 214 60" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 4" fill="none" opacity=".75"/>` +
+  label(60,152,"Mainland") + label(234,156,"Second land") + label(212,86,"Third land: near half") + label(292,96,"Far half + core");
+
+A.ringcore = sea("nm2") +
+  land("M6 14 Q56 8 78 40 Q90 80 78 120 Q58 150 6 150Z","#7FBF6A") +
+  land("M314 14 Q264 8 242 40 Q230 80 242 120 Q262 150 314 150Z","#D4B888","#4A3A22") +
+  land("M112 40 Q160 20 208 40 Q226 80 208 120 Q160 142 112 120 Q94 80 112 40Z","#8C7AA8","#3A2A4A") +
+  land("M140 62 Q160 52 180 62 Q188 80 180 98 Q160 108 140 98 Q132 80 140 62Z","#4A4070","#2A1A3A") + core(160,80,7) +
+  dim(122,54) + dim(198,54) + dim(118,106) + dim(202,106) + dim(160,128) + town(40,60) + town(280,60) +
+  label(40,24,"Mainland") + label(280,24,"Second land") + label(160,154,"Villages ring the sealed heart");
+
+A.mountainwall = `<rect width="320" height="160" fill="#3A7FA8"/>` +
+  land("M8 80 Q60 66 150 76 Q170 100 160 150 Q80 156 12 150 Q2 116 8 80Z","#7FBF6A") +
+  land("M190 84 Q250 70 312 82 Q318 120 306 150 Q240 156 186 150 Q178 116 190 84Z","#D4B888","#4A3A22") +
+  `<rect x="156" y="104" width="38" height="5" fill="#8A6040"/>` +
+  land("M8 6 L312 6 L312 70 Q160 62 8 72Z","#8C7AA8","#3A2A4A") +
+  `${[20,44,68,92,116,140,164,188,212,236,260,284,300].map(x=>mtn(x,72)).join("")}` +
+  `<path d="M160 8 L154 24 L164 36 L156 52 L162 66" stroke="#FF7CEA" stroke-width="2.5" fill="none"/>` +
+  dim(50,34) + dim(90,44) + dim(120,24) + core(236,34,7) + town(60,110) + town(250,116) +
+  label(80,150,"Mainland") + label(250,150,"Second land") + label(90,20,"Near valleys") + label(238,58,"Core plateau");
+})();
+</script>
+<script>
+const G = (a,b) => `<defs><linearGradient id="${a}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${b[0]}"/><stop offset="1" stop-color="${b[1]}"/></linearGradient></defs>`;
+const SECTIONS = [
+ {id:"lore", title:"1. What happened to the third land", sub:"Why the lands are apart, and what took the third one. The story stays in the background: it explains the world and unlocks it, and the game doesn't end when it's done.", items:[
+  {id:"sundering", name:"The Sundering", pick:true, text:"Long ago the three peoples lived as one. Something broke the world apart, and the third land was sealed behind a glowing veil, its people frozen in time. The shrines across both lands are the old seals. Waking them weakens the veil.",
+   plus:"Ties straight into your shrine / Omno idea, and restoring can happen piece by piece.", minus:"Closest to Zelda. The details will need to make it ours.", z:"High (BOTW/TOTK sealing, ancient shrines)",
+   art:`${G("a1",["#2A2350","#5A4A8A"])}<rect width="320" height="160" fill="url(#a1)"/><path d="M0 120 Q80 110 120 125 V160 H0Z" fill="#3E6A4A"/><path d="M200 125 Q260 110 320 120 V160 H200Z" fill="#6A5A3A"/><ellipse cx="160" cy="70" rx="46" ry="30" fill="#72D6FF" opacity=".25"/><ellipse cx="160" cy="70" rx="34" ry="20" fill="#9FE8F0" opacity=".35"/><polygon points="140,80 160,54 180,80" fill="#8C7AA8"/><rect x="100" y="104" width="8" height="18" fill="#8C8A84"/><rect x="101" y="108" width="6" height="8" fill="#72D6FF"/><rect x="214" y="104" width="8" height="18" fill="#8C8A84"/><rect x="215" y="108" width="6" height="8" fill="#72D6FF"/>`},
+  {id:"blight", name:"The Blight", text:"A creeping corruption swallowed the third land, and its people vanished into it. The mainland and the second land each blame the other. You bring them together, push the blight back, and find the lost people alive within it.",
+   plus:"A clear enemy to fight, which suits real combat, and cleansing land feels great.", minus:"A bit darker overall. Needs care so the whole game doesn't feel gloomy.", z:"Medium (Twilight Princess, TOTK gloom)",
+   art:`${G("a2",["#3A2A3A","#8A5A5A"])}<rect width="320" height="160" fill="url(#a2)"/><path d="M0 118 Q100 106 160 118 V160 H0Z" fill="#5E9A5E"/><path d="M160 118 Q240 104 320 116 V160 H160Z" fill="#2A1A2E"/><circle cx="250" cy="90" r="40" fill="#8A2A6A" opacity=".35"/><polygon points="230,118 236,86 242,118" fill="#1A0E1E"/><polygon points="262,118 270,76 278,118" fill="#1A0E1E"/><polygon points="70,118 80,86 90,118" fill="#3A8A50"/><circle cx="160" cy="110" r="6" fill="#FFB938"/>`},
+  {id:"sunken", name:"The Sunken Land", text:"The third land sank beneath the earth and sea in a disaster. Its people survived in ruins far below. Restoring it means reaching them through the underground, then raising the land back up, piece by piece.",
+   plus:"Makes your \"go underground here and there\" idea the main path, and fits the island too.", minus:"The third land spends a long time dark and underground before it rises.", z:"Medium (Wind Waker's sunken Hyrule)",
+   art:`${G("a3",["#7FC4E8","#DDF1F8"])}<rect width="320" height="160" fill="url(#a3)"/><rect y="70" width="320" height="90" fill="#2A6A8A"/><path d="M0 70 Q60 60 110 70 V80 H0Z" fill="#5E9A5E"/><path d="M220 70 Q270 62 320 68 V80 H220Z" fill="#8A7A5A"/><rect x="120" y="110" width="80" height="50" fill="#1A3A4A"/><polygon points="130,110 140,92 150,110" fill="#3A5A6A"/><polygon points="170,110 182,86 194,110" fill="#3A5A6A"/><circle cx="160" cy="130" r="6" fill="#FFD27A"/><circle cx="140" cy="140" r="3" fill="#FFD27A"/><circle cx="182" cy="136" r="3" fill="#FFD27A"/>`},
+  {id:"pact", name:"The Broken Pact", text:"Generations ago the three peoples went to war. The mainland and the second land won, and their ancestors cursed the third land and its people out of existence. Now the curse is failing, and you uncover what your own side did.",
+   plus:"The least Zelda-like, with a morally grey twist. It explains why the two lands are still at odds.", minus:"Heavier themes. The tone needs balancing with the lighter parts.", z:"Low",
+   art:`${G("a5",["#4A2A2A","#C47A4A"])}<rect width="320" height="160" fill="url(#a5)"/><path d="M0 120 Q160 104 320 120 V160 H0Z" fill="#3A2A2A"/><rect x="60" y="80" width="10" height="40" fill="#6A5A48"/><polygon points="70,80 96,88 70,96" fill="#72D6FF"/><rect x="250" y="80" width="10" height="40" fill="#6A5A48"/><polygon points="250,80 224,88 250,96" fill="#FFB938"/><circle cx="160" cy="70" r="26" fill="#8C7AA8" opacity=".5"/><path d="M146 58 L174 82 M174 58 L146 82" stroke="#FF7C8A" stroke-width="4"/>`},
+  {id:"sleep", name:"The Long Sleep", text:"The third land and its people fell into an enchanted sleep, wrapped in a dreaming mist and overgrown forest. Restoring shrines and bringing back what the land needs slowly wakes them, village by village.",
+   plus:"Gentle and hopeful, and waking each village is a lovely reward that keeps adding people.", minus:"Less of a clear enemy, so combat needs other reasons (the mist\u2019s creatures).", z:"Low-medium",
+   art:`${G("a6",["#A8B8E0","#E8E0F4"])}<rect width="320" height="160" fill="url(#a6)"/><path d="M0 124 Q160 110 320 124 V160 H0Z" fill="#7A9A8A"/><ellipse cx="160" cy="100" rx="130" ry="26" fill="#fff" opacity=".45"/><polygon points="90,120 102,80 114,120" fill="#5A7A6A"/><polygon points="200,120 214,72 228,120" fill="#5A7A6A"/><rect x="146" y="98" width="28" height="20" fill="#C9B8D8"/><polygon points="142,98 160,84 178,98" fill="#8C7AA8"/><text x="182" y="80" fill="#fff" font-size="14" font-family="sans-serif">z z</text>`},
+  {id:"tethered", newpick:true, name:"The Tethered", text:"Long ago an ancient core powered all three lands. The Hidden Fourth, living unseen among everyone, bound the third land's people to it and drained their life-energy (a unique power, like chakra) for themselves. The people are still there, alone and in a trance, cut off from the other two lands. You break the tether-stones village by village, and freed people join and help you. The core itself sits in the sealed far half, and only all three peoples together can reclaim it. Afterwards it powers everyone again.",
+   plus:"Uses everything you liked: the Fourth, lost people who are still there, freeing villages one by one, a split land with a real finale, and a shared structure that powers things. A third-land elder's old bargain with the Fourth can be a subplot.", minus:"Bigger story to plant, so the Fourth's clues need care.", z:"Low"},
+  {id:"splitisle", name:"The Split Isle", text:"The Fourth's ritual tore the third land in two. The near half's people sleepwalk through their days in a stupor. You wake them village by village. The far half, with their capital, is frozen in time behind a glowing crack, and opening it needs a ritual from all three lands.",
+   plus:"Very clear goals, and the frozen capital is a great final reveal.", minus:"The Fourth's motive needs more explaining than in The Tethered.", z:"Low-medium"},
+  {id:"puppets", name:"The Puppeteers", text:"The Fourth took control of the third land's people and uses them as raiders against the other two lands. That's why the mainland and the second land blame and distrust each other. You free minds tribe by tribe, and the last stronghold hides the Fourth's leaders.",
+   plus:"A clear enemy for real combat, and it explains why the lands are split.", minus:"Darker. You fight people you're trying to save, which needs care.", z:"Low"},  {id:"fourth", name:"The Hidden Fourth", text:"There was once a fourth people whose land was lost completely. They look like everyone else and have quietly lived among the mainland and second-land folk for generations. The whole time they've been lying and pulling strings to control all the lands and bring their own land back. It turns out they were behind the third land being taken.",
+   plus:"A huge late twist that recolours everything. People you've known for hours could be one of them.", minus:"Needs careful planting of clues so the reveal feels earned, not random.", z:"Low (not a Zelda thing)"},
+  {id:"bargain", name:"The Bargain", text:"The third land's own ruler made a deal with something ancient for power, and it cost them the land and their people's freedom. The people never knew. Undoing the bargain means finding what they traded, and who else is still bound by it.",
+   plus:"A mystery with a villain you can confront, and it pairs well with The Hidden Fourth.", minus:"Puts more weight on story beats, so it has to stay in the background.", z:"Low"},
+  {id:"heart", name:"The Great Tree", text:"A colossal ancient tree once linked all three lands through its roots. It was wounded, and the part of the world fed by its dying roots, the third land, withered and faded away with its people. Healing the tree brings them back, root by root.",
+   plus:"A living symbol that grows as you progress, visible from everywhere, and it never has to stop growing.", minus:"Gentler, so it needs a threat (whatever wounded the tree).", z:"Low-medium (Deku Tree vibes)"},
+  {id:"forgotten", name:"The Forgotten", text:"The third land was never destroyed. It was erased from memory. Everyone forgot it existed: maps have strange blank spaces and old songs have missing verses. Its people still walk among you, but no one can see or hear them. You're the first to start remembering, and every memory you restore makes them a little more real.",
+   plus:"Eerie and original, and remembering can be a collectable you find across the world.", minus:"Invisible people are tricky to show well. They need a clear visual style.", z:"Low"},
+  {id:"warden", name:"The Warden", text:"The third land is sealed by an ancient guardian, the Warden, who truly believes it's protecting the world from something inside. It isn't evil, just certain. You work out whether it's right, and either convince it or break it.",
+   plus:"A great recurring giant and a morally interesting \"villain\". It's close to the current ideas, but with a face.", minus:"The final choice needs care so it doesn't feel predictable.", z:"Medium (guardian vibes)"},
+  {id:"dreamer", name:"The Dreamer", text:"The whole world is the dream of a sleeping ancient being. The third land is where its nightmare took over, and the people there are trapped in it. Mending the world means entering the nightmare and pushing it back, and the world gets stranger the closer you get.",
+   plus:"Lets the third land look and behave completely differently, with surreal zones and shifting paths.", minus:"\"It was all a dream\" has to be handled so the world still feels real and worth caring about.", z:"Low (a little Link's Awakening)"},
+  {id:"echo", name:"The Echo Land", text:"The third land slipped out of time. It exists one day before its disaster, living that same day over and over. At shrines you can step into the echo, meet its people, and change small things. Each change makes the land more solid in the present.",
+   plus:"A really distinctive twist, and visiting the past is a fresh kind of exploration.", minus:"Time mechanics are complex to design and build, so it'd need to stay simple.", z:"Low"},
+  {id:"harvest", name:"The Harvest (very dark)", text:"The third land's people weren't taken. They were turned into the glowing stone that powers everything: shrine powers, lamps, the magic both lands rely on. Every time you use that power, you burn a little of them. The second land's leaders have always known. Restoring the lost people means giving up the power the world runs on.",
+   plus:"A gut-punch reveal that makes your shrine powers and their cost mean something. It ends in a real choice.", minus:"Very heavy. The rest of the world needs warmth to balance it.", z:"None"},  {id:"stolen", name:"The Stolen Land", text:"Something ancient lifted the third land into the sky and holds it there. Its people are trapped above the clouds. You build the means to reach it (shrines, an airship, a sky bridge) and free it bit by bit.",
+   plus:"A striking goal you can literally see from anywhere in the world.", minus:"Sky travel adds a big system to build.", z:"Medium-high (Skyward Sword, TOTK sky islands)",
+   art:`${G("a4",["#86B8F0","#F0D8E8"])}<rect width="320" height="160" fill="url(#a4)"/><path d="M0 130 Q160 116 320 130 V160 H0Z" fill="#6AAE5E"/><polygon points="120,50 200,50 186,80 170,90 150,88 134,78" fill="#8C7AA8"/><ellipse cx="160" cy="50" rx="40" ry="7" fill="#9FD89A"/><polygon points="150,50 158,32 166,50" fill="#EEE"/><ellipse cx="160" cy="96" rx="80" ry="10" fill="#fff" opacity=".6"/>`}
+ ]},
+ {id:"map", title:"2. How the world is laid out", sub:"Rough sketches of where the lands sit. Green is the mainland, tan is the second land, purple is the third land, and the dotted lines are the underground.", items:[
+  {id:"riftshores", newpick:true, name:"Three shores & the rift", text:"The big mainland is your main area. The second land is a properly developed island across the strait, with a small wild isle as well. The third land lies to the north-east, split by a glowing rift: the near half has the villages you free, and the far half holds the core. Old tunnels under the mainland (the Fourth's secret paths) lead toward it.",
+   plus:"Matches your \"main land, max 2 islands, underground here and there\" idea, with the split third land built in.", minus:"Needs a boat and some tunnels, but both are good progression.", z:"Low"},
+  {id:"ringcore", name:"Villages around the heart", text:"The third land sits between the two others. Its villages form a ring around a sealed heart in the middle. Every village you free brings you closer to the centre, and you can always see the goal.",
+   plus:"Clear progress, and the finale is always in sight.", minus:"Symmetrical and a bit neat, so it may feel less natural.", z:"Low"},
+  {id:"mountainwall", name:"Beyond the mountains", text:"The mainland and the second land are joined by a great bridge. North, behind a mountain wall, lies the third land: first its near valleys to free, then across a chasm to the core plateau.",
+   plus:"No sailing needed. A huge, dramatic reveal when you first cross the mountains.", minus:"You lose the island feel you wanted.", z:"Low"},  {id:"strait", name:"Across the water", pick:true, text:"The mainland and the second land face each other across a strait. You cross by boat. A small extra island sits off to the side. The third land is visible on the horizon, veiled.",
+   plus:"Clear and easy to learn. The boat becomes a meaningful upgrade.", minus:"Crossing water needs a boat system.",
+   art:`<rect width="320" height="160" fill="#2A7AA0"/><path d="M20 30 Q70 10 120 40 Q140 90 110 130 Q60 150 30 120 Q5 80 20 30Z" fill="#6AAE5E"/><path d="M200 60 Q250 40 290 70 Q300 110 260 130 Q220 135 205 110Z" fill="#C9A77E"/><ellipse cx="170" cy="25" rx="18" ry="10" fill="#6AAE5E"/><ellipse cx="240" cy="18" rx="40" ry="12" fill="#8C7AA8" opacity=".6"/><path d="M50 70 Q80 90 90 110" stroke="#1A2A1A" stroke-dasharray="4 4" stroke-width="2" fill="none"/><circle cx="60" cy="60" r="5" fill="#72D6FF"/><circle cx="250" cy="90" r="5" fill="#FFB938"/>`},
+  {id:"ring", name:"Around a lost centre", text:"The mainland and the second land sit on either side of a sea, with the veiled third land in the middle. Every step of restoring it is visible from both sides.",
+   plus:"The goal is always in sight, and it's very motivating.", minus:"Both lands need to curve around the middle, so the map is a bit harder to lay out.",
+   art:`<rect width="320" height="160" fill="#2A7AA0"/><path d="M10 20 Q60 10 80 50 Q90 110 60 150 L10 150Z" fill="#6AAE5E"/><path d="M310 20 Q260 10 240 50 Q230 110 260 150 L310 150Z" fill="#C9A77E"/><ellipse cx="160" cy="80" rx="50" ry="36" fill="#8C7AA8"/><ellipse cx="160" cy="80" rx="62" ry="46" fill="#72D6FF" opacity=".18"/><ellipse cx="160" cy="140" rx="14" ry="7" fill="#6AAE5E"/>`},
+  {id:"twoisles", name:"Mainland + two islands", text:"A big mainland in the middle. The second land is a large island to one side, and a small wild island sits on the other. The third land lies far out at sea as a dark shape on the horizon.",
+   plus:"Exactly your \"max 2 islands, one with more effort\" idea.", minus:"The third land is far away, so it needs a good way to get there.",
+   art:`<rect width="320" height="160" fill="#2A7AA0"/><path d="M100 30 Q160 10 210 40 Q230 90 200 130 Q150 150 110 125 Q85 80 100 30Z" fill="#6AAE5E"/><path d="M240 70 Q280 55 305 80 Q310 120 275 130 Q245 125 238 100Z" fill="#C9A77E"/><ellipse cx="45" cy="110" rx="22" ry="12" fill="#5E9A5E"/><ellipse cx="40" cy="30" rx="30" ry="12" fill="#8C7AA8" opacity=".55"/><circle cx="150" cy="80" r="5" fill="#72D6FF"/>`},
+  {id:"layers", name:"Layered: above & below", text:"You live on the mainland. The second land is up on high plateaus and cliffs reached by climbing and lifts. The third land is deep below everything, reached through the underground.",
+   plus:"Vertical exploration, and the underground becomes central.", minus:"Similar to TOTK\u2019s sky/surface/depths, and climbing systems are work.", z:"High (TOTK)",
+   art:`${G("m5",["#8FD0F2","#E6F5FA"])}<rect width="320" height="160" fill="url(#m5)"/><rect x="180" y="20" width="140" height="50" fill="#C9A77E"/><rect x="180" y="20" width="140" height="6" fill="#B8D88A"/><rect y="70" width="320" height="40" fill="#6AAE5E"/><rect y="68" width="320" height="4" fill="#8FCC72"/><rect y="110" width="320" height="50" fill="#2A1E3A"/><ellipse cx="160" cy="136" rx="80" ry="12" fill="#8C7AA8"/><rect x="190" y="26" width="4" height="44" fill="#6A5A48"/>`},
+  {id:"bridge", name:"The Shattered Bridge", text:"A colossal ancient bridge once spanned a vast chasm between the mainland and the second land. The third land lies deep in the chasm below. Repairing the bridge piece by piece is a building project you can watch grow.",
+   plus:"Crafting and gathering visibly build toward something huge.", minus:"More of a set path than open sailing. Could be combined with the boat instead.", z:"Low"},
+  {id:"pass", name:"Joined by land", text:"The second land connects to the mainland through a mountain pass that opens later. The third land lies beneath both, reached through the underground.",
+   plus:"No boats needed. Everything is walkable and the underground connects it all.", minus:"You lose the \"sailing to an island\" feeling.",
+   art:`<rect width="320" height="160" fill="#2A7AA0"/><path d="M10 20 Q100 5 160 30 Q220 5 310 20 L310 90 Q220 110 160 90 Q100 110 10 90Z" fill="#6AAE5E"/><path d="M160 30 Q220 5 310 20 L310 90 Q220 110 160 90Z" fill="#C9A77E"/><polygon points="150,30 160,12 170,30 170,90 150,90" fill="#8A8F9E"/><rect x="10" y="110" width="300" height="40" fill="#3A2E4A"/><path d="M60 80 L60 110 M250 80 L250 110" stroke="#1A2A1A" stroke-dasharray="4 4" stroke-width="2"/><ellipse cx="160" cy="130" rx="60" ry="12" fill="#8C7AA8"/>`}
+ ]},
+ {id:"start", title:"3. How it starts", sub:"The first hour sets the whole feel.", items:[
+  {id:"ashore", name:"Arrive with nothing", pick:true, text:"You wash up (or arrive) on the mainland's edge with nothing. First night: build a fire and a shelter. A village nearby slowly opens up to you.",
+   plus:"Survival start that goes straight into gathering and crafting, your favourite parts.", minus:"The most familiar opening in this genre."},
+  {id:"homestead", name:"The old homestead", text:"You take over an abandoned homestead near a village. Fix it up, clear the land, then start exploring beyond.",
+   plus:"Cozy and grounded, with a home from minute one.", minus:"Slower start. Action comes later."},
+  {id:"villager", name:"An ordinary villager", text:"You already live in a small mainland village. It's a normal day of chores, until a shrine nearby flares to life for the first time in centuries, and you're the one standing next to it.",
+   plus:"You care about home from the start, and the \"normal person becomes the hero\" idea is built in.", minus:"Needs a strong first hook so the normal day doesn't feel slow."},
+  {id:"together", name:"Shipwrecked together", text:"A ship carrying people from both the mainland and the second land wrecks on a small island. You survive together, and the two groups have to cooperate before anyone trusts each other.",
+   plus:"Brings both peoples into your first hour, and the tension between them is shown instead of told.", minus:"Starting with other characters means more dialogue and character work early."},
+  {id:"below", name:"Escape from below", text:"You wake deep in the dark ruins of the lost land itself. The first 10-20 minutes are a tense climb to the surface, and you burst out into the bright, sunny mainland with no idea why you were down there.",
+   plus:"A huge moment when you break into daylight, and it plants the mystery immediately.", minus:"Delays the free gather-and-craft part for a short while."},
+  {id:"shrine", name:"Woken by a shrine", text:"You wake inside a ruined shrine with a faint glow on your hand, marked by the lost land. The glow is why only you can wake the shrines.",
+   plus:"Explains why you are \"the guy\" and hooks the mystery from the first second.", minus:"Leans harder into story than the other two."}
+ ]},
+ {id:"build", title:"4. Camera and how it's built", sub:"The technical choices. My recommendations are marked.", items:[
+  {id:"cam-follow", name:"Camera: angled follow", pick:true, text:"The camera sits above and behind you at an angle and follows you, and you can swing it around. You see your surroundings well, which is great for gathering and fights on a phone.",
+   plus:"Works best with the joystick, and it's faster to build and smoother on the phone.", minus:"Less immersive than a full behind-the-back view."},
+  {id:"cam-fixed", name:"Camera: fixed angle", text:"The camera sits at one fixed angle above you and never rotates, like Animal Crossing or classic top-down games.",
+   plus:"The simplest to play and build, and the world can be designed for that one angle.", minus:"You can't turn to look around, so tall things can block your view."},
+  {id:"cam-free", name:"Camera: full 3rd person", text:"The camera sits right behind your character and you control it fully, like BOTW or Fortnite.",
+   plus:"The most immersive, and like the games you love.", minus:"Needs a second thumb to control the camera, is heavier on the phone, and takes more work."},
+  {id:"eng-web", name:"Build: web 3D (Babylon.js)", pick:true, text:"A 3D game engine that runs in the browser. It installs on your iPhone as a home-screen app, works offline, and needs no Mac or Apple fees. I can run and test it myself.",
+   plus:"On your phone today, I can test everything myself, and co-op fits easily later.", minus:"Fewer ready-made tools than a full engine. Can become a proper App Store app later with a wrapper."},
+  {id:"eng-godot", name:"Build: Godot 4", text:"A full game engine with an editor, physics and animation tools.",
+   plus:"A proper engine with great tools for a big 3D game.", minus:"A real iPhone app needs a Mac or paid cloud builds plus $99 a year, and its browser version runs worse on iPhone."}
+ ]},
+ {id:"ideas", title:"5. Big ideas to make it more interesting", sub:"Twists and systems that could make the game stand out. Mark the ones that excite you. They can combine.", items:[
+  {id:"traitors", name:"Traitors among us", text:"Your Hidden Fourth idea as a system. Throughout the game there are small clues about who might secretly be one of them: odd dialogue, missing items, people seen where they shouldn't be. You can figure it out early if you're sharp."},
+  {id:"trust", name:"Each land trusts you differently", text:"Helping one land can annoy the other. Each has its own trust level, which changes prices, what they'll teach you, and which areas they'll let you into. Uniting them is something you actually earn."},
+  {id:"restore", name:"You rebuild the third land", text:"As it returns, you decide what gets rebuilt first: the bridge, the forge, a village. Its people move back in, and it becomes your endgame home that never stops growing."},
+  {id:"powers", name:"Shrine powers for life and fights", text:"Each shrine grants a power that works both ways. Freeze water to walk on it or trap enemies, grow crops instantly or tangle foes in roots, lift boulders to mine or throw them."},
+  {id:"legends", name:"Legendary wandering beasts", text:"Huge ancient creatures roam and migrate between the lands at certain times or in certain weather. Hunting one is an event, and they drop the rarest materials in the game."},
+  {id:"relics", name:"Lost-people relics & legendary gear", text:"The vanished peoples left relics you can dig up and craft into legendary gear with unique perks and mods, Outriders-style. Relics are also clues to the bigger mystery."},
+  {id:"companions", name:"Companions with their own lives", text:"Recruit people from each land. Each has skills, fights beside you, and can be sent on their own expeditions to gather. Some may not be who they seem."},
+  {id:"veilnights", name:"Nights when the veil thins", text:"On rare nights (a full moon, a storm) the barrier to the lost land weakens. Strange spirits and creatures cross over, and so do rare resources you can only get then."},
+  {id:"outbreaks", name:"Curse outbreaks", text:"Now and then, corruption bursts out somewhere in the lands. Contain it before it spreads. It keeps the world changing forever, long after any story."},
+  {id:"homehub", name:"Your home becomes a landmark", text:"As your reputation grows, travellers visit your homestead, traders set up stalls, and people ask to live nearby. Your base slowly turns into a hub."},
+  {id:"coopstory", name:"Co-op friend from the other land", text:"When co-op arrives, a friend can join as someone from the second land. Their side of the world, and their trust, differ from yours."},
+  {id:"landres", name:"Each land has its own resources", text:"The mainland is rich in timber and farmland, the second land in rare ores and volcanic fuel. Rebuilding the third land needs both, so the lands need each other, and so do you."},
+  {id:"seasons", name:"Seasons change the routes", text:"Winter freezes the strait so you can walk across, and heavy rains flood some caves into underwater grottos. Different seasons open different places and resources."},
+  {id:"corrupt", name:"Ancient powers have a cost", text:"Powers from the lost land are strong, but overusing them spreads a bit of corruption around you and draws dangerous creatures at night. Risk and reward."},
+  {id:"deepest", name:"The deepest underground holds the truth", text:"The deeper you dig, the older the ruins get. At the very bottom is the fourth people's original land, so the underground ties into the twist."}
+ ]}
+];
+const state = {picks:{}, notes:{}};
+let db = null, timer = null, chain = Promise.resolve();
+const $ = id => document.getElementById(id);
+function el(t,c,x){ const e = document.createElement(t); if(c) e.className = c; if(x != null) e.textContent = x; return e; }
+function render(){
+  const root = $("root"); root.innerHTML = "";
+  SECTIONS.forEach(s => {
+    const sec = el("section"); const h = el("div","sec-head"); h.append(el("h2",null,s.title), el("p",null,s.sub)); sec.appendChild(h);
+    const grid = el("div","grid");
+    s.items.forEach(it => {
+      const key = s.id + ":" + it.id, card = el("article","card"); card.dataset.key = key;
+      const pic = A[it.id] || it.art; if(pic){ const a = el("div","art"); a.innerHTML = `<svg viewBox="0 0 320 160" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${pic}</svg>`; if(it.pick) a.appendChild(el("span","pick","My pick")); if(it.newpick){ const np = el("span","pick","New pick"); np.style.background = "#72D6FF"; np.style.color = "#05263A"; a.appendChild(np); } card.appendChild(a); }
+      else if(it.pick) card.appendChild(el("span","pick inpick","My pick"));
+      const b = el("div","body"); b.appendChild(el("h3",null,it.name)); b.appendChild(el("p",null,it.text));
+      const p = el("p","plus"); p.appendChild(el("b",null,"+ ")); p.append(it.plus); const m = el("p","minus"); m.appendChild(el("b",null,"− ")); m.append(it.minus); if(it.plus) b.append(p); if(it.minus) b.append(m); if(it.z) b.appendChild(el("p","zl","Zelda likeness: " + it.z));
+      const seg = el("div","seg");
+      [["want","♥ Love it"],["maybe","? Maybe"],["no","✕ Nope"]].forEach(([v,t]) => { const bt = el("button",null,t); bt.type = "button"; bt.dataset.v = v; bt.setAttribute("aria-label", t.slice(2) + ": " + it.name); bt.addEventListener("click", () => { if(state.picks[key] === v) delete state.picks[key]; else state.picks[key] = v; paint(card); changed(); }); seg.appendChild(bt); });
+      card.append(b,seg); paint(card); grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    const n = el("div","notes"), lab = el("label",null,"Your notes"), ta = document.createElement("textarea");
+    ta.id = "n-" + s.id; lab.htmlFor = ta.id; ta.placeholder = "Mix, change, add your own version…"; ta.value = state.notes[s.id] || "";
+    ta.addEventListener("input", () => { state.notes[s.id] = ta.value; changed(); });
+    n.append(lab, ta); sec.appendChild(n);
+    root.appendChild(sec);
+  });
+}
+function paint(card){ const v = state.picks[card.dataset.key] || ""; if(v) card.dataset.s = v; else delete card.dataset.s; card.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === v))); }
+function setSave(s,t){ $("save").dataset.s = s; $("save-t").textContent = t; }
+function changed(){ try{ localStorage.setItem("lands-v1", JSON.stringify(state)); }catch(e){} clearTimeout(timer); timer = setTimeout(save, 900); }
+function save(){
+  if(!db){ setSave("idle","Saved on this device"); return; }
+  setSave("busy","Saving…");
+  chain = chain.then(() => db.doc("picks/round3").set({picks:{...state.picks}, notes:{...state.notes}, updatedAt:new Date().toISOString()})).then(() => setSave("ok","Saved")).catch(() => setSave("idle","Saved on this device only"));
+}
+(async function(){
+  try{ const s = JSON.parse(localStorage.getItem("lands-v1") || "null"); if(s){ state.picks = s.picks || {}; state.notes = s.notes || {}; } }catch(e){}
+  render();
+  try{ db = window.claude && window.claude.use ? await window.claude.use("db") : null; }catch(e){ db = null; }
+  if(!db) return;
+  try{ const snap = await db.doc("picks/round3").get(); if(snap.exists){ const d = snap.data(); state.picks = Object.assign({}, d.picks || {}); state.notes = Object.assign({}, d.notes || {}); render(); } setSave("ok","Saved"); }catch(e){}
+})();
+</script>

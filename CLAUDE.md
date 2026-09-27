@@ -1,0 +1,39 @@
+# SoonGame: "Unbound" (working title)
+
+A 3D phone game in Godot, played on the owner's iPhone 16 Pro Max as an offline home-screen web app.
+The owner doesn't code: they direct and playtest, and Claude builds. Keep replies short and easy to read.
+- `docs/DESIGN.md`: what the game is. Read it before design work.
+- `docs/PLAN.md`: milestones, how we work, performance rules. Read it every session.
+
+## Layout
+- `game/`: the Godot 4.7.2 project (GL Compatibility renderer, needed for web). Export preset "Web" writes to `build/web/`.
+- `tools/`: Godot editor exe (portable), dev HTTPS certificate. Git-ignored.
+- `tools-src/serve.js`: HTTPS server for phone testing. `tools-src/app.webmanifest`: home-screen app manifest.
+- `docs/`: design, plan, next-chat prompt. `three-lands.html`: the owner's design picker (a local copy of the artifact).
+
+## Tools on this PC (Windows 11)
+- **Godot 4.7.2 standard edition** (portable) in `tools/`, with the Web export templates installed in %APPDATA%\Godot\export_templates.
+- **Node.js** (for `serve.js`) and **Git**: installed.
+- **Blender: not installed yet.** When custom models are first needed (props, buildings, shrines, terrain), download the portable Blender zip from blender.org into `tools/blender/`, and generate models with scripts (`blender --background --python script.py`), exporting .glb into `game/assets/`. The owner won't use Blender by hand.
+- **Free CC0 assets:** Quaternius (first choice). The KayKit and Kenney test models were rejected as looking bad.
+
+## Commands (PowerShell, from C:\SoonGame)
+- Check scripts and import assets: `tools\Godot_v4.7.2-stable_win64_console.exe --headless --path game --import`
+- Export for the phone: `tools\Godot_v4.7.2-stable_win64_console.exe --headless --path game --export-release "Web" ../build/web/index.html`, then copy `tools-src\app.webmanifest` into `build\web\`.
+- Serve to the phone: `node tools-src/serve.js` (run it in the background). The phone opens https://192.168.0.22:8080. The phone already trusts the dev certificate ("SoonGame Dev Root").
+- Screenshot check: add a dev-only `--shot=path.png` user arg that saves the viewport after ~180 frames and quits. Run with a 60 s time limit (Start-Process + WaitForExit), because a script error leaves the window hanging.
+- Open the editor for the owner: `tools\Godot_v4.7.2-stable_win64.exe --path game -e`
+
+## Gotchas learned
+- **HTTPS:** Godot web requires it (secure context), hence the dev cert and the HTTPS server.
+- **No Godot PWA service worker:** it breaks in iPhone Safari. The PWA is disabled in the export. `serve.js` serves a self-removing service worker at `index.service.worker.js` to clean up old installs. Offline support will get its own simple service worker (milestone M5).
+- **Touch:** track fingers by index (joystick finger vs camera or button finger). Ignore drag jumps over 200 px. The HTML head_include blocks page scroll and zoom.
+- **Vertex colours:** set `vertex_color_is_srgb = true`. Filmic tonemap. Keep ambient light modest, or everything washes out.
+- **Free-asset colours:** check the imported colours (Kenney leaves came in as cyan).
+- **Performance:** follow the rules in `docs/PLAN.md`. Show FPS and worst frame on screen during development.
+
+## Code conventions
+- GDScript with static types. One system per script, small files.
+- Game state (inventory, world, characters) is separate from visuals and input, and changes go through clear action functions. This keeps co-op possible later.
+- Only CC0 assets. Keep each pack's licence file next to its models under `game/assets/<pack>/`.
+- Commit after each working step (branch off main for bigger work).
