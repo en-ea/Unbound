@@ -27,9 +27,15 @@ const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2}
 
 const TOOLS := {"axe": "res://assets/items/axe.glb", "pickaxe": "res://assets/items/pickaxe.glb",
 	"sword": "res://assets/items/sword.glb"}
-## How a tool sits in the right hand (its handle runs along its own +Y).
-const TOOL_ROTATION := Vector3(0.0, 0.0, 90.0)     # degrees
-const TOOL_OFFSET := Vector3(0.0, 0.0, 0.0)
+## How each tool sits in the right hand (tools are modelled with the handle along +Y from the
+## grip). The UAL2 animations hold props along the hand bone's +Y (wrist to knuckles); these
+## angles were worked out from the hand pose at the moment of impact (the blade leads the swing).
+const TOOL_GRIP := {
+	"axe": Vector3(8.0, 104.0, 6.0),
+	"pickaxe": Vector3(8.0, 104.0, 6.0),
+	"sword": Vector3(0.0, 90.0, 0.0),
+}
+const TOOL_OFFSET := Vector3(0.0, 0.07, 0.0)       # from the wrist into the palm
 
 var _anim: AnimationPlayer
 var _action_left := 0.0      # seconds left of a one-shot action (swing, pick-up)
@@ -139,7 +145,7 @@ func _make_tools() -> void:
 	_skeleton.add_child(hand)
 	for t: String in TOOLS:
 		var tool := (load(TOOLS[t]) as PackedScene).instantiate() as Node3D
-		tool.rotation_degrees = TOOL_ROTATION
+		tool.rotation_degrees = TOOL_GRIP[t]
 		tool.position = TOOL_OFFSET
 		tool.visible = false
 		hand.add_child(tool)

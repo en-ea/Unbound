@@ -9,6 +9,7 @@ extends Node
 ##   --showcase        line up one of every tree/bush model in front of the player
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
+##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 
 @export var day_night: Node
@@ -21,6 +22,7 @@ var _start_at := Vector2.INF
 var _showcase := false
 var _gather_test := false
 var _fight_test := false
+var _gather_offset := Vector3(0, 0.3, -1.3)
 
 
 func _ready() -> void:
@@ -46,10 +48,16 @@ func _ready() -> void:
 			get_node("../HUD").open_look_picker.call_deferred()
 		elif arg == "--fighttest":
 			_fight_test = true
+		elif arg.begins_with("--gatheroffset="):
+			var v := arg.trim_prefix("--gatheroffset=").split(",")
+			_gather_offset = Vector3(float(v[0]), 0.3, float(v[1]))
 		elif arg == "--gathertest":
 			_gather_test = true
 		elif arg == "--showcase":
 			_showcase = true
+		elif arg.begins_with("--view="):
+			var v := arg.trim_prefix("--view=").split(",")
+			get_node("../CameraRig").set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01)
 		elif arg == "--touchtest":
 			_touch_test = true
 	if _shot_path == "" and not _touch_test and not _gather_test and not _fight_test:
@@ -133,7 +141,7 @@ func _run_gather_test() -> void:
 				best_d = d
 				best = id
 		var at: Vector3 = WorldResources.get_node_data(best)["pos"]
-		player.global_position = at + Vector3(0, 0.3, -1.3)
+		player.global_position = at + _gather_offset
 		get_node("../CameraRig").snap()
 	if _frames in [40, 70, 100, 165]:
 		gatherer.act()
