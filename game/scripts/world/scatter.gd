@@ -171,14 +171,15 @@ func _plant_at(p: Vector2) -> void:
 		elif r < 0.2:
 			_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
 		return
-	if r < 0.30 + m * 0.3:
-		_place(["grass_1", "grass_2"].pick_random(), "small", p, _rng.randf_range(1.1, 1.7), 0.2)
-	elif r < 0.36 + m * 0.3:
+	# Sparse grass keeps the ground clean; it gathers a little more in lush patches.
+	if r < 0.1 + m * 0.18:
+		_place(["grass_1", "grass_2"].pick_random(), "small", p, _rng.randf_range(0.9, 1.4), 0.2)
+	elif r < 0.13 + m * 0.2:
 		_place("grass_3", "small", p, _rng.randf_range(1.2, 1.8), 0.2)
 	elif m > 0.45 and r < 0.54 + m * 0.2:
 		_place(["flower_1", "flower_2", "flower_3", "flower_4", "flower_5"].pick_random(), "small", p, _rng.randf_range(0.85, 1.15), 0.2, "flower")
 	elif r < 0.66:
-		_place(["grass_1", "grass_2", "grass_3"].pick_random(), "small", p, _rng.randf_range(0.6, 0.9), 0.2)
+		pass                          # open ground
 	elif r < 0.665:
 		_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
 

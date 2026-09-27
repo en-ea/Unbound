@@ -24,7 +24,7 @@ const SUN_COLOR := [Color(1, 0.8, 0.6), Color(1.0, 0.62, 0.40), Color(1.0, 0.72,
 const SUN_ENERGY := [0.0, 0.0, 1.05, 1.5, 1.6, 1.55, 1.3, 0.0, 0.0]
 const AMBIENT := [Color(0.30, 0.38, 0.62), Color(0.42, 0.40, 0.58), Color(0.62, 0.6, 0.72), Color(0.56, 0.66, 0.86),
 	Color(0.56, 0.68, 0.9), Color(0.6, 0.66, 0.84), Color(0.66, 0.54, 0.62), Color(0.40, 0.36, 0.56), Color(0.30, 0.38, 0.62)]
-const AMBIENT_ENERGY := [0.55, 0.62, 0.85, 0.8, 0.75, 0.8, 0.9, 0.65, 0.55]
+const AMBIENT_ENERGY := [0.6, 0.68, 0.95, 0.92, 0.9, 0.92, 0.98, 0.7, 0.6]
 
 var _sky_mat := ProceduralSkyMaterial.new()
 var _timer := 0.0
@@ -54,8 +54,8 @@ func _ready() -> void:
 	env.fog_density = 0.7
 	env.fog_sky_affect = 0.6
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.96
-	env.adjustment_contrast = 1.06
+	env.adjustment_saturation = 1.0
+	env.adjustment_contrast = 0.98
 	environment = env
 	_sky_mat.sun_angle_max = 20.0
 	_sky_mat.sun_curve = 0.08
@@ -104,7 +104,7 @@ func _apply() -> void:
 	env.ambient_light_energy = _sample_f(AMBIENT_ENERGY, t)
 	env.fog_light_color = horizon.lerp(env.ambient_light_color, 0.35)
 	if terrain and terrain.get("material"):
-		terrain.material.set_shader_parameter("cloud_strength", 0.22 * clampf(sun_e, 0.0, 1.0))
+		terrain.material.set_shader_parameter("cloud_strength", 0.12 * clampf(sun_e, 0.0, 1.0))
 
 
 func _segment(t: float) -> Vector2:

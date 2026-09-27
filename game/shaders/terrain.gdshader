@@ -6,7 +6,7 @@ shader_type spatial;
 uniform sampler2D cloud_noise : filter_linear, repeat_enable;
 uniform sampler2D shade_map : filter_linear, hint_default_white;   // baked soft shade (1 = open)
 uniform float world_half = 80.0;
-uniform float cloud_strength = 0.22;
+uniform float cloud_strength = 0.12;
 uniform vec2 path_points[12];
 uniform int path_count = 0;
 uniform vec2 pond_center;
@@ -43,12 +43,11 @@ void fragment() {
 	// Large soft patches: sunny yellow-greens and cooler greens.
 	float big = texture(cloud_noise, p * 0.011 + vec2(0.3, 0.7)).r;
 	float mid = texture(cloud_noise, p * 0.045 + vec2(0.1, 0.2)).r;
-	c = mix(c, patch_warm.rgb, smoothstep(0.55, 0.75, big) * 0.3);
-	c = mix(c, patch_cool.rgb, smoothstep(0.45, 0.25, big) * 0.35);
-	c *= 0.9 + 0.2 * mid;
-	// Fine detail so the grass isn't one flat colour up close.
-	float fine = texture(cloud_noise, p * 0.55).r;
-	c *= 0.93 + 0.14 * fine;
+	// Clean, calm ground (Tunic-like): only broad soft colour shifts, no fine speckle.
+	c = mix(c, patch_warm.rgb, smoothstep(0.55, 0.8, big) * 0.22);
+	c = mix(c, patch_cool.rgb, smoothstep(0.45, 0.2, big) * 0.2);
+	c *= 0.97 + 0.06 * mid;
+	float fine = 0.5;
 
 	float wobble = texture(cloud_noise, p * 0.06).r - 0.5;
 	float pd = path_distance(p) + wobble * 0.7;
