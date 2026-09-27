@@ -24,6 +24,17 @@ functions; visual scripts listen to signals. Keep it that way (co-op later).
   and `interact()` takes over the action button when you're near (see `player.gd`).
 - Screens: `ui/crafting_panel.gd` (workbench), tool badges in the Bag (`ui/inventory_panel.gd`).
 - Tool heads are tinted by tier in `character_visual.gd` (`show_tool`).
+- Each owned tool is a record `{tier, rarity, bonuses}`; `Gear.roll_found()` makes a found one
+  (chests 40%, boars 6%, wolves 8%) with Swift / Mighty / Lucky bonuses. `drop_tool()` leaves you
+  with fists (trees take a punch animation, half an axe's power).
+- Bags: `Gear.BAGS` (12 / 16 / 22 kinds of item); `Inventory.has_room()`; a full bag leaves new
+  kinds of item on the ground (`drop.gd`).
+
+## Skills (M4)
+`game/scripts/state/skills.gd` (autoload `Skills`): woodcutting, mining, combat. XP from
+`gatherer.gd` (2 per hit, plus the node's hits when it's finished), `fighter.gd` (3 per hit) and
+kills (boar 25, wolf 20). Perks: gathering speed +1.5% and extra-drop chance +1% per level, sword
+damage +1 per 10 combat levels. The HUD shows a small bar on gains and a message on level-up.
 
 ## Minimap
 Anything in group `"map_building"` with a `"map_size"` meta (Vector2 footprint) shows as a building.

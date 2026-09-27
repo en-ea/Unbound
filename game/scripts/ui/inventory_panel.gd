@@ -10,6 +10,7 @@ const CRAFTING := preload("res://scripts/ui/crafting_panel.gd")
 var _grid: GridContainer
 var _empty: Label
 var _gear: VBoxContainer
+var _slots: Label
 
 
 func _ready() -> void:
@@ -24,11 +25,11 @@ func _ready() -> void:
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", UIStyle.panel())
 	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(760, 540)
-	panel.offset_left = -380
-	panel.offset_right = 380
-	panel.offset_top = -270
-	panel.offset_bottom = 270
+	panel.custom_minimum_size = Vector2(800, 620)
+	panel.offset_left = -400
+	panel.offset_right = 400
+	panel.offset_top = -310
+	panel.offset_bottom = 310
 	add_child(panel)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 14)
@@ -41,7 +42,7 @@ func _ready() -> void:
 	_gear = VBoxContainer.new()
 	_gear.add_theme_constant_override("separation", 6)
 	column.add_child(_gear)
-	UIStyle.label(column, "ITEMS", 15, true)
+	_slots = UIStyle.label(column, "ITEMS", 15, true)
 	_empty = UIStyle.label(column, "Nothing yet. Chop a tree, mine a rock, or pick a flower.", 20, true)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -61,23 +62,22 @@ func _ready() -> void:
 	_refresh_gear()
 
 
-## "Equipped": a tile per tool (picture, name, tier-coloured frame). Other tiers you own sit
-## under it as small pictures; tap one to switch.
+## "Equipped": a tile per tool (picture, full name, a frame in its rarity colour, a small Drop
+## button); your other tools sit under it as small pictures, tap one to switch. Then the skills.
 func _refresh_gear() -> void:
 	for c in _gear.get_children():
 		c.queue_free()
-	var head := UIStyle.label(_gear, "EQUIPPED", 15, true)
-	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	UIStyle.label(_gear, "EQUIPPED", 15, true)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 12)
 	_gear.add_child(row)
 	for slot: String in Gear.SLOTS:
-		var t := Gear.tier(slot)
+		var tool := Gear.current(slot)
 		var tile := PanelContainer.new()
 		var box := StyleBoxFlat.new()
 		box.bg_color = Color(1, 1, 1, 0.07)
 		box.set_corner_radius_all(16)
-		box.border_color = Gear.TIERS[t]["color"]
+		box.border_color = Items.RARITY_COLORS[tool.get("rarity", 0)] if tool.get("rarity", 0) > 0 else Color(1, 1, 1, 0.25)
 		box.set_border_width_all(3)
 		box.set_content_margin_all(8)
 		tile.add_theme_stylebox_override("panel", box)
@@ -87,24 +87,65 @@ func _refresh_gear() -> void:
 		var h := HBoxContainer.new()
 		h.add_theme_constant_override("separation", 8)
 		tile.add_child(h)
-		h.add_child(CRAFTING.tool_picture(slot, t, 64))
+		if tool.is_empty():
+			var fist := UIStyle.label(h, "Hands", 15, true)
+			fist.custom_minimum_size = Vector2(64, 64)
+			fist.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			fist.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		else:
+			h.add_child(CRAFTING.tool_picture(slot, tool["tier"], 64))
 		var info := VBoxContainer.new()
 		info.alignment = BoxContainer.ALIGNMENT_CENTER
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		h.add_child(info)
-		UIStyle.label(info, Gear.tool_name(slot, t), 17)
+		var name_label := UIStyle.label(info, Gear.name_of(slot, tool), 16)
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_label.custom_minimum_size.x = 120
 		var others := HBoxContainer.new()
 		others.add_theme_constant_override("separation", 4)
 		info.add_child(others)
-		for o: int in Gear.owned[slot]:
-			if o == t:
+		for k in Gear.owned[slot].size():
+			if k == Gear.equipped[slot]:
 				continue
+			var o: Dictionary = Gear.owned[slot][k]
 			var b := Button.new()
 			b.flat = true
-			b.custom_minimum_size = Vector2(40, 40)
-			b.icon = ItemIcons.tool_icon(slot, o)
+			b.custom_minimum_size = Vector2(38, 38)
+			b.icon = ItemIcons.tool_icon(slot, o["tier"])
 			b.expand_icon = true
-			b.pressed.connect(Gear.equip.bind(slot, o))
+			if o["rarity"] > 0:
+				b.modulate = Items.RARITY_COLORS[o["rarity"]].lightened(0.3)
+			b.pressed.connect(Gear.equip.bind(slot, k))
 			others.add_child(b)
+		if not tool.is_empty():
+			var drop := UIStyle.button(others, "Drop", Vector2(64, 34), 14)
+			drop.pressed.connect(func() -> void:
+				if drop.text == "Sure?":
+					Gear.drop_tool(slot)
+				else:
+					drop.text = "Sure?")
+	# Skills: name, level and a bar each.
+	var skills := HBoxContainer.new()
+	skills.add_theme_constant_override("separation", 12)
+	_gear.add_child(skills)
+	for skill: String in Skills.SKILLS:
+		var cell := VBoxContainer.new()
+		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cell.add_theme_constant_override("separation", 3)
+		skills.add_child(cell)
+		UIStyle.label(cell, "%s  Lv %d" % [Skills.SKILLS[skill], Skills.level(skill)], 16)
+		var track := ColorRect.new()
+		track.color = Color(1, 1, 1, 0.1)
+		track.custom_minimum_size = Vector2(0, 7)
+		cell.add_child(track)
+		var fill := ColorRect.new()
+		fill.color = Color(1.0, 0.84, 0.46)
+		fill.anchor_bottom = 1.0
+		fill.anchor_right = Skills.progress(skill)
+		track.add_child(fill)
+		var perk := UIStyle.label(cell, Skills.perk_text(skill), 13, true)
+		perk.clip_text = true
+	_slots.text = "ITEMS   %d / %d  (%s)" % [Inventory.items().size(), Gear.bag_slots(), Gear.BAGS[Gear.bag]["name"]]
 
 
 func _on_icon_ready(item: String) -> void:
@@ -116,6 +157,7 @@ func _on_icon_ready(item: String) -> void:
 
 func _on_changed(_item: String, _count: int) -> void:
 	_refresh()
+	_refresh_gear()
 
 
 func _refresh() -> void:

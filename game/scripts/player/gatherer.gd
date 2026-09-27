@@ -12,6 +12,7 @@ const SWINGS := {
 	"axe": {"anim": "TreeChopping", "speed": 1.1, "start": 0.55, "impact": 0.54, "time": 0.88, "shake": 0.05},
 	"pickaxe": {"anim": "TreeChopping", "speed": 1.1, "start": 0.55, "impact": 0.54, "time": 0.88, "shake": 0.07},
 	"": {"anim": "PickUp_Table", "speed": 1.3, "start": 0.0, "impact": 0.3, "time": 0.6, "shake": 0.0},
+	"fists": {"anim": "Punch_Cross", "speed": 1.2, "start": 0.0, "impact": 0.28, "time": 0.6, "shake": 0.03},
 }
 const BUFFER := 0.25    # a tap this close to the end of a swing queues the next one
 
@@ -26,6 +27,8 @@ var _swing_target := -1
 var _queued := false
 var _shake := 0.0
 var _power := 1
+var _luck := 0.0
+var _skill := ""         # the skill this swing trains ("" for picking by hand)
 
 
 func is_busy() -> bool:
@@ -45,7 +48,10 @@ func _physics_process(delta: float) -> void:
 	if _impact >= 0.0:
 		_impact -= delta
 		if _impact < 0.0 and _swing_target >= 0:
-			WorldResources.hit_node(_swing_target, _power)
+			var hits_full: int = WorldResources.type_info(_swing_target)["hits"]
+			var done := WorldResources.hit_node(_swing_target, _power, _luck)
+			if _power > 0 and _skill != "":
+				Skills.add(_skill, 2 + (hits_full if done else 0))
 			if _shake > 0.0:
 				visual.hit_stop()
 				get_tree().call_group("camera_rig", "shake", _shake)
@@ -67,15 +73,21 @@ func act() -> void:
 	var info := WorldResources.type_info(target)
 	var tool: String = info["tool"]
 	var swing: Dictionary = SWINGS[tool]
-	var pace := Gear.speed(tool) if tool != "" else 1.0
+	_skill = Skills.FOR_TOOL.get(tool, "")
+	var pace := Gear.speed(tool) * Skills.speed_bonus(_skill) if tool != "" else 1.0
 	_power = Gear.power(tool) if tool != "" else 2      # bare hands pick flowers, open chests
-	if tool != "" and Gear.tier(tool) < info.get("min_tier", 0):
+	_luck = Gear.luck(tool) + Skills.luck_bonus(_skill) if tool != "" else 0.0
+	var shown := tool
+	if tool == "axe" and Gear.tier("axe") < 0:
+		swing = SWINGS["fists"]          # no axe: punch the tree (half an axe's worth per hit)
+		shown = ""
+	elif tool != "" and Gear.tier(tool) < info.get("min_tier", 0):
 		_power = 0                     # too hard for this pickaxe: it just glances off
-		get_tree().call_group("hud", "hint", "Needs a %s" % Gear.tool_name(tool, info["min_tier"]))
+		get_tree().call_group("hud", "hint", "Needs a %s" % Gear.tool_name(tool, info.get("min_tier", 0)))
 	var at: Vector3 = WorldResources.get_node_data(target)["pos"]
 	var to := at - player.global_position
 	visual.rotation.y = atan2(to.x, to.z)
-	visual.show_tool(tool)
+	visual.show_tool(shown)
 	visual.play_action(swing["anim"], swing["speed"] * pace, swing["start"])
 	_busy = swing["time"] / pace
 	_impact = swing["impact"] / pace

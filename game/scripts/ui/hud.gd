@@ -29,6 +29,11 @@ var _title: Control
 var _hearts: Control
 var _map: Control
 var _hint: Label
+var _skill_box: VBoxContainer          # "Woodcutting  Lv 3" with a bar, shown briefly on gaining xp
+var _skill_label: Label
+var _skill_fill: ColorRect
+var _skill_tween: Tween
+var _fanfare: AudioStreamPlayer
 var _worst := 0.0
 var _worst_shown := 0.0
 var _timer := 0.0
@@ -101,6 +106,35 @@ func _ready() -> void:
 	_hint.add_theme_constant_override("outline_size", 8)
 	_hint.modulate.a = 0.0
 
+	_skill_box = VBoxContainer.new()
+	_skill_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	_skill_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_skill_box.position = Vector2(-110, -92)
+	_skill_box.custom_minimum_size = Vector2(220, 0)
+	_skill_box.add_theme_constant_override("separation", 4)
+	_skill_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_skill_box)
+	_skill_label = UIStyle.label(_skill_box, "", 18)
+	_skill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_skill_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+	_skill_label.add_theme_constant_override("outline_size", 6)
+	var track := ColorRect.new()
+	track.color = Color(0, 0, 0, 0.45)
+	track.custom_minimum_size = Vector2(220, 8)
+	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_skill_box.add_child(track)
+	_skill_fill = ColorRect.new()
+	_skill_fill.color = Color(1.0, 0.84, 0.46)
+	_skill_fill.size = Vector2(0, 8)
+	_skill_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	track.add_child(_skill_fill)
+	_skill_box.modulate.a = 0.0
+	_fanfare = AudioStreamPlayer.new()
+	_fanfare.stream = preload("res://assets/sounds/rare.wav")
+	add_child(_fanfare)
+	Skills.gained.connect(_on_skill_gained)
+	Skills.leveled.connect(_on_skill_leveled)
+
 	show_title()
 
 
@@ -158,6 +192,31 @@ func hint(text: String) -> void:
 	t.tween_interval(1.6)
 	t.tween_property(_hint, "modulate:a", 0.0, 0.5)
 	_hint.set_meta("tween", t)
+
+
+func _on_skill_gained(skill: String, _amount: int) -> void:
+	_skill_label.text = "%s  Lv %d" % [Skills.SKILLS[skill], Skills.level(skill)]
+	_skill_fill.size.x = 220.0 * Skills.progress(skill)
+	_skill_box.modulate.a = 1.0
+	if _skill_tween:
+		_skill_tween.kill()
+	_skill_tween = create_tween()
+	_skill_tween.tween_interval(1.8)
+	_skill_tween.tween_property(_skill_box, "modulate:a", 0.0, 0.5)
+
+
+func _on_skill_leveled(skill: String, level: int) -> void:
+	hint("%s level %d!  %s" % [Skills.SKILLS[skill], level, Skills.perk_text(skill)])
+	_fanfare.pitch_scale = 1.1
+	_fanfare.play()
+
+
+## A tool turned up in a chest or on an enemy.
+func found_tool(slot: String, tool: Dictionary) -> void:
+	var rarity: String = ["", "Uncommon", "Rare"][tool["rarity"]]
+	hint("Found a %s %s!" % [rarity, Gear.name_of(slot, tool)])
+	_fanfare.pitch_scale = 0.9
+	_fanfare.play()
 
 
 func open_crafting() -> void:

@@ -43,6 +43,7 @@ func save_game() -> void:
 		"version": VERSION,
 		"inventory": Inventory.to_data(),
 		"gear": Gear.to_data(),
+		"skills": Skills.to_data(),
 		"world": WorldResources.to_data(),
 		"layout": str(WorldResources.layout_id()),     # as text: JSON would round a big number
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y},
@@ -61,6 +62,7 @@ func load_game() -> void:
 		return
 	Inventory.load_data(data.get("inventory", {}))
 	Gear.load_data(data.get("gear", {}))
+	Skills.load_data(data.get("skills", {}))
 	if data.get("layout", "") == str(WorldResources.layout_id()):
 		WorldResources.load_data(data.get("world", []))
 	var pl: Dictionary = data.get("player", {})
@@ -77,5 +79,6 @@ func start_over() -> void:
 	_enabled = false        # don't save the old world on the way out
 	Inventory.load_data({})
 	Gear.load_data({})
+	Skills.load_data({})
 	WorldResources.reset()
 	get_tree().reload_current_scene()

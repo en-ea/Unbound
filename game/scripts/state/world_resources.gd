@@ -120,8 +120,9 @@ func nearest(pos: Vector3, reach: float) -> int:
 
 
 ## The action: one hit on a node, taking `power` hits off it (0 = a glancing blow that does
-## nothing, e.g. a pickaxe too weak for the ore). Returns true if that hit depleted it.
-func hit_node(id: int, power := 1) -> bool:
+## nothing, e.g. a pickaxe too weak for the ore). `luck` is the chance of one extra drop.
+## Returns true if that hit depleted it.
+func hit_node(id: int, power := 1, luck := 0.0) -> bool:
 	var n := _nodes[id]
 	if n["respawn_at"] >= 0.0:
 		return false
@@ -142,6 +143,8 @@ func hit_node(id: int, power := 1) -> bool:
 		if _rng.randf() <= d[3]:
 			for i in _rng.randi_range(d[1], d[2]):
 				drops.append(d[0])
+	if not drops.is_empty() and _rng.randf() < luck:      # skill level or a Lucky tool
+		drops.append(drops[_rng.randi() % drops.size()])
 	depleted.emit(id, drops)
 	return true
 

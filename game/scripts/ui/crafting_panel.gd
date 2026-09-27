@@ -61,24 +61,14 @@ func _refresh() -> void:
 		c.queue_free()
 	for slot: String in Gear.SLOTS:
 		_cards.add_child(_card(slot))
+	_cards.add_child(_bag_card())
 
 
 func _card(slot: String) -> Control:
 	var now := Gear.tier(slot)
-	var best_owned: int = Gear.owned[slot].max()
-	var recipe := _next_recipe(slot, best_owned)
-	var card := PanelContainer.new()
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(0.1, 0.09, 0.13, 0.88)
-	box.set_corner_radius_all(22)
-	box.border_color = Color(1, 1, 1, 0.12)
-	box.set_border_width_all(2)
-	box.set_content_margin_all(16)
-	card.add_theme_stylebox_override("panel", box)
-	card.custom_minimum_size = Vector2(250, 360)
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 10)
-	card.add_child(v)
+	var recipe := _next_recipe(slot, Gear.best_tier(slot))
+	var v := _card_box()
+	var card: Control = v.get_parent()
 	var head := UIStyle.label(v, Gear.SLOTS[slot].to_upper(), 15, true)
 	head.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var pics := HBoxContainer.new()
@@ -87,43 +77,93 @@ func _card(slot: String) -> Control:
 	v.add_child(pics)
 	if recipe.is_empty():
 		pics.add_child(_glow_icon(slot, now, 118))
-		_name(v, Gear.tool_name(slot, now), now)
+		_name(v, Gear.name_of(slot, Gear.current(slot)), now)
 		UIStyle.label(v, "The finest you can make", 16, true).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		return card
 	var next: int = recipe["tier"]
-	var from := tool_picture(slot, now, 54)
-	from.modulate = Color(1, 1, 1, 0.7)
-	pics.add_child(from)
+	if now >= 0:
+		var from := tool_picture(slot, now, 54)
+		from.modulate = Color(1, 1, 1, 0.7)
+		pics.add_child(from)
+	else:
+		UIStyle.label(pics, "Hands", 15, true).vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var arrow := UIStyle.label(pics, "›", 40, true)
 	arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	pics.add_child(_glow_icon(slot, next, 104))
 	_name(v, Gear.tool_name(slot, next), next)
 	var gain: String = Gear.PERKS.get(slot, {}).get(next, GAINS[slot])
 	UIStyle.label(v, gain, 16, true).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_costs(v, recipe["cost"])
+	_craft_button(v, recipe["cost"], Gear.TIERS[next]["color"], func() -> void:
+		if Gear.craft(recipe):
+			_audio.play()
+			get_tree().call_group("hud", "hint", "Made a %s!" % Gear.tool_name(slot, next)))
+	return card
+
+
+## The bag card: how many kinds of item you can carry now, and the next bag.
+func _bag_card() -> Control:
+	var v := _card_box()
+	var card: Control = v.get_parent()
+	UIStyle.label(v, "BAG", 15, true).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var pic := INVENTORY.item_icon("hide", 96)
+	pic.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(pic)
+	if Gear.bag + 1 >= Gear.BAGS.size():
+		_name(v, Gear.BAGS[Gear.bag]["name"], 3)
+		UIStyle.label(v, "%d item slots. The biggest you can make" % Gear.bag_slots(), 16, true).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		return card
+	var next: Dictionary = Gear.BAGS[Gear.bag + 1]
+	_name(v, next["name"], 2)
+	UIStyle.label(v, "%d item slots (now %d)" % [next["slots"], Gear.bag_slots()], 16, true).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_costs(v, next["cost"])
+	_craft_button(v, next["cost"], Color(0.72, 0.56, 0.4), func() -> void:
+		if Gear.craft_bag():
+			_audio.play()
+			get_tree().call_group("hud", "hint", "Made a %s!" % next["name"]))
+	return card
+
+
+func _card_box() -> VBoxContainer:
+	var card := PanelContainer.new()
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.1, 0.09, 0.13, 0.88)
+	box.set_corner_radius_all(22)
+	box.border_color = Color(1, 1, 1, 0.12)
+	box.set_border_width_all(2)
+	box.set_content_margin_all(16)
+	card.add_theme_stylebox_override("panel", box)
+	card.custom_minimum_size = Vector2(236, 360)
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 10)
+	card.add_child(v)
+	return v
+
+
+func _costs(parent: Control, cost: Dictionary) -> void:
 	var costs := HBoxContainer.new()
 	costs.alignment = BoxContainer.ALIGNMENT_CENTER
 	costs.add_theme_constant_override("separation", 10)
 	costs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(costs)
-	for item: String in recipe["cost"]:
-		costs.add_child(_cost_chip(item, recipe["cost"][item]))
-	var can := Gear.can_afford(recipe)
-	var button := UIStyle.button(v, "Craft" if can else "Need more", Vector2(0, 58), 22)
+	parent.add_child(costs)
+	for item: String in cost:
+		costs.add_child(_cost_chip(item, cost[item]))
+
+
+func _craft_button(parent: Control, cost: Dictionary, color: Color, on_press: Callable) -> void:
+	var can := Gear.can_afford(cost)
+	var button := UIStyle.button(parent, "Craft" if can else "Need more", Vector2(0, 58), 22)
 	button.disabled = not can
 	if can:
 		var style := StyleBoxFlat.new()
-		style.bg_color = (Gear.TIERS[next]["color"] as Color).darkened(0.15)
+		style.bg_color = color.darkened(0.15)
 		style.set_corner_radius_all(18)
 		style.border_color = Color(1, 1, 1, 0.6)
 		style.set_border_width_all(2)
 		for s in ["normal", "hover", "focus"]:
 			button.add_theme_stylebox_override(s, style)
 		button.add_theme_color_override("font_color", Color(0.1, 0.07, 0.05))
-	button.pressed.connect(func() -> void:
-		if Gear.craft(recipe):
-			_audio.play()
-			get_tree().call_group("hud", "hint", "Made a %s!" % Gear.tool_name(slot, next)))
-	return card
+	button.pressed.connect(on_press)
 
 
 func _next_recipe(slot: String, best_owned: int) -> Dictionary:

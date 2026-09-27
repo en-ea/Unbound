@@ -26,6 +26,11 @@ func remove(item: String, amount := 1) -> bool:
 	return true
 
 
+## Whether an item fits: you already carry some, or the bag has a free slot (Gear.bag_slots()).
+func has_room(item: String) -> bool:
+	return count(item) > 0 or items().size() < Gear.bag_slots()
+
+
 func count(item: String) -> int:
 	return _counts.get(item, 0)
 

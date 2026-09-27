@@ -132,6 +132,11 @@ func take_hit(from: Vector3, damage := 1) -> void:
 
 func _die() -> void:
 	_enter(State.DEAD)
+	Skills.add("combat", 25)
+	if randf() < 0.06:                       # now and then it was carrying a tool
+		var found := Gear.roll_found()
+		Gear.give(found[0], found[1])
+		get_tree().call_group("hud", "found_tool", found[0], found[1])
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.2))
 	for item in _loot():

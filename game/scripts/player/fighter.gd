@@ -9,6 +9,7 @@ const BUTTON_REACH := 3.4     # the Attack button shows this far out; the swing 
 const STEP_TO := 1.3          # stepping in stops at this distance
 const STAY_ARMED := 1.2       # seconds the Attack button stays after a swing, even with no target
 const COMBO := ["Sword_Regular_A", "Sword_Regular_B", "Sword_Regular_C"]
+const FIST_COMBO := ["Punch_Jab", "Punch_Cross"]    # with no sword
 const SPEED := 1.25
 const CHAIN_WINDOW := 0.45     # tap again within this long after a swing to continue the combo
 const HIT_SOUNDS := "res://assets/kenney_impact/impactPunch_heavy_%03d.ogg"
@@ -88,13 +89,15 @@ func attack() -> void:
 	if _busy > 0.0:
 		_queued = _busy < 0.25
 		return
-	_step = (_step + 1) % COMBO.size() if _since < CHAIN_WINDOW else 0
-	var anim: String = COMBO[_step]
+	var armed := Gear.tier("sword") >= 0
+	var combo: Array = COMBO if armed else FIST_COMBO
+	_step = (_step + 1) % combo.size() if _since < CHAIN_WINDOW else 0
+	var anim: String = combo[_step]
 	var length := visual.animation_length(anim) / (SPEED * Gear.speed("sword"))
 	if target:
 		var to := target.global_position - player.global_position
 		visual.rotation.y = atan2(to.x, to.z)
-	visual.show_tool("sword")
+	visual.show_tool("sword" if armed else "")
 	visual.play_action(anim, SPEED * Gear.speed("sword"))
 	_busy = length * 0.85
 	_impact = length * 0.45
@@ -131,6 +134,7 @@ func _land_hit() -> void:
 	if t.global_position.distance_to(player.global_position) > REACH + 0.8:
 		return
 	t.take_hit(player.global_position, Gear.damage())
+	Skills.add("combat", 3)
 	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
 	_sparks.restart()
 	visual.hit_stop(0.06)

@@ -10,6 +10,7 @@ const AUTO_RANGE := 9.0
 
 static var _chain := 0         # pickups in a row (for the rising pitch)
 static var _last_pick := 0.0
+static var _full_hint_at := -10.0
 static var _popups := {}       # item -> {"label": Label3D, "count": int, "at": seconds}
 const GRAVITY := 14.0
 const SOUNDS := {"pickup": preload("res://assets/sounds/pickup.wav"), "rare": preload("res://assets/sounds/rare.wav")}
@@ -79,10 +80,14 @@ func _process(delta: float) -> void:
 	_shadow.global_position = Vector3(global_position.x, _ground_y + 0.03, global_position.z)
 	_shadow.scale = Vector3.ONE * clampf(1.0 - height * 0.25, 0.4, 1.0)
 	var near := global_position.distance_to(_player.global_position)
-	if _age > 0.5 and near < MAGNET_RANGE:
+	var wants := (_age > 0.5 and near < MAGNET_RANGE) or (_landed and _age - _landed_at > AUTO_COLLECT + _delay and near < AUTO_RANGE)
+	if wants and Inventory.has_room(item):
 		_collecting = true
-	elif _landed and _age - _landed_at > AUTO_COLLECT + _delay and near < AUTO_RANGE:
-		_collecting = true
+	elif wants and near < MAGNET_RANGE:
+		var now := Time.get_ticks_msec() / 1000.0
+		if now - _full_hint_at > 3.0:          # a full bag: new kinds of item stay on the ground
+			_full_hint_at = now
+			_player.get_tree().call_group("hud", "hint", "Bag is full (craft a bigger bag)")
 
 
 func _collect() -> void:
@@ -106,8 +111,9 @@ func _collect() -> void:
 ## "+3 Wood" floating up above the player; quick pickups of the same item add to one popup.
 func _popup(now: float) -> void:
 	var entry: Dictionary = _popups.get(item, {})
-	var label: Label3D = entry.get("label")
-	if label and is_instance_valid(label) and now - entry["at"] < 0.9:
+	var old: Variant = entry.get("label")          # may have faded out and been freed already
+	var label: Label3D = old if is_instance_valid(old) else null
+	if label and now - entry["at"] < 0.9:
 		entry["count"] += 1
 		entry["at"] = now
 	else:
