@@ -25,6 +25,8 @@ var _landed_at := 0.0
 var _delay := 0.0
 var _collecting := false
 var _mesh: MeshInstance3D
+var _shadow: MeshInstance3D
+var _size := 1.5
 
 
 func launch(item_id: String, from: Vector3, velocity: Vector3, ground_y: float, player: Node3D) -> void:
@@ -34,8 +36,11 @@ func launch(item_id: String, from: Vector3, velocity: Vector3, ground_y: float, 
 	_player = player
 	global_position = from
 	_mesh = make_mesh(item)
-	_mesh.scale = Vector3.ONE * 1.3
+	_mesh.scale = Vector3.ONE * _size
+	_mesh.rotation.x = 0.35          # tipped a little toward the camera so its shape reads
 	add_child(_mesh)
+	_shadow = make_shadow()
+	add_child(_shadow)
 	_delay = randf_range(0.0, 0.35)
 	if Items.rarity_of(item) == Items.Rarity.RARE:
 		_add_sparkle()
@@ -61,12 +66,18 @@ func _process(delta: float) -> void:
 			if not _bounced:          # one small hop before it settles
 				_bounced = true
 				_velocity = Vector3(_velocity.x * 0.4, -_velocity.y * 0.35, _velocity.z * 0.4)
+				_squash()
 			else:
 				_landed = true
 				_landed_at = _age
+				_squash()
 	else:
 		_mesh.position.y = 0.08 + sin(_age * 3.0) * 0.05
 	_mesh.rotation.y += delta * 1.5
+	# The shadow stays on the ground, smaller and fainter the higher the item is.
+	var height := global_position.y - _ground_y
+	_shadow.global_position = Vector3(global_position.x, _ground_y + 0.03, global_position.z)
+	_shadow.scale = Vector3.ONE * clampf(1.0 - height * 0.25, 0.4, 1.0)
 	var near := global_position.distance_to(_player.global_position)
 	if _age > 0.5 and near < MAGNET_RANGE:
 		_collecting = true
@@ -173,6 +184,39 @@ static func make_beam(item: String) -> Node3D:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		root.add_child(mi)
 	return root
+
+
+## A soft round shadow under the item, so it sits on the ground (also used for warm-up).
+static func make_shadow() -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * 0.45
+	quad.orientation = PlaneMesh.FACE_Y
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0, 0, 0, 0.5))
+	grad.set_color(1, Color(0, 0, 0, 0.0))
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(0.5, 0.0)
+	tex.width = 32
+	tex.height = 32
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_texture = tex
+	quad.material = mat
+	mi.mesh = quad
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+## A quick squash and stretch when it hits the ground.
+func _squash() -> void:
+	var t := _mesh.create_tween()
+	t.tween_property(_mesh, "scale", Vector3(1.3, 0.7, 1.3) * _size, 0.06)
+	t.tween_property(_mesh, "scale", Vector3.ONE * _size, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
 
 static func _spark_quad(color: Color, size: float) -> QuadMesh:

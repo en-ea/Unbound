@@ -199,11 +199,13 @@ func _set_play_ui(on: bool) -> void:
 	_corner.visible = on
 	_feed.visible = on
 	_hearts.visible = on
-	_map.visible = on
+	_map.visible = on and Settings.show_map
 
 
 func _on_settings_changed() -> void:
 	_fps_label.visible = Settings.show_stats
+	if _map and _action.visible:
+		_map.visible = Settings.show_map
 
 
 func _add_vignette() -> void:

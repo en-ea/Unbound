@@ -236,6 +236,10 @@ func warm(at: Vector3) -> void:
 		add_child(sample)
 		_warm_nodes.append(sample)
 		i += 1
+	var shadow := DROP.make_shadow()
+	shadow.position = at + Vector3(0.5, 0.1, -1.5)
+	add_child(shadow)
+	_warm_nodes.append(shadow)
 	var beam := DROP.make_beam("shard")
 	beam.position = at + Vector3(0, 0.5, -1.5)
 	add_child(beam)
