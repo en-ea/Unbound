@@ -1,6 +1,6 @@
 class_name Items
 extends RefCounted
-## Every item in the game: display name, colour (for icons and drops), rarity and drop shape.
+## Every item in the game: display name, colour and rarity. Models: tools-src/blender/make_items.py.
 
 enum Rarity { COMMON, UNCOMMON, RARE }
 
