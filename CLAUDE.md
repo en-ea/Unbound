@@ -4,6 +4,7 @@ A 3D phone game in Godot, played on the owner's iPhone 16 Pro Max as an offline 
 The owner doesn't code: they direct and playtest, and Claude builds. Keep replies short and easy to read.
 - `docs/DESIGN.md`: what the game is. Read it before design work.
 - `docs/PLAN.md`: milestones, how we work, performance rules. Read it every session.
+- `docs/GAME_PLAN.md`: the decided big shape (lands, regions, classes, rarities, money, companions, build order).
 
 ## Layout
 - `game/`: the Godot 4.7.2 project (GL Compatibility renderer, needed for web). Export preset "Web" writes to `build/web/`.
