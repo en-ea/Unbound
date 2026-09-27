@@ -11,6 +11,8 @@ const HOME_RADIUS := 9.0
 const MAX_HEALTH := 5
 const RESPAWN_TIME := 40.0
 const GRAVITY := 20.0
+const LEASH := 20.0            # chases no further than this from home, then gives up
+const REGEN_EVERY := 3.0       # heals 1 while calm
 const SOUNDS := {
 	"snort": preload("res://assets/sounds/boar_snort.wav"),
 	"squeal": preload("res://assets/sounds/boar_squeal.wav"),
@@ -30,6 +32,7 @@ var _goal := Vector3.ZERO
 var _idle := 0.0
 var _charge_dir := Vector3.FORWARD
 var _push := Vector3.ZERO
+var _regen := 0.0
 var _audio: AudioStreamPlayer3D
 @onready var visual: BoarVisual = $Visual
 
@@ -56,7 +59,13 @@ func _physics_process(delta: float) -> void:
 		State.WANDER:
 			var to_goal := _goal - global_position
 			to_goal.y = 0.0
-			if dist < SIGHT and not player.is_rolling():
+			if health < MAX_HEALTH:
+				_regen += delta
+				if _regen >= REGEN_EVERY:
+					_regen = 0.0
+					health += 1
+			var home_dist := Vector2(global_position.x - home.x, global_position.z - home.z).length()
+			if dist < SIGHT and player.can_be_targeted() and home_dist < LEASH:
 				_enter(State.ALERT)
 			elif to_goal.length() > 0.6 and _t < 8.0:
 				want = to_goal.normalized() * WALK_SPEED
@@ -69,7 +78,10 @@ func _physics_process(delta: float) -> void:
 					_t = 0.0
 		State.ALERT:
 			_face(to_player, delta * 6.0)
-			if _t > 0.9:
+			if not player.can_be_targeted() or _home_distance() > LEASH:
+				_goal = home
+				_enter(State.WANDER)
+			elif _t > 0.9:
 				_charge_dir = to_player.normalized()
 				_enter(State.CHARGE)
 		State.CHARGE:
@@ -107,6 +119,7 @@ func take_hit(from: Vector3, damage := 1) -> void:
 		return
 	health -= damage
 	visual.flash()
+	visual.show_health(float(health) / MAX_HEALTH)
 	var away := global_position - from
 	away.y = 0.0
 	_push = away.normalized() * 4.0
@@ -141,6 +154,10 @@ func _loot() -> Array[String]:
 	if randf() < 0.3:
 		items.append("tusk")
 	return items
+
+
+func _home_distance() -> float:
+	return Vector2(global_position.x - home.x, global_position.z - home.z).length()
 
 
 func _respawn() -> void:

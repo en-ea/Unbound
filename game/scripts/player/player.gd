@@ -12,11 +12,14 @@ const ROLL_TIME := 0.55
 
 signal verb_changed(verb: String)       # what the action button does right now
 signal health_changed(health: int, max_health: int)
+signal knocked_out
+signal got_up
 
 const MAX_HEALTH := 5
 const REGEN_DELAY := 6.0       # seconds without being hit before hearts come back
 const REGEN_EVERY := 4.0
 const DOWN_TIME := 2.4         # lying on the ground before getting back up at the start
+const INVULNERABLE := 1.2      # after a hit, enemies can't hurt you again for a moment
 
 @onready var visual: CharacterVisual = $Visual
 @onready var gatherer: Node = $Gatherer
@@ -32,6 +35,7 @@ var spawn_point := Vector3.ZERO
 var _since_hit := 99.0
 var _regen := 0.0
 var _down := 0.0
+var _safe := 0.0
 
 
 func is_rolling() -> bool:
@@ -64,7 +68,7 @@ func roll() -> void:
 
 ## Something hit us (a boar charge): pushed back and briefly stunned. No damage for now.
 func knockback(push: Vector3) -> void:
-	if _roll > 0.0 or _down > 0.0:
+	if _roll > 0.0 or _down > 0.0 or _safe > 0.0:
 		return
 	_knock = push
 	_stun = 0.45
@@ -82,20 +86,30 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## The action: something hurts the player (a boar charge). At 0 hearts they are knocked down
 ## and get back up at the start with full hearts; nothing is lost.
+## Enemies only go after a player who is up and not blinking from a recent hit.
+func can_be_targeted() -> bool:
+	return _down <= 0.0 and _safe <= 0.0 and _roll <= 0.0
+
+
 func take_damage(amount: int) -> void:
-	if _roll > 0.0 or _down > 0.0:
+	if _roll > 0.0 or _down > 0.0 or _safe > 0.0:
 		return
 	health = maxi(health - amount, 0)
+	_safe = INVULNERABLE
 	_since_hit = 0.0
 	health_changed.emit(health, MAX_HEALTH)
 	if health == 0:
 		_down = DOWN_TIME
 		_stun = 0.0
 		visual.play_action("Death01", 1.0)
+		knocked_out.emit()
 
 
 func _physics_process(delta: float) -> void:
 	_since_hit += delta
+	if _safe > 0.0:
+		_safe -= delta
+		visual.visible = _safe <= 0.0 or fmod(_safe, 0.2) > 0.1      # blink while protected
 	if health < MAX_HEALTH and _since_hit > REGEN_DELAY and _down <= 0.0:
 		_regen += delta
 		if _regen >= REGEN_EVERY:
@@ -108,8 +122,10 @@ func _physics_process(delta: float) -> void:
 		if _down <= 0.0:
 			global_position = spawn_point
 			health = MAX_HEALTH
+			_safe = INVULNERABLE
 			health_changed.emit(health, MAX_HEALTH)
 			get_tree().call_group("camera_rig", "snap")
+			got_up.emit()
 		return
 	var new_verb: String = fighter.verb if fighter.verb != "" else gatherer.verb
 	if new_verb != verb:

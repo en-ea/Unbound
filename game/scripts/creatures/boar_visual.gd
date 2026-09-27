@@ -13,6 +13,13 @@ var mode := "walk"          # walk / alert / charge / hurt / dead
 var _parts := {}            # name -> Node3D
 var _rest := {}             # name -> Transform3D
 var _materials: Array[ShaderMaterial] = []
+var _eye_materials: Array[ShaderMaterial] = []
+var _eyes := 0.0            # 0..1 red eye glow (warning before a charge)
+var _alert_mark: Label3D
+var _dust: CPUParticles3D
+var _bar_back: MeshInstance3D
+var _bar_fill: MeshInstance3D
+var _bar_time := 0.0
 var _phase := 0.0
 var _time := 0.0
 var _flash := 0.0
@@ -30,14 +37,45 @@ func _ready() -> void:
 			mat.set_shader_parameter("sway", 0.0)
 			mi.set_surface_override_material(s, mat)
 			_materials.append(mat)
+			var src := mi.mesh.surface_get_material(s)
+			if src and src.resource_name == "Eye":
+				_eye_materials.append(mat)
 	for name in ["Body", "Head", "Leg_FL", "Leg_FR", "Leg_BL", "Leg_BR"]:
 		var node := model.find_child(name, true, false) as Node3D
 		_parts[name] = node
 		_rest[name] = node.transform
+	_alert_mark = Label3D.new()
+	_alert_mark.text = "!"
+	_alert_mark.font_size = 96
+	_alert_mark.outline_size = 18
+	_alert_mark.modulate = Color(1.0, 0.35, 0.25, 0.0)
+	_alert_mark.outline_modulate = Color(0.1, 0.02, 0.02, 0.0)
+	_alert_mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_alert_mark.no_depth_test = true
+	_alert_mark.pixel_size = 0.006
+	_alert_mark.position = Vector3(0, 2.0, 0)
+	add_child(_alert_mark)
+	_dust = _make_dust()
+	add_child(_dust)
+	_bar_back = _bar_quad(Color(0.08, 0.06, 0.08, 0.75), 0.9)
+	_bar_fill = _bar_quad(Color(0.9, 0.28, 0.24), 0.84)
+	_bar_fill.position.z = 0.002
+	_bar_back.add_child(_bar_fill)
+	_bar_back.position = Vector3(0, 1.75, 0)
+	_bar_back.visible = false
+	add_child(_bar_back)
 
 
 func flash() -> void:
 	_flash = 1.0
+
+
+## Shows the health bar for a few seconds after a hit.
+func show_health(fraction: float) -> void:
+	_bar_time = 3.0
+	_bar_back.visible = fraction > 0.0
+	_bar_fill.scale.x = maxf(fraction, 0.001)
+	_bar_fill.position.x = -0.42 * (1.0 - fraction)
 
 
 func reset() -> void:
@@ -50,6 +88,18 @@ func _process(delta: float) -> void:
 	_flash = maxf(_flash - delta * 5.0, 0.0)
 	for m in _materials:
 		m.set_shader_parameter("flash", _flash)
+	var warn := mode == "alert" or mode == "charge"
+	_eyes = move_toward(_eyes, 1.0 if warn else 0.0, delta * 4.0)
+	for m in _eye_materials:
+		m.set_shader_parameter("glow", _eyes * 2.5)
+	var mark_a := move_toward(_alert_mark.modulate.a, 1.0 if mode == "alert" else 0.0, delta * 6.0)
+	_alert_mark.modulate.a = mark_a
+	_alert_mark.outline_modulate.a = mark_a
+	_alert_mark.position.y = 2.0 + sin(_time * 10.0) * 0.05
+	_dust.emitting = mode == "charge"
+	if _bar_time > 0.0:
+		_bar_time -= delta
+		_bar_back.visible = _bar_time > 0.0
 	if mode == "dead":
 		_fall = minf(_fall + delta * 3.0, 1.0)
 		rotation.z = ease(_fall, 0.4) * PI * 0.5
@@ -83,3 +133,52 @@ func _pose(swing: float, bob: float, head_pitch: float, stride: float) -> void:
 		if leg == "Leg_FR" and mode == "alert":
 			continue
 		_parts[leg].transform = _rest[leg] * Transform3D(Basis(Vector3.RIGHT, -swing), Vector3.ZERO)
+
+
+func _bar_quad(color: Color, width: float) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = Vector2(width, 0.1)
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.no_depth_test = true
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = color
+	mat.render_priority = 1 if width < 0.88 else 0
+	quad.material = mat
+	mi.mesh = quad
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+func _make_dust() -> CPUParticles3D:
+	var p := CPUParticles3D.new()
+	p.amount = 16
+	p.lifetime = 0.8
+	p.local_coords = false
+	p.emitting = false
+	p.position = Vector3(0, 0.1, 0.4)
+	p.direction = Vector3.UP
+	p.spread = 70.0
+	p.gravity = Vector3(0, 0.8, 0)
+	p.initial_velocity_min = 0.4
+	p.initial_velocity_max = 1.2
+	p.scale_amount_min = 0.8
+	p.scale_amount_max = 1.6
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(1, 1, 1, 0.5))
+	ramp.set_color(1, Color(1, 1, 1, 0))
+	p.color_ramp = ramp
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * 0.4
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.vertex_color_use_as_albedo = true
+	mat.albedo_color = Color(0.78, 0.68, 0.54)
+	quad.material = mat
+	p.mesh = quad
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return p

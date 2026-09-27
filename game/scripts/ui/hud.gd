@@ -64,6 +64,7 @@ func _ready() -> void:
 	_hearts.set_script(preload("res://scripts/ui/hearts.gd"))
 	add_child(_hearts)
 	player.health_changed.connect(_hearts.show_health)
+	player.knocked_out.connect(_knocked_out)
 
 	_feed = Control.new()
 	_feed.set_script(PICKUP_FEED)
@@ -207,3 +208,22 @@ func _add_vignette() -> void:
 	vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(vignette)
+
+
+## A dark fade with a message while the player is down, lifting as they get back up.
+func _knocked_out() -> void:
+	var cover := ColorRect.new()
+	cover.color = Color(0.03, 0.03, 0.06, 0.0)
+	cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(cover)
+	var text := UIStyle.label(cover, "Knocked out...", 40)
+	text.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	text.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var fade := create_tween()
+	fade.tween_property(cover, "color:a", 0.85, 0.9).set_delay(0.6)
+	fade.tween_interval(0.8)
+	fade.tween_property(cover, "color:a", 0.0, 0.6)
+	fade.parallel().tween_property(text, "modulate:a", 0.0, 0.4)
+	fade.tween_callback(cover.queue_free)

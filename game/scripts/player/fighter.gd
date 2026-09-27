@@ -24,6 +24,7 @@ var _queued := false
 var _audio: AudioStreamPlayer3D
 var _hits: Array[AudioStream] = []
 var _whoosh: AudioStream = preload("res://assets/sounds/swing.wav")
+var _sparks: CPUParticles3D
 
 
 func _ready() -> void:
@@ -32,6 +33,26 @@ func _ready() -> void:
 	player.add_child.call_deferred(_audio)
 	for i in 5:
 		_hits.append(load(HIT_SOUNDS % i))
+	_sparks = CPUParticles3D.new()
+	_sparks.emitting = false
+	_sparks.one_shot = true
+	_sparks.explosiveness = 1.0
+	_sparks.amount = 12
+	_sparks.lifetime = 0.35
+	_sparks.local_coords = false
+	_sparks.spread = 180.0
+	_sparks.gravity = Vector3(0, -6, 0)
+	_sparks.initial_velocity_min = 2.0
+	_sparks.initial_velocity_max = 4.5
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * 0.07
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.albedo_color = Color(2.5, 2.1, 1.3)
+	quad.material = mat
+	_sparks.mesh = quad
+	player.add_child.call_deferred(_sparks)
 
 
 func is_busy() -> bool:
@@ -89,6 +110,8 @@ func _land_hit() -> void:
 	if t.global_position.distance_to(player.global_position) > REACH + 0.8:
 		return
 	t.take_hit(player.global_position)
+	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
+	_sparks.restart()
 	visual.hit_stop(0.06)
 	get_tree().call_group("camera_rig", "shake", 0.06)
 	_audio.stream = _hits.pick_random()
