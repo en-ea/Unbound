@@ -19,6 +19,8 @@
   house_storybook: stone ground floor, cream plaster above, tall flared blue-slate roof, big arched
                  gable window, arched door with hood and lanterns, side porch.
   house_turret:  curved oval body, bell roof in tile rows, round dormer, turret, shell canopy door.
+  house_lantern: plaster cottage, flared hip roof in tile rows opening into a glowing lantern cupola.
+  house_hull:    stone cottage roofed with an upturned boat hull, side-on: prow and lantern, portholes.
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -1246,6 +1248,228 @@ def turret_cottage():
     return b
 
 
+def _grid_shell(b, fn, nu, nv, thick, colorize, rim):
+    """A thick shell from a parametric surface fn(u, v) -> Vector (u, v in 0..1); colorize(face,
+    u, v) paints each face (called with the face's centre parameters)."""
+    bm = b.bm
+    grid = [[bm.verts.new(fn(i / nu, j / nv)) for j in range(nv + 1)] for i in range(nu + 1)]
+    faces, params = [], []
+    for i in range(nu):
+        for j in range(nv):
+            faces.append(bm.faces.new([grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]]))
+            params.append(((i + 0.5) / nu, (j + 0.5) / nv))
+    for f in faces:
+        f.normal_update()
+    if sum(f.normal.z for f in faces) < 0:
+        bmesh.ops.reverse_faces(bm, faces=faces)
+    before = set(bm.faces)
+    bmesh.ops.solidify(bm, geom=faces, thickness=thick)
+    extra = [f for f in bm.faces if f not in before]
+    b.paint(extra, "Build", rim)                    # the underside and edges of the shell
+    for f, (u, v) in zip(faces, params):
+        colorize(f, u, v)
+
+
+def lantern_house():
+    """A warm plaster cottage under a steep flared hip roof in terracotta tile rows that opens at the
+    top into a glass lantern cupola glowing gold (each home keeps its own light). A round-columned
+    porch with a curved roof, an arched door with a round window, two arched windows set close to
+    the door, a stone chimney, stepping stones. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    WALL_LO, WALL_HI = (0.86, 0.76, 0.62), (0.98, 0.93, 0.83)
+    STONE = [(0.72, 0.67, 0.6), (0.66, 0.61, 0.55), (0.78, 0.72, 0.64)]
+    TILE = [(0.72, 0.36, 0.27), (0.78, 0.42, 0.3), (0.67, 0.33, 0.25)]
+    WOOD_D = (0.4, 0.27, 0.19)
+    GOLD = (0.95, 0.74, 0.34)
+    LIGHT = (1.0, 0.8, 0.44)
+    CORE = (1.0, 0.72, 0.3)
+    W, D, H = 4.6, 4.2, 3.2                      # body width, depth, wall height (from 0.45)
+    Z0 = 0.45
+    # Footing and the rounded body (a box with big soft corners), warm plaster fading darker below.
+    soft(b, cube_at(b, V((0, 0, 0.22)), (W + 0.5, D + 0.5, 0.45)), STONE[1], 0.12, 2)
+    def rounded_box():
+        geom = bmesh.ops.create_cube(b.bm, size=1.0)
+        for v in geom["verts"]:
+            v.co = V((v.co.x * W, v.co.y * D, v.co.z * H)) + V((0, 0, Z0 + H / 2))
+        verts = geom["verts"]
+        edges = list({e for v in verts for e in v.link_edges if abs(e.verts[0].co.z - e.verts[1].co.z) > H * 0.9})
+        bmesh.ops.bevel(b.bm, geom=edges, offset=0.55, segments=4, profile=0.5, affect="EDGES", clamp_overlap=True)
+    walls = b.new_faces(rounded_box)
+    b.gradient(walls, WALL_LO, WALL_HI)
+    # Roof: a steep hip roof, flared at the eaves, stopping at a ring where the lantern stands.
+    RT = Z0 + H - 0.15                            # roof starts
+    RH = 3.4                                      # roof height up to the lantern ring
+    OX, OY = W / 2 + 0.75, D / 2 + 0.75            # eave half-extents
+    TOP = 0.62                                    # lantern ring half-size
+    def roof_pt(u, v):
+        # u runs round the four sides (0..1), v from eave (0) to the lantern ring (1).
+        a = u * math.tau
+        c, s = math.cos(a), math.sin(a)
+        m = max(abs(c), abs(s))                   # square-ish outline
+        k = (1 - v) ** 1.35                       # concave: the eaves flare
+        rx = TOP + (OX - TOP) * k
+        ry = TOP + (OY - TOP) * k
+        corner = 1.0 + 0.06 * (1 - v) * (1 - abs(abs(c) - abs(s)))   # corners lift a touch
+        return V((c / m * rx, s / m * ry, RT + v * RH + 0.18 * (1 - v) ** 3 * corner))
+    def tiles(f, u, v):
+        row = int(v * 9)
+        base = TILE[row % len(TILE)]
+        k = 1.0 + rnd.uniform(-0.04, 0.04) + v * 0.06
+        b.paint([f], "Build", tuple(min(1.0, c * k) for c in base))
+    _grid_shell(b, roof_pt, 32, 9, 0.24, tiles, TILE[2])
+    # The lantern cupola: a gold ring, glowing glass panes between slim posts, a small bell cap.
+    lz = RT + RH
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, lz - 0.1)), V((0, 0, lz + 0.12))], [(TOP + 0.18, TOP + 0.18)] * 2, seg=8)), "Build", GOLD)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, lz + 0.1)), V((0, 0, lz + 1.15))], [(TOP * 0.92, TOP * 0.92), (TOP * 0.86, TOP * 0.86)], seg=8)), "Glow", CORE)
+    for k in range(8):
+        a = (k + 0.5) * math.tau / 8
+        p = V((math.cos(a) * TOP * 0.95, math.sin(a) * TOP * 0.95, 0))
+        beam(b, p + V((0, 0, lz + 0.1)), p * 0.93 + V((0, 0, lz + 1.17)), 0.045, WOOD_D)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, lz + 1.12)), V((0, 0, lz + 1.26)), V((0, 0, lz + 1.95))],
+                                        [(TOP + 0.26, TOP + 0.26), (TOP + 0.2, TOP + 0.2), (0.04, 0.04)], seg=8)), "Build", TILE[0])
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, lz + 1.9)), V((0, 0, lz + 2.3))], [(0.035, 0.035), (0.02, 0.02)], seg=5)), "Build", GOLD)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, 0, lz + 2.34)), (0.08, 0.08, 0.08), 6, 4)), "Build", GOLD)
+    # Porch: two round columns, a curved roof, the door with a round window, a step.
+    fy = -D / 2
+    for x in (-1.05, 1.05):
+        b.paint(b.new_faces(lambda x=x: rk.tube(b.bm, [V((x, fy - 1.15, 0.3)), V((x, fy - 1.15, 0.5)), V((x, fy - 1.15, 2.45)), V((x, fy - 1.15, 2.6))],
+                                                [(0.17, 0.17), (0.13, 0.13), (0.12, 0.12), (0.17, 0.17)], seg=10)), "Build", WALL_HI)
+    _grid_shell(b, lambda u, v: V(((u - 0.5) * 3.0, fy - 1.55 + v * 1.6, 2.62 + math.sin(u * math.pi) * 0.42 + v * 0.22)), 10, 2, 0.16,
+                lambda f, u, v: b.paint([f], "Build", TILE[int(u * 10) % 3]), TILE[2])
+    soft(b, cube_at(b, V((0, fy - 0.7, 0.4)), (2.8, 1.6, 0.14)), STONE[0], 0.06)
+    soft(b, cube_at(b, V((0, fy - 1.7, 0.2)), (1.6, 0.5, 0.16)), STONE[2], 0.05)
+    soft(b, outline_prism(b, arch_outline(0, Z0, 1.25, 2.1, 10), fy - 0.08, fy + 0.1), WOOD_D, 0.05)
+    soft(b, outline_prism(b, arch_outline(0, Z0, 0.98, 1.95, 10), fy - 0.12, fy - 0.07), (0.3, 0.44, 0.5), 0.03)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy - 0.12, Z0 + 1.45)), V((0, fy - 0.16, Z0 + 1.45))], [(0.2, 0.2)] * 2, ref=V((1, 0, 0)), seg=12)), "Glow", LIGHT)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.32, fy - 0.17, Z0 + 0.95)), (0.05, 0.035, 0.05), 6, 4)), "Build", GOLD)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy - 1.15, 2.55)), V((0, fy - 1.15, 2.3))], [(0.012, 0.012)] * 2, seg=4)), "Build", WOOD_D)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy - 1.15, 2.3)), V((0, fy - 1.15, 2.05))], [(0.12, 0.12), (0.1, 0.1)], seg=8)), "Glow", LIGHT)
+    # Two arched windows close beside the porch, with flower boxes.
+    for x in (-1.65, 1.65):
+        soft(b, outline_prism(b, arch_outline(x, 1.35, 0.8, 1.3, 8), fy - 0.08, fy + 0.1), WOOD_D, 0.04)
+        b.paint(b.new_faces(outline_prism(b, arch_outline(x, 1.43, 0.58, 1.12, 8), fy - 0.11, fy - 0.07)), "Glow", LIGHT)
+        soft(b, cube_at(b, V((x, fy - 0.12, 1.95)), (0.035, 0.03, 1.05)), WOOD_D, 0.008, 1)
+        soft(b, cube_at(b, V((x, fy - 0.2, 1.25)), (0.9, 0.3, 0.2)), WOOD_D, 0.03)
+        for k in range(4):
+            clump(b, V((x - 0.3 + k * 0.2, fy - 0.24, 1.4)), 0.08, 1, rnd, FLOWERS[k % len(FLOWERS)], "Build", 1.0)
+    # A stone chimney through the back slope, and stepping stones to the porch.
+    ch = b.new_faces(lambda: rk.tube(b.bm, [V((1.35, 1.1, 3.4)), V((1.35, 1.1, 6.1))], [(0.34, 0.34), (0.3, 0.3)], seg=8))
+    b.gradient(ch, STONE[1], STONE[2])
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((1.35, 1.1, 6.1)), V((1.35, 1.1, 6.25))], [(0.42, 0.42)] * 2, seg=8)), "Build", STONE[0])
+    for i in range(3):
+        soft(b, cube_at(b, V((0.2 * math.sin(i * 1.8), fy - 2.5 - i * 0.8, 0.03)), (0.78, 0.55, 0.12), Euler((0, 0, 0.35 * math.sin(i * 1.3)))), rnd.choice(STONE), 0.06)
+    for x, y in ((-2.2, fy - 0.35), (2.25, fy - 0.3), (-2.4, 0.8)):
+        clump(b, V((x, y, 0.3)), 0.28, 1, rnd, (0.42, 0.62, 0.3), "Build", 0.7)
+    return b
+
+
+def hull_house():
+    """A stone cottage roofed with an upturned boat hull, turned side-on so the camera sees the
+    boat's profile: plank rows in two woods, a keel along the top, the prow rising on the right with
+    a ship lantern hanging from it, the square stern on the left. A round painted door and brass
+    portholes on the long front, a plank porch with rope rails, a stovepipe. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    WALL_LO, WALL_HI = (0.8, 0.78, 0.74), (0.95, 0.94, 0.91)
+    PLANK = [(0.6, 0.4, 0.26), (0.68, 0.46, 0.3)]
+    RIB = (0.46, 0.31, 0.21)
+    KEEL = (0.38, 0.26, 0.18)
+    BRASS = (0.93, 0.74, 0.36)
+    DOOR = (0.26, 0.47, 0.54)
+    LIGHT = (1.0, 0.8, 0.46)
+    STONE = [(0.7, 0.68, 0.64), (0.62, 0.61, 0.58)]
+    HW, L, WH = 2.2, 6.6, 2.1                      # half-depth, length (along X), wall height
+    ZB = 0.4 + WH - 0.25
+    # Walls: whitewashed stone, rounded corners, on a low footing. Long axis along X.
+    soft(b, cube_at(b, V((-0.2, 0, 0.2)), (L + 0.2, HW * 2 + 0.5, 0.4)), STONE[1], 0.1, 2)
+    def walls():
+        geom = bmesh.ops.create_cube(b.bm, size=1.0)
+        for v in geom["verts"]:
+            v.co = V((v.co.x * (L - 0.7), v.co.y * HW * 2, v.co.z * WH)) + V((-0.25, 0, 0.4 + WH / 2))
+        edges = list({e for v in geom["verts"] for e in v.link_edges if abs(e.verts[0].co.z - e.verts[1].co.z) > WH * 0.9})
+        bmesh.ops.bevel(b.bm, geom=edges, offset=0.4, segments=3, profile=0.5, affect="EDGES", clamp_overlap=True)
+    b.gradient(b.new_faces(walls), WALL_LO, WALL_HI)
+    # The hull: stations along X (u 0 = prow tip on the right, 1 = stern on the left), each a
+    # round-bottomed arch over the top (v 0..1 from front to back).
+    def hull_pt(u, v):
+        x = L / 2 + 0.7 - u * (L + 1.0)
+        bow = max(0.0, 1 - u / 0.3)
+        width = (HW + 0.45) * (1 - bow ** 1.8)
+        sheer = 1.0 * bow ** 2.0 + 0.25 * max(0.0, u - 0.85) / 0.15   # prow rises; stern lifts a touch
+        a = math.pi * v
+        y = -math.cos(a) * width
+        z = ZB + sheer + math.sin(a) * (2.2 * (1 - 0.4 * bow)) - 0.2 * bow
+        return V((x + 0.55 * bow ** 2, y, z))
+    def planks(f, u, v):
+        base = PLANK[int(v * 12) % 2]
+        k = 1.0 + rnd.uniform(-0.03, 0.03)
+        b.paint([f], "Build", tuple(min(1.0, c * k) for c in base))
+    _grid_shell(b, hull_pt, 26, 12, 0.2, planks, KEEL)
+    keel = [hull_pt(k / 18, 0.5) + V((0, 0, 0.1)) for k in range(19)]
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, keel, [(0.08, 0.1)] * len(keel), ref=V((0, 1, 0)), seg=6)), "Build", KEEL)
+    for u in (0.4, 0.62, 0.84):                        # a few ribs, slim and warm
+        rib = [hull_pt(u, t / 10) for t in range(11)]
+        c = V((rib[5].x, 0, ZB))
+        rib = [p + (p - V((p.x, 0, ZB))).normalized() * 0.1 for p in rib]
+        b.paint(b.new_faces(lambda rib=rib: rk.tube(b.bm, rib, [(0.05, 0.06)] * len(rib), ref=V((1, 0, 0)), seg=4)), "Build", RIB)
+    # End walls: whitewashed arches under the prow and the stern, each with a porthole.
+    def end_wall(x0, x1):
+        arch = [(math.cos(math.pi * t / 12) * HW * 0.96, ZB - 0.1 + math.sin(math.pi * t / 12) * 1.75) for t in range(13)]
+        pts = [(HW * 0.96, 0.4)] + arch + [(-HW * 0.96, 0.4)]
+        def make():
+            bm = b.bm
+            fa = [bm.verts.new(V((x0, y, z))) for y, z in pts]
+            fb = [bm.verts.new(V((x1, y, z))) for y, z in pts]
+            bm.faces.new(fa)
+            bm.faces.new(list(reversed(fb)))
+            for i in range(len(pts)):
+                j = (i + 1) % len(pts)
+                bm.faces.new((fa[j], fa[i], fb[i], fb[j]))
+        b.gradient(b.new_faces(make), WALL_LO, WALL_HI)
+    end_wall(L / 2 - 0.62, L / 2 - 0.2)
+    end_wall(-L / 2 - 0.3, -L / 2 + 0.1)
+    def porthole(p, out, r):
+        ref = V((0, 0, 1))
+        b.paint(b.new_faces(lambda: rk.tube(b.bm, [p - out * 0.05, p + out * 0.12], [(r, r)] * 2, ref=ref, seg=14)), "Build", BRASS)
+        b.paint(b.new_faces(lambda: rk.tube(b.bm, [p + out * 0.1, p + out * 0.14], [(r * 0.72, r * 0.72)] * 2, ref=ref, seg=14)), "Glow", LIGHT)
+    porthole(V((L / 2 - 0.2, 0, 2.3)), V((1, 0, 0)), 0.3)
+    porthole(V((-L / 2 - 0.3, 0, 2.3)), V((-1, 0, 0)), 0.3)
+    # The long front: a round painted door with brass handle, portholes either side.
+    fy = -HW - 0.02
+    dx = -0.35
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((dx, fy + 0.05, 1.45)), V((dx, fy - 0.1, 1.45))], [(0.92, 0.92)] * 2, ref=V((1, 0, 0)), seg=18)), "Build", KEEL)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((dx, fy - 0.1, 1.45)), V((dx, fy - 0.16, 1.45))], [(0.78, 0.78)] * 2, ref=V((1, 0, 0)), seg=18)), "Build", DOOR)
+    for d in (V((0.78, 0, 0)), V((0, 0, 0.78))):
+        b.paint(b.new_faces(lambda d=d: rk.tube(b.bm, [V((dx, fy - 0.17, 1.45)) - d, V((dx, fy - 0.17, 1.45)) + d], [(0.035, 0.035)] * 2, seg=4)), "Build", (0.2, 0.36, 0.42))
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((dx + 0.45, fy - 0.2, 1.35)), (0.06, 0.04, 0.06), 6, 4)), "Build", BRASS)
+    for x in (dx - 1.75, dx + 1.75, dx + 3.1):
+        porthole(V((x, fy, 1.7)), V((0, -1, 0)), 0.3)
+    # The ship lantern hanging from the prow tip.
+    tip = hull_pt(0.0, 0.5)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [tip, tip + V((0, 0, -0.6))], [(0.012, 0.012)] * 2, seg=4)), "Build", KEEL)
+    lp = tip + V((0, 0, -0.6))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [lp, lp + V((0, 0, -0.34))], [(0.14, 0.14), (0.12, 0.12)], seg=8)), "Glow", LIGHT)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [lp + V((0, 0, 0.06)), lp + V((0, 0, -0.02))], [(0.16, 0.16), (0.1, 0.1)], seg=8)), "Build", BRASS)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [lp + V((0, 0, -0.34)), lp + V((0, 0, -0.4))], [(0.13, 0.13), (0.06, 0.06)], seg=8)), "Build", BRASS)
+    # Plank porch along the front, posts with rope rails at its ends, a barrel and a coil of rope.
+    for i in range(6):
+        soft(b, cube_at(b, V((dx, fy - 0.25 - i * 0.24, 0.42)), (3.4, 0.22, 0.08)), PLANK[i % 2], 0.02, 1)
+    for x in (dx - 1.75, dx + 1.75):
+        for y in (fy - 0.15, fy - 1.45):
+            b.paint(b.new_faces(lambda x=x, y=y: rk.tube(b.bm, [V((x, y, 0.0)), V((x, y, 1.1))], [(0.08, 0.08)] * 2, seg=6)), "Build", KEEL)
+        rope = [V((x, fy - 0.15 - t * 1.3 / 8, 0.98 - math.sin(t / 8 * math.pi) * 0.13)) for t in range(9)]
+        b.paint(b.new_faces(lambda rope=rope: rk.tube(b.bm, rope, [(0.025, 0.025)] * len(rope), seg=4)), "Build", (0.82, 0.72, 0.52))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((dx + 2.3, fy - 0.5, 0.0)), V((dx + 2.3, fy - 0.5, 0.42)), V((dx + 2.3, fy - 0.5, 0.84))],
+                                        [(0.26, 0.26), (0.3, 0.3), (0.26, 0.26)], seg=10)), "Build", PLANK[0])
+    ring = [V((dx - 2.3 + math.cos(t / 10 * math.tau) * 0.24, fy - 0.55 + math.sin(t / 10 * math.tau) * 0.24, 0.1)) for t in range(10)]
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, ring, [(0.07, 0.07)] * 10, ref=V((0, 0, 1)), seg=5, closed=True)), "Build", (0.82, 0.72, 0.52))
+    for i in range(3):
+        soft(b, cube_at(b, V((dx + 0.15 * math.sin(i * 2.0), fy - 2.0 - i * 0.8, 0.03)), (0.8, 0.55, 0.12), Euler((0, 0, 0.3 * math.sin(i * 1.4)))), rnd.choice(STONE), 0.06)
+    # A black stovepipe through the hull, towards the stern.
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-2.0, 0.6, 3.2)), V((-2.0, 0.6, 5.4))], [(0.14, 0.14)] * 2, seg=8)), "Build", (0.18, 0.18, 0.2))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-2.0, 0.6, 5.4)), V((-2.0, 0.6, 5.55))], [(0.24, 0.24), (0.14, 0.14)], seg=8)), "Build", (0.18, 0.18, 0.2))
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -1264,3 +1488,5 @@ export("house_arch", arch_cottage(), OUT)
 export("house_gable", gable_house(), OUT)
 export("house_storybook", storybook_cottage(), OUT)
 export("house_turret", turret_cottage(), OUT)
+export("house_lantern", lantern_house(), OUT)
+export("house_hull", hull_house(), OUT)
