@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/day_night.gd" id="2"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://scripts/audio/ambience.gd" id="11"]
 [ext_resource type="Script" path="res://scripts/core/warmup.gd" id="12"]
 [ext_resource type="Script" path="res://scripts/world/resource_visuals.gd" id="13"]
+[ext_resource type="Script" path="res://scripts/world/occlusion_fader.gd" id="14"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
@@ -45,8 +46,14 @@ terrain = NodePath("../Terrain")
 script = ExtResource("10")
 day_night = NodePath("../WorldEnvironment")
 
-[node name="ResourceVisuals" type="Node3D" parent="." node_paths=PackedStringArray("player")]
+[node name="ResourceVisuals" type="Node3D" parent="." node_paths=PackedStringArray("player", "fader")]
 script = ExtResource("13")
+player = NodePath("../Player")
+fader = NodePath("../OcclusionFader")
+
+[node name="OcclusionFader" type="Node3D" parent="." node_paths=PackedStringArray("camera_rig", "player")]
+script = ExtResource("14")
+camera_rig = NodePath("../CameraRig")
 player = NodePath("../Player")
 
 [node name="Player" parent="." instance=ExtResource("5")]

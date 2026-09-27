@@ -28,6 +28,9 @@ var _pending_gatherables: Array[Dictionary] = []
 ## Filled by build(): one entry per gatherable thing, for ResourceVisuals.
 ## {type, xf: Transform3D, multimesh: MultiMesh, index: int, collider: CollisionShape3D, scale}
 var gatherables: Array[Dictionary] = []
+## Filled by build(): every tree instance {xf, multimesh, index}, for the OcclusionFader.
+var trees: Array[Dictionary] = []
+var _pending_trees: Array[Dictionary] = []
 
 
 func build(shape: WorldShape) -> void:
@@ -221,6 +224,8 @@ func _place(model: String, kind: String, p: Vector2, scale: float, tilt: float, 
 	var collider: CollisionShape3D = null
 	if radius > 0.0:
 		collider = _add_collider(xf.origin, radius * scale)
+	if kind == "tree":
+		_pending_trees.append({"xf": xf, "key": key, "index": _batches[key].size() - 1})
 	if gather != "":
 		_pending_gatherables.append({"type": gather, "xf": xf, "key": key, "index": _batches[key].size() - 1,
 			"collider": collider, "scale": scale})
@@ -266,6 +271,10 @@ func _flush() -> void:
 		g["multimesh"] = by_key[g["key"]]
 		gatherables.append(g)
 	_pending_gatherables.clear()
+	for t in _pending_trees:
+		t["multimesh"] = by_key[t["key"]]
+		trees.append(t)
+	_pending_trees.clear()
 	_batches.clear()
 
 

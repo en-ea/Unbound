@@ -111,7 +111,7 @@ func _run_gather_test() -> void:
 	var player := get_node("../Player") as Node3D
 	var gatherer := player.get_node("Gatherer")
 	if _frames == 30:
-		# Stand just south of the nearest tree.
+		# Stand just north of the nearest tree (behind it, so it also tests the see-through fade).
 		var best := -1
 		var best_d := INF
 		for id in 4000:
@@ -127,7 +127,7 @@ func _run_gather_test() -> void:
 				best_d = d
 				best = id
 		var at: Vector3 = WorldResources.get_node_data(best)["pos"]
-		player.global_position = at + Vector3(0, 0.3, 1.3)
+		player.global_position = at + Vector3(0, 0.3, -1.3)
 		get_node("../CameraRig").snap()
 	if _frames in [40, 70, 100, 165]:
 		gatherer.act()

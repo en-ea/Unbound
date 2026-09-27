@@ -12,6 +12,7 @@ const FALL_SOUNDS := {
 }
 
 @export var player: Node3D
+@export var fader: Node        # OcclusionFader: tree instances are posed through it
 
 var _entries := {}        # resource id -> gatherable dict from Scatter
 var _stumps := {}         # resource id -> stump node
@@ -58,7 +59,7 @@ func _shown(id: int, extra := Basis.IDENTITY, factor := -1.0) -> Transform3D:
 
 
 func _pose(id: int, xf: Transform3D) -> void:
-	_entries[id]["multimesh"].set_instance_transform(_entries[id]["index"], xf)
+	fader.pose(_entries[id]["multimesh"], _entries[id]["index"], xf)
 
 
 func _on_hit(id: int, hits_left: int) -> void:

@@ -13,6 +13,7 @@ func _ready() -> void:
 	scatter.build(shape)
 	$Landmark.place(shape)
 	$ResourceVisuals.setup(scatter.gatherables)
+	$OcclusionFader.setup(scatter.trees)
 	$Player/Sounds.shape = shape
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)
