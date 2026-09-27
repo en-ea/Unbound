@@ -6,6 +6,8 @@ signal closed
 var _visual: CharacterVisual
 var _camera_rig: Node3D
 var _rows: VBoxContainer
+var _tab := "parts"
+var _tab_buttons := {}
 var _rng := RandomNumberGenerator.new()
 
 
@@ -38,7 +40,15 @@ func _build() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 10)
 	panel.add_child(column)
-	UIStyle.label(column, "Your look", 26)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 10)
+	column.add_child(header)
+	var title := UIStyle.label(header, "Your look", 26)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for tab in ["parts", "colours"]:
+		var b := UIStyle.button(header, tab.capitalize(), Vector2(112, 42), 18)
+		b.pressed.connect(_show_tab.bind(tab))
+		_tab_buttons[tab] = b
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 4)
 	_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -52,28 +62,38 @@ func _build() -> void:
 	_refresh()
 
 
+func _show_tab(tab: String) -> void:
+	_tab = tab
+	_refresh()
+
+
 func _refresh() -> void:
 	for child in _rows.get_children():
 		child.queue_free()
+	for tab: String in _tab_buttons:
+		_tab_buttons[tab].modulate = Color(1, 1, 1, 1.0 if tab == _tab else 0.55)
 	var look := _visual.hero_look
-	for slot: String in CharacterLook.PARTS:
+	var slots: Array = CharacterLook.PARTS.keys() if _tab == "parts" else []
+	for slot: String in slots:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		_rows.add_child(row)
-		UIStyle.label(row, CharacterLook.PART_LABELS[slot], 18).custom_minimum_size.x = 150
-		UIStyle.button(row, "<", Vector2(48, 36), 18).pressed.connect(_cycle.bind(slot, -1))
-		var value := UIStyle.label(row, String(look.parts[slot]).capitalize(), 18)
+		UIStyle.label(row, CharacterLook.PART_LABELS[slot], 20).custom_minimum_size.x = 150
+		UIStyle.button(row, "<", Vector2(52, 50), 20).pressed.connect(_cycle.bind(slot, -1))
+		var value := UIStyle.label(row, String(look.parts[slot]).capitalize(), 20)
 		value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		UIStyle.button(row, ">", Vector2(48, 36), 18).pressed.connect(_cycle.bind(slot, 1))
-	for slot: String in CharacterLook.PALETTES:
+		UIStyle.button(row, ">", Vector2(52, 50), 20).pressed.connect(_cycle.bind(slot, 1))
+	for slot: String in (CharacterLook.PALETTES.keys() if _tab == "colours" else []):
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 6)
+		row.add_theme_constant_override("separation", 8)
 		_rows.add_child(row)
-		UIStyle.label(row, CharacterLook.COLOR_LABELS[slot], 18, true).custom_minimum_size.x = 150
+		var name_label := UIStyle.label(row, CharacterLook.COLOR_LABELS[slot], 18, true)
+		name_label.custom_minimum_size = Vector2(150, 64)
+		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		var palette: Array = CharacterLook.PALETTES[slot]
 		for i in palette.size():
-			UIStyle.swatch(row, palette[i], look.colors[slot] == i, 34.0).pressed.connect(_pick_color.bind(slot, i))
+			UIStyle.swatch(row, palette[i], look.colors[slot] == i, 36.0).pressed.connect(_pick_color.bind(slot, i))
 
 
 func _cycle(slot: String, step: int) -> void:

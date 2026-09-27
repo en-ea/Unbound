@@ -9,13 +9,14 @@ const SAVE_PATH := "user://look.cfg"
 const PARTS := {
 	"face": ["calm", "happy", "bright", "stern"],
 	"cheeks": ["none", "blush"],
-	"hair": ["short", "long", "bun", "none"],
-	"beard": ["none", "beard"],
+	"hair": ["short", "swept", "spiky", "long", "ponytail", "bun", "none"],
+	"beard": ["none", "short", "full", "goatee", "mustache"],
 	"head": ["none", "hood"],
+	"chest": ["none", "strap", "vest"],
 	"shoulders": ["none", "pads"],
 	"back": ["scarf", "cape", "none"],
 }
-const PART_LABELS := {"face": "Face", "cheeks": "Cheeks", "hair": "Hair", "beard": "Beard", "head": "Hood", "shoulders": "Shoulders", "back": "Back"}
+const PART_LABELS := {"face": "Face", "cheeks": "Cheeks", "hair": "Hair", "beard": "Beard", "head": "Hood", "chest": "Chest", "shoulders": "Shoulders", "back": "Back"}
 
 const CLOTH: Array[Color] = [
 	Color(0.30, 0.38, 0.52), Color(0.26, 0.42, 0.32), Color(0.62, 0.22, 0.18), Color(0.80, 0.72, 0.56),
@@ -30,10 +31,10 @@ const PALETTES := {
 	"Accent": CLOTH,
 	"Leather": [Color(0.40, 0.26, 0.16), Color(0.25, 0.17, 0.11), Color(0.55, 0.40, 0.26), Color(0.22, 0.22, 0.24)],
 }
-const COLOR_LABELS := {"Skin": "Skin", "Hair": "Hair colour", "Main": "Tunic", "Second": "Trim & pants", "Accent": "Scarf, cape, hood", "Leather": "Leather"}
+const COLOR_LABELS := {"Skin": "Skin", "Hair": "Hair colour", "Main": "Tunic", "Second": "Trim & trousers", "Accent": "Scarf, cape, hood", "Leather": "Leather"}
 
-var parts := {"face": "calm", "cheeks": "none", "hair": "short", "beard": "none", "head": "none", "shoulders": "none", "back": "scarf"}
-var colors := {"Skin": 1, "Hair": 0, "Main": 0, "Second": 3, "Accent": 2, "Leather": 0}   # palette indices
+var parts := {"face": "calm", "cheeks": "none", "hair": "short", "beard": "none", "head": "none", "chest": "strap", "shoulders": "none", "back": "none"}
+var colors := {"Skin": 1, "Hair": 0, "Main": 0, "Second": 5, "Accent": 2, "Leather": 0}   # palette indices
 
 
 func color(slot: String) -> Color:
