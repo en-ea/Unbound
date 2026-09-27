@@ -5,12 +5,11 @@ extends Node3D
 const NATURE := "res://assets/quaternius_nature/%s.gltf"
 const FOLIAGE_SHADER := preload("res://shaders/foliage.gdshader")
 const CHUNK := 20.0
-const GRASS_TINT := Color(0.78, 0.84, 0.72)   # the pack's grass is a bit neon
+const GRASS_TINT := Color(0.72, 0.78, 0.64)   # the pack's grass is a bit neon
 
 ## Per model: cast shadows, visibility range (0 = always), wind sway (metres), sway height.
 const KINDS := {
 	"tree": {"shadow": true, "range": 0.0, "sway": 0.12, "sway_h": 7.0, "collide": 0.35},
-	"big_tree": {"shadow": true, "range": 0.0, "sway": 0.2, "sway_h": 15.0, "collide": 1.1},
 	"bush": {"shadow": false, "range": 50.0, "sway": 0.05, "sway_h": 1.4, "collide": 0.0},
 	"rock": {"shadow": true, "range": 0.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.8},
 	"small": {"shadow": false, "range": 36.0, "sway": 0.08, "sway_h": 1.2, "collide": 0.0},
@@ -65,12 +64,27 @@ func _scatter_trees() -> void:
 
 
 func _scatter_landmarks() -> void:
-	# An old twisted tree on the hilltop, a dead tree by the pond.
-	var top := WorldShape.HILL_CENTER + Vector2(-3.0, -3.0)
-	_place("TwistedTree_1", "big_tree", top, 0.75, 0.0)
-	_trees.append(top)
+	# A ring of standing stones on the hilltop (the light beams are in landmark_light.gd),
+	# and a dead tree by the pond.
+	var rocks := ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"]
+	for i in 7:
+		var p := WorldShape.HILL_CENTER + Vector2.from_angle(i * TAU / 7.0 + 0.3) * 4.2
+		_place_stone(rocks[i % 3], p)
+	_trees.append(WorldShape.HILL_CENTER)
 	var pond := WorldShape.POND_CENTER + Vector2(-WorldShape.POND_RADIUS - 3.0, -6.0)
 	_place("DeadTree_2", "tree", pond, 0.5, 0.0)
+
+
+## A tall, narrow standing stone (a rock stretched upwards).
+func _place_stone(model: String, p: Vector2) -> void:
+	var y := _shape.height_at(p.x, p.y) - 0.3
+	var basis := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(0.55, 1.5, 0.55))
+	basis = Basis(Vector3(_rng.randf_range(-1, 1), 0, _rng.randf_range(-1, 1)).normalized(), _rng.randf() * 0.12) * basis
+	var key := "%s|rock|%d|%d" % [model, floori(p.x / CHUNK), floori(p.y / CHUNK)]
+	if not _batches.has(key):
+		_batches[key] = []
+	_batches[key].append(Transform3D(basis, Vector3(p.x, y, p.y)))
+	_add_collider(Vector3(p.x, y, p.y), 0.6)
 
 
 func _scatter_path_stones() -> void:
@@ -96,9 +110,9 @@ func _scatter_rocks() -> void:
 	# Around the hill and the pond shore, plus a few loose ones.
 	for i in 10:
 		var ang := _rng.randf() * TAU
-		var p := WorldShape.HILL_CENTER + Vector2.from_angle(ang) * _rng.randf_range(9.0, 14.0)
+		var p := WorldShape.HILL_CENTER + Vector2.from_angle(ang) * _rng.randf_range(10.0, 15.0)
 		if _shape.path_distance(p) > 2.5:
-			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.8, 1.6), 0.3)
+			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.0), 0.3)
 	for i in 6:
 		var ang := _rng.randf() * TAU
 		var p := WorldShape.POND_CENTER + Vector2.from_angle(ang) * (WorldShape.POND_RADIUS + _rng.randf_range(0.5, 2.5))

@@ -21,10 +21,10 @@ const HORIZON := [Color(0.08, 0.11, 0.24), Color(0.30, 0.26, 0.42), Color(1.00, 
 	Color(0.78, 0.88, 0.96), Color(0.92, 0.86, 0.74), Color(1.00, 0.56, 0.40), Color(0.34, 0.22, 0.38), Color(0.08, 0.11, 0.24)]
 const SUN_COLOR := [Color(1, 0.8, 0.6), Color(1.0, 0.62, 0.40), Color(1.0, 0.72, 0.48), Color(1.0, 0.90, 0.76),
 	Color(1.0, 0.97, 0.90), Color(1.0, 0.90, 0.74), Color(1.0, 0.62, 0.38), Color(1.0, 0.5, 0.35), Color(1, 0.8, 0.6)]
-const SUN_ENERGY := [0.0, 0.0, 0.8, 1.3, 1.45, 1.35, 1.0, 0.0, 0.0]
+const SUN_ENERGY := [0.0, 0.0, 1.0, 1.35, 1.45, 1.4, 1.25, 0.0, 0.0]
 const AMBIENT := [Color(0.30, 0.38, 0.62), Color(0.42, 0.40, 0.58), Color(0.72, 0.62, 0.62), Color(0.66, 0.72, 0.78),
 	Color(0.68, 0.76, 0.84), Color(0.74, 0.72, 0.70), Color(0.72, 0.56, 0.56), Color(0.40, 0.36, 0.56), Color(0.30, 0.38, 0.62)]
-const AMBIENT_ENERGY := [0.5, 0.55, 0.7, 0.75, 0.75, 0.75, 0.7, 0.55, 0.5]
+const AMBIENT_ENERGY := [0.55, 0.62, 0.85, 0.8, 0.75, 0.8, 0.9, 0.65, 0.55]
 
 var _sky_mat := ProceduralSkyMaterial.new()
 var _timer := 0.0

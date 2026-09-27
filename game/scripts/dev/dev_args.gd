@@ -3,6 +3,7 @@ extends Node
 ##   --shot=path.png   save a screenshot after ~180 frames, then quit
 ##   --time=0.5        start at this time of day
 ##   --walk=x,y        hold the joystick in this direction
+##   --at=x,z          start the player at this spot
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 
 @export var day_night: Node
@@ -10,6 +11,7 @@ extends Node
 var _shot_path := ""
 var _frames := 0
 var _touch_test := false
+var _start_at := Vector2.INF
 
 
 func _ready() -> void:
@@ -24,6 +26,9 @@ func _ready() -> void:
 		elif arg.begins_with("--walk="):
 			var v := arg.trim_prefix("--walk=").split(",")
 			Controls.joystick = Vector2(float(v[0]), float(v[1]))
+		elif arg.begins_with("--at="):
+			var v := arg.trim_prefix("--at=").split(",")
+			_start_at = Vector2(float(v[0]), float(v[1]))
 		elif arg == "--touchtest":
 			_touch_test = true
 	if _shot_path == "" and not _touch_test:
@@ -32,6 +37,10 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_frames += 1
+	if _frames == 2 and _start_at != Vector2.INF:
+		var player := get_node("../Player") as Node3D
+		player.global_position = Vector3(_start_at.x, WorldShape.new().height_at(_start_at.x, _start_at.y) + 0.3, _start_at.y)
+		get_node("../CameraRig").snap()
 	if _touch_test:
 		_run_touch_test()
 		return

@@ -44,9 +44,9 @@ func height_at(x: float, z: float) -> float:
 	h += (1.0 - smoothstep(HILL_RADIUS * 0.4, HILL_RADIUS, hill_d)) * HILL_HEIGHT
 	# A worn dip along the path.
 	h -= 0.08 * (1.0 - smoothstep(0.8, 2.2, path_d))
-	# The pond bowl, with a wobbly shore.
+	# The pond bowl (knee-deep water), with a wobbly shore.
 	var pond_d := pond_distance(p)
-	h = lerpf(h, -1.8, 1.0 - smoothstep(POND_RADIUS * 0.35, POND_RADIUS + 2.5, pond_d))
+	h = lerpf(h, -1.05, 1.0 - smoothstep(POND_RADIUS * 0.35, POND_RADIUS + 2.5, pond_d))
 	return h
 
 

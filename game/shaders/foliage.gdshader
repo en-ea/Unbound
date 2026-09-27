@@ -24,5 +24,4 @@ void fragment() {
 	ALPHA_SCISSOR_THRESHOLD = alpha_cut;
 	ROUGHNESS = 0.9;
 	SPECULAR = 0.2;
-	BACKLIGHT = c.rgb * 0.35;
 }
