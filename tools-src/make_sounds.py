@@ -204,6 +204,31 @@ def boar():
     save("boar_squeal", squeal, 0.5)
 
 
+def wolf():
+    # Growl: a rough, low rumble that swells and fades.
+    n = int(0.9 * RATE)
+    t = np.arange(n) / RATE
+    rough = 0.55 + 0.45 * np.sin(2 * np.pi * 31 * t + 2 * np.sin(2 * np.pi * 5 * t))
+    f = 105 + 12 * np.sin(2 * np.pi * 1.3 * t)
+    ph = 2 * np.pi * np.cumsum(f) / RATE
+    tone = sum(np.sin(k * ph) / k for k in range(1, 7))
+    growl = (tone * 0.6 + band(rng.normal(size=n), 200, 1100) * 0.7) * rough * np.sin(np.pi * t / t[-1]) ** 0.7
+    save("wolf_growl", reverb(low(growl, 1600), 0.3, 0.12), 0.6)
+    # Yelp: a short high cry that drops in pitch (when hurt).
+    n = int(0.26 * RATE)
+    t = np.linspace(0, 1, n)
+    f = 1300 - 650 * t ** 0.7
+    ph = 2 * np.pi * np.cumsum(f) / RATE
+    yelp = (np.sin(ph) + 0.45 * np.sin(2 * ph) + 0.2 * np.sin(3 * ph)) * env(n, 0.04, 1.4)
+    yelp += band(rng.normal(size=n), 1800, 4500) * env(n, 0.02, 2.5) * 0.25
+    save("wolf_yelp", yelp, 0.5)
+    # Snap: jaws closing on a bite.
+    n = int(0.12 * RATE)
+    t = np.arange(n) / RATE
+    snap = band(rng.normal(size=n), 1500, 5000) * np.exp(-t * 90) + np.sin(2 * np.pi * 180 * t) * np.exp(-t * 60) * 0.6
+    save("wolf_snap", snap, 0.6)
+
+
 def whoosh():
     n = int(0.28 * RATE)
     t = np.arange(n) / RATE
@@ -223,4 +248,5 @@ if __name__ == "__main__":
     tree_fall()
     boar()
     whoosh()
+    wolf()
     print("sounds written to", os.path.abspath(OUT))

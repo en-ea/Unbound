@@ -88,7 +88,7 @@ def amber():
     return b
 
 
-def hide():
+def hide(color=(0.52, 0.42, 0.44)):
     b = Builder(["Item"])
     def make():
         bm = b.bm
@@ -98,7 +98,7 @@ def hide():
         for k in range(9):
             bm.faces.new((c, ring[k], ring[(k + 1) % 9]))
             bm.faces.new((ring[(k + 1) % 9], ring[k], bm.verts.new(V((0, 0, -0.01)))))
-    b.paint(b.new_faces(make), "Item", (0.52, 0.42, 0.44))
+    b.paint(b.new_faces(make), "Item", color)
     return b
 
 
@@ -106,6 +106,13 @@ def tusk():
     b = Builder(["Item"])
     pts = [V((-0.1, 0, -0.05)), V((0.0, 0, 0.0)), V((0.08, 0, 0.06)), V((0.11, 0, 0.13))]
     tube_faces(b, pts, [(0.03, 0.03), (0.025, 0.025), (0.017, 0.017), (0.003, 0.003)], (0.93, 0.88, 0.74), seg=6, ref=V((0, 1, 0)))
+    return b
+
+
+def fang():
+    b = Builder(["Item"])
+    pts = [V((0.0, 0, -0.07)), V((0.02, 0, 0.0)), V((0.01, 0, 0.06)), V((-0.02, 0, 0.1))]
+    tube_faces(b, pts, [(0.028, 0.02), (0.022, 0.017), (0.012, 0.01), (0.002, 0.002)], (0.97, 0.95, 0.88), seg=5, ref=V((0, 1, 0)))
     return b
 
 
@@ -123,3 +130,5 @@ export("shard", shard((0.55, 0.88, 1.0), "Glow"), OUT)
 export("resin", amber(), OUT)
 export("hide", hide(), OUT)
 export("tusk", tusk(), OUT)
+export("pelt", hide((0.6, 0.64, 0.72)), OUT)
+export("fang", fang(), OUT)

@@ -4,11 +4,16 @@ extends Node3D
 ## nods; it lowers its head to charge, paws the ground when alert, flashes white when hit and
 ## falls over when it dies. The model's parts come from tools-src/blender/make_boar.py.
 
-const MODEL := preload("res://assets/creatures/boar.glb")
+const PARTS := ["Body", "Head", "Leg_FL", "Leg_FR", "Leg_BL", "Leg_BR", "Tail", "Jaw"]
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 
 var speed := 0.0            # ground speed, set by Boar
 var mode := "walk"          # walk / alert / charge / hurt / dead
+## Other creatures reuse this script (see wolf_visual.gd) with their own model and sizes.
+var model_scene: PackedScene = preload("res://assets/creatures/boar.glb")
+var paws := true            # paws the ground when alert
+var mark_height := 2.0
+var bar_height := 1.75
 
 var _parts := {}            # name -> Node3D
 var _rest := {}             # name -> Transform3D
@@ -27,7 +32,7 @@ var _fall := 0.0
 
 
 func _ready() -> void:
-	var model := MODEL.instantiate()
+	var model := model_scene.instantiate()
 	add_child(model)
 	for mi: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
 		for s in mi.mesh.get_surface_count():
@@ -40,8 +45,10 @@ func _ready() -> void:
 			var src := mi.mesh.surface_get_material(s)
 			if src and src.resource_name == "Eye":
 				_eye_materials.append(mat)
-	for name in ["Body", "Head", "Leg_FL", "Leg_FR", "Leg_BL", "Leg_BR"]:
+	for name: String in PARTS:
 		var node := model.find_child(name, true, false) as Node3D
+		if node == null:
+			continue
 		_parts[name] = node
 		_rest[name] = node.transform
 	_alert_mark = Label3D.new()
@@ -53,7 +60,7 @@ func _ready() -> void:
 	_alert_mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_alert_mark.no_depth_test = true
 	_alert_mark.pixel_size = 0.006
-	_alert_mark.position = Vector3(0, 2.0, 0)
+	_alert_mark.position = Vector3(0, mark_height, 0)
 	add_child(_alert_mark)
 	_dust = _make_dust()
 	add_child(_dust)
@@ -61,7 +68,7 @@ func _ready() -> void:
 	_bar_fill = _bar_quad(Color(0.9, 0.28, 0.24), 0.84)
 	_bar_fill.position.z = 0.002
 	_bar_back.add_child(_bar_fill)
-	_bar_back.position = Vector3(0, 1.75, 0)
+	_bar_back.position = Vector3(0, bar_height, 0)
 	_bar_back.visible = false
 	add_child(_bar_back)
 
@@ -95,7 +102,7 @@ func _process(delta: float) -> void:
 	var mark_a := move_toward(_alert_mark.modulate.a, 1.0 if mode == "alert" else 0.0, delta * 6.0)
 	_alert_mark.modulate.a = mark_a
 	_alert_mark.outline_modulate.a = mark_a
-	_alert_mark.position.y = 2.0 + sin(_time * 10.0) * 0.05
+	_alert_mark.position.y = mark_height + sin(_time * 10.0) * 0.05
 	_dust.emitting = mode == "charge"
 	if _bar_time > 0.0:
 		_bar_time -= delta
@@ -117,8 +124,8 @@ func _process(delta: float) -> void:
 		"alert":
 			head_pitch = -0.15 + sin(_time * 12.0) * 0.05
 			swing = 0.0
-			# Paw the ground with a front leg.
-			_parts["Leg_FR"].transform = _rest["Leg_FR"] * Transform3D(Basis(Vector3.RIGHT, -0.6 * maxf(sin(_time * 9.0), 0.0)), Vector3.ZERO)
+			if paws:       # paw the ground with a front leg
+				_parts["Leg_FR"].transform = _rest["Leg_FR"] * Transform3D(Basis(Vector3.RIGHT, -0.6 * maxf(sin(_time * 9.0), 0.0)), Vector3.ZERO)
 		"hurt":
 			head_pitch = -0.3
 	_pose(swing, bob, head_pitch, stride)
@@ -130,7 +137,7 @@ func _pose(swing: float, bob: float, head_pitch: float, stride: float) -> void:
 	for leg: String in ["Leg_FL", "Leg_BR"]:
 		_parts[leg].transform = _rest[leg] * Transform3D(Basis(Vector3.RIGHT, swing), Vector3.ZERO)
 	for leg: String in ["Leg_FR", "Leg_BL"]:
-		if leg == "Leg_FR" and mode == "alert":
+		if leg == "Leg_FR" and mode == "alert" and paws:
 			continue
 		_parts[leg].transform = _rest[leg] * Transform3D(Basis(Vector3.RIGHT, -swing), Vector3.ZERO)
 
