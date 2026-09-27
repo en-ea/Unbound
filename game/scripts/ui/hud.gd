@@ -1,5 +1,5 @@
 extends CanvasLayer
-## Development HUD: FPS and worst frame, the 30/60 FPS toggle and a skip-time button.
+## Development HUD: FPS stats, plus a small "Dev" menu with the 30/60 FPS toggle and skip-time.
 
 @export var day_night: Node
 
@@ -7,6 +7,7 @@ const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dy
 
 var _fps_label: Label
 var _cap_button: Button
+var _menu: VBoxContainer
 var _worst := 0.0
 var _worst_shown := 0.0
 var _timer := 0.0
@@ -19,20 +20,28 @@ func _ready() -> void:
 
 	_fps_label = Label.new()
 	_fps_label.position = MARGIN
-	_fps_label.add_theme_font_size_override("font_size", 22)
+	_fps_label.add_theme_font_size_override("font_size", 18)
+	_fps_label.modulate = Color(1, 1, 1, 0.8)
 	_fps_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
 	_fps_label.add_theme_constant_override("outline_size", 6)
 	add_child(_fps_label)
 
-	var row := HBoxContainer.new()
-	row.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	row.position = Vector2(-MARGIN.x, MARGIN.y)
-	row.add_theme_constant_override("separation", 12)
-	add_child(row)
-	_cap_button = _make_button(row, "")
+	var column := VBoxContainer.new()
+	column.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	column.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	column.position = Vector2(-MARGIN.x, MARGIN.y)
+	column.add_theme_constant_override("separation", 10)
+	add_child(column)
+	var toggle := _make_button(column, "Dev")
+	toggle.custom_minimum_size = Vector2(86, 48)
+	_menu = VBoxContainer.new()
+	_menu.add_theme_constant_override("separation", 10)
+	_menu.visible = false
+	column.add_child(_menu)
+	toggle.pressed.connect(func() -> void: _menu.visible = not _menu.visible)
+	_cap_button = _make_button(_menu, "")
 	_cap_button.pressed.connect(_toggle_cap)
-	_make_button(row, "Time +").pressed.connect(func() -> void: day_night.skip(0.125))
+	_make_button(_menu, "Time +").pressed.connect(func() -> void: day_night.skip(0.125))
 	_refresh_cap()
 
 
@@ -62,7 +71,7 @@ func _make_button(parent: Control, text: String) -> Button:
 	var b := Button.new()
 	b.text = text
 	b.focus_mode = Control.FOCUS_NONE
-	b.custom_minimum_size = Vector2(120, 56)
+	b.custom_minimum_size = Vector2(130, 52)
 	b.add_theme_font_size_override("font_size", 22)
 	for state in ["normal", "hover", "pressed"]:
 		var box := StyleBoxFlat.new()

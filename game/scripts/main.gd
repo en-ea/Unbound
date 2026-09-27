@@ -12,6 +12,7 @@ func _ready() -> void:
 	terrain.build(shape)
 	scatter.build(shape)
 	$Landmark.place(shape)
+	$Player/Sounds.shape = shape
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)
 	camera_rig.snap()

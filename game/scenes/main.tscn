@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/day_night.gd" id="2"]
@@ -10,6 +10,8 @@
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="8"]
 [ext_resource type="Script" path="res://scripts/dev/dev_args.gd" id="9"]
 [ext_resource type="Script" path="res://scripts/world/landmark_light.gd" id="10"]
+[ext_resource type="Script" path="res://scripts/audio/ambience.gd" id="11"]
+[ext_resource type="Script" path="res://scripts/core/warmup.gd" id="12"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
@@ -63,3 +65,16 @@ day_night = NodePath("../WorldEnvironment")
 [node name="DevArgs" type="Node" parent="." node_paths=PackedStringArray("day_night")]
 script = ExtResource("9")
 day_night = NodePath("../WorldEnvironment")
+
+[node name="Ambience" type="Node" parent="." node_paths=PackedStringArray("day_night", "listener_target", "landmark")]
+script = ExtResource("11")
+day_night = NodePath("../WorldEnvironment")
+listener_target = NodePath("../Player")
+landmark = NodePath("../Landmark")
+
+[node name="Warmup" type="CanvasLayer" parent="." node_paths=PackedStringArray("effects_root", "landmark", "sun", "focus")]
+script = ExtResource("12")
+effects_root = NodePath("..")
+landmark = NodePath("../Landmark")
+sun = NodePath("../Sun")
+focus = NodePath("../Player")

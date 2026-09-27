@@ -52,7 +52,14 @@ func _release() -> void:
 
 func _draw() -> void:
 	if _finger == -1:
+		# A faint hint of where to put your thumb.
+		var hint := Vector2(220.0, get_viewport().get_visible_rect().size.y - 190.0)
+		draw_arc(hint, RADIUS * 0.8, 0.0, TAU, 64, Color(1, 1, 1, 0.12), 3.0, true)
+		draw_circle(hint, 20.0, Color(1, 1, 1, 0.1), true, -1.0, true)
 		return
-	draw_circle(_origin, RADIUS, Color(1, 1, 1, 0.08))
-	draw_arc(_origin, RADIUS, 0.0, TAU, 48, Color(1, 1, 1, 0.35), 2.0, true)
-	draw_circle(_origin + _knob, 30.0, Color(1, 1, 1, 0.45))
+	draw_circle(_origin, RADIUS + 6.0, Color(0.05, 0.07, 0.12, 0.18), true, -1.0, true)
+	draw_arc(_origin, RADIUS, 0.0, TAU, 64, Color(1, 1, 1, 0.4), 3.0, true)
+	var knob := _origin + _knob
+	draw_circle(knob + Vector2(0, 3), 30.0, Color(0, 0, 0, 0.18), true, -1.0, true)
+	draw_circle(knob, 30.0, Color(1, 1, 1, 0.55), true, -1.0, true)
+	draw_arc(knob, 30.0, 0.0, TAU, 48, Color(1, 1, 1, 0.85), 2.0, true)

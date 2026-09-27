@@ -89,11 +89,10 @@ func _apply() -> void:
 	var sun_e := _sample_f(SUN_ENERGY, t)
 	sun.light_energy = sun_e
 	sun.light_color = _sample_c(SUN_COLOR, t)
-	sun.visible = sun_e > 0.01
+	# Lights stay visible (energy 0 when off): toggling them would make the phone rebuild shaders.
 	sun.shadow_enabled = sun_dir.y > 0.2   # no shadows when the sun is low
 	night = clampf(0.2 - sun_dir.y * 3.0, 0.0, 1.0)
 	moon.light_energy = 0.32 * night
-	moon.visible = night > 0.01
 
 	var env := environment
 	var horizon := _sample_c(HORIZON, t)
