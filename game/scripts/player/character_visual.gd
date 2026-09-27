@@ -25,7 +25,8 @@ const RUN := "Jog_Fwd"
 ## faster (quicker, shorter-looking steps).
 const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2}
 
-const TOOLS := {"axe": "res://assets/items/axe.glb", "pickaxe": "res://assets/items/pickaxe.glb"}
+const TOOLS := {"axe": "res://assets/items/axe.glb", "pickaxe": "res://assets/items/pickaxe.glb",
+	"sword": "res://assets/items/sword.glb"}
 ## How a tool sits in the right hand (its handle runs along its own +Y).
 const TOOL_ROTATION := Vector3(0.0, 0.0, 90.0)     # degrees
 const TOOL_OFFSET := Vector3(0.0, 0.0, 0.0)
@@ -74,6 +75,10 @@ func play_action(anim_name: String, speed := 1.0, start_at := 0.0) -> void:
 	_anim.play(anim_name, 0.12, speed)
 	if start_at > 0.0:
 		_anim.seek(start_at, true)
+
+
+func animation_length(anim_name: String) -> float:
+	return _anim.get_animation(anim_name).length
 
 
 ## A split-second freeze on impact, so hits feel solid.

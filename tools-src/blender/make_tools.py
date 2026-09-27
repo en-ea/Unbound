@@ -40,6 +40,20 @@ def pick_head(bm):
             [(0.004, 0.004), (0.022, 0.018), (0.032, 0.026), (0.022, 0.018), (0.004, 0.004)], ref=V((0, 1, 0)), seg=4)
 
 
+def sword_grip(bm):
+    rk.tube(bm, [V((0, 0, -0.1)), V((0, 0, 0.1))], [(0.02, 0.02)] * 2, seg=6)
+
+
+def sword_guard(bm):
+    rk.tube(bm, [V((-0.1, 0, 0.12)), V((0.1, 0, 0.12))], [(0.022, 0.03)] * 2, ref=V((0, 0, 1)), seg=4)
+    rk.blob(bm, V((0, 0, -0.12)), (0.03, 0.03, 0.03), 6, 4)
+
+
+def sword_blade(bm):
+    rk.tube(bm, [V((0, 0, 0.13)), V((0, 0, 0.6)), V((0, 0, 0.72))], [(0.045, 0.01), (0.04, 0.009), (0.002, 0.002)],
+            ref=V((1, 0, 0)), seg=4)
+
+
 def build(name, parts):
     objs = []
     for mat, fn in parts:
@@ -66,3 +80,4 @@ rk.make_materials(COLORS, roughness=0.7)
 os.makedirs(OUT, exist_ok=True)
 build("axe", [("Handle", handle), ("Wrap", wrap), ("Metal", axe_head)])
 build("pickaxe", [("Handle", handle), ("Wrap", wrap), ("Metal", pick_head)])
+build("sword", [("Wrap", sword_grip), ("Handle", sword_guard), ("Metal", sword_blade)])

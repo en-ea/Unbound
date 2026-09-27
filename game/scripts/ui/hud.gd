@@ -15,6 +15,7 @@ const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dy
 var _fps_label: Label
 var _joystick: Control
 var _action: Control
+var _roll: Control
 var _bag: Button
 var _cap_button: Button
 var _column: VBoxContainer
@@ -50,15 +51,22 @@ func _ready() -> void:
 	_action = Control.new()
 	_action.set_script(ACTION_BUTTON)
 	add_child(_action)
-	var gatherer: Node = player.get_node("Gatherer")
-	_action.pressed.connect(gatherer.act)
-	gatherer.target_changed.connect(_action.set_verb)
-	_bag = UIStyle.button(self, "Bag", Vector2(110, 56), 22)
-	_bag.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	_bag.offset_left = -340
-	_bag.offset_right = -230
-	_bag.offset_top = -120
-	_bag.offset_bottom = -64
+	_action.pressed.connect(player.act)
+	player.verb_changed.connect(_action.set_verb)
+	_roll = Control.new()
+	_roll.set_script(ACTION_BUTTON)
+	_roll.radius = 46.0
+	_roll.margin = Vector2(285, 100)
+	_roll.font_size = 20
+	add_child(_roll)
+	_roll.set_verb("Roll")
+	_roll.pressed.connect(player.roll)
+	_bag = UIStyle.button(self, "Bag", Vector2(110, 48), 22)
+	_bag.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_bag.offset_left = -270
+	_bag.offset_right = -160
+	_bag.offset_top = 24
+	_bag.offset_bottom = 72
 	_bag.pressed.connect(open_bag)
 
 	var feed := Control.new()
@@ -123,6 +131,7 @@ func _set_play_ui(on: bool) -> void:
 	_column.visible = on
 	_joystick.visible = on
 	_action.visible = on
+	_roll.visible = on
 	_bag.visible = on
 
 

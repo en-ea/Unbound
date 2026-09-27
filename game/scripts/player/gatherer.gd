@@ -56,11 +56,6 @@ func _physics_process(delta: float) -> void:
 		target_changed.emit(verb)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_E, KEY_SPACE]:
-		act()
-
-
 ## The action button: one swing at the target in reach.
 func act() -> void:
 	if _busy > 0.0:

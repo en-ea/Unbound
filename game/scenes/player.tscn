@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/player/player.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player/character_visual.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/player/player_effects.gd" id="3"]
 [ext_resource type="Script" path="res://scripts/player/player_sounds.gd" id="4"]
 [ext_resource type="Script" path="res://scripts/player/gatherer.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/player/fighter.gd" id="6"]
 
 [sub_resource type="CapsuleShape3D" id="capsule"]
 radius = 0.3
@@ -30,3 +31,6 @@ script = ExtResource("4")
 
 [node name="Gatherer" type="Node" parent="."]
 script = ExtResource("5")
+
+[node name="Fighter" type="Node" parent="."]
+script = ExtResource("6")

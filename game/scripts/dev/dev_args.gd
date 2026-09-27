@@ -8,6 +8,7 @@ extends Node
 ##   --picker          open the look picker
 ##   --showcase        line up one of every tree/bush model in front of the player
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
+##   --fighttest       stand by a boar and fight it (prints its health and the loot)
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 
 @export var day_night: Node
@@ -19,6 +20,7 @@ var _touch_test := false
 var _start_at := Vector2.INF
 var _showcase := false
 var _gather_test := false
+var _fight_test := false
 
 
 func _ready() -> void:
@@ -42,13 +44,15 @@ func _ready() -> void:
 			get_node("../CameraRig").set_distance.call_deferred(float(arg.trim_prefix("--zoom=")))
 		elif arg == "--picker":
 			get_node("../HUD").open_look_picker.call_deferred()
+		elif arg == "--fighttest":
+			_fight_test = true
 		elif arg == "--gathertest":
 			_gather_test = true
 		elif arg == "--showcase":
 			_showcase = true
 		elif arg == "--touchtest":
 			_touch_test = true
-	if _shot_path == "" and not _touch_test and not _gather_test:
+	if _shot_path == "" and not _touch_test and not _gather_test and not _fight_test:
 		set_process(false)
 
 
@@ -56,6 +60,8 @@ func _process(_delta: float) -> void:
 	_frames += 1
 	if _gather_test:
 		_run_gather_test()
+	if _fight_test:
+		_run_fight_test()
 	if _frames == 3 and _showcase:
 		_build_showcase()
 	if _frames == 2 and _start_at != Vector2.INF:
@@ -135,3 +141,23 @@ func _run_gather_test() -> void:
 		print("GATHERTEST frame ", _frames, " inventory ", Inventory.items().map(func(i: String) -> String: return "%s x%d" % [i, Inventory.count(i)]))
 		if _shot_path == "" and _frames == 260:
 			get_tree().quit()
+
+
+func _run_fight_test() -> void:
+	var player := get_node("../Player") as Node3D
+	var boars := get_tree().get_nodes_in_group("enemy")
+	if boars.is_empty():
+		return
+	var boar: Node3D = boars[0]
+	if _frames == 20:
+		player.global_position = boar.global_position + Vector3(0, 0.3, 1.6)
+		get_node("../CameraRig").snap()
+	if _frames > 30 and _frames % 12 == 0 and _frames < 200:
+		if boar.is_alive():
+			player.global_position = boar.global_position + Vector3(0, 0.3, 1.5)
+		player.act()
+	if _frames in [60, 120, 199, 300]:
+		print("FIGHTTEST frame ", _frames, " boar health ", boar.health, " state ", boar.state,
+			" inventory ", Inventory.items().map(func(i: String) -> String: return "%s x%d" % [i, Inventory.count(i)]))
+	if _frames == 300 and _shot_path == "":
+		get_tree().quit()

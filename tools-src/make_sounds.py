@@ -187,6 +187,32 @@ def tree_fall():
     save("tree_thud", thud, 0.7)
 
 
+def boar():
+    # Snort: a noisy, pulsing low grunt.
+    n = int(0.55 * RATE)
+    t = np.arange(n) / RATE
+    grunt = band(rng.normal(size=n), 150, 900) * (0.5 + 0.5 * np.sin(2 * np.pi * 22 * t)) * env(n, 0.05, 1.5)
+    grunt += np.sin(2 * np.pi * (95 + 20 * np.sin(2 * np.pi * 6 * t)) * t) * env(n, 0.05, 2) * 0.5
+    save("boar_snort", reverb(grunt, 0.3, 0.15), 0.6)
+    # Squeal: a harsh pitch glide (when hurt).
+    n = int(0.4 * RATE)
+    t = np.arange(n) / RATE
+    f = 900 + 700 * np.sin(np.pi * t / t[-1])
+    ph = 2 * np.pi * np.cumsum(f) / RATE
+    squeal = (np.sin(ph) + 0.5 * np.sin(2 * ph) + 0.3 * np.sin(3 * ph)) * env(n, 0.03, 1.2)
+    squeal += band(rng.normal(size=n), 1500, 4000) * env(n, 0.02, 2) * 0.3
+    save("boar_squeal", squeal, 0.5)
+
+
+def whoosh():
+    n = int(0.28 * RATE)
+    t = np.arange(n) / RATE
+    x = rng.normal(size=n)
+    lo = band(x, 400, 1200) * np.sin(np.pi * t / t[-1]) ** 2
+    hi = band(x, 1500, 4000) * np.sin(np.pi * t / t[-1]) ** 4 * 0.5
+    save("swing", lo + hi, 0.45)
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     steps()
@@ -195,4 +221,6 @@ if __name__ == "__main__":
     hum()
     pickups()
     tree_fall()
+    boar()
+    whoosh()
     print("sounds written to", os.path.abspath(OUT))
