@@ -8,6 +8,8 @@
                  crooked chimney, round windows (one lit), arched door, lantern, bench.
   house_loaf:    oval plaster walls under a big puffy rounded straw roof, round door and windows.
   windmill:      tapered round tower, smooth bent cap, balcony ring; windmill_sails turn in game.
+  house_hearth:  the clean style test: soft bevelled shapes, flat colours, gable to the front,
+                 sagging terracotta roof, teal door and shutters, lit windows.
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -18,7 +20,7 @@ import random
 import sys
 import bpy
 import bmesh
-from mathutils import Vector as V
+from mathutils import Euler, Vector as V
 
 sys.path.append(os.path.dirname(__file__))
 import rigkit as rk  # noqa: E402
@@ -410,8 +412,8 @@ def windmill():
         b.paint([f], "Build", rnd.choice(SHINGLE))
     clump(b, V((0, 0.62, cz + 2.85)), 0.1, 1, rnd, (0.9, 0.75, 0.4), "Build", 1.0)
     # Hub housing on the front, where the sails attach.
-    hub = V((0, -R1 - 0.1, F + H - 0.6))
-    paint(b, b.new_faces(lambda: rk.tube(b.bm, [hub + V((0, 0.5, 0)), hub], [(0.28, 0.28), (0.22, 0.22)], ref=V((1, 0, 0)), seg=10)), TRIM, 0.0)
+    hub = V((0, -2.75, F + H - 0.6))                   # out past the balcony, so the sails clear it
+    paint(b, b.new_faces(lambda: rk.tube(b.bm, [hub + V((0, 1.7, 0)), hub + V((0, 0.6, 0)), hub], [(0.3, 0.3), (0.16, 0.16), (0.2, 0.2)], ref=V((1, 0, 0)), seg=10)), TRIM, 0.0)
     round_door(b, 0.0, -R0 - 0.02, F, 0.9, 1.7)
     for z, a in ((F + 2.2, -1.2), (F + 4.4, -2.1), (F + 5.2, -0.6)):
         out = V((math.cos(a), math.sin(a), 0))
@@ -444,6 +446,146 @@ def windmill_sails():
     return b
 
 
+# --- Clean style: soft bevelled shapes, flat uniform colours, one accent -----------------------
+H_WALL = (1.0, 0.95, 0.86)
+H_ROOF = (0.82, 0.42, 0.31)
+H_RIDGE = (0.66, 0.32, 0.25)
+H_STONE = (0.66, 0.66, 0.7)
+H_WOOD = (0.52, 0.34, 0.23)
+H_ACCENT = (0.27, 0.5, 0.54)
+H_GLOW = (1.0, 0.78, 0.42)
+
+
+def soft(b, make, color, offset=0.06, segs=2, mat="Build"):
+    """Builds a shape with `make`, rounds all its edges with a small bevel, paints it one colour."""
+    def run():
+        before = set(b.bm.edges)
+        make()
+        edges = [e for e in b.bm.edges if e not in before]
+        bmesh.ops.bevel(b.bm, geom=edges, offset=offset, segments=segs, profile=0.5, affect="EDGES", clamp_overlap=True)
+    b.paint(b.new_faces(run), mat, color)
+
+
+def cube_at(b, center, size, rot=None):
+    def make():
+        geom = bmesh.ops.create_cube(b.bm, size=1.0)
+        for v in geom["verts"]:
+            p = V((v.co.x * size[0], v.co.y * size[1], v.co.z * size[2]))
+            if rot:
+                p.rotate(rot)
+            v.co = p + center
+    return make
+
+
+def outline_prism(b, outline, y0, y1):
+    """Front outline [(x, z)] counter-clockwise, extruded along +Y from y0 to y1."""
+    def make():
+        bm = b.bm
+        front = [bm.verts.new(V((x, y0, z))) for x, z in outline]
+        back = [bm.verts.new(V((x, y1, z))) for x, z in outline]
+        bm.faces.new(front)
+        bm.faces.new(list(reversed(back)))
+        for i in range(len(outline)):
+            j = (i + 1) % len(outline)
+            bm.faces.new((front[j], front[i], back[i], back[j]))
+    return make
+
+
+def arch_outline(x, z0, w, h, steps=6):
+    """A doorway: straight sides and a round top."""
+    r = w / 2
+    pts = [(x - r, z0), (x + r, z0)]
+    for k in range(steps + 1):
+        a = k / steps * math.pi
+        pts.append((x + r * math.cos(a), z0 + h - r + r * math.sin(a)))
+    return pts
+
+
+def hearth_house():
+    """The villager's cottage: gable to the front, soft plaster walls on a stone plinth, a thick
+    terracotta roof whose ridge sags a touch and whose eaves flare, teal door and shutters,
+    warm lit windows."""
+    b = Builder(["Build", "Glow"])
+    W, D, H, F, R = 3.6, 4.2, 2.3, 0.35, 2.1          # width, depth, wall height, plinth, roof rise
+    soft(b, cube_at(b, V((0, 0, F / 2 - 0.05)), (W + 0.5, D + 0.5, F + 0.1)), H_STONE, 0.08)
+    soft(b, outline_prism(b, [(-W / 2, F), (W / 2, F), (W / 2, F + H), (0, F + H + R - 0.55), (-W / 2, F + H)], -D / 2, D / 2), H_WALL, 0.07)
+    soft(b, cube_at(b, V((0, -D / 2 - 0.02, F + H)), (W + 0.12, 0.2, 0.2)), H_WOOD, 0.04)       # beam under the gable
+    soft(b, cube_at(b, V((0, D / 2 + 0.02, F + H)), (W + 0.12, 0.2, 0.2)), H_WOOD, 0.04)
+    # Roof: two thick, gently shaped planes. u runs front to back, v from eave (0) to ridge (1).
+    over_side, over_end, eave_z, peak_z, thick = 0.5, 0.55, F + H - 0.3, F + H + R, 0.26
+    half_x = W / 2 + over_side
+    for s in (-1, 1):
+        def roof_side(s=s):
+            bm = b.bm
+            nu, nv = 6, 4
+            grid = [[None] * (nv + 1) for _ in range(nu + 1)]
+            for i in range(nu + 1):
+                u = i / nu
+                for j in range(nv + 1):
+                    v = j / nv
+                    y = -D / 2 - over_end + u * (D + 2 * over_end)
+                    x = s * half_x * (1 - v)
+                    z = eave_z + v * (peak_z - eave_z)
+                    z -= 0.16 * math.sin(math.pi * u) * v             # the ridge sags a touch
+                    z += 0.14 * (1 - v) ** 2 * abs(2 * u - 1) ** 3    # eave corners lift
+                    grid[i][j] = bm.verts.new(V((x, y, z)))
+            faces = []
+            for i in range(nu):
+                for j in range(nv):
+                    q = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]]
+                    faces.append(bm.faces.new(q if s < 0 else list(reversed(q))))
+            for f in faces:
+                f.normal_update()
+            if faces[0].normal.z < 0:
+                bmesh.ops.reverse_faces(bm, faces=faces)
+            bmesh.ops.solidify(bm, geom=faces, thickness=thick)
+        b.paint(b.new_faces(roof_side), "Build", H_ROOF)
+    ridge = [V((0, -D / 2 - over_end + t * (D + 2 * over_end), peak_z + 0.05 - 0.16 * math.sin(math.pi * t))) for t in (0, 0.2, 0.4, 0.6, 0.8, 1.0)]
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, ridge, [(0.14, 0.16)] * len(ridge), ref=V((1, 0, 0)), seg=6)), "Build", H_RIDGE)
+    # Chimney through the right slope, at the back.
+    soft(b, cube_at(b, V((0.95, 0.9, F + H + 1.2)), (0.6, 0.6, 2.2)), H_STONE, 0.06)
+    soft(b, cube_at(b, V((0.95, 0.9, F + H + 2.35)), (0.78, 0.78, 0.16)), H_STONE, 0.05)
+    # Door: stone arch surround, teal door, a step.
+    fy = -D / 2
+    soft(b, outline_prism(b, arch_outline(-0.55, F, 1.3, 2.15), fy - 0.08, fy + 0.05), H_STONE, 0.05)
+    soft(b, outline_prism(b, arch_outline(-0.55, F, 0.98, 1.95), fy - 0.12, fy - 0.06), H_ACCENT, 0.03)
+    soft(b, cube_at(b, V((-0.3, fy - 0.15, F + 0.95)), (0.08, 0.06, 0.08)), (0.9, 0.76, 0.42), 0.02)
+    soft(b, cube_at(b, V((-0.55, fy - 0.42, F - 0.1)), (1.5, 0.62, 0.2)), H_STONE, 0.06)
+    # Front window with shutters, and a round window in the gable.
+    def window(x, z, y, out_axis, w=0.72, h=0.82):
+        o = V(out_axis)
+        side = V((-o.y, o.x, 0)) if abs(o.x) < 0.5 else V((0, 1, 0))
+        c = V((x, y, z))
+        frame = (w + 0.18, 0.12, h + 0.18) if abs(o.y) > 0.5 else (0.12, w + 0.18, h + 0.18)
+        glass = (w, 0.06, h) if abs(o.y) > 0.5 else (0.06, w, h)
+        soft(b, cube_at(b, c + o * 0.02, frame), H_WOOD, 0.04)
+        soft(b, cube_at(b, c + o * 0.07, glass), H_GLOW, 0.01, 1, "Glow")
+        soft(b, cube_at(b, c + o * 0.1, (0.05, 0.05, h)), H_WOOD, 0.015, 1)
+        bar_h = (w, 0.05, 0.05) if abs(o.y) > 0.5 else (0.05, w, 0.05)
+        soft(b, cube_at(b, c + o * 0.1, bar_h), H_WOOD, 0.015, 1)
+        sill = (w + 0.34, 0.24, 0.1) if abs(o.y) > 0.5 else (0.24, w + 0.34, 0.1)
+        soft(b, cube_at(b, c + o * 0.1 - V((0, 0, h / 2 + 0.1)), sill), H_STONE, 0.03)
+        for k in (-1, 1):
+            shutter = (0.36, 0.08, h + 0.08) if abs(o.y) > 0.5 else (0.08, 0.36, h + 0.08)
+            soft(b, cube_at(b, c + o * 0.04 + side * k * (w / 2 + 0.28), shutter), H_ACCENT, 0.03)
+    window(0.95, F + 1.3, fy, (0, -1, 0))
+    window(W / 2, F + 1.3, 0.4, (1, 0, 0))
+    window(-W / 2, F + 1.3, 0.4, (-1, 0, 0))
+    gz = F + H + 0.85
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy + 0.02, gz)), V((0, fy - 0.1, gz))], [(0.36, 0.36)] * 2, ref=V((1, 0, 0)), seg=12)), "Build", H_WOOD)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy - 0.1, gz)), V((0, fy - 0.13, gz))], [(0.26, 0.26)] * 2, ref=V((1, 0, 0)), seg=12)), "Glow", H_GLOW)
+    # Little awning over the door on two brackets, and a lantern.
+    for x in (-1.2, 0.1):
+        soft(b, cube_at(b, V((x, fy - 0.32, F + 2.12)), (0.09, 0.7, 0.09), Euler((0.6, 0, 0))), H_WOOD, 0.02, 1)
+    soft(b, cube_at(b, V((-0.55, fy - 0.5, F + 2.42)), (1.75, 1.1, 0.16), Euler((-0.55, 0, 0))), H_ROOF, 0.05)
+    soft(b, cube_at(b, V((-1.45, fy - 0.22, F + 1.75)), (0.06, 0.4, 0.06)), H_WOOD, 0.02, 1)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((-1.45, fy - 0.42, F + 1.58)), (0.1, 0.1, 0.14), 6, 4)), "Glow", H_GLOW)
+    # A plant pot by the door.
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0.25, fy - 0.5, 0.0)), V((0.25, fy - 0.5, 0.4))], [(0.2, 0.2), (0.25, 0.25)], seg=10)), "Build", (0.78, 0.46, 0.32))
+    clump(b, V((0.25, fy - 0.5, 0.58)), 0.28, 1, rnd, (0.46, 0.66, 0.32), "Build", 0.9)
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -453,3 +595,4 @@ export("house_round", round_house(), OUT)
 export("house_loaf", loaf_house(), OUT)
 export("windmill", windmill(), OUT)
 export("windmill_sails", windmill_sails(), OUT)
+export("house_hearth", hearth_house(), OUT)

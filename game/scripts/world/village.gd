@@ -4,14 +4,14 @@ extends Node3D
 
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const HOUSES := [
-	{"model": "res://assets/buildings/house_cottage.glb", "at": Vector2(-5.5, 11.5), "size": Vector3(4.6, 4, 3.6)},
+	{"model": "res://assets/buildings/house_hearth.glb", "at": Vector2(-5.5, 11.5), "size": Vector3(4.0, 4, 4.6)},
 	{"model": "res://assets/buildings/house_cabin.glb", "at": Vector2(10.5, 13.0), "size": Vector3(4.4, 4, 3.6)},
 	{"model": "res://assets/buildings/house_round.glb", "at": Vector2(-9.0, 23.0), "size": Vector3(4.4, 4, 4.4)},
 	{"model": "res://assets/buildings/windmill.glb", "at": Vector2(14.0, 3.0), "size": Vector3(4.0, 6, 4.0)},
 	{"model": "res://assets/buildings/house_loaf.glb", "at": Vector2(-13.0, 2.0), "size": Vector3(5.0, 4, 3.4)},
 ]
 const SAILS := preload("res://assets/buildings/windmill_sails.glb")
-const SAILS_AT := Vector3(0, 5.75, 1.45)       # the hub on the windmill's front, from make_buildings.py
+const SAILS_AT := Vector3(0, 5.75, 2.75)       # the hub on the windmill's front, from make_buildings.py
 const MERCHANT_AT := Vector2(5.4, 16.0)
 const GREETINGS := ["Fine goods today, traveller!", "Wood, stone, hides... I buy it all. Soon.",
 	"Mind the boars past the hill.", "Come back when my stall is built!"]
