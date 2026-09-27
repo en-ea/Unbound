@@ -11,6 +11,8 @@ const BASE_BODY := DIR + "Superhero_Male_FullBody.gltf"
 const HAIR := DIR + "Hair_SimpleParted.gltf"
 const WANDERER := "res://assets/characters/wanderer.glb"
 const HERO := "res://assets/characters/hero.glb"
+## Our own gathering animations (Chop, Mine, Gather), made by tools-src/blender/make_anims.py.
+const EXTRA_ANIMS := "res://assets/characters/gather_anims.glb"
 const LOOKS := ["hero", "wanderer", "villager"]
 const HAIR_COLOR := Color(0.36, 0.22, 0.13)   # the hair textures are grey, made for tinting
 const NECK_Y := 1.47          # keep only the base body's head (the outfit covers the rest)
@@ -49,6 +51,7 @@ func _ready() -> void:
 	set_look(LOOKS[0])
 	for anim_name in [IDLE, WALK, RUN]:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
+	_add_extra_animations()
 	_make_tools()
 	play_motion(0.0)
 
@@ -68,6 +71,53 @@ func play_action(anim_name: String, speed := 1.0) -> void:
 	if _anim.current_animation == anim_name:
 		_anim.stop()          # replaying the same animation would otherwise just continue it
 	_anim.play(anim_name, 0.12, speed)
+
+
+## A split-second freeze on impact, so hits feel solid.
+func hit_stop(seconds := 0.07) -> void:
+	_anim.pause()
+	get_tree().create_timer(seconds).timeout.connect(func() -> void: _anim.play())
+
+
+## Adds our own animations. Blender re-orients each bone's local axes on the way through, so
+## the rotations are converted from that skeleton's bone frames into this rig's frames:
+## local_ours = C_parent^-1 * local_theirs * C_bone, where C = their_rest^-1 * our_rest (global).
+func _add_extra_animations() -> void:
+	var scene := (load(EXTRA_ANIMS) as PackedScene).instantiate()
+	var source := scene.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
+	var src_skel := scene.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+	var frames := {}      # bone name -> C (Quaternion)
+	for i in _skeleton.get_bone_count():
+		var bone := _skeleton.get_bone_name(i)
+		var j := src_skel.find_bone(bone)
+		if j >= 0:
+			var theirs := src_skel.get_bone_global_rest(j).basis.get_rotation_quaternion()
+			var ours := _skeleton.get_bone_global_rest(i).basis.get_rotation_quaternion()
+			frames[bone] = theirs.inverse() * ours
+	var library := _anim.get_animation_library("")
+	for anim_name in source.get_animation_list():
+		if anim_name == "RESET":
+			continue
+		var anim := source.get_animation(anim_name).duplicate(true) as Animation
+		anim.loop_mode = Animation.LOOP_NONE
+		for t in anim.get_track_count():
+			var bone := String(anim.track_get_path(t).get_concatenated_subnames())
+			if not frames.has(bone):
+				continue
+			var parent_idx := _skeleton.get_bone_parent(_skeleton.find_bone(bone))
+			var c_parent: Quaternion = frames.get(_skeleton.get_bone_name(parent_idx), Quaternion.IDENTITY) if parent_idx >= 0 else Quaternion.IDENTITY
+			var c_bone: Quaternion = frames[bone]
+			match anim.track_get_type(t):
+				Animation.TYPE_ROTATION_3D:
+					for k in anim.track_get_key_count(t):
+						var q: Quaternion = anim.track_get_key_value(t, k)
+						anim.track_set_key_value(t, k, c_parent.inverse() * q * c_bone)
+				Animation.TYPE_POSITION_3D:
+					for k in anim.track_get_key_count(t):
+						var v: Vector3 = anim.track_get_key_value(t, k)
+						anim.track_set_key_value(t, k, c_parent.inverse() * v)
+		library.add_animation(anim_name, anim)
+	scene.free()
 
 
 func show_tool(tool_name: String) -> void:

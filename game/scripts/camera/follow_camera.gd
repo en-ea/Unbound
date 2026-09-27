@@ -13,9 +13,11 @@ extends Node3D
 
 var _offset := Vector3.ZERO          # shifts the view (the look picker puts you left of centre)
 var _default_view := Vector2.ZERO    # (distance, pitch) to return to
+var _shake := 0.0
 
 
 func _ready() -> void:
+	add_to_group("camera_rig")
 	camera.fov = fov
 	camera.far = 220.0
 	camera.near = 0.3
@@ -51,7 +53,16 @@ func snap() -> void:
 		global_position = _focus()
 
 
+## A short jolt (hits, impacts). Strength is in metres of camera offset.
+func shake(strength: float) -> void:
+	_shake = maxf(_shake, strength)
+
+
 func _process(delta: float) -> void:
+	if _shake > 0.0:
+		_shake = maxf(_shake - delta * 0.5, 0.0)
+		camera.h_offset = randf_range(-1.0, 1.0) * _shake
+		camera.v_offset = randf_range(-1.0, 1.0) * _shake
 	if target:
 		global_position = global_position.lerp(_focus(), clampf(follow_speed * delta, 0.0, 1.0))
 

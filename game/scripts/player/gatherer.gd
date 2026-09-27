@@ -6,10 +6,11 @@ signal target_changed(verb: String)    # "Chop" / "Mine" / "Pick", or "" when no
 
 const REACH := 1.1
 ## Per tool: animation, playback speed, seconds until the hit lands, total swing time.
+## (Chop / Mine / Gather are ours: tools-src/blender/make_anims.py; hits land on frame 13 / 13 / 10.)
 const SWINGS := {
-	"axe": {"anim": "Sword_Attack", "speed": 1.7, "impact": 0.38, "time": 0.82},
-	"pickaxe": {"anim": "Sword_Attack", "speed": 1.7, "impact": 0.38, "time": 0.82},
-	"": {"anim": "PickUp_Table", "speed": 1.3, "impact": 0.3, "time": 0.6},
+	"axe": {"anim": "Chop", "speed": 1.15, "impact": 0.377, "time": 0.8, "shake": 0.05},
+	"pickaxe": {"anim": "Mine", "speed": 1.15, "impact": 0.377, "time": 0.8, "shake": 0.07},
+	"": {"anim": "Gather", "speed": 1.2, "impact": 0.28, "time": 0.6, "shake": 0.0},
 }
 const BUFFER := 0.25    # a tap this close to the end of a swing queues the next one
 
@@ -22,6 +23,7 @@ var _busy := 0.0
 var _impact := -1.0
 var _swing_target := -1
 var _queued := false
+var _shake := 0.0
 
 
 func is_busy() -> bool:
@@ -42,6 +44,9 @@ func _physics_process(delta: float) -> void:
 		_impact -= delta
 		if _impact < 0.0 and _swing_target >= 0:
 			WorldResources.hit_node(_swing_target)
+			if _shake > 0.0:
+				visual.hit_stop()
+				get_tree().call_group("camera_rig", "shake", _shake)
 	var found := WorldResources.nearest(player.global_position, REACH)
 	var new_verb: String = WorldResources.type_info(found)["verb"] if found >= 0 else ""
 	target = found
@@ -72,3 +77,4 @@ func act() -> void:
 	_busy = swing["time"]
 	_impact = swing["impact"]
 	_swing_target = target
+	_shake = swing["shake"]
