@@ -9,6 +9,8 @@ M2 "Gather" first pass is in:
 - State (no visuals): Items (scripts/state/items.gd), Inventory and WorldResources autoloads (hits, drops with chances, respawn timers).
 - Scatter registers trees/apple trees/rocks/mushrooms/flowers; ResourceVisuals does shake, chips, sounds (Kenney impacts), stumps, grow-back; drops fly to the player (drop.gd) with "+1 Wood" popups; rare finds sparkle and chime.
 - Gatherer on the player + round action button (Chop/Mine/Pick, multi-touch safe) + Bag screen. Axe/pickaxe from tools-src/blender/make_tools.py. Dev: --gathertest.
-- Known: tree canopies can hide the player when walking behind them; the sword swing is a stand-in chop animation; item icons are colour dots; hair and character need more work.
+- Trees have sizes (young/grown/old: 3/4/6 hits, 1-2/2-3/4-5 wood), fall over when chopped, and regrow from saplings. Pickup feed pills in the HUD. All nature models are our own faceted ones (make_trees.py); the Quaternius nature pack is gone (download ~6.5 MB).
+- Known: tree canopies can hide the player when walking behind them; the sword swing is a stand-in chop animation; item icons are colour dots; hair and character need more work; no saving yet (M5).
+- Next per plan: M3 "Fight".
 
 Work in small steps, keep usage low (no repeated screenshot loops), keep replies short, check in with me every few steps, and tell me what to test when it's ready.
