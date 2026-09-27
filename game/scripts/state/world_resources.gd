@@ -27,7 +27,7 @@ const TYPES := {
 		"drops": [["mushroom", 1, 1, 1.0], ["glowcap", 1, 1, 0.06]]},
 	"flower": {"hits": 1, "respawn": 40.0, "radius": 0.3, "tool": "", "verb": "Pick",
 		"drops": [["flower", 1, 2, 1.0]]},
-	"chest": {"hits": 1, "respawn": 900.0, "radius": 0.5, "tool": "", "verb": "Open",
+	"chest": {"hits": 1, "respawn": 480.0, "radius": 0.5, "tool": "", "verb": "Open",
 		"drops": [["flint", 2, 4, 1.0], ["resin", 1, 2, 0.8], ["shard", 1, 2, 0.7], ["glowcap", 1, 1, 0.5], ["fang", 1, 1, 0.3]]},
 }
 

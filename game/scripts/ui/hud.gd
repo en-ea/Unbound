@@ -355,7 +355,7 @@ func _knocked_out() -> void:
 	line.custom_minimum_size = Vector2(0, 3)
 	line.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	column.add_child(line)
-	var sub := UIStyle.label(column, "You come to by the village...", 22, true)
+	var sub := UIStyle.label(column, "Waking up in the village...", 22, true)
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var t := create_tween().set_ignore_time_scale(true)
 	t.tween_property(flash, "color:a", 0.0, 0.7)

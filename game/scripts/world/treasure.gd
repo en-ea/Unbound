@@ -2,7 +2,7 @@ extends Node3D
 ## Old ruins and treasure chests hidden around the meadow. A chest is a gatherable in
 ## WorldResources (type "chest": "Open", no tool), so reach, the action button, loot and saving all
 ## work like trees; this script shows it: a glint while it's full, the lid swinging open, the loot.
-## Every chest also holds a tool with a bonus (a tool_drop to pick up). It refills after a long while.
+## Every chest also holds a tool with a bonus (a tool_drop to pick up). It refills after 8 minutes.
 
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const DROP := preload("res://scripts/world/drop.gd")
