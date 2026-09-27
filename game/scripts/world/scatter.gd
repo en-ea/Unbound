@@ -6,7 +6,8 @@ const NATURE := "res://assets/quaternius_nature/%s.gltf"
 const OWN := "res://assets/nature/%s.glb"          # our own models (tools-src/blender/make_trees.py)
 const FOLIAGE_SHADER := preload("res://shaders/foliage.gdshader")
 const SOLID_FOLIAGE_SHADER := preload("res://shaders/foliage_solid.gdshader")
-const CHUNK := 20.0
+const CHUNK := 30.0
+const TREE_CELL := 5.0      # grid cell for fast "is there a tree near here" checks
 const GRASS_TINT := Color(0.72, 0.78, 0.64)   # the pack's grass is a bit neon
 
 ## Per model: cast shadows, visibility range (0 = always), wind sway (metres), sway height.
@@ -23,6 +24,7 @@ var _rng := RandomNumberGenerator.new()
 var _batches := {}         # "model|kind|cx|cz" -> Array[Transform3D]
 var _meshes := {}          # "model|kind" -> Mesh with our materials
 var _trees: Array[Vector2] = []
+var _tree_grid := {}        # Vector2i cell -> Array[Vector2] of trees in it
 var _colliders: StaticBody3D
 
 
@@ -62,7 +64,7 @@ func _scatter_trees() -> void:
 		var spacing := 3.6 if edge > 50.0 else 4.5
 		if _near_tree(p, spacing):
 			continue
-		_trees.append(p)
+		_add_tree(p)
 		var model: String = pines.pick_random() if (edge > 48.0 and _rng.randf() < 0.6) else commons.pick_random()
 		_place(model, "tree", p, _rng.randf_range(0.85, 1.25), 0.25)
 
@@ -74,7 +76,7 @@ func _scatter_landmarks() -> void:
 	for i in 7:
 		var p := WorldShape.HILL_CENTER + Vector2.from_angle(i * TAU / 7.0 + 0.3) * 4.2
 		_place_stone(rocks[i % 3], p)
-	_trees.append(WorldShape.HILL_CENTER)
+	_add_tree(WorldShape.HILL_CENTER)
 	var pond := WorldShape.POND_CENTER + Vector2(-WorldShape.POND_RADIUS - 3.0, -6.0)
 	_place("DeadTree_2", "tree", pond, 0.5, 0.0)
 
@@ -184,10 +186,21 @@ func _clear_of_features(p: Vector2, path_gap: float, spawn_gap: float) -> bool:
 		and p.distance_to(WorldShape.HILL_CENTER) > 7.0
 
 
+func _add_tree(p: Vector2) -> void:
+	_trees.append(p)
+	var cell := Vector2i(floori(p.x / TREE_CELL), floori(p.y / TREE_CELL))
+	if not _tree_grid.has(cell):
+		_tree_grid[cell] = []
+	_tree_grid[cell].append(p)
+
+
 func _near_tree(p: Vector2, gap: float) -> bool:
-	for t in _trees:
-		if t.distance_squared_to(p) < gap * gap:
-			return true
+	var c := Vector2i(floori(p.x / TREE_CELL), floori(p.y / TREE_CELL))
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			for t: Vector2 in _tree_grid.get(c + Vector2i(dx, dy), []):
+				if t.distance_squared_to(p) < gap * gap:
+					return true
 	return false
 
 

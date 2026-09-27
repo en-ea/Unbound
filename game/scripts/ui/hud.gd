@@ -54,10 +54,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_worst = maxf(_worst, delta)
 	_timer += delta
-	if _timer >= 1.0:
-		_worst_shown = _worst
-		_worst = 0.0
-		_timer = 0.0
+	if _timer < 1.0:
+		return
+	_worst_shown = _worst
+	_worst = 0.0
+	_timer = 0.0
 	_fps_label.text = "%d fps · worst %d ms\n%d draws · %dk tris" % [
 		Engine.get_frames_per_second(), roundi(_worst_shown * 1000.0),
 		Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
