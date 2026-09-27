@@ -18,4 +18,8 @@ M2 "Gather" first pass is in:
 - M3 started: boar enemy (make_boar.py parts + procedural animation in boar_visual.gd; AI in boar.gd: wander/alert/charge/recover/hurt/dead, respawns). Player: sword 3-hit combo (fighter.gd, UAL2 Sword_Regular_A/B/C), dodge roll, knockback (no player health/death yet). Dev: --fighttest.
 - M3 still to do: player health and death/respawn, enemy variety later, combat polish from the owner's feedback.
 
+Recommended next (in order): 1) Saving (M5 core): save anywhere, instantly (inventory, world resources, look, position), plus offline play via a simple service worker. 2) M4 crafting loop: workbench, tool tiers (better axe/pickaxe/sword), skills that level with use; gives gathering a purpose. 3) Finish M3: player health, death and respawn, a second enemy. Later: body variety (sizes, builds, kids), non-human NPCs, village (M6).
+
+Publishing: the game is on GitHub (en-ea/Unbound); after an export run tools-src/publish_web.sh, commit and push so Vercel updates the phone link.
+
 Work in small steps, keep usage low (no repeated screenshot loops), keep replies short, check in with me every few steps, and tell me what to test when it's ready.
