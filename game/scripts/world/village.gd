@@ -50,15 +50,30 @@ func _add_merchant(shape: WorldShape) -> void:
 	look.outfit = "Wanderer"
 	while look.outfit != "Merchant":
 		look.cycle_outfit(1)
-	look.parts["beard"] = "full"
-	look.parts["face"] = "happy"
-	look.colors["Hair"] = 5
-	look.colors["Skin"] = 2
+	# The big merchant from the owner's reference sheet: red coat with cream cuffs, red hat,
+	# full dark beard, strap and belt, and a huge pack with a bedroll and a lantern.
+	look.parts = {"face": "happy", "cheeks": "blush", "hair": "short", "beard": "full", "head": "hat",
+		"top": "coat", "chest": "strap", "shoulders": "none", "back": "backpack"}
+	look.colors = {"Skin": 2, "Hair": 5, "Main": 2, "Second": 1, "Cloth": 0, "Accent": 0, "Leather": 0}
 	_merchant.hero_look = look
 	add_child(_merchant)
-	# A bigger build: wider and a little shorter than the hero.
-	_merchant.scale = Vector3(1.22, 0.97, 1.18)
+	_merchant.scale = Vector3(1.38, 0.96, 1.32)     # big and broad
 	_merchant.global_position = Vector3(MERCHANT_AT.x, shape.height_at(MERCHANT_AT.x, MERCHANT_AT.y), MERCHANT_AT.y)
+	var lantern := MeshInstance3D.new()
+	var glass := SphereMesh.new()
+	glass.radius = 0.07
+	glass.height = 0.16
+	glass.radial_segments = 6
+	glass.rings = 3
+	var glow := StandardMaterial3D.new()
+	glow.albedo_color = Color(1.0, 0.75, 0.4)
+	glow.emission_enabled = true
+	glow.emission = Color(1.0, 0.7, 0.35)
+	glow.emission_energy_multiplier = 2.0
+	glass.material = glow
+	lantern.mesh = glass
+	lantern.position = Vector3(-0.2, 1.05, -0.3)      # hanging off the side of the pack
+	_merchant.add_child(lantern)
 	_bubble = Label3D.new()
 	_bubble.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_bubble.no_depth_test = true
