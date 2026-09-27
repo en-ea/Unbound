@@ -72,7 +72,7 @@ func _nearest_station() -> Node3D:
 	var best_d := INF
 	for n: Node3D in get_tree().get_nodes_in_group("interactable"):
 		var d := Vector2(n.global_position.x - global_position.x, n.global_position.z - global_position.z).length()
-		if d < n.reach and d < best_d:
+		if d < n.reach and d < best_d and absf(n.global_position.y - global_position.y) < 3.0:
 			best_d = d
 			best = n
 	return best

@@ -14,6 +14,7 @@
                  ridge; wood front, wheel window, deck, hanging lanterns.
   house_hex / house_grotto / house_tower: the dark diorama style from the owner's references
                  (faceted slate, stepped hex/octagon bases, glowing crystals and runes, gold trims).
+  house_arch:    one smooth barrel roof sweeping near the ground, wood front, round glowing window.
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -817,6 +818,76 @@ def rune_tower():
     return b
 
 
+def arch_cottage():
+    """A cottage under one smooth barrel roof that sweeps almost to the ground (the lodge's roof-as-
+    the-house idea, rounded like the hill house): warm wood front, a big glowing round window over
+    an arched door, two lanterns, a small porch with planters, a stone chimney."""
+    b = Builder(["Build", "Glow"])
+    ROOF = (0.68, 0.36, 0.29)
+    PLANK = (0.8, 0.58, 0.38)
+    STONE_L = (0.68, 0.67, 0.68)
+    HALF, TOP, BASE, D = 2.7, 4.3, 0.4, 5.6          # roof half-width, apex, eave height, depth
+    soft(b, cube_at(b, V((0, 0, 0.12)), (5.0, D + 0.4, 0.34)), STONE_L, 0.07)
+
+    def arch_xz(t, grow=0.0):                          # t 0..1 across the arch, left to right
+        a = math.pi * (1 - t)
+        return math.cos(a) * (HALF + grow), BASE + math.sin(a) * (TOP - BASE + grow)
+
+    # The roof: a thick barrel shell, a little longer at the front to shade the porch.
+    def roof():
+        bm = b.bm
+        nu, nv = 14, 4
+        grid = [[None] * (nv + 1) for _ in range(nu + 1)]
+        for i in range(nu + 1):
+            x, z = arch_xz(i / nu)
+            for j in range(nv + 1):
+                y = -D / 2 - 0.7 + j / nv * (D + 1.0)
+                grid[i][j] = bm.verts.new(V((x, y, z)))
+        faces = []
+        for i in range(nu):
+            for j in range(nv):
+                faces.append(bm.faces.new([grid[i][j], grid[i][j + 1], grid[i + 1][j + 1], grid[i + 1][j]]))
+        for f in faces:
+            f.normal_update()
+        if sum(f.normal.z for f in faces) < 0:
+            bmesh.ops.reverse_faces(bm, faces=faces)
+        bmesh.ops.solidify(bm, geom=faces, thickness=0.3)
+    b.paint(b.new_faces(roof), "Build", ROOF)
+    # Front and back walls: warm planks filling the arch, set back under the roof.
+    outline = [(-HALF + 0.3, 0.3)] + [(x * 0.86, z * 0.95) for x, z in (arch_xz(k / 12) for k in range(1, 12))] + [(HALF - 0.3, 0.3)]
+    outline = [(outline[0][0], 0.3)] + [(x, max(z, 0.3)) for x, z in outline[1:-1]] + [(outline[-1][0], 0.3)]
+    soft(b, outline_prism(b, list(reversed(outline)), -D / 2 + 0.1, D / 2 - 0.2), PLANK, 0.05)
+    fy = -D / 2 + 0.1
+    for x in (-1.3, -0.65, 0.65, 1.3):                  # a few plank grooves
+        soft(b, cube_at(b, V((x, fy - 0.02, 1.4)), (0.04, 0.04, 2.1)), (0.68, 0.48, 0.31), 0.01, 1)
+    # Big round window high up, glowing, with a wooden frame and bars.
+    wz = 2.85
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy + 0.02, wz)), V((0, fy - 0.12, wz))], [(0.72, 0.72)] * 2, ref=V((1, 0, 0)), seg=16)), "Build", H_WOOD)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, fy - 0.12, wz)), V((0, fy - 0.15, wz))], [(0.58, 0.58)] * 2, ref=V((1, 0, 0)), seg=16)), "Glow", H_GLOW)
+    for d in (V((0.58, 0, 0)), V((0, 0, 0.58))):
+        b.paint(b.new_faces(lambda d=d: rk.tube(b.bm, [V((0, fy - 0.17, wz)) - d, V((0, fy - 0.17, wz)) + d], [(0.035, 0.035)] * 2, seg=4)), "Build", H_WOOD)
+    # Arched door, lanterns either side.
+    soft(b, outline_prism(b, arch_outline(0, 0.3, 1.3, 1.95), fy - 0.08, fy + 0.04), H_WOOD, 0.04)
+    soft(b, outline_prism(b, arch_outline(0, 0.3, 1.04, 1.8), fy - 0.12, fy - 0.07), (0.6, 0.39, 0.25), 0.03)
+    soft(b, cube_at(b, V((0.34, fy - 0.15, 1.2)), (0.07, 0.05, 0.07)), (0.9, 0.76, 0.42), 0.015, 1)
+    for x in (-1.1, 1.1):
+        soft(b, cube_at(b, V((x, fy - 0.2, 1.95)), (0.05, 0.36, 0.05)), H_WOOD, 0.01, 1)
+        b.paint(b.new_faces(lambda x=x: rk.blob(b.bm, V((x, fy - 0.4, 1.78)), (0.11, 0.11, 0.16), 6, 4)), "Glow", H_GLOW)
+    # Porch: a low deck and two steps, planters with flowers at the corners.
+    soft(b, cube_at(b, V((0, fy - 0.75, 0.3)), (3.4, 1.3, 0.14)), H_WOOD, 0.04)
+    for i in range(2):
+        soft(b, cube_at(b, V((0, fy - 1.55 - i * 0.32, 0.18 - i * 0.12)), (1.5, 0.34, 0.12)), H_WOOD, 0.03)
+    for x in (-1.45, 1.45):
+        soft(b, cube_at(b, V((x, fy - 1.1, 0.55)), (0.5, 0.5, 0.36)), (0.62, 0.42, 0.28), 0.04)
+        clump(b, V((x, fy - 1.1, 0.85)), 0.3, 1, rnd, (0.44, 0.64, 0.3), "Build", 0.8)
+        for k in range(3):
+            clump(b, V((x + (k - 1) * 0.14, fy - 1.22, 1.02)), 0.06, 1, rnd, FLOWERS[k], "Build", 1.0)
+    # Stone chimney out of the roof, towards the back.
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((1.3, 1.5, 3.0)), V((1.3, 1.5, 4.9))], [(0.3, 0.3), (0.27, 0.27)], seg=10)), "Build", STONE_L)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((1.3, 1.5, 4.9)), V((1.3, 1.5, 5.05))], [(0.36, 0.36)] * 2, seg=10)), "Build", (0.58, 0.57, 0.58))
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -831,3 +902,4 @@ export("house_lodge", swoop_lodge(), OUT)
 export("house_hex", hex_house(), OUT)
 export("house_grotto", grotto_house(), OUT)
 export("house_tower", rune_tower(), OUT)
+export("house_arch", arch_cottage(), OUT)

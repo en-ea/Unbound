@@ -6,9 +6,10 @@ extends Node3D
 const TREASURE := preload("res://scripts/world/treasure.gd")
 const AT := Vector3(0, -300, 0)
 ## [name, model, footprint]: the newest styles in the front row.
-const FRONT := [["Hex house", "house_hex", 6.5], ["Rune tower", "house_tower", 6.0], ["Grotto house", "house_grotto", 6.5]]
-const BACK := [["Round house", "house_round", 5.0], ["Hill house", "house_hill", 6.5], ["Swoop lodge", "house_lodge", 6.0],
-	["Cottage", "house_cottage", 6.0], ["Cabin", "house_cabin", 6.0], ["Loaf cottage", "house_loaf", 6.0], ["Windmill", "windmill", 5.0]]
+const FRONT := [["Hill house", "house_hill", 6.5], ["Arch cottage", "house_arch", 6.0], ["Swoop lodge", "house_lodge", 6.0]]
+const BACK := [["Round house", "house_round", 5.0], ["Cottage", "house_cottage", 6.0], ["Cabin", "house_cabin", 6.0],
+	["Loaf cottage", "house_loaf", 6.0], ["Windmill", "windmill", 5.0], ["Hex house (later)", "house_hex", 6.5],
+	["Rune tower (later)", "house_tower", 6.0], ["Grotto house (later)", "house_grotto", 6.5]]
 
 @export var player: CharacterBody3D
 
@@ -34,7 +35,7 @@ func enter() -> void:
 	if env:
 		_fog_was = env.fog_enabled
 		env.fog_enabled = false
-	player.global_position = AT + Vector3(0, 0.6, 16)
+	player.global_position = AT + Vector3(0, 0.6, 7.5)
 	player.velocity = Vector3.ZERO
 	get_tree().call_group("camera_rig", "snap")
 
