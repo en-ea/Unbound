@@ -11,7 +11,9 @@ const PARTS := {
 	"brows": ["soft", "arched", "raised", "stern", "thick"],
 	"mouth": ["smile", "grin", "open", "flat", "smirk"],
 	"cheeks": ["none", "blush"],
-	"hair": ["short", "messy", "long", "ponytail", "bun", "none"],
+	"marks": ["none", "freckles", "scar", "warpaint", "stripe"],
+	"extra": ["none", "glasses", "eyepatch", "earrings"],
+	"hair": ["short", "messy", "swept", "long", "ponytail", "braid", "bun", "mohawk", "none"],
 	"beard": ["none", "stubble", "short", "full", "braided", "goatee", "mustache", "chinstrap"],
 	"head": ["none", "hat", "band", "bandana", "circlet"],
 	"top": ["tunic", "jacket", "coat"],
@@ -20,11 +22,12 @@ const PARTS := {
 	"back": ["none", "scarf", "backpack", "cape"],
 	"feet": ["boots", "shoes", "wraps"],
 }
-const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "cheeks": "Cheeks", "hair": "Hair",
+const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "cheeks": "Cheeks", "marks": "Markings", "extra": "Extras", "hair": "Hair",
 	"beard": "Beard", "head": "Headwear", "top": "Top", "chest": "Chest", "shoulders": "Shoulders", "back": "Back",
 	"feet": "Feet"}
-## Which slots the look picker shows on its "Face" tab (the rest go on "Outfit").
-const FACE_SLOTS := ["eyes", "brows", "mouth", "cheeks", "hair", "beard"]
+## Body shape ranges (the picker's sliders): height and build scale the whole character.
+const HEIGHT_RANGE := Vector2(0.9, 1.1)
+const BUILD_RANGE := Vector2(0.88, 1.14)
 
 const EARTHY: Array[Color] = [
 	Color(0.42, 0.48, 0.32), Color(0.85, 0.64, 0.25), Color(0.52, 0.2, 0.22), Color(0.26, 0.32, 0.46),
@@ -32,16 +35,18 @@ const EARTHY: Array[Color] = [
 ]
 ## Colour slots (material names in hero.glb) and the palette each picks from.
 const PALETTES := {
-	"Skin": [Color(0.98, 0.8, 0.66), Color(0.93, 0.72, 0.56), Color(0.8, 0.58, 0.42), Color(0.62, 0.42, 0.3), Color(0.45, 0.3, 0.22)],
-	"Hair": [Color(0.24, 0.15, 0.1), Color(0.1, 0.08, 0.08), Color(0.85, 0.62, 0.3), Color(0.62, 0.26, 0.14), Color(0.88, 0.88, 0.86), Color(0.38, 0.28, 0.2)],
+	"Skin": [Color(1.0, 0.86, 0.76), Color(0.98, 0.8, 0.66), Color(0.93, 0.72, 0.56), Color(0.8, 0.58, 0.42), Color(0.62, 0.42, 0.3), Color(0.45, 0.3, 0.22), Color(0.34, 0.22, 0.17)],
+	"Hair": [Color(0.24, 0.15, 0.1), Color(0.1, 0.08, 0.08), Color(0.85, 0.62, 0.3), Color(0.96, 0.84, 0.58), Color(0.62, 0.26, 0.14), Color(0.74, 0.18, 0.16),
+		Color(0.88, 0.88, 0.86), Color(0.54, 0.58, 0.66), Color(0.38, 0.28, 0.2), Color(0.3, 0.24, 0.48), Color(0.2, 0.44, 0.46)],
 	"Main": EARTHY,
 	"Second": [Color(0.3, 0.29, 0.3), Color(0.3, 0.22, 0.16), Color(0.24, 0.28, 0.38), Color(0.32, 0.36, 0.26), Color(0.48, 0.47, 0.45), Color(0.6, 0.5, 0.36)],
 	"Cloth": [Color(0.85, 0.8, 0.68), Color(0.93, 0.92, 0.88), Color(0.62, 0.63, 0.64), Color(0.62, 0.72, 0.82), Color(0.74, 0.6, 0.42), Color(0.72, 0.42, 0.28)],
 	"Accent": [Color(0.72, 0.25, 0.2), Color(0.85, 0.64, 0.25), Color(0.42, 0.48, 0.32), Color(0.22, 0.42, 0.44), Color(0.52, 0.2, 0.22), Color(0.8, 0.74, 0.6), Color(0.26, 0.32, 0.46), Color(0.86, 0.46, 0.2)],
 	"Leather": [Color(0.5, 0.33, 0.2), Color(0.3, 0.2, 0.14), Color(0.66, 0.5, 0.32), Color(0.22, 0.22, 0.24)],
+	"Marks": [Color(0.36, 0.22, 0.16), Color(0.72, 0.18, 0.16), Color(0.16, 0.16, 0.2), Color(0.92, 0.92, 0.9), Color(0.24, 0.42, 0.72), Color(0.9, 0.7, 0.3)],
 }
 const COLOR_LABELS := {"Skin": "Skin", "Hair": "Hair", "Main": "Top", "Second": "Trousers", "Cloth": "Shirt",
-	"Accent": "Scarf, hat, cape", "Leather": "Leather"}
+	"Accent": "Scarf, hat, cape", "Leather": "Leather", "Marks": "Markings"}
 
 ## Ready-made outfits (from the owner's reference sheets); pick one, then tweak.
 const OUTFITS := {
@@ -63,13 +68,15 @@ const OUTFITS := {
 }
 
 var outfit := "Wanderer"
-var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "cheeks": "none", "hair": "short", "beard": "none",
+var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "cheeks": "none", "marks": "none", "extra": "none", "hair": "short", "beard": "none",
 	"head": "none", "top": "tunic", "chest": "strap", "shoulders": "none", "back": "scarf", "feet": "boots"}
-var colors := {"Skin": 1, "Hair": 0, "Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0}   # palette indices
+var colors := {"Skin": 2, "Hair": 0, "Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0, "Marks": 0}   # palette indices
+var height := 1.0
+var build := 1.0
 
 
 func color(slot: String) -> Color:
-	return PALETTES[slot][colors[slot]]
+	return PALETTES[slot][clampi(colors.get(slot, 0), 0, PALETTES[slot].size() - 1)]
 
 
 func cycle_part(slot: String, step: int) -> void:
@@ -97,6 +104,11 @@ func randomize_look(rng: RandomNumberGenerator) -> void:
 		parts[slot] = PARTS[slot][rng.randi() % PARTS[slot].size()]
 	for slot in PALETTES:
 		colors[slot] = rng.randi() % PALETTES[slot].size()
+	for slot in ["marks", "extra"]:               # keep extras occasional
+		if rng.randf() < 0.6:
+			parts[slot] = "none"
+	height = snappedf(rng.randf_range(0.95, 1.05), 0.01)
+	build = snappedf(rng.randf_range(0.94, 1.08), 0.01)
 
 
 func save() -> void:
@@ -104,6 +116,8 @@ func save() -> void:
 	cfg.set_value("look", "outfit", outfit)
 	cfg.set_value("look", "parts", parts)
 	cfg.set_value("look", "colors", colors)
+	cfg.set_value("look", "height", height)
+	cfg.set_value("look", "build", build)
 	cfg.save(SAVE_PATH)
 
 
@@ -122,4 +136,6 @@ static func load_saved() -> CharacterLook:
 		for slot in saved_colors:
 			if PALETTES.has(slot):
 				look.set_color(slot, saved_colors[slot])
+		look.height = clampf(cfg.get_value("look", "height", 1.0), HEIGHT_RANGE.x, HEIGHT_RANGE.y)
+		look.build = clampf(cfg.get_value("look", "build", 1.0), BUILD_RANGE.x, BUILD_RANGE.y)
 	return look

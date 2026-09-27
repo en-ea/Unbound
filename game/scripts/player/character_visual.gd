@@ -32,6 +32,7 @@ const TOOL_GRIP := {
 const TOOL_OFFSET := Vector3(0.0, 0.07, 0.0)       # from the wrist into the palm
 
 var hero_look := CharacterLook.load_saved()
+var is_player_look := true      # the player takes height/build from the look; NPCs set their own scale
 
 var _anim: AnimationPlayer
 var _skeleton: Skeleton3D
@@ -122,6 +123,8 @@ func show_tool(tool_name: String) -> void:
 
 ## Shows the hero's chosen parts and applies its colours.
 func apply_hero_look() -> void:
+	if is_player_look:
+		scale = Vector3(hero_look.build, hero_look.height, hero_look.build)
 	var p := hero_look.parts
 	var covered: bool = p["head"] in ["hat", "bandana"]
 	for mi in _parts:

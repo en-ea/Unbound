@@ -61,6 +61,21 @@ func _ready() -> void:
 			get_node("../CameraRig").set_distance.call_deferred(float(arg.trim_prefix("--zoom=")))
 		elif arg == "--picker":
 			get_node("../HUD").open_look_picker.call_deferred()
+		elif arg.begins_with("--pickertab="):              # e.g. hair:braid,marks:freckles,extra:glasses
+			var bits := arg.trim_prefix("--pickertab=").split("/")
+			var hud := get_node("../HUD")
+			hud.open_look_picker.call_deferred()
+			var tab := bits[0]
+			var set_parts := bits[1] if bits.size() > 1 else ""
+			get_tree().create_timer(0.3).timeout.connect(func() -> void:
+				var picker := hud.find_children("*", "Control", true, false).filter(func(c: Node) -> bool: return c.has_method("_show_tab"))
+				if picker.is_empty():
+					return
+				for pair in set_parts.split(",", false):
+					var kv := pair.split(":")
+					picker[0]._visual.hero_look.parts[kv[0]] = kv[1]
+				picker[0]._changed()
+				picker[0]._show_tab(tab))
 		elif arg == "--fighttest":
 			_fight_test = true
 		elif arg.begins_with("--gatheroffset="):

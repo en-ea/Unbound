@@ -1,7 +1,20 @@
 extends Control
-## Look picker: choose the hero's parts and colours, with the camera close up on the character.
+## The character screen. Tabs for Face, Hair, Body, Outfit and Colours; the camera moves in on the
+## face for Face and Hair and pulls back to the whole body for the rest. Drag anywhere left of the
+## panel to turn your character; a soft ring of light sits under them. Every change shows at once
+## and is saved when you close.
 
 signal closed
+
+const TABS := ["face", "hair", "body", "outfit", "colours"]
+const TAB_NAMES := {"face": "Face", "hair": "Hair", "body": "Body", "outfit": "Outfit", "colours": "Colours"}
+const SLOTS := {"face": ["eyes", "brows", "mouth", "cheeks", "marks", "extra"], "hair": ["hair", "beard"],
+	"outfit": ["head", "top", "chest", "shoulders", "back", "feet"]}
+const SWATCHES := {"hair": ["Hair"], "face": ["Marks"], "body": ["Skin"], "colours": ["Main", "Second", "Cloth", "Accent", "Leather"]}
+const CLOSE_VIEW := [2.4, -6.0, Vector3(0.6, 0.6, 0.0)]      # distance, pitch, offset
+const FULL_VIEW := [5.2, -14.0, Vector3(1.7, 0.2, 0.0)]
+const PANEL_W := 540.0
+const GLOW := preload("res://shaders/loot_glow.gdshader")
 
 var _visual: CharacterVisual
 var _camera_rig: Node3D
@@ -9,16 +22,19 @@ var _rows: VBoxContainer
 var _tab := "face"
 var _tab_buttons := {}
 var _rng := RandomNumberGenerator.new()
+var _ring: MeshInstance3D
+var _flash_slot := ""
 
 
 func open(visual: CharacterVisual, camera_rig: Node3D) -> void:
 	_visual = visual
 	_camera_rig = camera_rig
 	Controls.locked = true
-	_camera_rig.set_view(5.2, -16.0, Vector3(1.7, 0.15, 0.0))
 	var turn := create_tween().set_trans(Tween.TRANS_SINE)
 	turn.tween_method(func(a: float) -> void: _visual.rotation.y = a, _visual.rotation.y, 0.0, 0.5)
+	_add_ring()
 	_build()
+	_frame_camera()
 
 
 func _build() -> void:
@@ -30,108 +46,203 @@ func _build() -> void:
 	panel.anchor_left = 1.0
 	panel.anchor_right = 1.0
 	panel.anchor_bottom = 1.0
-	panel.offset_left = -560.0
-	panel.offset_right = -48.0
+	panel.offset_left = -PANEL_W - 40.0
+	panel.offset_right = -40.0
 	panel.offset_top = 12.0
 	panel.offset_bottom = -12.0
 	add_child(panel)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 10)
+	column.add_theme_constant_override("separation", 12)
 	panel.add_child(column)
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 10)
-	column.add_child(header)
-	var title := UIStyle.label(header, "Your look", 26)
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for tab in ["face", "outfit", "colours"]:
-		var b := UIStyle.button(header, tab.capitalize(), Vector2(104, 42), 18)
+	var titles := VBoxContainer.new()
+	titles.add_theme_constant_override("separation", 0)
+	column.add_child(titles)
+	UIStyle.label(titles, "Your look", 28)
+	UIStyle.label(titles, "Drag on the left to turn around", 15, true)
+	var tabs := HBoxContainer.new()
+	tabs.add_theme_constant_override("separation", 6)
+	column.add_child(tabs)
+	for tab: String in TABS:
+		var b := UIStyle.button(tabs, TAB_NAMES[tab], Vector2(98, 44), 18)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(_show_tab.bind(tab))
 		_tab_buttons[tab] = b
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.scroll_deadzone = 8
+	column.add_child(scroll)
 	_rows = VBoxContainer.new()
-	_rows.add_theme_constant_override("separation", 2)
-	_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(_rows)
+	_rows.add_theme_constant_override("separation", 6)
+	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_rows.mouse_filter = Control.MOUSE_FILTER_PASS
+	scroll.add_child(_rows)
 	var footer := HBoxContainer.new()
 	footer.add_theme_constant_override("separation", 12)
 	footer.alignment = BoxContainer.ALIGNMENT_END
 	column.add_child(footer)
-	UIStyle.button(footer, "Random", Vector2(130, 46)).pressed.connect(_randomize)
-	UIStyle.button(footer, "Done", Vector2(130, 46)).pressed.connect(_close)
+	UIStyle.button(footer, "Shuffle", Vector2(140, 50)).pressed.connect(_randomize)
+	UIStyle.button(footer, "Done", Vector2(140, 50)).pressed.connect(_close)
 	_refresh()
 
 
 func _show_tab(tab: String) -> void:
 	_tab = tab
 	_refresh()
+	_frame_camera()
+
+
+## Close on the face for Face and Hair; the whole body otherwise.
+func _frame_camera() -> void:
+	var v: Array = CLOSE_VIEW if _tab in ["face", "hair"] else FULL_VIEW
+	var offset: Vector3 = v[2]
+	offset.y *= _visual.hero_look.height
+	_camera_rig.set_view(v[0], v[1], offset, 0.7)
 
 
 func _refresh() -> void:
 	for child in _rows.get_children():
 		child.queue_free()
 	for tab: String in _tab_buttons:
-		_tab_buttons[tab].modulate = Color(1, 1, 1, 1.0 if tab == _tab else 0.55)
+		_tab_buttons[tab].modulate = Color(1.0, 0.9, 0.66) if tab == _tab else Color(1, 1, 1, 0.55)
 	var look := _visual.hero_look
 	if _tab == "outfit":
-		_rows.add_child(_option_row("Outfit", look.outfit, _cycle_outfit))
-	var slots: Array = []
-	if _tab == "face":
-		slots = CharacterLook.FACE_SLOTS
-	elif _tab == "outfit":
-		slots = CharacterLook.PARTS.keys().filter(func(k: String) -> bool: return not k in CharacterLook.FACE_SLOTS)
-	for slot: String in slots:
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		_rows.add_child(row)
-		UIStyle.label(row, CharacterLook.PART_LABELS[slot], 20).custom_minimum_size.x = 150
-		UIStyle.button(row, "<", Vector2(52, 42), 20).pressed.connect(_cycle.bind(slot, -1))
-		var value := UIStyle.label(row, String(look.parts[slot]).capitalize(), 20)
-		value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		UIStyle.button(row, ">", Vector2(52, 42), 20).pressed.connect(_cycle.bind(slot, 1))
-	for slot: String in (CharacterLook.PALETTES.keys() if _tab == "colours" else []):
-		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
-		_rows.add_child(row)
-		var name_label := UIStyle.label(row, CharacterLook.COLOR_LABELS[slot], 18, true)
-		name_label.custom_minimum_size = Vector2(150, 64)
-		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		var palette: Array = CharacterLook.PALETTES[slot]
-		for i in palette.size():
-			UIStyle.swatch(row, palette[i], look.colors[slot] == i, 36.0).pressed.connect(_pick_color.bind(slot, i))
+		_rows.add_child(_option_row("Outfit", look.outfit, 0, 0, _cycle_outfit, "outfit"))
+		_hint("Ready-made looks: pick one, then change any part.")
+	if _tab == "body":
+		_slider_row("Height", look.height, CharacterLook.HEIGHT_RANGE, func(v: float) -> void:
+			look.height = v
+			_visual.apply_hero_look())
+		_slider_row("Build", look.build, CharacterLook.BUILD_RANGE, func(v: float) -> void:
+			look.build = v
+			_visual.apply_hero_look())
+	for slot: String in SLOTS.get(_tab, []):
+		var choices: Array = CharacterLook.PARTS[slot]
+		var i := choices.find(look.parts[slot])
+		_rows.add_child(_option_row(CharacterLook.PART_LABELS[slot], String(look.parts[slot]).capitalize(), i + 1, choices.size(), _cycle.bind(slot), slot))
+	for slot: String in SWATCHES.get(_tab, []):
+		_swatch_row(slot)
 
 
-func _option_row(label: String, value: String, on_step: Callable) -> HBoxContainer:
+func _hint(text: String) -> void:
+	var l := UIStyle.label(_rows, text, 15, true)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+
+## "Label   ‹  Value (2 / 6)  ›"; the value that just changed flashes gold.
+func _option_row(label: String, value: String, index: int, count: int, on_step: Callable, slot: String) -> Control:
+	var card := PanelContainer.new()
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(1, 1, 1, 0.05)
+	box.set_corner_radius_all(14)
+	box.set_content_margin_all(6)
+	card.add_theme_stylebox_override("panel", box)
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
-	UIStyle.label(row, label, 20).custom_minimum_size.x = 150
-	UIStyle.button(row, "<", Vector2(52, 44), 20).pressed.connect(on_step.bind(-1))
-	var v := UIStyle.label(row, value, 20)
-	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.add_child(row)
+	var name_label := UIStyle.label(row, label, 19, true)
+	name_label.custom_minimum_size.x = 118
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	UIStyle.button(row, "‹", Vector2(52, 46), 24).pressed.connect(on_step.bind(-1))
+	var mid := VBoxContainer.new()
+	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mid.alignment = BoxContainer.ALIGNMENT_CENTER
+	mid.add_theme_constant_override("separation", -2)
+	row.add_child(mid)
+	var v := UIStyle.label(mid, value, 21)
 	v.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_theme_color_override("font_color", Color(1.0, 0.85, 0.5))
-	UIStyle.button(row, ">", Vector2(52, 44), 20).pressed.connect(on_step.bind(1))
-	return row
+	if count > 0:
+		var n := UIStyle.label(mid, "%d / %d" % [index, count], 12, true)
+		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if slot == _flash_slot:
+		v.modulate = Color(1.0, 0.8, 0.4)
+		v.create_tween().tween_property(v, "modulate", Color.WHITE, 0.5)
+	UIStyle.button(row, "›", Vector2(52, 46), 24).pressed.connect(on_step.bind(1))
+	return card
+
+
+func _slider_row(label: String, value: float, range_v: Vector2, on_change: Callable) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	_rows.add_child(row)
+	var name_label := UIStyle.label(row, label, 19, true)
+	name_label.custom_minimum_size = Vector2(118, 52)
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var slider := HSlider.new()
+	slider.min_value = range_v.x
+	slider.max_value = range_v.y
+	slider.step = 0.01
+	slider.value = value
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	slider.custom_minimum_size.y = 40
+	var grab := StyleBoxFlat.new()
+	grab.bg_color = Color(1.0, 0.85, 0.5)
+	grab.set_corner_radius_all(4)
+	slider.add_theme_stylebox_override("grabber_area", grab)
+	slider.add_theme_stylebox_override("grabber_area_highlight", grab)
+	var track := StyleBoxFlat.new()
+	track.bg_color = Color(1, 1, 1, 0.15)
+	track.set_corner_radius_all(4)
+	track.content_margin_top = 4
+	track.content_margin_bottom = 4
+	slider.add_theme_stylebox_override("slider", track)
+	row.add_child(slider)
+	var pct := UIStyle.label(row, "%d%%" % roundi(value * 100), 18)
+	pct.custom_minimum_size.x = 64
+	slider.value_changed.connect(func(v: float) -> void:
+		pct.text = "%d%%" % roundi(v * 100)
+		on_change.call(v))
+
+
+func _swatch_row(slot: String) -> void:
+	var look := _visual.hero_look
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	_rows.add_child(row)
+	var name_label := UIStyle.label(row, CharacterLook.COLOR_LABELS[slot], 17, true)
+	name_label.custom_minimum_size = Vector2(118, 50)
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override("h_separation", 6)
+	flow.add_theme_constant_override("v_separation", 6)
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(flow)
+	var palette: Array = CharacterLook.PALETTES[slot]
+	for i in palette.size():
+		UIStyle.swatch(flow, palette[i], look.colors.get(slot, 0) == i, 38.0).pressed.connect(_pick_color.bind(slot, i))
 
 
 func _cycle_outfit(step: int) -> void:
 	_visual.hero_look.cycle_outfit(step)
+	_flash_slot = "outfit"
 	_changed()
 
 
-func _cycle(slot: String, step: int) -> void:
+func _cycle(step: int, slot: String) -> void:
 	_visual.hero_look.cycle_part(slot, step)
+	_flash_slot = slot
 	_changed()
 
 
 func _pick_color(slot: String, index: int) -> void:
 	_visual.hero_look.set_color(slot, index)
+	_flash_slot = ""
 	_changed()
 
 
+## A new random look, with a quick spin.
 func _randomize() -> void:
 	_rng.randomize()
-	_visual.hero_look.randomize_look(_rng)
-	_changed()
+	var spin := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	var from := _visual.rotation.y
+	spin.tween_method(func(a: float) -> void: _visual.rotation.y = a, from, from + TAU, 0.6)
+	get_tree().create_timer(0.3).timeout.connect(func() -> void:
+		_visual.hero_look.randomize_look(_rng)
+		_flash_slot = ""
+		_changed())
 
 
 func _changed() -> void:
@@ -139,8 +250,36 @@ func _changed() -> void:
 	_refresh()
 
 
+## Drag on the open part of the screen to turn the character.
+func _input(event: InputEvent) -> void:
+	if event is InputEventScreenDrag:
+		var drag := event as InputEventScreenDrag
+		if drag.position.x < get_viewport().get_visible_rect().size.x - PANEL_W - 40.0:
+			_visual.rotation.y += drag.relative.x * 0.012
+
+
+## A soft ring of light under the character while the screen is open.
+func _add_ring() -> void:
+	_ring = MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * 2.6
+	quad.orientation = PlaneMesh.FACE_Y
+	var mat := ShaderMaterial.new()
+	mat.shader = GLOW
+	mat.set_shader_parameter("color", Color(1.0, 0.82, 0.5))
+	mat.set_shader_parameter("disc", true)
+	mat.set_shader_parameter("strength", 0.8)
+	quad.material = mat
+	_ring.mesh = quad
+	_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_visual.get_parent().add_child(_ring)
+	_ring.position = Vector3(0, 0.04, 0)
+
+
 func _close() -> void:
 	_visual.hero_look.save()
+	if is_instance_valid(_ring):
+		_ring.queue_free()
 	Controls.locked = false
 	_camera_rig.reset_view()
 	closed.emit()

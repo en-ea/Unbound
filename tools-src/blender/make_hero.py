@@ -31,7 +31,7 @@ COLORS = {  # defaults (sRGB); the game overrides the slot colours
     "Skin": (0.93, 0.72, 0.56), "Hair": (0.24, 0.15, 0.10), "Face": (0.1, 0.07, 0.07),
     "Shine": (1.0, 1.0, 1.0), "Blush": (0.93, 0.6, 0.54), "Main": (0.42, 0.48, 0.32),
     "Second": (0.3, 0.29, 0.3), "Cloth": (0.85, 0.8, 0.68), "Accent": (0.72, 0.25, 0.2),
-    "Leather": (0.5, 0.33, 0.2), "Metal": (0.72, 0.7, 0.66),
+    "Leather": (0.5, 0.33, 0.2), "Metal": (0.72, 0.7, 0.66), "Marks": (0.36, 0.22, 0.16),
 }
 
 HC = V((0.0, -0.01, 1.72))      # head centre
@@ -221,6 +221,35 @@ def hair_ponytail(bm):
 def hair_bun(bm):
     cap(bm, Z + 0.08, Z - 0.005, Z - 0.07)
     rk.blob(bm, V((0, 0.11, Z + 0.14)), (0.065, 0.06, 0.06), 6, 4)
+
+
+def hair_braid(bm):
+    cap(bm, Z + 0.07, Z - 0.01, Z - 0.08)
+    fringe(bm, (-0.07, -0.02, 0.035, 0.08), Z + 0.1, Z + 0.045, sweep=0.012)
+    side_locks(bm, -10, 0.045)
+    base = V((0, HC.y + HR.y + 0.01, Z - 0.02))
+    for i in range(7):                              # a plait of beads down the back
+        c = base + V(((0.012 if i % 2 else -0.012), 0.03 + i * 0.006, -0.02 - i * 0.055))
+        rk.blob(bm, c, (0.042 - i * 0.003, 0.034, 0.036), 6, 4)
+    rk.blob(bm, base + V((0, 0.07, -0.43)), (0.022, 0.02, 0.03), 5, 3)
+
+
+def hair_mohawk(bm):
+    cap(bm, Z + 0.02, Z - 0.03, Z - 0.1, lift=0.006)    # close-cropped sides
+    for yaw, pitch, ln in ((0, 38, 0.1), (0, 58, 0.13), (0, 76, 0.15), (180, 80, 0.15), (180, 60, 0.14), (180, 40, 0.12), (180, 20, 0.1)):
+        base, n = around(yaw, pitch, 0.0)
+        out = (n + V((0, 0.35 if yaw else -0.1, 0.5))).normalized()
+        lock(bm, base, base + out * ln, V((1, 0, 0)), 0.04, 0.05)
+
+
+def hair_swept(bm):
+    cap(bm, Z + 0.075, Z - 0.005, Z - 0.085)
+    for i, x in enumerate((-0.09, -0.05, -0.01, 0.03)):   # a big fringe swept across to one side
+        base, n = on_head(x, Z + 0.125, 0.014)
+        tip, _ = on_head(min(0.13, x + 0.1), Z + 0.03 - i * 0.008, 0.028)
+        lock(bm, base, tip, n, 0.075, 0.04)
+    side_locks(bm, -20)
+    back_locks(bm, -38)
 
 
 def hair_weights(p):
@@ -504,11 +533,49 @@ def build(arm):
         part(f"H_brows_{name}", "Hair", headw, fn, **decal)
     for name, fn in MOUTHS.items():
         part(f"H_mouth_{name}", "Face", headw, fn, **decal)
+    marks = {
+        "freckles": lambda bm: [decal_ellipse(bm, s * (0.06 + dx), Z - 0.022 + dz, 0.0045, 0.0045, 5, DECAL + 0.001)
+                                for s in (1, -1) for dx, dz in ((0.0, 0.0), (0.018, 0.006), (0.034, -0.004), (0.012, -0.016), (0.028, 0.016))],
+        "scar": lambda bm: decal_strip(bm, [(0.028, EYE_Z + 0.05), (0.05, EYE_Z + 0.004), (0.07, EYE_Z - 0.05)], 0.011, DECAL + 0.002),
+        "warpaint": lambda bm: [decal_strip(bm, [(s * 0.03, EYE_Z - 0.03 - k * 0.022), (s * 0.085, EYE_Z - 0.045 - k * 0.022)], 0.013, DECAL + 0.002)
+                                for s in (1, -1) for k in (0, 1)],
+        "stripe": lambda bm: decal_strip(bm, [(-0.05, BROW_Z + 0.04), (-0.05, EYE_Z - 0.06)], 0.02, DECAL + 0.001),
+    }
+    for name, fn in marks.items():
+        part(f"H_marks_{name}", "Marks", headw, fn, **decal)
+
+    def glasses(bm):
+        for s in (1, -1):
+            c, n = on_head(s * EYE_X, EYE_Z, 0.03)
+            ring = [c + V((math.cos(a) * 0.034, 0, math.sin(a) * 0.03)) for a in (k * math.tau / 12 for k in range(12))]
+            rk.tube(bm, ring, [(0.006, 0.006)] * 12, ref=V((0, 1, 0)), seg=4, closed=True)
+            ear, _ = around(s * 80, 5, 0.012)
+            rk.tube(bm, [c + V((s * 0.034, 0, 0.005)), ear], [(0.005, 0.005)] * 2, seg=4)
+        l, _ = on_head(0.016, EYE_Z + 0.006, 0.032)
+        r, _ = on_head(-0.016, EYE_Z + 0.006, 0.032)
+        rk.tube(bm, [l, r], [(0.005, 0.005)] * 2, seg=4)
+
+    def eyepatch(bm):
+        c, n = on_head(EYE_X, EYE_Z, 0.016)
+        rk.tube(bm, [c - n * 0.004, c + n * 0.01], [(0.03, 0.028), (0.026, 0.024)], ref=V((1, 0, 0)), seg=8)
+        pts = [on_head(EYE_X + 0.03, EYE_Z + 0.02, 0.014)[0]] + [around(y, 30 - y * 0.12, 0.012)[0] for y in (60, 100, 140, 180, 220, 260, 300)]
+        rk.tube(bm, pts, [(0.009, 0.004)] * len(pts), ref=V((0, 0, 1)), seg=4)
+
+    def earrings(bm):
+        for s in (1, -1):
+            c = V((s * (HR.x + 0.012), 0.004, Z - 0.066))
+            ring = [c + V((0, math.cos(a) * 0.014, math.sin(a) * 0.014 - 0.012)) for a in (k * math.tau / 10 for k in range(10))]
+            rk.tube(bm, ring, [(0.0045, 0.0045)] * 10, ref=V((1, 0, 0)), seg=4, closed=True)
+
+    part("H_extra_glasses", "Metal", headw, glasses, **flat)
+    part("H_extra_eyepatch", "Leather", headw, eyepatch, **flat)
+    part("H_extra_earrings", "Metal", headw, earrings, **flat)
     part("H_cheeks_blush", "Blush", headw, lambda bm: [decal_ellipse(bm, s * 0.085, Z - 0.03, 0.022, 0.012) for s in (1, -1)], **decal)
 
     # --- hair and beards --------------------------------------------------------------------
     for style, fn in (("short", hair_short), ("messy", hair_messy_base), ("long", hair_long),
-                      ("ponytail", hair_ponytail), ("bun", hair_bun)):
+                      ("ponytail", hair_ponytail), ("bun", hair_bun), ("braid", hair_braid), ("mohawk", hair_mohawk),
+                      ("swept", hair_swept)):
         part(f"H_hair_{style}", "Hair", hair_weights, fn, **flat)
     part("H_hair_messy_top", "Hair", headw, hair_messy_top, **flat)
     for style, fn in (("short", beard_short), ("full", beard_full), ("goatee", beard_goatee), ("mustache", beard_mustache),

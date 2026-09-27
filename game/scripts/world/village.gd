@@ -70,6 +70,7 @@ func _add_merchant(shape: WorldShape) -> void:
 		"head": "hat", "top": "coat", "chest": "strap", "shoulders": "none", "back": "backpack", "feet": "shoes"}
 	look.colors = {"Skin": 2, "Hair": 5, "Main": 2, "Second": 1, "Cloth": 0, "Accent": 0, "Leather": 0}
 	_merchant.hero_look = look
+	_merchant.is_player_look = false
 	add_child(_merchant)
 	_merchant.scale = Vector3(1.38, 0.96, 1.32)     # big and broad
 	_merchant.global_position = Vector3(MERCHANT_AT.x, shape.height_at(MERCHANT_AT.x, MERCHANT_AT.y), MERCHANT_AT.y)
