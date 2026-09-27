@@ -58,6 +58,7 @@ func knockback(push: Vector3) -> void:
 	_knock = push
 	_stun = 0.45
 	visual.play_action("Hit_Chest", 1.0)
+	visual.flash()
 
 
 func _unhandled_input(event: InputEvent) -> void:

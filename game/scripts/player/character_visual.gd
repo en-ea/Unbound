@@ -1,22 +1,15 @@
 class_name CharacterVisual
 extends Node3D
-## Puts a character look on the Quaternius animation rig and plays idle / walk / run.
-## Looks: "hero" (our main style, tools-src/blender/make_hero.py, recoloured and dressed by a
-## CharacterLook), "wanderer" (first prototype) or "villager" (Quaternius peasant outfit).
+## A character on the Quaternius animation rig: our "hero" model (tools-src/blender/make_hero.py)
+## dressed and coloured by a CharacterLook, with idle / walk / run, one-shot actions (swings,
+## rolls, hits), tools in the right hand, and a hit flash.
 
 const DIR := "res://assets/quaternius_characters/"
 const RIG := DIR + "UAL1_Standard.glb"
-const OUTFIT := DIR + "Male_Peasant.gltf"
-const BASE_BODY := DIR + "Superhero_Male_FullBody.gltf"
-const HAIR := DIR + "Hair_SimpleParted.gltf"
-const WANDERER := "res://assets/characters/wanderer.glb"
-const HERO := "res://assets/characters/hero.glb"
 ## Universal Animation Library 2 (Quaternius, CC0): tree chopping, harvesting, sword and shield moves.
 const EXTRA_ANIMS := DIR + "UAL2_Standard.glb"
-const LOOKS := ["hero", "wanderer", "villager"]
+const HERO := "res://assets/characters/hero.glb"
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
-const HAIR_COLOR := Color(0.36, 0.22, 0.13)   # the hair textures are grey, made for tinting
-const NECK_Y := 1.47          # keep only the base body's head (the outfit covers the rest)
 
 const IDLE := "Idle"        # Godot drops the "_Loop" suffix on import
 const WALK := "Walk"
@@ -38,15 +31,16 @@ const TOOL_GRIP := {
 }
 const TOOL_OFFSET := Vector3(0.0, 0.07, 0.0)       # from the wrist into the palm
 
+var hero_look := CharacterLook.load_saved()
+
 var _anim: AnimationPlayer
-var _action_left := 0.0      # seconds left of a one-shot action (swing, pick-up)
-var _tools := {}             # name -> Node3D in the hand
 var _skeleton: Skeleton3D
 var _current := ""
-var _parts: Array[Node] = []   # everything the current look added to the skeleton
-var look := ""
-var hero_look := CharacterLook.load_saved()
-var _slot_materials := {}      # colour slot -> StandardMaterial3D shared by the hero's meshes
+var _action_left := 0.0      # seconds left of a one-shot action (swing, pick-up)
+var _tools := {}             # name -> Node3D in the hand
+var _parts: Array[MeshInstance3D] = []
+var _slot_materials := {}    # colour slot -> ShaderMaterial shared by the hero's meshes
+var _flash := 0.0
 
 
 func _ready() -> void:
@@ -56,7 +50,8 @@ func _ready() -> void:
 	_anim = rig.find_children("*", "AnimationPlayer", true, false)[0]
 	for mi in _skeleton.find_children("*", "MeshInstance3D", true, false):
 		mi.free()   # the grey mannequin
-	set_look(LOOKS[0])
+	_attach_hero()
+	apply_hero_look()
 	for anim_name in [IDLE, WALK, RUN]:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	_add_extra_animations()
@@ -69,6 +64,24 @@ func _process(delta: float) -> void:
 		_action_left -= delta
 		if _action_left <= 0.0:
 			_current = ""      # let play_motion pick idle/walk/run again
+	if _flash > 0.0:
+		_flash = maxf(_flash - delta * 5.0, 0.0)
+		for m: ShaderMaterial in _slot_materials.values():
+			m.set_shader_parameter("flash", _flash)
+
+
+func play_motion(speed: float) -> void:
+	if _action_left > 0.0:
+		return
+	var anim_name := IDLE
+	if speed > 3.0:
+		anim_name = RUN
+	elif speed > 0.2:
+		anim_name = WALK
+	if anim_name != _current:
+		_current = anim_name
+		_anim.play(anim_name, 0.2)
+	_anim.speed_scale = clampf(speed / NATIVE_SPEED[anim_name], 0.7, 1.8) if NATIVE_SPEED.has(anim_name) else 1.0
 
 
 ## Plays one pass of an animation (a swing), optionally starting part-way through (for looping
@@ -92,6 +105,81 @@ func animation_length(anim_name: String) -> float:
 func hit_stop(seconds := 0.07) -> void:
 	_anim.pause()
 	get_tree().create_timer(seconds).timeout.connect(func() -> void: _anim.play())
+
+
+## A short white flash (taking a hit).
+func flash() -> void:
+	_flash = 1.0
+
+
+func show_tool(tool_name: String) -> void:
+	for t: String in _tools:
+		_tools[t].visible = t == tool_name
+
+
+## Shows the hero's chosen parts and applies its colours.
+func apply_hero_look() -> void:
+	var p := hero_look.parts
+	var hooded: bool = p["head"] == "hood"
+	var covered: bool = p["head"] in ["hat", "hood"]
+	for mi in _parts:
+		var n := String(mi.name)
+		if n.begins_with("H_base_"):
+			mi.visible = true
+		elif n == "H_ears":
+			mi.visible = not hooded
+		elif n.begins_with("H_hair_"):
+			# Hair hides under a hood; spiky "_top" locks also hide under a hat.
+			mi.visible = n.begins_with("H_hair_" + p["hair"]) and not hooded and not (n.ends_with("_top") and covered)
+		else:
+			var bits := n.split("_")   # H_<slot>_<choice>[_extra]
+			mi.visible = bits.size() >= 3 and p.get(bits[1], "") == bits[2]
+		for s in mi.mesh.get_surface_count():
+			var src := mi.mesh.surface_get_material(s)
+			if src:
+				mi.set_surface_override_material(s, _slot_material(src))
+
+
+## One shared material per colour slot, using the world's faceted shader: the slot's colour times
+## each face's small shade variation (stored in the model's UVs). Hit flashes use it too.
+func _slot_material(src: Material) -> ShaderMaterial:
+	var slot := src.resource_name
+	if not _slot_materials.has(slot):
+		var m := ShaderMaterial.new()
+		m.shader = SOLID_SHADER
+		m.set_shader_parameter("sway", 0.0)
+		_slot_materials[slot] = m
+	var mat: ShaderMaterial = _slot_materials[slot]
+	if CharacterLook.PALETTES.has(slot):
+		mat.set_shader_parameter("albedo", hero_look.color(slot))
+	elif src is StandardMaterial3D:
+		mat.set_shader_parameter("albedo", (src as StandardMaterial3D).albedo_color)
+	return mat
+
+
+func _attach_hero() -> void:
+	var scene := (load(HERO) as PackedScene).instantiate()
+	for mi: MeshInstance3D in scene.find_children("*", "MeshInstance3D", true, false):
+		mi.owner = null
+		mi.get_parent().remove_child(mi)
+		_skeleton.add_child(mi)
+		mi.skeleton = NodePath("..")
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		_parts.append(mi)
+	scene.free()
+
+
+func _make_tools() -> void:
+	var hand := BoneAttachment3D.new()
+	hand.bone_name = "hand_r"
+	_skeleton.add_child(hand)
+	for t: String in TOOLS:
+		var tool := (load(TOOLS[t]) as PackedScene).instantiate() as Node3D
+		tool.rotation_degrees = TOOL_GRIP[t]
+		tool.position = TOOL_OFFSET
+		tool.visible = false
+		hand.add_child(tool)
+		_tools[t] = tool
 
 
 ## Adds the extra animation library. If its skeleton's bone frames differ from this rig's (e.g.
@@ -133,164 +221,3 @@ func _add_extra_animations() -> void:
 						anim.track_set_key_value(t, k, c_parent.inverse() * v)
 		library.add_animation(anim_name, anim)
 	scene.free()
-
-
-func show_tool(tool_name: String) -> void:
-	for t: String in _tools:
-		_tools[t].visible = t == tool_name
-
-
-func _make_tools() -> void:
-	var hand := BoneAttachment3D.new()
-	hand.bone_name = "hand_r"
-	_skeleton.add_child(hand)
-	for t: String in TOOLS:
-		var tool := (load(TOOLS[t]) as PackedScene).instantiate() as Node3D
-		tool.rotation_degrees = TOOL_GRIP[t]
-		tool.position = TOOL_OFFSET
-		tool.visible = false
-		hand.add_child(tool)
-		_tools[t] = tool
-
-
-func set_look(new_look: String) -> void:
-	for part in _parts:
-		part.queue_free()
-	_parts.clear()
-	look = new_look
-	if look == "hero":
-		_attach_meshes(HERO, false)
-		apply_hero_look()
-	elif look == "wanderer":
-		_attach_meshes(WANDERER, false)
-	else:
-		_attach_meshes(OUTFIT, false)
-		_attach_meshes(BASE_BODY, true)
-		_attach_hair()
-
-
-## Shows the hero's chosen parts and applies its colours.
-func apply_hero_look() -> void:
-	if look != "hero":
-		return
-	var p := hero_look.parts
-	var hooded: bool = p["head"] == "hood"
-	var covered: bool = p["head"] in ["hat", "hood"]
-	for node in _parts:
-		var mi := node as MeshInstance3D
-		if mi == null:
-			continue
-		var n := String(mi.name)
-		if n.begins_with("H_base_"):
-			mi.visible = true
-		elif n == "H_ears":
-			mi.visible = not hooded
-		elif n.begins_with("H_hair_"):
-			# Hair hides under a hood; spiky "_top" locks also hide under a hat.
-			mi.visible = n.begins_with("H_hair_" + p["hair"]) and not hooded and not (n.ends_with("_top") and covered)
-		else:
-			var bits := n.split("_")   # H_<slot>_<choice>[_extra]
-			mi.visible = bits.size() >= 3 and p.get(bits[1], "") == bits[2]
-		for s in mi.mesh.get_surface_count():
-			var src := mi.mesh.surface_get_material(s)
-			if src:
-				mi.set_surface_override_material(s, _slot_material(src))
-
-
-## One shared material per colour slot, using the world's faceted shader: the slot's colour times
-## each face's small shade variation (stored in the model's UVs). Hit flashes use it too.
-func _slot_material(src: Material) -> ShaderMaterial:
-	var slot := src.resource_name
-	if not _slot_materials.has(slot):
-		var m := ShaderMaterial.new()
-		m.shader = SOLID_SHADER
-		m.set_shader_parameter("sway", 0.0)
-		_slot_materials[slot] = m
-	var mat: ShaderMaterial = _slot_materials[slot]
-	if CharacterLook.PALETTES.has(slot):
-		mat.set_shader_parameter("albedo", hero_look.color(slot))
-	elif src is StandardMaterial3D:
-		mat.set_shader_parameter("albedo", (src as StandardMaterial3D).albedo_color)
-	return mat
-
-
-func next_look() -> void:
-	set_look(LOOKS[(LOOKS.find(look) + 1) % LOOKS.size()])
-
-
-func play_motion(speed: float) -> void:
-	if _action_left > 0.0:
-		return
-	var anim_name := IDLE
-	if speed > 3.0:
-		anim_name = RUN
-	elif speed > 0.2:
-		anim_name = WALK
-	if anim_name != _current:
-		_current = anim_name
-		_anim.play(anim_name, 0.2)
-	_anim.speed_scale = clampf(speed / NATIVE_SPEED[anim_name], 0.7, 1.8) if NATIVE_SPEED.has(anim_name) else 1.0
-
-
-func _attach_meshes(path: String, head_only: bool) -> void:
-	var scene := (load(path) as PackedScene).instantiate()
-	for mi: MeshInstance3D in scene.find_children("*", "MeshInstance3D", true, false):
-		mi.owner = null
-		mi.get_parent().remove_child(mi)
-		if head_only:
-			mi.mesh = _above_neck(mi.mesh)
-		_skeleton.add_child(mi)
-		_parts.append(mi)
-		mi.skeleton = NodePath("..")
-		_tint_hair(mi)
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-	scene.free()
-
-
-func _attach_hair() -> void:
-	var head := _skeleton.find_bone("Head")
-	var attach := BoneAttachment3D.new()
-	attach.bone_name = "Head"
-	_skeleton.add_child(attach)
-	_parts.append(attach)
-	var hair := (load(HAIR) as PackedScene).instantiate() as Node3D
-	attach.add_child(hair)
-	# The hair was modelled in place on the rest pose, so undo the head's rest transform.
-	hair.transform = _skeleton.get_bone_global_rest(head).affine_inverse()
-	for mi: MeshInstance3D in hair.find_children("*", "MeshInstance3D", true, false):
-		_tint_hair(mi)
-
-
-## Hair and eyebrow materials are grey; colour them.
-func _tint_hair(mi: MeshInstance3D) -> void:
-	for s in mi.mesh.get_surface_count():
-		var mat := mi.mesh.surface_get_material(s) as StandardMaterial3D
-		if mat and mat.resource_name.begins_with("MI_Hair"):
-			var tinted := mat.duplicate() as StandardMaterial3D
-			tinted.albedo_color = HAIR_COLOR
-			mi.set_surface_override_material(s, tinted)
-
-
-## Copies a skinned mesh, keeping only triangles above the neck (the head).
-func _above_neck(src: Mesh) -> ArrayMesh:
-	var out := ArrayMesh.new()
-	for s in src.get_surface_count():
-		var arrays := src.surface_get_arrays(s)
-		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-		var idx: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
-		var keep := PackedInt32Array()
-		for i in range(0, idx.size(), 3):
-			var a := verts[idx[i]]
-			var b := verts[idx[i + 1]]
-			var c := verts[idx[i + 2]]
-			if minf(a.y, minf(b.y, c.y)) > NECK_Y and maxf(absf(a.x), maxf(absf(b.x), absf(c.x))) < 0.25:
-				keep.append_array([idx[i], idx[i + 1], idx[i + 2]])
-		if keep.is_empty():
-			continue
-		arrays[Mesh.ARRAY_INDEX] = keep
-		for custom in [Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3]:
-			arrays[custom] = null
-		var flags: int = src.surface_get_format(s) & Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS
-		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, flags)
-		out.surface_set_material(out.get_surface_count() - 1, src.surface_get_material(s))
-	return out

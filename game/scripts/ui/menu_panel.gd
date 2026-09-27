@@ -37,7 +37,6 @@ func _ready() -> void:
 	dev.add_theme_constant_override("separation", 10)
 	column.add_child(dev)
 	UIStyle.button(dev, "Time +", Vector2(140, 44), 18).pressed.connect(func() -> void: day_night.skip(0.125))
-	UIStyle.button(dev, "Swap look", Vector2(140, 44), 18).pressed.connect(func() -> void: character.next_look())
 
 
 func _close() -> void:

@@ -2,7 +2,9 @@ We're building my game "Unbound" (working title) in C:\SoonGame. Read CLAUDE.md,
 
 Where we are (M1 "Walk the world" is basically done, M2 is next):
 - Meadow slice: terrain, path, pond (wadeable), standing-stone circle with light beams on the hill, day/night, fireflies, synthesized nature sounds and footsteps, shader warm-up behind a loading cover. Steady 30 FPS on my iPhone 16 Pro Max.
-- Our own character style "hero" (tools-src/blender/make_hero.py on the Quaternius UAL rig): large head, clean faceted low-poly clothing (tunic, V-neck, belt+pouch, bracers, knee boots), choices for face, cheeks, 7 hairstyles, 5 beards, hood, chest (strap/vest), pads, scarf/cape; recolourable. Look picker with Parts/Colours tabs (Dev → Look). In-game look picker (Dev → Look). Dev → Swap look cycles hero/wanderer/villager.
+- Hero v4 (make_hero.py) follows the owner's reference sheets (Fighter / Explorer / Merchant / Fisherman): faceted layered clothes, hats, backpacks, scarves; outfit presets + parts/colour picker. Old test looks removed.
+- Title screen (Play / Character / Settings), pause menu (gear icon, dev tools inside), settings (frame rate, stats, sound), Kenney CC0 icons.
+- Earlier character notes: our own character style "hero" (tools-src/blender/make_hero.py on the Quaternius UAL rig): large head, clean faceted low-poly clothing (tunic, V-neck, belt+pouch, bracers, knee boots), choices for face, cheeks, 7 hairstyles, 5 beards, hood, chest (strap/vest), pads, scarf/cape; recolourable. Look picker with Parts/Colours tabs (Dev → Look). In-game look picker (Dev → Look). Dev → Swap look cycles hero/wanderer/villager.
 - Our own faceted low-poly trees/pines/bushes (tools-src/blender/make_trees.py; clump colours stored in UVs), faceted ground with crisp path/shore in the terrain shader. The owner shared low-poly tree references (faceted icosphere clumps, twisty trunks).
 
 M2 "Gather" first pass is in:

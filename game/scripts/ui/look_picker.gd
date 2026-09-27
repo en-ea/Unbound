@@ -14,8 +14,6 @@ var _rng := RandomNumberGenerator.new()
 func open(visual: CharacterVisual, camera_rig: Node3D) -> void:
 	_visual = visual
 	_camera_rig = camera_rig
-	if _visual.look != "hero":
-		_visual.set_look("hero")
 	Controls.locked = true
 	_camera_rig.set_view(5.2, -16.0, Vector3(1.7, 0.15, 0.0))
 	var turn := create_tween().set_trans(Tween.TRANS_SINE)
