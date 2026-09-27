@@ -52,8 +52,10 @@ The big shape of the game. DESIGN.md has the look and feel; PLAN.md has the buil
 - **Resources:** each region has fixed spawn points saved per region. Trees, rocks and so on regrow on timers, which
   keep counting while you are away (worked out from the elapsed time when the region loads).
 - **Village buildings:** pre-set spots. Village projects make a building appear at its spot (scaffolding, then built).
-- **Your base (one per land):** pick a pre-set home, then place things freely around and in it on a grid
-  (stations, furniture, garden, decorations). Free placement only at bases, which keeps the world tidy and fast.
+- **Your base (one per land) grows into your own town:** start with a pre-set home, then unlock more land around it
+  in stages and place things freely on a grid: stations, farms, workshops, houses. Settlers (and companions) move in,
+  and working buildings produce things. A long-term goal that keeps going after the story.
+- **Every village in each land** (several per land) has its own projects at fixed spots, so there is always somewhere to build up.
 
 ## Armour and looks
 - Armour has stats and its own look. The best armour clearly looks the best (trims, glow), so by the end you look strong.
@@ -66,8 +68,9 @@ Must do, in this order:
 1. **Region travel + the forest.**
 2. **Food and cooking.**
 3. **Money, the trader, the first village project.**
-4. **Class tree + first abilities** (with the story start: ordinary day, shrine wakes, class unlocks; two weapon
-   slots come in here because abilities use weapons).
+4. **Class tree + first abilities** (with the story start: ordinary day, shrine wakes, class unlocks) and two
+   weapon slots. Classes and weapons are separate (Outriders style): any class can use any weapon; they can
+   complement each other, never lock you in.
 5. **Forest boss, full rarities, relics, and the first armour.**
 6. **Balance pass** (all numbers in one file).
 7. **Your home base** (free placement).
