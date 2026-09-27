@@ -37,7 +37,9 @@ The big shape of the game. DESIGN.md has the look and feel; PLAN.md has the buil
 - **Romance (light):** one townsperson you slowly warm up to, picked at random per save, so friends compare who they got.
 - **Festivals:** fine, much later.
 - **Betrayal:** one of the main people (not the big three) betrays you a little. In co-op this can be a player, told in secret.
-- **Weapons:** shield is always optional. Full weapon list: questionnaire pending.
+- **Weapons:** sword (shield always optional), greatsword, scythe, bow, magic staff. Maybe later: hammer, spear,
+  dual blades / general dual wielding. Not wanted: fists, whip, throwing, crossbow.
+  Switching: two slots (e.g. melee + bow or staff), one button swaps them.
 - **Knock-out:** a toggle (lose nothing / drop items where you fell).
 - **Bases:** one per land.
 - **Blacksmithing minigame:** maybe, much later.
