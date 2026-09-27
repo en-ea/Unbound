@@ -1,6 +1,6 @@
 extends Node3D
 ## A dropped item: pops out in an arc, lands and bobs, then flies to the player when they come
-## near and goes into the Inventory with a "+1 Wood" popup.
+## near and goes into the Inventory (the HUD's pickup feed shows it).
 
 const MAGNET_RANGE := 2.4
 const GRAVITY := 14.0
@@ -61,20 +61,6 @@ func _collect() -> void:
 	get_parent().add_child(sound)
 	sound.play()
 	sound.finished.connect(sound.queue_free)
-	var label := Label3D.new()
-	label.text = "+1 " + Items.name_of(item)
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
-	label.font_size = 40
-	label.outline_size = 10
-	label.modulate = Items.RARITY_COLORS[Items.rarity_of(item)] if rare else Color(1, 0.98, 0.92)
-	label.pixel_size = 0.006
-	get_parent().add_child(label)
-	label.global_position = _player.global_position + Vector3(randf_range(-0.3, 0.3), 2.3, 0)
-	var rise := label.create_tween().set_parallel()
-	rise.tween_property(label, "global_position:y", label.global_position.y + 0.8, 1.1)
-	rise.tween_property(label, "modulate:a", 0.0, 1.1).set_delay(0.3)
-	rise.chain().tween_callback(label.queue_free)
 	queue_free()
 
 

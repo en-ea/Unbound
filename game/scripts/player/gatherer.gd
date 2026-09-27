@@ -7,10 +7,11 @@ signal target_changed(verb: String)    # "Chop" / "Mine" / "Pick", or "" when no
 const REACH := 1.1
 ## Per tool: animation, playback speed, seconds until the hit lands, total swing time.
 const SWINGS := {
-	"axe": {"anim": "Sword_Attack", "speed": 1.6, "impact": 0.4, "time": 0.9},
-	"pickaxe": {"anim": "Sword_Attack", "speed": 1.6, "impact": 0.4, "time": 0.9},
+	"axe": {"anim": "Sword_Attack", "speed": 1.7, "impact": 0.38, "time": 0.82},
+	"pickaxe": {"anim": "Sword_Attack", "speed": 1.7, "impact": 0.38, "time": 0.82},
 	"": {"anim": "PickUp_Table", "speed": 1.3, "impact": 0.3, "time": 0.6},
 }
+const BUFFER := 0.25    # a tap this close to the end of a swing queues the next one
 
 @onready var player: CharacterBody3D = get_parent()
 @onready var visual: CharacterVisual = get_parent().get_node("Visual")
@@ -20,6 +21,7 @@ var verb := ""
 var _busy := 0.0
 var _impact := -1.0
 var _swing_target := -1
+var _queued := false
 
 
 func is_busy() -> bool:
@@ -30,7 +32,12 @@ func _physics_process(delta: float) -> void:
 	if _busy > 0.0:
 		_busy -= delta
 		if _busy <= 0.0:
-			visual.show_tool("")
+			if _queued:
+				_queued = false
+				_busy = 0.0
+				act()
+			if _busy <= 0.0:
+				visual.show_tool("")
 	if _impact >= 0.0:
 		_impact -= delta
 		if _impact < 0.0 and _swing_target >= 0:
@@ -50,7 +57,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## The action button: one swing at the target in reach.
 func act() -> void:
-	if _busy > 0.0 or target < 0 or Controls.locked:
+	if _busy > 0.0:
+		_queued = _busy < BUFFER      # remember a tap made just before the swing ends
+		return
+	if target < 0 or Controls.locked:
 		return
 	var info := WorldResources.type_info(target)
 	var swing: Dictionary = SWINGS[info["tool"]]

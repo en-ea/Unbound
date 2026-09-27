@@ -65,6 +65,8 @@ func play_action(anim_name: String, speed := 1.0) -> void:
 	_action_left = _anim.get_animation(anim_name).length / speed
 	_current = anim_name
 	_anim.speed_scale = 1.0
+	if _anim.current_animation == anim_name:
+		_anim.stop()          # replaying the same animation would otherwise just continue it
 	_anim.play(anim_name, 0.12, speed)
 
 

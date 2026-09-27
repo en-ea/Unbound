@@ -5,6 +5,11 @@ extends Node3D
 const STUMP := preload("res://assets/nature/tree_stump.glb")
 const DROP := preload("res://scripts/world/drop.gd")
 const KENNEY := "res://assets/kenney_impact/"
+const FALL_SOUNDS := {
+	"creak": preload("res://assets/sounds/tree_creak.wav"),
+	"rustle": preload("res://assets/sounds/leaves_rustle.wav"),
+	"thud": preload("res://assets/sounds/tree_thud.wav"),
+}
 
 @export var player: Node3D
 
@@ -24,7 +29,9 @@ func _ready() -> void:
 		_sounds[pair[0]] = []
 		for i in 5:
 			_sounds[pair[0]].append(load(KENNEY + "%s_%03d.ogg" % [pair[1], i]))
-	for i in 4:
+	for key: String in FALL_SOUNDS:
+		_sounds[key] = [FALL_SOUNDS[key]]
+	for i in 6:
 		var p := AudioStreamPlayer3D.new()
 		p.unit_size = 6.0
 		add_child(p)
@@ -40,6 +47,18 @@ func setup(gatherables: Array[Dictionary]) -> void:
 	WorldResources.hit.connect(_on_hit)
 	WorldResources.depleted.connect(_on_depleted)
 	WorldResources.respawned.connect(_on_respawned)
+	WorldResources.grown.connect(_on_grown)
+
+
+## The instance transform at the node's current size (saplings are smaller).
+func _shown(id: int, extra := Basis.IDENTITY, factor := -1.0) -> Transform3D:
+	var base: Transform3D = _entries[id]["xf"]
+	var f := WorldResources.size_factor(id) if factor < 0.0 else factor
+	return Transform3D(extra * base.basis * Basis.from_scale(Vector3.ONE * maxf(f, 0.001)), base.origin)
+
+
+func _pose(id: int, xf: Transform3D) -> void:
+	_entries[id]["multimesh"].set_instance_transform(_entries[id]["index"], xf)
 
 
 func _on_hit(id: int, hits_left: int) -> void:
@@ -48,36 +67,68 @@ func _on_hit(id: int, hits_left: int) -> void:
 	var at: Vector3 = g["xf"].origin
 	match tool:
 		"axe":
-			_play(at, "wood_heavy" if hits_left <= 0 else "wood", 0.9)
+			# A deep thunk layered with a brighter crack, plus a little leaf rustle.
+			_play(at, "wood_heavy", 0.72, 0.0)
+			_play(at, "wood", 1.15, -7.0)
+			_play(at, "rustle", 1.0, -12.0)
 			_burst(at + Vector3(0, 1.0, 0), Color(0.78, 0.6, 0.4), 10)
 		"pickaxe":
-			_play(at, "stone", 1.0)
+			_play(at, "stone", 1.0, 0.0)
 			_burst(at + Vector3(0, 0.6, 0), Color(0.65, 0.65, 0.62), 12)
 		_:
-			_play(at, "soft", 1.3)
+			_play(at, "soft", 1.3, -2.0)
 			_burst(at + Vector3(0, 0.3, 0), Color(0.55, 0.8, 0.4), 6)
 	if hits_left > 0:
-		_shake(g)
+		_shake(id)
 
 
 func _on_depleted(id: int, drops: Array) -> void:
 	var g: Dictionary = _entries[id]
 	var base: Transform3D = g["xf"]
-	g["multimesh"].set_instance_transform(g["index"], Transform3D(Basis.from_scale(Vector3.ONE * 0.001), base.origin))
 	if g["collider"]:
 		g["collider"].disabled = true
-	if g["type"] in ["tree", "apple_tree"]:
-		var stump := STUMP.instantiate() as Node3D
-		stump.transform = Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3.ONE * g["scale"]), base.origin)
-		add_child(stump)
-		_stumps[id] = stump
-		_burst(base.origin + Vector3(0, 2.5, 0), Color(0.45, 0.65, 0.3), 24)
+	if WorldResources.is_tree(id):
+		_fell(id)
+	else:
+		_pose(id, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), base.origin))
 	for i in drops.size():
 		var drop := Node3D.new()
 		drop.set_script(DROP)
 		add_child(drop)
 		var dir := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(1.0, 2.2)
 		drop.launch(drops[i], base.origin + Vector3(0, 0.8, 0), dir + Vector3(0, randf_range(3.5, 5.0), 0), base.origin.y, player)
+
+
+## The tree tips over away from the player, lands with a thud and a burst of leaves, and
+## leaves a stump behind.
+func _fell(id: int) -> void:
+	var g: Dictionary = _entries[id]
+	var base: Transform3D = g["xf"]
+	var size := WorldResources.size_factor(id)
+	var away := base.origin - player.global_position
+	away.y = 0.0
+	away = away.normalized() if away.length() > 0.01 else Vector3.FORWARD
+	var axis := Vector3.UP.cross(away).normalized()
+	var stump := STUMP.instantiate() as Node3D
+	stump.transform = Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3.ONE * g["scale"] * size), base.origin)
+	add_child(stump)
+	_stumps[id] = stump
+	_play(base.origin, "creak", randf_range(0.9, 1.1), -2.0)
+	var fall := create_tween()
+	fall.tween_method(func(t: float) -> void:
+		_pose(id, _shown(id, Basis(axis, t * t * 1.45))), 0.0, 1.0, 0.9)
+	fall.tween_callback(func() -> void:
+		var landing: Vector3 = base.origin + away * 3.0 * g["scale"] * size
+		_play(landing, "thud", randf_range(0.9, 1.05), 0.0)
+		_play(landing, "rustle", 0.8, -4.0)
+		_burst(landing + Vector3(0, 0.6, 0), Color(0.45, 0.65, 0.3), 24))
+	fall.tween_method(func(f: float) -> void:
+		_pose(id, _shown(id, Basis(axis, 1.45), size * f)), 1.0, 0.0, 0.3)
+
+
+func _on_grown(id: int, _size: float) -> void:
+	if WorldResources.is_available(id):
+		_pose(id, _shown(id))
 
 
 func _on_respawned(id: int) -> void:
@@ -87,36 +138,31 @@ func _on_respawned(id: int) -> void:
 		_stumps.erase(id)
 	if g["collider"]:
 		g["collider"].disabled = false
-	var base: Transform3D = g["xf"]
-	var mm: MultiMesh = g["multimesh"]
-	var idx: int = g["index"]
+	var target := WorldResources.size_factor(id)
 	var grow := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	grow.tween_method(func(f: float) -> void:
-		mm.set_instance_transform(idx, Transform3D(base.basis * Basis.from_scale(Vector3.ONE * maxf(f, 0.001)), base.origin)),
-		0.0, 1.0, 0.8)
+	grow.tween_method(func(f: float) -> void: _pose(id, _shown(id, Basis.IDENTITY, f)), 0.0, target, 0.8)
 
 
-func _shake(g: Dictionary) -> void:
+func _shake(id: int) -> void:
+	var g: Dictionary = _entries[id]
 	var base: Transform3D = g["xf"]
-	var mm: MultiMesh = g["multimesh"]
-	var idx: int = g["index"]
 	var away := (base.origin - player.global_position)
 	away.y = 0.0
 	var axis := Vector3.UP.cross(away.normalized()) if away.length() > 0.01 else Vector3.RIGHT
 	var strength := 0.06 if g["type"] in ["tree", "apple_tree"] else 0.03
 	var tween := create_tween()
 	tween.tween_method(func(t: float) -> void:
-		var angle := sin(t * 28.0) * strength * (1.0 - t)
-		mm.set_instance_transform(idx, Transform3D(Basis(axis, angle) * base.basis, base.origin)),
+		_pose(id, _shown(id, Basis(axis, sin(t * 28.0) * strength * (1.0 - t)))),
 		0.0, 1.0, 0.35)
 
 
-func _play(at: Vector3, sound: String, pitch: float) -> void:
+func _play(at: Vector3, sound: String, pitch: float, volume_db := 0.0) -> void:
 	var p := _players[_next_player]
 	_next_player = (_next_player + 1) % _players.size()
 	p.global_position = at
 	p.stream = _sounds[sound].pick_random()
 	p.pitch_scale = pitch * randf_range(0.92, 1.08)
+	p.volume_db = volume_db
 	p.play()
 
 

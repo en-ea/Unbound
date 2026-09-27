@@ -3,6 +3,7 @@ extends Node
 ## so later a network peer can apply the same actions.
 
 signal changed(item: String, count: int)
+signal added(item: String, amount: int)     # for the pickup feed
 
 var _counts := {}      # item id -> count
 var _order: Array[String] = []   # first-found order, for a stable inventory screen
@@ -14,6 +15,7 @@ func add(item: String, amount := 1) -> void:
 		_order.append(item)
 	_counts[item] += amount
 	changed.emit(item, _counts[item])
+	added.emit(item, amount)
 
 
 func remove(item: String, amount := 1) -> bool:

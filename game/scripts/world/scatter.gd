@@ -72,7 +72,8 @@ func _scatter_trees() -> void:
 		_add_tree(p)
 		var model: String = pines.pick_random() if (edge > 48.0 and _rng.randf() < 0.6) else commons.pick_random()
 		var gather := "" if model == "tree_dead_1" else ("apple_tree" if model == "tree_apple_1" else "tree")
-		_place(model, "tree", p, _rng.randf_range(0.85, 1.25), 0.25, gather)
+		# Sizes vary a lot: young, grown and old trees take different work and give different wood.
+		_place(model, "tree", p, _rng.randf_range(0.72, 1.4), 0.2, gather)
 
 
 func _scatter_landmarks() -> void:

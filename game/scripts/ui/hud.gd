@@ -4,6 +4,7 @@ extends CanvasLayer
 const LOOK_PICKER := preload("res://scripts/ui/look_picker.gd")
 const ACTION_BUTTON := preload("res://scripts/ui/action_button.gd")
 const INVENTORY_PANEL := preload("res://scripts/ui/inventory_panel.gd")
+const PICKUP_FEED := preload("res://scripts/ui/pickup_feed.gd")
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
 
 @export var day_night: Node
@@ -41,6 +42,10 @@ func _ready() -> void:
 	_bag.offset_top = -120
 	_bag.offset_bottom = -64
 	_bag.pressed.connect(open_bag)
+
+	var feed := Control.new()
+	feed.set_script(PICKUP_FEED)
+	add_child(feed)
 
 	_fps_label = Label.new()
 	_fps_label.position = MARGIN

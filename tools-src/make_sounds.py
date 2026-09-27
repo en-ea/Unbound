@@ -117,6 +117,23 @@ def pickups():
     save("rare", chime, 0.6)
 
 
+def tree_fall():
+    # A creaking groan as the trunk gives, a leafy rustle, and a heavy thud when it lands.
+    n = int(1.1 * RATE)
+    t = np.arange(n) / RATE
+    f = 140 - 60 * (t / t[-1])
+    saw = 2 * ((np.cumsum(f) / RATE) % 1.0) - 1
+    creak = band(saw * (0.6 + 0.4 * np.sin(2 * np.pi * 23 * t)), 200, 1600) * env(n, 0.2, 1.5)
+    save("tree_creak", creak, 0.45)
+    n = int(0.6 * RATE)
+    rustle = band(rng.normal(size=n), 1500, 6000) * env(n, 0.05, 1.6)
+    save("leaves_rustle", rustle, 0.45)
+    n = int(0.7 * RATE)
+    t = np.arange(n) / RATE
+    thud = np.sin(2 * np.pi * (70 - 30 * t) * t) * np.exp(-t * 7) + low(rng.normal(size=n), 400) * np.exp(-t * 12) * 0.6
+    save("tree_thud", thud, 0.7)
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     steps()
@@ -124,4 +141,5 @@ if __name__ == "__main__":
     birds()
     hum()
     pickups()
+    tree_fall()
     print("sounds written to", os.path.abspath(OUT))
