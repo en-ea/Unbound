@@ -158,7 +158,7 @@ func _scatter_plants() -> void:
 
 
 func _plant_at(p: Vector2) -> void:
-	if _shape.pond_distance(p) < WorldShape.POND_RADIUS + 1.5 or _shape.path_distance(p) < 1.6:
+	if _shape.pond_distance(p) < WorldShape.POND_RADIUS + 1.5 or _shape.path_distance(p) < 1.6 or _shape.in_clearing(p):
 		return
 	var m := _shape.meadow_noise(p.x, p.y)
 	var near_tree := _near_tree(p, 3.5)
@@ -190,7 +190,7 @@ func _random_point(half: float) -> Vector2:
 
 
 func _clear_of_features(p: Vector2, path_gap: float, spawn_gap: float) -> bool:
-	return _shape.path_distance(p) > path_gap \
+	return not _shape.in_clearing(p) and _shape.path_distance(p) > path_gap \
 		and _shape.pond_distance(p) > WorldShape.POND_RADIUS + 2.5 \
 		and p.distance_to(WorldShape.SPAWN) > spawn_gap \
 		and p.distance_to(WorldShape.HILL_CENTER) > 7.0

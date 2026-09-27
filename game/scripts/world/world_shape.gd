@@ -19,6 +19,9 @@ static var path := PackedVector2Array([
 	Vector2(4, -10), Vector2(-8, -20), Vector2(-20, -26), Vector2(-26, -30),
 ])
 
+## Spots kept clear of trees, rocks and plants (houses, the merchant): (x, z, radius).
+static var clearings := [Vector3(-5.5, 11.5, 4.2), Vector3(10.5, 13.0, 4.6), Vector3(5.4, 16.0, 1.5)]
+
 var _noise := FastNoiseLite.new()
 var _detail := FastNoiseLite.new()
 
@@ -42,12 +45,23 @@ func height_at(x: float, z: float) -> float:
 	# The hill with the old tree.
 	var hill_d := p.distance_to(HILL_CENTER)
 	h += (1.0 - smoothstep(HILL_RADIUS * 0.4, HILL_RADIUS, hill_d)) * HILL_HEIGHT
+	# Level ground under the houses.
+	for c: Vector3 in clearings:
+		var k := 1.0 - smoothstep(c.z * 0.8, c.z + 2.0, p.distance_to(Vector2(c.x, c.y)))
+		h = lerpf(h, 0.9, k)
 	# A worn dip along the path.
 	h -= 0.08 * (1.0 - smoothstep(0.8, 2.2, path_d))
 	# The pond bowl (knee-deep water), with a wobbly shore.
 	var pond_d := pond_distance(p)
 	h = lerpf(h, -1.05, 1.0 - smoothstep(POND_RADIUS * 0.35, POND_RADIUS + 2.5, pond_d))
 	return h
+
+
+func in_clearing(p: Vector2) -> bool:
+	for c: Vector3 in clearings:
+		if p.distance_to(Vector2(c.x, c.y)) < c.z:
+			return true
+	return false
 
 
 func pond_distance(p: Vector2) -> float:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/day_night.gd" id="2"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/world/resource_visuals.gd" id="13"]
 [ext_resource type="Script" path="res://scripts/world/occlusion_fader.gd" id="14"]
 [ext_resource type="Script" path="res://scripts/creatures/enemies.gd" id="15"]
+[ext_resource type="Script" path="res://scripts/world/village.gd" id="16"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
@@ -55,6 +56,10 @@ fader = NodePath("../OcclusionFader")
 [node name="OcclusionFader" type="Node3D" parent="." node_paths=PackedStringArray("camera_rig", "player")]
 script = ExtResource("14")
 camera_rig = NodePath("../CameraRig")
+player = NodePath("../Player")
+
+[node name="Village" type="Node3D" parent="." node_paths=PackedStringArray("player")]
+script = ExtResource("16")
 player = NodePath("../Player")
 
 [node name="Enemies" type="Node3D" parent="." node_paths=PackedStringArray("player")]
