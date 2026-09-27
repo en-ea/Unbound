@@ -2,8 +2,10 @@ extends AudioStreamPlayer3D
 ## Footsteps that match the ground: grass, the dirt path, or water.
 
 const DIR := "res://assets/sounds/"
-const WALK_STRIDE := 0.7     # metres between steps
-const RUN_STRIDE := 1.45
+const KENNEY := "res://assets/kenney_impact/"
+# Metres between footfalls, taken from the walk/jog animations (feet land twice per loop).
+const WALK_STRIDE := 0.65
+const RUN_STRIDE := 2.5
 
 var shape: WorldShape        # set by main
 var _sounds := {}
@@ -13,10 +15,11 @@ var _travelled := 0.0
 
 
 func _ready() -> void:
-	for surface in ["grass", "dirt"]:
-		_sounds[surface] = [] as Array[AudioStream]
-		for i in 4:
-			_sounds[surface].append(load(DIR + "step_%s_%d.wav" % [surface, i]))
+	# Recorded CC0 footsteps (Kenney Impact Sounds); the crunchy "snow" set reads as gravel.
+	for pair in [["grass", "grass"], ["dirt", "snow"]]:
+		_sounds[pair[0]] = [] as Array[AudioStream]
+		for i in 5:
+			_sounds[pair[0]].append(load(KENNEY + "footstep_%s_%03d.ogg" % [pair[1], i]))
 	_sounds["water"] = [] as Array[AudioStream]
 	for i in 3:
 		_sounds["water"].append(load(DIR + "step_water_%d.wav" % i))
@@ -50,5 +53,5 @@ func _step(speed: float) -> void:
 		surface = "dirt"
 	stream = _sounds[surface].pick_random()
 	pitch_scale = randf_range(0.9, 1.1)
-	volume_db = -2.0 if speed > 3.0 else -7.0
+	volume_db = -6.0 if speed > 3.0 else -11.0
 	play()

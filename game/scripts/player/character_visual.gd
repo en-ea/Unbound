@@ -88,10 +88,7 @@ func apply_hero_look() -> void:
 func _slot_material(slot: String) -> StandardMaterial3D:
 	if not _slot_materials.has(slot):
 		var m := StandardMaterial3D.new()
-		m.roughness = 0.85
-		m.rim_enabled = true
-		m.rim = 0.25
-		m.rim_tint = 0.6
+		m.roughness = 0.9
 		_slot_materials[slot] = m
 	var mat: StandardMaterial3D = _slot_materials[slot]
 	mat.albedo_color = hero_look.color(slot)

@@ -40,15 +40,7 @@ def loopable(x, fade):
 
 
 def steps():
-    for i in range(4):
-        n = int(0.16 * RATE)
-        grass = band(rng.normal(size=n), 1800, 7000) * env(n, 0.08, 2.5)
-        grass += band(rng.normal(size=n), 300, 900) * env(n, 0.02, 4) * 0.5
-        save(f"step_grass_{i}", grass, 0.5)
-        n = int(0.14 * RATE)
-        dirt = low(rng.normal(size=n), 700) * env(n, 0.02, 3)
-        dirt += band(rng.normal(size=n), 2500, 6000) * env(n, 0.05, 5) * 0.25
-        save(f"step_dirt_{i}", dirt, 0.55)
+    # Grass and dirt footsteps are recorded (Kenney Impact Sounds); only water is made here.
     for i in range(3):
         n = int(0.35 * RATE)
         t = np.arange(n) / RATE

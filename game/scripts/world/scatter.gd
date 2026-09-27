@@ -42,7 +42,9 @@ func build(shape: WorldShape) -> void:
 # --- placement rules ---------------------------------------------------------
 
 func _scatter_trees() -> void:
-	var commons := ["tree_round_1", "tree_round_2", "tree_round_3"]
+	# Weighted mix: mostly plain leafy trees, a few tall, apple and blossom ones.
+	var commons := ["tree_round_1", "tree_round_2", "tree_round_3", "tree_round_1", "tree_round_2",
+		"tree_tall_1", "tree_tall_1", "tree_apple_1", "tree_blossom_1"]
 	var pines := ["tree_pine_1", "tree_pine_2"]
 	for i in 6000:
 		if _trees.size() >= 230:
@@ -263,7 +265,7 @@ func _mesh_for(model: String, kind_name: String) -> Mesh:
 		if std == null:
 			continue
 		var name := std.resource_name
-		if name == "Canopy" or name == "Needles":
+		if name in ["Canopy", "Needles", "Blossom", "Fruit"]:
 			var solid := ShaderMaterial.new()
 			solid.shader = SOLID_FOLIAGE_SHADER
 			solid.set_shader_parameter("albedo", std.albedo_color)

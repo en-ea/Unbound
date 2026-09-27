@@ -32,23 +32,23 @@ func _build() -> void:
 	panel.anchor_bottom = 1.0
 	panel.offset_left = -560.0
 	panel.offset_right = -48.0
-	panel.offset_top = 20.0
-	panel.offset_bottom = -20.0
+	panel.offset_top = 12.0
+	panel.offset_bottom = -12.0
 	add_child(panel)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 10)
 	panel.add_child(column)
-	UIStyle.label(column, "Your look", 28)
+	UIStyle.label(column, "Your look", 26)
 	_rows = VBoxContainer.new()
-	_rows.add_theme_constant_override("separation", 6)
+	_rows.add_theme_constant_override("separation", 4)
 	_rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(_rows)
 	var footer := HBoxContainer.new()
 	footer.add_theme_constant_override("separation", 12)
 	footer.alignment = BoxContainer.ALIGNMENT_END
 	column.add_child(footer)
-	UIStyle.button(footer, "Random").pressed.connect(_randomize)
-	UIStyle.button(footer, "Done").pressed.connect(_close)
+	UIStyle.button(footer, "Random", Vector2(130, 46)).pressed.connect(_randomize)
+	UIStyle.button(footer, "Done", Vector2(130, 46)).pressed.connect(_close)
 	_refresh()
 
 
@@ -60,12 +60,12 @@ func _refresh() -> void:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 8)
 		_rows.add_child(row)
-		UIStyle.label(row, CharacterLook.PART_LABELS[slot]).custom_minimum_size.x = 150
-		UIStyle.button(row, "<", Vector2(48, 42)).pressed.connect(_cycle.bind(slot, -1))
-		var value := UIStyle.label(row, String(look.parts[slot]).capitalize())
+		UIStyle.label(row, CharacterLook.PART_LABELS[slot], 18).custom_minimum_size.x = 150
+		UIStyle.button(row, "<", Vector2(48, 36), 18).pressed.connect(_cycle.bind(slot, -1))
+		var value := UIStyle.label(row, String(look.parts[slot]).capitalize(), 18)
 		value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		UIStyle.button(row, ">", Vector2(48, 42)).pressed.connect(_cycle.bind(slot, 1))
+		UIStyle.button(row, ">", Vector2(48, 36), 18).pressed.connect(_cycle.bind(slot, 1))
 	for slot: String in CharacterLook.PALETTES:
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 6)
@@ -73,7 +73,7 @@ func _refresh() -> void:
 		UIStyle.label(row, CharacterLook.COLOR_LABELS[slot], 18, true).custom_minimum_size.x = 150
 		var palette: Array = CharacterLook.PALETTES[slot]
 		for i in palette.size():
-			UIStyle.swatch(row, palette[i], look.colors[slot] == i).pressed.connect(_pick_color.bind(slot, i))
+			UIStyle.swatch(row, palette[i], look.colors[slot] == i, 34.0).pressed.connect(_pick_color.bind(slot, i))
 
 
 func _cycle(slot: String, step: int) -> void:

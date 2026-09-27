@@ -78,7 +78,8 @@ func open_look_picker() -> void:
 
 
 func _toggle_cap() -> void:
-	Settings.set_fps_cap(60 if Settings.fps_cap == 30 else 30)
+	var caps := [30, 40, 60]
+	Settings.set_fps_cap(caps[(caps.find(Settings.fps_cap) + 1) % caps.size()])
 	_refresh_cap()
 
 

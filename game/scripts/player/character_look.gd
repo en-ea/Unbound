@@ -7,13 +7,15 @@ const SAVE_PATH := "user://look.cfg"
 
 ## Part slots and their choices (the first is the default). Mesh names in hero.glb follow them.
 const PARTS := {
+	"face": ["calm", "happy", "bright", "stern"],
+	"cheeks": ["none", "blush"],
 	"hair": ["short", "long", "bun", "none"],
 	"beard": ["none", "beard"],
 	"head": ["none", "hood"],
 	"shoulders": ["none", "pads"],
 	"back": ["scarf", "cape", "none"],
 }
-const PART_LABELS := {"hair": "Hair", "beard": "Beard", "head": "Hood", "shoulders": "Shoulders", "back": "Back"}
+const PART_LABELS := {"face": "Face", "cheeks": "Cheeks", "hair": "Hair", "beard": "Beard", "head": "Hood", "shoulders": "Shoulders", "back": "Back"}
 
 const CLOTH: Array[Color] = [
 	Color(0.30, 0.38, 0.52), Color(0.26, 0.42, 0.32), Color(0.62, 0.22, 0.18), Color(0.80, 0.72, 0.56),
@@ -30,7 +32,7 @@ const PALETTES := {
 }
 const COLOR_LABELS := {"Skin": "Skin", "Hair": "Hair colour", "Main": "Tunic", "Second": "Trim & pants", "Accent": "Scarf, cape, hood", "Leather": "Leather"}
 
-var parts := {"hair": "short", "beard": "none", "head": "none", "shoulders": "none", "back": "scarf"}
+var parts := {"face": "calm", "cheeks": "none", "hair": "short", "beard": "none", "head": "none", "shoulders": "none", "back": "scarf"}
 var colors := {"Skin": 1, "Hair": 0, "Main": 0, "Second": 3, "Accent": 2, "Leather": 0}   # palette indices
 
 

@@ -1,5 +1,6 @@
 shader_type spatial;
-// Solid leaf blobs (our own trees and bushes): soft two-tone shading, per-tree tint, wind sway.
+// Solid leaf blobs (our own trees and bushes): soft two-tone shading, per-clump and per-tree
+// tint (vertex colour x instance colour), a soft glowing edge, and wind sway.
 
 uniform vec4 albedo : source_color = vec4(0.4, 0.58, 0.3, 1.0);
 uniform float sway = 0.06;          // metres of movement at the top
@@ -19,7 +20,9 @@ void vertex() {
 }
 
 void fragment() {
-	ALBEDO = albedo.rgb * COLOR.rgb * mix(0.7, 1.12, top_light);
+	ALBEDO = albedo.rgb * COLOR.rgb * mix(0.66, 1.0, top_light);
 	ROUGHNESS = 0.95;
 	SPECULAR = 0.1;
+	RIM = 0.18;
+	RIM_TINT = 0.7;
 }
