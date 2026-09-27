@@ -30,6 +30,10 @@ var _pending_gatherables: Array[Dictionary] = []
 var gatherables: Array[Dictionary] = []
 ## Filled by build(): every tree instance {xf, multimesh, index}, for the OcclusionFader.
 var trees: Array[Dictionary] = []
+## Filled by build(): soft shade to bake into the ground under trees, rocks and bushes.
+## Each: Vector4(x, z, radius, strength).
+var shade_spots: Array[Vector4] = []
+const SHADE := {"tree": Vector2(2.4, 0.55), "rock": Vector2(1.5, 0.5), "bush": Vector2(1.1, 0.45)}
 var _pending_trees: Array[Dictionary] = []
 
 
@@ -224,6 +228,8 @@ func _place(model: String, kind: String, p: Vector2, scale: float, tilt: float, 
 	var collider: CollisionShape3D = null
 	if radius > 0.0:
 		collider = _add_collider(xf.origin, radius * scale)
+	if SHADE.has(kind):
+		shade_spots.append(Vector4(p.x, p.y, SHADE[kind].x * scale, SHADE[kind].y))
 	if kind == "tree":
 		_pending_trees.append({"xf": xf, "key": key, "index": _batches[key].size() - 1})
 	if gather != "":

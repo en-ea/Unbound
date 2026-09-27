@@ -30,6 +30,18 @@ class Builder:
                 loop[self.uv].uv = (r, 1.0 - g)      # the glTF exporter flips V
                 loop[self.uv2].uv = (b, 1.0)
 
+    def gradient(self, faces, low, high):
+        """Recolour the given faces from `low` at their bottom to `high` at their top (per corner)."""
+        verts = {v for f in faces for v in f.verts}
+        z0 = min(v.co.z for v in verts)
+        z1 = max(v.co.z for v in verts)
+        for f in faces:
+            for loop in f.loops:
+                t = (loop.vert.co.z - z0) / max(z1 - z0, 1e-5)
+                c = [rk.srgb_to_linear(low[i] + (high[i] - low[i]) * t) for i in range(3)]
+                loop[self.uv].uv = (c[0], 1.0 - c[1])
+                loop[self.uv2].uv = (c[2], 1.0)
+
     def new_faces(self, fn):
         before = set(self.bm.faces)
         fn()

@@ -11,6 +11,7 @@ func _ready() -> void:
 	var shape := WorldShape.new()
 	terrain.build(shape)
 	scatter.build(shape)
+	terrain.bake_shade(scatter.shade_spots)
 	$Landmark.place(shape)
 	$ResourceVisuals.setup(scatter.gatherables)
 	$OcclusionFader.setup(scatter.trees)

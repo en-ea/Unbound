@@ -19,11 +19,11 @@ const SKY_TOP := [Color(0.03, 0.05, 0.14), Color(0.10, 0.12, 0.28), Color(0.34, 
 	Color(0.32, 0.58, 0.92), Color(0.36, 0.56, 0.86), Color(0.34, 0.34, 0.62), Color(0.10, 0.10, 0.26), Color(0.03, 0.05, 0.14)]
 const HORIZON := [Color(0.08, 0.11, 0.24), Color(0.30, 0.26, 0.42), Color(1.00, 0.68, 0.50), Color(0.88, 0.86, 0.80),
 	Color(0.78, 0.88, 0.96), Color(0.92, 0.86, 0.74), Color(1.00, 0.56, 0.40), Color(0.34, 0.22, 0.38), Color(0.08, 0.11, 0.24)]
-const SUN_COLOR := [Color(1, 0.8, 0.6), Color(1.0, 0.62, 0.40), Color(1.0, 0.72, 0.48), Color(1.0, 0.90, 0.76),
-	Color(1.0, 0.97, 0.90), Color(1.0, 0.90, 0.74), Color(1.0, 0.62, 0.38), Color(1.0, 0.5, 0.35), Color(1, 0.8, 0.6)]
-const SUN_ENERGY := [0.0, 0.0, 1.0, 1.35, 1.45, 1.4, 1.25, 0.0, 0.0]
-const AMBIENT := [Color(0.30, 0.38, 0.62), Color(0.42, 0.40, 0.58), Color(0.72, 0.62, 0.62), Color(0.66, 0.72, 0.78),
-	Color(0.68, 0.76, 0.84), Color(0.74, 0.72, 0.70), Color(0.72, 0.56, 0.56), Color(0.40, 0.36, 0.56), Color(0.30, 0.38, 0.62)]
+const SUN_COLOR := [Color(1, 0.8, 0.6), Color(1.0, 0.62, 0.40), Color(1.0, 0.72, 0.48), Color(1.0, 0.88, 0.7),
+	Color(1.0, 0.93, 0.8), Color(1.0, 0.86, 0.66), Color(1.0, 0.62, 0.38), Color(1.0, 0.5, 0.35), Color(1, 0.8, 0.6)]
+const SUN_ENERGY := [0.0, 0.0, 1.05, 1.5, 1.6, 1.55, 1.3, 0.0, 0.0]
+const AMBIENT := [Color(0.30, 0.38, 0.62), Color(0.42, 0.40, 0.58), Color(0.62, 0.6, 0.72), Color(0.56, 0.66, 0.86),
+	Color(0.56, 0.68, 0.9), Color(0.6, 0.66, 0.84), Color(0.66, 0.54, 0.62), Color(0.40, 0.36, 0.56), Color(0.30, 0.38, 0.62)]
 const AMBIENT_ENERGY := [0.55, 0.62, 0.85, 0.8, 0.75, 0.8, 0.9, 0.65, 0.55]
 
 var _sky_mat := ProceduralSkyMaterial.new()
@@ -39,23 +39,23 @@ func _ready() -> void:
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_white = 6.0
+	env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	env.tonemap_exposure = 1.05
 	env.glow_enabled = true
-	env.glow_intensity = 0.5
-	env.glow_bloom = 0.04
+	env.glow_intensity = 0.55
+	env.glow_bloom = 0.06
 	env.glow_hdr_threshold = 1.0
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_DEPTH
-	env.fog_depth_begin = 30.0
-	env.fog_depth_end = 110.0
-	env.fog_depth_curve = 1.6
-	env.fog_density = 0.85
+	env.fog_depth_begin = 22.0
+	env.fog_depth_end = 95.0
+	env.fog_depth_curve = 1.3
+	env.fog_density = 0.7
 	env.fog_sky_affect = 0.6
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.95
-	env.adjustment_contrast = 1.04
+	env.adjustment_saturation = 0.96
+	env.adjustment_contrast = 1.06
 	environment = env
 	_sky_mat.sun_angle_max = 20.0
 	_sky_mat.sun_curve = 0.08

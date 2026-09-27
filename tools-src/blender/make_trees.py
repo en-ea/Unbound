@@ -210,7 +210,9 @@ def grass(seed):
         lean = V((math.cos(ang) * rnd.uniform(0.05, 0.18), math.sin(ang) * rnd.uniform(0.05, 0.18), 0))
         tip = base + lean + V((0, 0, rnd.uniform(0.28, 0.5)))
         faces = b.new_faces(lambda base=base, tip=tip: blade(b.bm, base, tip, 0.042))
-        b.paint(faces, "Grass", rnd.choice(GRASS))
+        b.paint(faces, "Grass")
+        col = rnd.choice(GRASS)
+        b.gradient(faces, tuple(c * 0.62 for c in col), tuple(min(1.0, c * 1.2 + 0.04) for c in col))
     return b
 
 

@@ -85,6 +85,30 @@ func build(shape: WorldShape) -> void:
 
 ## Grass shades and rock on steep slopes. The path and pond shore are drawn by the shader,
 ## per pixel, so their edges stay crisp.
+## Bakes soft shade under trees, rocks and bushes into a small ground texture.
+func bake_shade(spots: Array[Vector4]) -> void:
+	const RES := 320
+	var px := RES / (WorldShape.HALF_SIZE * 2.0)     # pixels per metre
+	var data := PackedByteArray()
+	data.resize(RES * RES)
+	data.fill(255)
+	for s in spots:
+		var cx := (s.x + WorldShape.HALF_SIZE) * px
+		var cy := (s.y + WorldShape.HALF_SIZE) * px
+		var r := s.z * px
+		for y in range(maxi(0, int(cy - r)), mini(RES, int(cy + r) + 1)):
+			for x in range(maxi(0, int(cx - r)), mini(RES, int(cx + r) + 1)):
+				var d := Vector2(x - cx, y - cy).length() / r
+				if d >= 1.0:
+					continue
+				var shade := 1.0 - s.w * (1.0 - smoothstep(0.0, 1.0, d))
+				var i := y * RES + x
+				data[i] = mini(data[i], int(shade * 255.0))
+	var img := Image.create_from_data(RES, RES, false, Image.FORMAT_L8, data)
+	material.set_shader_parameter("shade_map", ImageTexture.create_from_image(img))
+	material.set_shader_parameter("world_half", WorldShape.HALF_SIZE)
+
+
 func _ground_color(shape: WorldShape, x: float, z: float, _h: float, up: float) -> Color:
 	var c := GRASS_DARK.lerp(GRASS_LIGHT, shape.meadow_noise(x, z))
 	return c.lerp(ROCK, smoothstep(0.86, 0.72, up))
