@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://jesrhehyjp7v"
-path="res://.godot/imported/house_hearth.glb-94f8d5b08292c93d1746a850e1044ecc.scn"
+uid="uid://d0dnbhuwc6wvd"
+path="res://.godot/imported/house_hill.glb-a9f6851ca3e3d0ae2d15c05bfd471781.scn"
 
 [deps]
 
-source_file="res://assets/buildings/house_hearth.glb"
-dest_files=["res://.godot/imported/house_hearth.glb-94f8d5b08292c93d1746a850e1044ecc.scn"]
+source_file="res://assets/buildings/house_hill.glb"
+dest_files=["res://.godot/imported/house_hill.glb-a9f6851ca3e3d0ae2d15c05bfd471781.scn"]
 
 [params]
 
