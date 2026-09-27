@@ -38,6 +38,7 @@ func _refresh() -> void:
 		c.queue_free()
 	_row("Frame rate", "%d FPS" % Settings.fps_cap, Settings.next_fps_cap)
 	_row("Performance stats", "On" if Settings.show_stats else "Off", func() -> void: Settings.set_show_stats(not Settings.show_stats))
+	_row("Camera", Settings.ZOOMS.get(Settings.zoom, "Normal"), Settings.next_zoom)
 	_row("Sound", "On" if Settings.sound_on else "Off", func() -> void: Settings.set_sound_on(not Settings.sound_on))
 
 

@@ -26,6 +26,7 @@ var _corner: HBoxContainer
 var _feed: Control
 var _title: Control
 var _hearts: Control
+var _map: Control
 var _worst := 0.0
 var _worst_shown := 0.0
 var _timer := 0.0
@@ -59,6 +60,14 @@ func _ready() -> void:
 	add_child(_corner)
 	UIStyle.icon_button(_corner, "menuGrid").pressed.connect(open_bag)
 	UIStyle.icon_button(_corner, "gear").pressed.connect(open_menu)
+
+	_map = Control.new()
+	_map.set_script(preload("res://scripts/ui/minimap.gd"))
+	_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_map.position = Vector2(-MARGIN.x - 150.0, MARGIN.y + 72.0)
+	_map.player = player
+	_map.visual = character
+	add_child(_map)
 
 	_hearts = Control.new()
 	_hearts.set_script(preload("res://scripts/ui/hearts.gd"))
@@ -95,6 +104,12 @@ func _process(delta: float) -> void:
 		Engine.get_frames_per_second(), roundi(_worst_shown * 1000.0),
 		Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000]
+
+
+## Paints the minimap once the world is built (main calls this).
+func setup_map(shape: WorldShape, trees: Array[Vector2], landmark: Node3D) -> void:
+	_map.landmark = landmark
+	_map.setup(shape, trees)
 
 
 # --- screen flow ---------------------------------------------------------------------------
@@ -184,6 +199,7 @@ func _set_play_ui(on: bool) -> void:
 	_corner.visible = on
 	_feed.visible = on
 	_hearts.visible = on
+	_map.visible = on
 
 
 func _on_settings_changed() -> void:

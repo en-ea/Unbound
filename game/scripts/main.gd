@@ -17,6 +17,7 @@ func _ready() -> void:
 	$OcclusionFader.setup(scatter.trees)
 	$Enemies.spawn(shape)
 	$Village.build(shape)
+	$HUD.setup_map(shape, scatter.tree_points(), $Landmark)
 	$Player/Sounds.shape = shape
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)

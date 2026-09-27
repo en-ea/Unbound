@@ -324,6 +324,11 @@ func _mesh_for(model: String, kind_name: String) -> Mesh:
 	return mesh
 
 
+## Where every tree stands (x, z), for the minimap.
+func tree_points() -> Array[Vector2]:
+	return _trees
+
+
 ## A random entry using the seeded generator, so the world is the same every launch.
 func _pick(list: Array) -> Variant:
 	return list[_rng.randi() % list.size()]

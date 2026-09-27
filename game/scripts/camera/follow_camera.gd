@@ -15,6 +15,7 @@ var _offset := Vector3.ZERO          # shifts the view (the look picker puts you
 var _default_view := Vector2.ZERO    # (distance, pitch) to return to
 var _shake := 0.0
 var _view_tween: Tween
+var _base_distance := 18.0
 
 
 func _ready() -> void:
@@ -22,8 +23,10 @@ func _ready() -> void:
 	camera.fov = fov
 	camera.far = 220.0
 	camera.near = 0.3
-	_default_view = Vector2(distance, pitch_degrees)
-	set_distance(distance)
+	_base_distance = distance
+	_default_view = Vector2(distance * Settings.zoom, pitch_degrees)
+	set_distance(_default_view.x)
+	Settings.changed.connect(_on_settings_changed)
 	snap()
 
 
@@ -34,6 +37,17 @@ func set_view(d: float, pitch: float, offset: Vector3, time := 0.6) -> void:
 	_view_tween = create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_view_tween.tween_method(_apply_view, Vector2(distance, pitch_degrees), Vector2(d, pitch), time)
 	_view_tween.tween_property(self, "_offset", offset, time)
+
+
+## The camera zoom setting changed: move to the new distance (only in normal play).
+func _on_settings_changed() -> void:
+	var d := _base_distance * Settings.zoom
+	if is_equal_approx(d, _default_view.x):
+		return
+	var in_play := _offset == Vector3.ZERO and is_equal_approx(distance, _default_view.x)
+	_default_view.x = d
+	if in_play:
+		reset_view(0.4)
 
 
 func reset_view(time := 0.6) -> void:
