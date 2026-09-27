@@ -1,11 +1,17 @@
 extends CanvasLayer
-## HUD: the joystick, FPS stats, and a small "Dev" menu (30/60 FPS, skip time, looks).
+## HUD and screen flow: the title screen first, then the play UI (joystick, action and roll
+## buttons, Bag and Menu icons, pickup feed, stats), and the Bag / Menu / Settings / Look screens.
 
 const LOOK_PICKER := preload("res://scripts/ui/look_picker.gd")
 const ACTION_BUTTON := preload("res://scripts/ui/action_button.gd")
 const INVENTORY_PANEL := preload("res://scripts/ui/inventory_panel.gd")
 const PICKUP_FEED := preload("res://scripts/ui/pickup_feed.gd")
+const TITLE_SCREEN := preload("res://scripts/ui/title_screen.gd")
+const MENU_PANEL := preload("res://scripts/ui/menu_panel.gd")
+const SETTINGS_PANEL := preload("res://scripts/ui/settings_panel.gd")
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
+## Title camera: close on the character, who stands to the right of the title.
+const TITLE_VIEW := {"distance": 5.0, "pitch": -7.0, "offset": Vector3(-1.35, 0.25, 0.0)}
 
 @export var day_night: Node
 @export var character: CharacterVisual
@@ -16,34 +22,16 @@ var _fps_label: Label
 var _joystick: Control
 var _action: Control
 var _roll: Control
-var _bag: Button
-var _cap_button: Button
-var _column: VBoxContainer
-var _menu: VBoxContainer
+var _corner: HBoxContainer
+var _feed: Control
+var _title: Control
 var _worst := 0.0
 var _worst_shown := 0.0
 var _timer := 0.0
 
 
 func _ready() -> void:
-	# A soft vignette: slightly darker corners pull the eye to the middle.
-	var vignette := TextureRect.new()
-	var grad := Gradient.new()
-	grad.set_color(0, Color(0, 0, 0, 0))
-	grad.set_color(1, Color(0.02, 0.03, 0.08, 0.32))
-	grad.add_point(0.55, Color(0, 0, 0, 0))
-	var tex := GradientTexture2D.new()
-	tex.gradient = grad
-	tex.fill = GradientTexture2D.FILL_RADIAL
-	tex.fill_from = Vector2(0.5, 0.5)
-	tex.fill_to = Vector2(1.05, 1.05)
-	vignette.texture = tex
-	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	vignette.stretch_mode = TextureRect.STRETCH_SCALE
-	vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(vignette)
-
+	_add_vignette()
 	_joystick = Control.new()
 	_joystick.set_script(preload("res://scripts/ui/joystick.gd"))
 	add_child(_joystick)
@@ -61,44 +49,31 @@ func _ready() -> void:
 	add_child(_roll)
 	_roll.set_verb("Roll")
 	_roll.pressed.connect(player.roll)
-	_bag = UIStyle.button(self, "Bag", Vector2(110, 48), 22)
-	_bag.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_bag.offset_left = -270
-	_bag.offset_right = -160
-	_bag.offset_top = 24
-	_bag.offset_bottom = 72
-	_bag.pressed.connect(open_bag)
 
-	var feed := Control.new()
-	feed.set_script(PICKUP_FEED)
-	add_child(feed)
+	_corner = HBoxContainer.new()
+	_corner.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	_corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_corner.position = Vector2(-MARGIN.x, MARGIN.y)
+	_corner.add_theme_constant_override("separation", 12)
+	add_child(_corner)
+	UIStyle.icon_button(_corner, "menuGrid").pressed.connect(open_bag)
+	UIStyle.icon_button(_corner, "gear").pressed.connect(open_menu)
+
+	_feed = Control.new()
+	_feed.set_script(PICKUP_FEED)
+	add_child(_feed)
 
 	_fps_label = Label.new()
 	_fps_label.position = MARGIN
-	_fps_label.add_theme_font_size_override("font_size", 18)
-	_fps_label.modulate = Color(1, 1, 1, 0.8)
+	_fps_label.add_theme_font_size_override("font_size", 16)
+	_fps_label.modulate = Color(1, 1, 1, 0.7)
 	_fps_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
 	_fps_label.add_theme_constant_override("outline_size", 6)
 	add_child(_fps_label)
+	Settings.changed.connect(_on_settings_changed)
+	_on_settings_changed()
 
-	_column = VBoxContainer.new()
-	_column.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_column.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_column.position = Vector2(-MARGIN.x, MARGIN.y)
-	_column.add_theme_constant_override("separation", 10)
-	add_child(_column)
-	var toggle := UIStyle.button(_column, "Dev", Vector2(86, 48))
-	_menu = VBoxContainer.new()
-	_menu.add_theme_constant_override("separation", 10)
-	_menu.visible = false
-	_column.add_child(_menu)
-	toggle.pressed.connect(func() -> void: _menu.visible = not _menu.visible)
-	_cap_button = UIStyle.button(_menu, "")
-	_cap_button.pressed.connect(_toggle_cap)
-	UIStyle.button(_menu, "Time +").pressed.connect(func() -> void: day_night.skip(0.125))
-	UIStyle.button(_menu, "Look").pressed.connect(open_look_picker)
-	UIStyle.button(_menu, "Swap look").pressed.connect(func() -> void: character.next_look())
-	_refresh_cap()
+	show_title()
 
 
 func _process(delta: float) -> void:
@@ -115,40 +90,113 @@ func _process(delta: float) -> void:
 		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000]
 
 
-func open_bag() -> void:
+# --- screen flow ---------------------------------------------------------------------------
+
+func show_title() -> void:
 	_set_play_ui(false)
 	Controls.locked = true
-	var panel := Control.new()
-	panel.set_script(INVENTORY_PANEL)
-	add_child(panel)
-	panel.closed.connect(func() -> void:
-		Controls.locked = false
-		_set_play_ui(true))
+	_title = Control.new()
+	_title.set_script(TITLE_SCREEN)
+	add_child(_title)
+	_title.play.connect(start_game)
+	_title.open_character.connect(open_look_picker)
+	_title.open_settings.connect(open_settings)
+	_title_camera()
 
 
-func _set_play_ui(on: bool) -> void:
-	_menu.visible = false
-	_column.visible = on
-	_joystick.visible = on
-	_action.visible = on
-	_roll.visible = on
-	_bag.visible = on
+## Leaves the title and hands control to the player (`instant` skips the fade; dev tests use it).
+func start_game(instant := false) -> void:
+	if instant and is_instance_valid(_title):
+		_title.queue_free()
+	_title = null
+	Controls.locked = false
+	camera_rig.reset_view(0.01 if instant else 0.9)
+	_set_play_ui(true)
+
+
+func open_bag() -> void:
+	_modal(INVENTORY_PANEL)
+
+
+func open_menu() -> void:
+	var menu := _modal(MENU_PANEL, {"day_night": day_night, "character": character})
+	menu.open_character.connect(open_look_picker)
+	menu.open_settings.connect(open_settings)
+
+
+func open_settings() -> void:
+	_modal(SETTINGS_PANEL)
 
 
 func open_look_picker() -> void:
 	_set_play_ui(false)
+	if _title:
+		_title.visible = false
 	var picker := Control.new()
 	picker.set_script(LOOK_PICKER)
 	add_child(picker)
 	picker.open(character, camera_rig)
-	picker.closed.connect(func() -> void: _set_play_ui(true))
+	picker.closed.connect(_back_from_screen)
 
 
-func _toggle_cap() -> void:
-	var caps := [30, 40, 60]
-	Settings.set_fps_cap(caps[(caps.find(Settings.fps_cap) + 1) % caps.size()])
-	_refresh_cap()
+## Opens a panel over the game (controls locked until it closes).
+func _modal(script: Script, props := {}) -> Control:
+	_set_play_ui(false)
+	if _title:
+		_title.visible = false
+	Controls.locked = true
+	var panel := Control.new()
+	panel.set_script(script)
+	for key: String in props:
+		panel.set(key, props[key])
+	add_child(panel)
+	panel.closed.connect(_back_from_screen)
+	return panel
 
 
-func _refresh_cap() -> void:
-	_cap_button.text = "%d FPS" % Settings.fps_cap
+func _back_from_screen() -> void:
+	if _title:
+		_title.visible = true
+		Controls.locked = true
+		_title_camera()
+	else:
+		Controls.locked = false
+		_set_play_ui(true)
+
+
+func _title_camera() -> void:
+	camera_rig.set_view(TITLE_VIEW["distance"], TITLE_VIEW["pitch"], TITLE_VIEW["offset"], 0.8)
+	var turn := create_tween().set_trans(Tween.TRANS_SINE)
+	turn.tween_method(func(a: float) -> void: character.rotation.y = a, character.rotation.y, 0.35, 0.6)
+
+
+func _set_play_ui(on: bool) -> void:
+	_joystick.visible = on
+	_action.visible = on
+	_roll.visible = on
+	_corner.visible = on
+	_feed.visible = on
+
+
+func _on_settings_changed() -> void:
+	_fps_label.visible = Settings.show_stats
+
+
+func _add_vignette() -> void:
+	# A soft vignette: slightly darker corners pull the eye to the middle.
+	var vignette := TextureRect.new()
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0, 0, 0, 0))
+	grad.set_color(1, Color(0.02, 0.03, 0.08, 0.32))
+	grad.add_point(0.55, Color(0, 0, 0, 0))
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill = GradientTexture2D.FILL_RADIAL
+	tex.fill_from = Vector2(0.5, 0.5)
+	tex.fill_to = Vector2(1.05, 1.05)
+	vignette.texture = tex
+	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(vignette)

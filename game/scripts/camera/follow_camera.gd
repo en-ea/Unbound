@@ -14,6 +14,7 @@ extends Node3D
 var _offset := Vector3.ZERO          # shifts the view (the look picker puts you left of centre)
 var _default_view := Vector2.ZERO    # (distance, pitch) to return to
 var _shake := 0.0
+var _view_tween: Tween
 
 
 func _ready() -> void:
@@ -28,9 +29,11 @@ func _ready() -> void:
 
 ## Smoothly moves to a closer or different view (e.g. for the look picker).
 func set_view(d: float, pitch: float, offset: Vector3, time := 0.6) -> void:
-	var tween := create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_method(_apply_view, Vector2(distance, pitch_degrees), Vector2(d, pitch), time)
-	tween.tween_property(self, "_offset", offset, time)
+	if _view_tween:
+		_view_tween.kill()          # a new view replaces any move still in progress
+	_view_tween = create_tween().set_parallel().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_view_tween.tween_method(_apply_view, Vector2(distance, pitch_degrees), Vector2(d, pitch), time)
+	_view_tween.tween_property(self, "_offset", offset, time)
 
 
 func reset_view(time := 0.6) -> void:

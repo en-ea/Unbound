@@ -11,6 +11,7 @@ extends Node
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
 ##   --lineup          stand every outfit preset in a row in front of the camera
+##   --title           keep the title screen (otherwise any dev argument skips it)
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 
 @export var day_night: Node
@@ -31,7 +32,10 @@ func _ready() -> void:
 	if not OS.is_debug_build():
 		queue_free()
 		return
-	for arg in OS.get_cmdline_user_args():
+	var args := OS.get_cmdline_user_args()
+	if not args.is_empty() and not args.has("--title"):
+		get_node("../HUD").start_game.call_deferred(true)
+	for arg in args:
 		if arg.begins_with("--shot="):
 			_shot_path = arg.trim_prefix("--shot=")
 		elif arg.begins_with("--shotframe="):

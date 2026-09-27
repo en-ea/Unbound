@@ -36,6 +36,42 @@ static func button(parent: Node, text: String, min_size := Vector2(130, 52), fon
 	return b
 
 
+## A round button with a white icon (Kenney game icons, CC0).
+static func icon_button(parent: Node, icon_name: String, size := 60.0) -> Button:
+	var b := Button.new()
+	b.focus_mode = Control.FOCUS_NONE
+	b.custom_minimum_size = Vector2(size, size)
+	b.icon = load("res://assets/ui/icons/%s.png" % icon_name)
+	b.expand_icon = true
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_constant_override("icon_max_width", int(size * 0.55))
+	for state in ["normal", "hover", "pressed"]:
+		var box := StyleBoxFlat.new()
+		box.bg_color = BUTTON_PRESSED if state == "pressed" else BUTTON_BG
+		box.set_corner_radius_all(int(size / 2.0))
+		box.border_color = Color(1, 1, 1, 0.25)
+		box.set_border_width_all(1)
+		box.set_content_margin_all(size * 0.22)
+		b.add_theme_stylebox_override(state, box)
+	parent.add_child(b)
+	return b
+
+
+## A wide menu button (title screen, pause menu).
+static func menu_button(parent: Node, text: String, primary := false) -> Button:
+	var b := button(parent, text, Vector2(300, 62), 26)
+	if primary:
+		for state in ["normal", "hover", "pressed"]:
+			var box := StyleBoxFlat.new()
+			box.bg_color = Color(0.93, 0.8, 0.52, 0.95) if state != "pressed" else Color(0.8, 0.66, 0.4)
+			box.set_corner_radius_all(18)
+			b.add_theme_stylebox_override(state, box)
+		b.add_theme_color_override("font_color", Color(0.14, 0.12, 0.1))
+		b.add_theme_color_override("font_pressed_color", Color(0.14, 0.12, 0.1))
+		b.add_theme_color_override("font_hover_color", Color(0.14, 0.12, 0.1))
+	return b
+
+
 static func label(parent: Node, text: String, font_size := 20, dim := false) -> Label:
 	var l := Label.new()
 	l.text = text
