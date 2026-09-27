@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cxt2tyrgc0sb1"
-path="res://.godot/imported/gather_anims.glb-786f4e624e85f9e5fbc2b269f659218b.scn"
+uid="uid://y3bfh4ywbaqx"
+path="res://.godot/imported/UAL2_Standard.glb-8529671694ea74859c5e4fc206481fa4.scn"
 
 [deps]
 
-source_file="res://assets/characters/gather_anims.glb"
-dest_files=["res://.godot/imported/gather_anims.glb-786f4e624e85f9e5fbc2b269f659218b.scn"]
+source_file="res://assets/quaternius_characters/UAL2_Standard.glb"
+dest_files=["res://.godot/imported/UAL2_Standard.glb-8529671694ea74859c5e4fc206481fa4.scn"]
 
 [params]
 

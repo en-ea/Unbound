@@ -11,8 +11,8 @@ const BASE_BODY := DIR + "Superhero_Male_FullBody.gltf"
 const HAIR := DIR + "Hair_SimpleParted.gltf"
 const WANDERER := "res://assets/characters/wanderer.glb"
 const HERO := "res://assets/characters/hero.glb"
-## Our own gathering animations (Chop, Mine, Gather), made by tools-src/blender/make_anims.py.
-const EXTRA_ANIMS := "res://assets/characters/gather_anims.glb"
+## Universal Animation Library 2 (Quaternius, CC0): tree chopping, harvesting, sword and shield moves.
+const EXTRA_ANIMS := DIR + "UAL2_Standard.glb"
 const LOOKS := ["hero", "wanderer", "villager"]
 const HAIR_COLOR := Color(0.36, 0.22, 0.13)   # the hair textures are grey, made for tinting
 const NECK_Y := 1.47          # keep only the base body's head (the outfit covers the rest)
@@ -63,14 +63,17 @@ func _process(delta: float) -> void:
 			_current = ""      # let play_motion pick idle/walk/run again
 
 
-## Plays a one-shot animation (a swing); idle/walk/run resume when it ends.
-func play_action(anim_name: String, speed := 1.0) -> void:
+## Plays one pass of an animation (a swing), optionally starting part-way through (for looping
+## animations like TreeChopping, so a tap gives wind-up then strike). Idle/walk/run resume after.
+func play_action(anim_name: String, speed := 1.0, start_at := 0.0) -> void:
 	_action_left = _anim.get_animation(anim_name).length / speed
 	_current = anim_name
 	_anim.speed_scale = 1.0
 	if _anim.current_animation == anim_name:
 		_anim.stop()          # replaying the same animation would otherwise just continue it
 	_anim.play(anim_name, 0.12, speed)
+	if start_at > 0.0:
+		_anim.seek(start_at, true)
 
 
 ## A split-second freeze on impact, so hits feel solid.
@@ -79,9 +82,10 @@ func hit_stop(seconds := 0.07) -> void:
 	get_tree().create_timer(seconds).timeout.connect(func() -> void: _anim.play())
 
 
-## Adds our own animations. Blender re-orients each bone's local axes on the way through, so
-## the rotations are converted from that skeleton's bone frames into this rig's frames:
+## Adds the extra animation library. If its skeleton's bone frames differ from this rig's (e.g.
+## anything round-tripped through Blender), rotations are converted into this rig's frames:
 ## local_ours = C_parent^-1 * local_theirs * C_bone, where C = their_rest^-1 * our_rest (global).
+## For UAL2 the frames match, so C is identity.
 func _add_extra_animations() -> void:
 	var scene := (load(EXTRA_ANIMS) as PackedScene).instantiate()
 	var source := scene.find_children("*", "AnimationPlayer", true, false)[0] as AnimationPlayer
@@ -99,7 +103,6 @@ func _add_extra_animations() -> void:
 		if anim_name == "RESET":
 			continue
 		var anim := source.get_animation(anim_name).duplicate(true) as Animation
-		anim.loop_mode = Animation.LOOP_NONE
 		for t in anim.get_track_count():
 			var bone := String(anim.track_get_path(t).get_concatenated_subnames())
 			if not frames.has(bone):

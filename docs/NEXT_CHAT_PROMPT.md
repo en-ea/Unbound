@@ -10,7 +10,7 @@ M2 "Gather" first pass is in:
 - Scatter registers trees/apple trees/rocks/mushrooms/flowers; ResourceVisuals does shake, chips, sounds (Kenney impacts), stumps, grow-back; drops fly to the player (drop.gd) with "+1 Wood" popups; rare finds sparkle and chime.
 - Gatherer on the player + round action button (Chop/Mine/Pick, multi-touch safe) + Bag screen. Axe/pickaxe from tools-src/blender/make_tools.py. Dev: --gathertest.
 - Trees have sizes (young/grown/old: 3/4/6 hits, 1-2/2-3/4-5 wood), fall over when chopped, and regrow from saplings. Pickup feed pills in the HUD. All nature models are our own faceted ones (make_trees.py); the Quaternius nature pack is gone (download ~6.5 MB).
-- Own Chop/Mine/Gather animations (tools-src/blender/make_anims.py, retargeted in character_visual.gd), hit-stop + camera shake. Trees covering the player dither-fade (occlusion_fader.gd). Richer generated ambience (make_sounds.py).
+- Chop/mine use UAL2's TreeChopping (started part-way for wind-up then strike), picking uses UAL1 PickUp_Table; hit-stop + camera shake. Trees covering the player dither-fade (occlusion_fader.gd). Richer generated ambience (make_sounds.py).
 - Known: item icons are colour dots; hair and the character need a proper art pass (owner wants it better in general); no saving yet (M5).
 - Next per plan: M3 "Fight".
 

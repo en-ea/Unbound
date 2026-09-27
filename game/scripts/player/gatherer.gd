@@ -6,11 +6,12 @@ signal target_changed(verb: String)    # "Chop" / "Mine" / "Pick", or "" when no
 
 const REACH := 1.1
 ## Per tool: animation, playback speed, seconds until the hit lands, total swing time.
-## (Chop / Mine / Gather are ours: tools-src/blender/make_anims.py; hits land on frame 13 / 13 / 10.)
+## TreeChopping (Quaternius UAL2) loops from a wound-up pose; starting at 0.55 s gives the
+## wind-up, then the strike lands 0.17 s into the next loop. Picking uses UAL1's PickUp_Table.
 const SWINGS := {
-	"axe": {"anim": "Chop", "speed": 1.15, "impact": 0.377, "time": 0.8, "shake": 0.05},
-	"pickaxe": {"anim": "Mine", "speed": 1.15, "impact": 0.377, "time": 0.8, "shake": 0.07},
-	"": {"anim": "Gather", "speed": 1.2, "impact": 0.28, "time": 0.6, "shake": 0.0},
+	"axe": {"anim": "TreeChopping", "speed": 1.1, "start": 0.55, "impact": 0.54, "time": 0.88, "shake": 0.05},
+	"pickaxe": {"anim": "TreeChopping", "speed": 1.1, "start": 0.55, "impact": 0.54, "time": 0.88, "shake": 0.07},
+	"": {"anim": "PickUp_Table", "speed": 1.3, "start": 0.0, "impact": 0.3, "time": 0.6, "shake": 0.0},
 }
 const BUFFER := 0.25    # a tap this close to the end of a swing queues the next one
 
@@ -73,7 +74,7 @@ func act() -> void:
 	var to := at - player.global_position
 	visual.rotation.y = atan2(to.x, to.z)
 	visual.show_tool(info["tool"])
-	visual.play_action(swing["anim"], swing["speed"])
+	visual.play_action(swing["anim"], swing["speed"], swing["start"])
 	_busy = swing["time"]
 	_impact = swing["impact"]
 	_swing_target = target

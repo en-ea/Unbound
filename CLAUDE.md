@@ -19,6 +19,7 @@ The owner doesn't code: they direct and playtest, and Claude builds. Keep replie
 - **Free CC0 assets:** Quaternius (first choice; only the character rig/animations are still used — all nature is our own faceted models in make_trees.py). The KayKit and Kenney test models were rejected as looking bad.
   - `tools-src/itch_download.sh <itch pack url> <dir>` fetches a free pack's Standard zip (no need to ask the owner).
   - In use: Stylized Nature MegaKit (`game/assets/quaternius_nature/`), and Universal Animation Library + Universal Base Characters + Modular Character Outfits Fantasy (`game/assets/quaternius_characters/`, only the files we use).
+  - Animations: Universal Animation Library 1 + 2 (UAL2 has TreeChopping, Farm_Harvest, sword/shield/block/hit moves for M3). Use these; hand-posed Blender animations looked bad.
   - Godot strips `_Loop` from animation names on import (`Idle_Loop` → `Idle`). Character hair textures are grey, made to be tinted.
   - Character textures are 4K: cap them via `process/size_limit` in their `.import` files (1024 colour, 512 normal/ORM).
 
