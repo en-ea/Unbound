@@ -1,8 +1,8 @@
 class_name CharacterVisual
 extends Node3D
 ## Puts a character look on the Quaternius animation rig and plays idle / walk / run.
-## Looks: "wanderer" (our own style, tools-src/blender/make_wanderer.py) or "villager"
-## (Quaternius peasant outfit + head + hair).
+## Looks: "hero" (our main style, tools-src/blender/make_hero.py, recoloured and dressed by a
+## CharacterLook), "wanderer" (first prototype) or "villager" (Quaternius peasant outfit).
 
 const DIR := "res://assets/quaternius_characters/"
 const RIG := DIR + "UAL1_Standard.glb"
@@ -10,7 +10,8 @@ const OUTFIT := DIR + "Male_Peasant.gltf"
 const BASE_BODY := DIR + "Superhero_Male_FullBody.gltf"
 const HAIR := DIR + "Hair_SimpleParted.gltf"
 const WANDERER := "res://assets/characters/wanderer.glb"
-const LOOKS := ["wanderer", "villager"]
+const HERO := "res://assets/characters/hero.glb"
+const LOOKS := ["hero", "wanderer", "villager"]
 const HAIR_COLOR := Color(0.36, 0.22, 0.13)   # the hair textures are grey, made for tinting
 const NECK_Y := 1.47          # keep only the base body's head (the outfit covers the rest)
 
@@ -25,6 +26,8 @@ var _skeleton: Skeleton3D
 var _current := ""
 var _parts: Array[Node] = []   # everything the current look added to the skeleton
 var look := ""
+var hero_look := CharacterLook.load_saved()
+var _slot_materials := {}      # colour slot -> StandardMaterial3D shared by the hero's meshes
 
 
 func _ready() -> void:
@@ -45,12 +48,54 @@ func set_look(new_look: String) -> void:
 		part.queue_free()
 	_parts.clear()
 	look = new_look
-	if look == "wanderer":
+	if look == "hero":
+		_attach_meshes(HERO, false)
+		apply_hero_look()
+	elif look == "wanderer":
 		_attach_meshes(WANDERER, false)
 	else:
 		_attach_meshes(OUTFIT, false)
 		_attach_meshes(BASE_BODY, true)
 		_attach_hair()
+
+
+## Shows the hero's chosen parts and applies its colours.
+func apply_hero_look() -> void:
+	if look != "hero":
+		return
+	var p := hero_look.parts
+	var hooded: bool = p["head"] == "hood"
+	for node in _parts:
+		var mi := node as MeshInstance3D
+		if mi == null:
+			continue
+		var n := String(mi.name)
+		if n.begins_with("H_base_"):
+			mi.visible = true
+		elif n == "H_ears":
+			mi.visible = not hooded
+		elif n.begins_with("H_hair_"):
+			mi.visible = not hooded and n == "H_hair_" + p["hair"]
+		else:
+			var bits := n.split("_")   # H_<slot>_<choice>
+			mi.visible = bits.size() >= 3 and p.get(bits[1], "") == bits[2]
+		for s in mi.mesh.get_surface_count():
+			var src := mi.mesh.surface_get_material(s)
+			if src and CharacterLook.PALETTES.has(src.resource_name):
+				mi.set_surface_override_material(s, _slot_material(src.resource_name))
+
+
+func _slot_material(slot: String) -> StandardMaterial3D:
+	if not _slot_materials.has(slot):
+		var m := StandardMaterial3D.new()
+		m.roughness = 0.85
+		m.rim_enabled = true
+		m.rim = 0.25
+		m.rim_tint = 0.6
+		_slot_materials[slot] = m
+	var mat: StandardMaterial3D = _slot_materials[slot]
+	mat.albedo_color = hero_look.color(slot)
+	return mat
 
 
 func next_look() -> void:
