@@ -1,4 +1,4 @@
-"""Builds detailed faceted low-poly houses in four styles, for the owner to compare:
+"""Builds detailed faceted low-poly houses in three styles, for the owner to compare:
   house_cottage: stone-block foundation, plaster walls with timber framing and braces, tiered red
                  shingle roof with ridge beam, planked door and step, shuttered windows with flower
                  boxes, stone chimney, lean-to with barrels and a crate.
@@ -6,8 +6,6 @@
                  porch with steps, shutters, lantern, woodpile.
   house_round:   storybook round house: stone ring, plaster walls, tall layered straw roof,
                  crooked chimney, round windows (one lit), arched door, lantern, bench.
-  house_long:    Nordic longhouse: dark vertical planks, steep moss roof with flowers, carved
-                 crossed gable boards, painted shields, porch, woodpile.
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -82,11 +80,12 @@ def tiered_roof(b, base, width, depth, height, overhang, rows, palette, ridge_co
             t0, t1 = i / rows, (i + 1.15) / rows
             y0, y1 = side * d * (1 - t0), side * d * max(0.0, 1 - t1)
             z0, z1 = height * t0, height * min(1.0, t1)
-            quad = [base + V((-w, y0, z0 + 0.05)), base + V((w, y0, z0 + 0.05)), base + V((w, y1, z1 + 0.05)), base + V((-w, y1, z1 + 0.05))]
+            lift = 0.05 + i * 0.035               # each row sits just above the one below (no flicker)
+            quad = [base + V((-w, y0, z0 + lift)), base + V((w, y0, z0 + lift)), base + V((w, y1, z1 + lift)), base + V((-w, y1, z1 + lift))]
             if side > 0:
                 quad = list(reversed(quad))
             slab(b, quad, 0.1, rnd.choice(palette))
-    beam(b, base + V((-w - 0.05, 0, height + 0.08)), base + V((w + 0.05, 0, height + 0.08)), 0.1, ridge_color)
+    beam(b, base + V((-w - 0.05, 0, height + 0.05 + rows * 0.035)), base + V((w + 0.05, 0, height + 0.05 + rows * 0.035)), 0.1, ridge_color)
     for x in (-width / 2, width / 2):
         def tri(x=x):
             bm = b.bm
@@ -229,7 +228,6 @@ def cabin():
 
 STRAW = [(0.86, 0.7, 0.38), (0.8, 0.63, 0.32), (0.9, 0.76, 0.44), (0.76, 0.6, 0.3)]
 WARM_PLASTER = (0.96, 0.88, 0.74)
-DARK_WOOD = [(0.4, 0.28, 0.19), (0.35, 0.24, 0.16), (0.44, 0.31, 0.21)]
 MOSS = [(0.56, 0.7, 0.34), (0.48, 0.64, 0.3), (0.62, 0.74, 0.38), (0.44, 0.58, 0.28), (0.66, 0.7, 0.4)]
 FLOWERS = [(0.95, 0.85, 0.4), (0.92, 0.5, 0.6), (0.95, 0.95, 0.9), (0.62, 0.55, 0.92)]
 
@@ -274,7 +272,7 @@ def round_house():
     disc(b, V((0, fy + 0.02, F + 1.6)), 0.5, 0.12, TIMBER, 12)
     for i in range(3):
         box(b, V((-0.28 + i * 0.28, fy - 0.05, F + 0.78)), (0.26, 0.06, 1.5), rnd.choice(WOOD[:2]))
-    disc(b, V((0, fy - 0.04, F + 1.6)), 0.4, 0.06, WOOD[1], 12)
+    disc(b, V((0, fy - 0.06, F + 1.6)), 0.4, 0.06, WOOD[1], 12)
     box(b, V((0.28, fy - 0.12, F + 0.9)), (0.07, 0.05, 0.07), (0.85, 0.72, 0.4), 0.0)
     box(b, V((0, fy - 0.45, F - 0.12)), (1.4, 0.6, 0.2), STONE[0])
     # Round windows with flower boxes; the right one glows warm.
@@ -308,68 +306,9 @@ def round_house():
     return b
 
 
-def long_house():
-    b = Builder(["Build", "Glow"])
-    W, D, H, F = 6.2, 3.6, 2.0, 0.35
-    box(b, V((0, 0, F / 2 - 0.05)), (W + 0.3, D + 0.3, F + 0.1), STONE[1], 0.05)
-    box(b, V((0, 0, F + H / 2)), (W - 0.05, D - 0.05, H), DARK_WOOD[1], 0.0)
-    n = int(W / 0.26)
-    for y in (-D / 2 - 0.03, D / 2 + 0.03):              # vertical planks
-        for i in range(n):
-            box(b, V((-W / 2 + (i + 0.5) * W / n, y, F + H / 2)), (W / n - 0.025, 0.06, H), rnd.choice(DARK_WOOD), 0.05)
-    m = int(D / 0.26)
-    for x in (-W / 2 - 0.03, W / 2 + 0.03):
-        for i in range(m):
-            box(b, V((x, -D / 2 + (i + 0.5) * D / m, F + H / 2)), (0.06, D / m - 0.025, H), rnd.choice(DARK_WOOD), 0.05)
-    for x in (-W / 2, W / 2):
-        for y in (-D / 2, D / 2):
-            beam(b, V((x, y, F)), V((x, y, F + H + 0.1)), 0.12, TIMBER)
-    rh = 3.0
-    tiered_roof(b, V((0, 0, F + H)), W, D, rh, 0.45, 7, MOSS, TIMBER, DARK_WOOD[0])
-    # Moss lumps and little flowers across the roof.
-    d = D / 2 + 0.45
-    for i in range(40):
-        x = rnd.uniform(-W / 2, W / 2)
-        y = rnd.uniform(-d * 0.85, d * 0.85)
-        z = F + H + rh * (1 - abs(y) / d) + 0.1
-        clump(b, V((x, y, z)), rnd.uniform(0.2, 0.4), 1, rnd, rnd.choice(MOSS), "Build", 0.45)
-        if rnd.random() < 0.7:
-            clump(b, V((x + 0.1, y, z + 0.14)), 0.05, 1, rnd, rnd.choice(FLOWERS), "Build", 1.0)
-    # Carved boards crossing above each gable end, and a smoke vent on the ridge.
-    top = F + H + rh
-    for x in (-W / 2 - 0.8, W / 2 + 0.8):
-        for s in (-1, 1):
-            beam(b, V((x, s * 1.3, top - 1.15)), V((x, -s * 0.45, top + 0.55)), 0.08, TIMBER)
-            clump(b, V((x, -s * 0.5, top + 0.6)), 0.1, 1, rnd, TIMBER, "Build", 1.0)
-    box(b, V((0.8, 0, top + 0.3)), (0.8, 0.6, 0.35), DARK_WOOD[0])
-    slab(b, [V((0.3, -0.5, top + 0.62)), V((1.3, -0.5, top + 0.62)), V((1.3, 0.5, top + 0.62)), V((0.3, 0.5, top + 0.62))], 0.06, TIMBER)
-    # Door under a small gabled porch, two shuttered windows, painted shields, a lantern.
-    fy = -D / 2 - 0.06
-    door(b, 0.0, fy, F, 1.0, 1.55, TIMBER)
-    for x in (-0.7, 0.7):
-        beam(b, V((x, fy - 0.9, 0)), V((x, fy - 0.9, F + 1.9)), 0.07, TIMBER)
-    for s in (-1, 1):
-        quad = [V((0, fy - 1.15, F + 2.5)), V((s * 0.95, fy - 1.15, F + 1.85)), V((s * 0.95, fy - 0.2, F + 1.85)), V((0, fy - 0.2, F + 2.5))]
-        slab(b, quad if s < 0 else list(reversed(quad)), 0.07, MOSS[1])
-    for x in (-1.9, 1.9):
-        window(b, x, F + 1.05, fy, 0.5, 0.5, frame=TIMBER)
-    for x, c in ((-1.05, (0.72, 0.24, 0.2)), (1.05, (0.26, 0.45, 0.55))):
-        disc(b, V((x, fy - 0.02, F + 1.2)), 0.3, 0.06, c, 10)
-        disc(b, V((x, fy - 0.08, F + 1.2)), 0.07, 0.05, (0.75, 0.72, 0.66), 8)
-        beam(b, V((x - 0.28, fy - 0.09, F + 1.2)), V((x + 0.28, fy - 0.09, F + 1.2)), 0.025, (0.9, 0.86, 0.76))
-    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((-0.5, fy - 0.9, F + 1.6)), (0.1, 0.1, 0.14), 6, 4)), "Glow", (1.0, 0.72, 0.35))
-    for row in range(3):                                   # woodpile against the end wall, and a barrel
-        for i in range(6 - row):
-            p = V((W / 2 + 0.45, -1.0 + i * 0.3 + row * 0.15, 0.15 + row * 0.26))
-            log(b, p, p + V((0.6, 0, 0)), 0.13)
-    barrel(b, V((-W / 2 - 0.5, -0.9, 0)))
-    return b
-
-
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
 export("house_cottage", cottage(), OUT)
 export("house_cabin", cabin(), OUT)
 export("house_round", round_house(), OUT)
-export("house_long", long_house(), OUT)

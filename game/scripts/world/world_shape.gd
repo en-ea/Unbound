@@ -21,7 +21,7 @@ static var path := PackedVector2Array([
 
 ## Spots kept clear of trees, rocks and plants (houses, the merchant): (x, z, radius).
 static var clearings := [Vector3(-5.5, 11.5, 4.2), Vector3(10.5, 13.0, 4.6), Vector3(5.4, 16.0, 1.5),
-	Vector3(-9.0, 23.0, 4.4), Vector3(14.0, 2.5, 5.2)]
+	Vector3(-9.0, 23.0, 4.4)]
 ## Spots kept free of scatter without flattening the ground (ruins, treasure chests): (x, z, radius).
 static var keep_clear := [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5)]
 
