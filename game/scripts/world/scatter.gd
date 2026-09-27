@@ -3,14 +3,16 @@ extends Node3D
 ## Each model is drawn with MultiMeshes split into chunks, so off-screen chunks are culled.
 
 const NATURE := "res://assets/quaternius_nature/%s.gltf"
+const OWN := "res://assets/nature/%s.glb"          # our own models (tools-src/blender/make_trees.py)
 const FOLIAGE_SHADER := preload("res://shaders/foliage.gdshader")
+const SOLID_FOLIAGE_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const CHUNK := 20.0
 const GRASS_TINT := Color(0.72, 0.78, 0.64)   # the pack's grass is a bit neon
 
 ## Per model: cast shadows, visibility range (0 = always), wind sway (metres), sway height.
 const KINDS := {
-	"tree": {"shadow": true, "range": 0.0, "sway": 0.12, "sway_h": 7.0, "collide": 0.35},
-	"bush": {"shadow": false, "range": 50.0, "sway": 0.05, "sway_h": 1.4, "collide": 0.0},
+	"tree": {"shadow": true, "range": 0.0, "sway": 0.08, "sway_h": 6.0, "collide": 0.35},
+	"bush": {"shadow": false, "range": 50.0, "sway": 0.04, "sway_h": 1.2, "collide": 0.0},
 	"rock": {"shadow": true, "range": 0.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.8},
 	"small": {"shadow": false, "range": 36.0, "sway": 0.08, "sway_h": 1.2, "collide": 0.0},
 	"ground": {"shadow": false, "range": 36.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.0},
@@ -40,8 +42,8 @@ func build(shape: WorldShape) -> void:
 # --- placement rules ---------------------------------------------------------
 
 func _scatter_trees() -> void:
-	var commons := ["CommonTree_1", "CommonTree_2", "CommonTree_3", "CommonTree_4", "CommonTree_5"]
-	var pines := ["Pine_1", "Pine_2", "Pine_3", "Pine_4", "Pine_5"]
+	var commons := ["tree_round_1", "tree_round_2", "tree_round_3"]
+	var pines := ["tree_pine_1", "tree_pine_2"]
 	for i in 6000:
 		if _trees.size() >= 230:
 			break
@@ -153,7 +155,7 @@ func _plant_at(p: Vector2) -> void:
 		elif r < 0.16:
 			_place(["Mushroom_Common", "Mushroom_Laetiporus"].pick_random(), "small", p, _rng.randf_range(0.6, 0.9), 0.2)
 		elif r < 0.2:
-			_place(["Bush_Common", "Bush_Common_Flowers"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
+			_place(["bush_1", "bush_2"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
 		return
 	if r < 0.30 + m * 0.3:
 		_place("Grass_Common_Short", "small", p, _rng.randf_range(0.45, 0.75), 0.25)
@@ -164,7 +166,7 @@ func _plant_at(p: Vector2) -> void:
 	elif r < 0.66:
 		_place(["Clover_1", "Plant_7", "Petal_1", "Petal_3"].pick_random(), "small", p, _rng.randf_range(0.5, 0.8), 0.2)
 	elif r < 0.665:
-		_place("Bush_Common_Flowers", "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
+		_place(["bush_1", "bush_2"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
 
 
 # --- helpers -------------------------------------------------------------------
@@ -219,10 +221,13 @@ func _flush() -> void:
 		var list: Array = _batches[key]
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_colors = parts[1] in ["tree", "bush"]
 		mm.mesh = _mesh_for(parts[0], parts[1])
 		mm.instance_count = list.size()
 		for i in list.size():
 			mm.set_instance_transform(i, list[i])
+			if mm.use_colors:
+				mm.set_instance_color(i, _tint(list[i].origin))
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if kind["shadow"] else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -234,12 +239,21 @@ func _flush() -> void:
 	_batches.clear()
 
 
+## A small, stable colour variation per tree so a forest isn't one flat green.
+func _tint(at: Vector3) -> Color:
+	var a := fposmod(sin(at.x * 12.9898 + at.z * 78.233) * 43758.5453, 1.0)
+	var b := fposmod(sin(at.x * 39.346 + at.z * 11.135) * 24634.6345, 1.0)
+	return Color(0.9 + 0.22 * a, 0.92 + 0.14 * b, 0.86 + 0.14 * (1.0 - a))
+
+
+
 ## Loads a model once and swaps foliage materials for the wind-sway shader.
 func _mesh_for(model: String, kind_name: String) -> Mesh:
 	var key := model + "|" + kind_name
 	if _meshes.has(key):
 		return _meshes[key]
-	var scene := (load(NATURE % model) as PackedScene).instantiate()
+	var path := OWN % model if (model.begins_with("tree_") or model.begins_with("bush_")) else NATURE % model
+	var scene := (load(path) as PackedScene).instantiate()
 	var src := scene.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
 	var mesh := src.mesh.duplicate() as Mesh
 	scene.free()
@@ -249,7 +263,14 @@ func _mesh_for(model: String, kind_name: String) -> Mesh:
 		if std == null:
 			continue
 		var name := std.resource_name
-		if name.begins_with("Leaves") or name.begins_with("Leaf") or name == "Grass" or name == "Flowers":
+		if name == "Canopy" or name == "Needles":
+			var solid := ShaderMaterial.new()
+			solid.shader = SOLID_FOLIAGE_SHADER
+			solid.set_shader_parameter("albedo", std.albedo_color)
+			solid.set_shader_parameter("sway", kind["sway"])
+			solid.set_shader_parameter("sway_height", kind["sway_h"])
+			mesh.surface_set_material(s, solid)
+		elif name.begins_with("Leaves") or name.begins_with("Leaf") or name == "Grass" or name == "Flowers":
 			var mat := ShaderMaterial.new()
 			mat.shader = FOLIAGE_SHADER
 			mat.set_shader_parameter("albedo_tex", std.albedo_texture)
