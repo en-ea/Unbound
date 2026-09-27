@@ -10,6 +10,7 @@ extends Node
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
+##   --lineup          stand every outfit preset in a row in front of the camera
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 
 @export var day_night: Node
@@ -20,6 +21,7 @@ var _frames := 0
 var _touch_test := false
 var _start_at := Vector2.INF
 var _showcase := false
+var _lineup := false
 var _gather_test := false
 var _fight_test := false
 var _gather_offset := Vector3(0, 0.3, -1.3)
@@ -53,6 +55,8 @@ func _ready() -> void:
 			_gather_offset = Vector3(float(v[0]), 0.3, float(v[1]))
 		elif arg == "--gathertest":
 			_gather_test = true
+		elif arg == "--lineup":
+			_lineup = true
 		elif arg == "--showcase":
 			_showcase = true
 		elif arg.begins_with("--view="):
@@ -70,6 +74,8 @@ func _process(_delta: float) -> void:
 		_run_gather_test()
 	if _fight_test:
 		_run_fight_test()
+	if _frames == 3 and _lineup:
+		_build_lineup()
 	if _frames == 3 and _showcase:
 		_build_showcase()
 	if _frames == 2 and _start_at != Vector2.INF:
@@ -169,3 +175,17 @@ func _run_fight_test() -> void:
 			" inventory ", Inventory.items().map(func(i: String) -> String: return "%s x%d" % [i, Inventory.count(i)]))
 	if _frames == 300 and _shot_path == "":
 		get_tree().quit()
+
+
+func _build_lineup() -> void:
+	var player := get_node("../Player") as Node3D
+	player.visible = false
+	var names := CharacterLook.OUTFITS.keys()
+	for i in names.size():
+		var v := CharacterVisual.new()
+		v.hero_look = CharacterLook.new()
+		v.hero_look.outfit = names[names.size() - 1]
+		v.hero_look.cycle_outfit(i + 1)
+		v.hero_look.parts["face"] = ["calm", "happy", "stern", "bright", "calm"][i]
+		add_child(v)
+		v.global_position = player.global_position + Vector3((i - 2) * 1.1, 0, 0)

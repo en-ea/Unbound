@@ -105,10 +105,21 @@ def fixed(bone):
 
 # --- objects ----------------------------------------------------------------------------
 
-def build_part(arm, name, material, weight_fn, builder, smooth=True, recalc=True, outward=None):
-    """Builds one skinned mesh object. `outward` orients open surfaces (decals) instead of recalc."""
+def build_part(arm, name, material, weight_fn, builder, smooth=True, recalc=True, outward=None, shade_var=0.0, seed=0):
+    """Builds one skinned mesh object. `outward` orients open surfaces (decals) instead of recalc.
+    Each face gets a grey shade factor in its UVs (1 +- shade_var) that the game multiplies with
+    the part's colour, for a hand-painted faceted look."""
+    import random
     bm = bmesh.new()
     builder(bm)
+    rnd = random.Random(sum(ord(c) * (i + 1) for i, c in enumerate(name)) + seed)   # stable per part
+    uv = bm.loops.layers.uv.new("UVMap")
+    uv2 = bm.loops.layers.uv.new("UV2")
+    for f in bm.faces:
+        k = 1.0 + rnd.uniform(-shade_var, shade_var * 0.5)
+        for loop in f.loops:
+            loop[uv].uv = (k, 1.0 - k)
+            loop[uv2].uv = (k, 1.0)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0005)
     if recalc:
         bmesh.ops.recalc_face_normals(bm, faces=bm.faces)

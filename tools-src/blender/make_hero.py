@@ -1,18 +1,23 @@
-"""Builds the main character style ("hero") on the Quaternius UAL skeleton: a large head with a
-clean simple face and crisp faceted low-poly clothing, plus optional parts the game switches on
-and off (faces, cheeks, hair styles, beards, hood, chest gear, shoulder pads, scarf, cape).
+"""Builds the main character style ("hero") on the Quaternius UAL skeleton, in the faceted
+low-poly style of the owner's references (Fighter / Explorer / Merchant / Fisherman): chunky
+layered clothes with volume, baggy trousers tucked into big boots, bracers, belts and pouches,
+thick faceted hair, simple faces, hats, backpacks and big scarves.
 
 Mesh names tell the game what each part is:
   H_base_*                  always shown
   H_ears                    hidden under the hood
-  H_<slot>_<choice>[_extra] shown when that choice is picked (e.g. H_hair_long, H_face_calm_brows)
-Material names are colour slots the game recolours: Skin, Hair, Main, Second, Accent, Leather.
+  H_<slot>_<choice>[_extra] shown when that choice is picked (e.g. H_top_coat, H_face_calm_brows)
+  ..._top                   hair parts hidden under any headwear
+Material names are colour slots the game recolours (Skin, Hair, Main, Second, Cloth, Accent,
+Leather); Face / Shine / Blush / Metal keep their colour. Each face also carries a small shade
+variation in its UVs (rigkit.build_part) for a hand-painted faceted look.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_hero.py
 """
 import math
 import os
 import sys
+import bmesh
 from mathutils import Vector as V
 
 sys.path.append(os.path.dirname(__file__))
@@ -22,18 +27,20 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 RIG = os.path.join(ROOT, "game", "assets", "quaternius_characters", "UAL1_Standard.glb")
 OUT = os.path.join(ROOT, "game", "assets", "characters", "hero.glb")
 
-COLORS = {  # defaults (sRGB); the game overrides most of these
-    "Skin": (0.93, 0.72, 0.56), "Hair": (0.24, 0.15, 0.10), "Face": (0.12, 0.09, 0.08),
-    "Shine": (1.0, 1.0, 1.0), "Blush": (0.93, 0.6, 0.54), "Main": (0.30, 0.38, 0.52),
-    "Second": (0.28, 0.28, 0.30), "Accent": (0.62, 0.22, 0.18), "Leather": (0.40, 0.26, 0.16),
-    "Metal": (0.78, 0.74, 0.62),
+COLORS = {  # defaults (sRGB); the game overrides the slot colours
+    "Skin": (0.93, 0.72, 0.56), "Hair": (0.24, 0.15, 0.10), "Face": (0.1, 0.07, 0.07),
+    "Shine": (1.0, 1.0, 1.0), "Blush": (0.93, 0.6, 0.54), "Main": (0.42, 0.48, 0.32),
+    "Second": (0.3, 0.29, 0.3), "Cloth": (0.85, 0.8, 0.68), "Accent": (0.72, 0.25, 0.2),
+    "Leather": (0.5, 0.33, 0.2), "Metal": (0.72, 0.7, 0.66),
 }
 
-HC = V((0.0, -0.015, 1.735))    # head centre
-HR = V((0.158, 0.15, 0.172))    # head radii
-JAW = 0.2                       # how much the lower face narrows towards the chin
+HC = V((0.0, -0.01, 1.72))      # head centre
+HR = V((0.145, 0.14, 0.158))    # head radii
+JAW = 0.28                      # how much the lower face narrows towards the chin
 FRONT = V((0, -1, 0))           # the character faces -Y
 Z = HC.z
+DECAL = 0.011                   # decals float this far off the faceted head
+SHADE = 0.07                    # per-face shade variation on clothes
 
 
 # --- head surface helpers ---------------------------------------------------------------
@@ -43,7 +50,7 @@ def head_radius_x(z):
     return HR.x * (1.0 - JAW * t * t)
 
 
-def on_head(x, z, out=0.002):
+def on_head(x, z, out=DECAL):
     """Point on the front of the head surface at (x, z), pushed out along the normal."""
     rx = head_radius_x(z)
     dx, dz = x / rx, (z - HC.z) / HR.z
@@ -53,8 +60,7 @@ def on_head(x, z, out=0.002):
 
 
 def around(yaw, pitch, lift=0.0):
-    """Point on the head in a direction (yaw 0 = front, 90 = character's left; pitch up),
-    `lift` metres out from the surface. Returns (point, outward normal)."""
+    """Point on the head in a direction (yaw 0 = front, 90 = character's left; pitch up)."""
     y, p = math.radians(yaw), math.radians(pitch)
     d = V((math.sin(y) * math.cos(p), -math.cos(y) * math.cos(p), math.sin(p)))
     pt = HC + V((d.x * HR.x, d.y * HR.y, d.z * HR.z))
@@ -63,12 +69,12 @@ def around(yaw, pitch, lift=0.0):
 
 
 def head(bm):
-    rk.blob(bm, HC, HR, 24, 16)
+    rk.blob(bm, HC, HR, 12, 8)
     for v in bm.verts:
         v.co.x *= head_radius_x(v.co.z) / HR.x
 
 
-def decal_ellipse(bm, cx, cz, rx, rz, seg=12, out=0.002):
+def decal_ellipse(bm, cx, cz, rx, rz, seg=10, out=DECAL):
     c = bm.verts.new(on_head(cx, cz, out)[0])
     ring = [bm.verts.new(on_head(cx + rx * math.cos(k * math.tau / seg), cz + rz * math.sin(k * math.tau / seg), out)[0])
             for k in range(seg)]
@@ -76,7 +82,7 @@ def decal_ellipse(bm, cx, cz, rx, rz, seg=12, out=0.002):
         bm.faces.new((c, ring[k], ring[(k + 1) % seg]))
 
 
-def decal_strip(bm, pts, width, out=0.003):
+def decal_strip(bm, pts, width, out=DECAL + 0.001):
     left, right = [], []
     for i, (x, z) in enumerate(pts):
         p, n = on_head(x, z, out)
@@ -90,175 +96,167 @@ def decal_strip(bm, pts, width, out=0.003):
         bm.faces.new((left[i], left[i + 1], right[i + 1], right[i]))
 
 
-def arc(cx, cz, half_w, rise, n=6):
-    """Points along a gentle arc (rise > 0 bows upwards)."""
+def arc(cx, cz, half_w, rise, n=5):
     return [(cx + t * half_w, cz + rise * (1 - t * t)) for t in [(-1 + 2 * i / (n - 1)) for i in range(n)]]
 
 
-def shard(bm, base, tip, normal, width, depth, bend=0.0):
-    """A faceted hair tuft lying along the head: wide at the base, pointed at the tip."""
-    d = (tip - base)
+def lock(bm, base, tip, normal, width, depth, bend=0.01):
+    """A chunky faceted lock of hair: wide at the root, pointed at the tip."""
+    d = tip - base
     side = d.cross(normal).normalized()
     mid = base + d * 0.5 + normal * bend
-    rk.tube(bm, [base, mid, tip], [(width, depth), (width * 0.75, depth * 0.8), (0.003, 0.003)], ref=side, seg=4)
+    rk.tube(bm, [base, mid, tip], [(width, depth), (width * 0.72, depth * 0.8), (0.004, 0.004)], ref=side, seg=4)
 
 
-# --- faces -----------------------------------------------------------------------------------
+# --- faces ---------------------------------------------------------------------------------
 
-EYE_X, EYE_Z = 0.058, Z + 0.0
-BROW_Z = Z + 0.048
-MOUTH_Z = Z - 0.072
+EYE_X, EYE_Z = 0.05, Z + 0.004
+BROW_Z = Z + 0.047
+MOUTH_Z = Z - 0.07
 
-# Each face: eyes + mouth (dark), brows (hair colour), optional shine (white).
 FACES = {
     "calm": {
-        "eyes": lambda bm: [decal_ellipse(bm, s * EYE_X, EYE_Z, 0.015, 0.023) for s in (1, -1)],
-        "mouth": lambda bm: decal_strip(bm, arc(0, MOUTH_Z, 0.022, -0.004), 0.008),
-        "brows": lambda bm: [decal_strip(bm, arc(s * 0.06, BROW_Z, 0.028, 0.006), 0.011) for s in (1, -1)],
+        "eyes": lambda bm: [decal_ellipse(bm, s * EYE_X, EYE_Z, 0.013, 0.021) for s in (1, -1)],
+        "mouth": lambda bm: decal_strip(bm, arc(0, MOUTH_Z, 0.02, -0.003), 0.008),
+        "shine": lambda bm: [decal_ellipse(bm, s * EYE_X + 0.004, EYE_Z + 0.009, 0.004, 0.005, 6, DECAL + 0.002) for s in (1, -1)],
+        "brows": lambda bm: [decal_strip(bm, [(s * 0.028, BROW_Z - 0.002), (s * 0.05, BROW_Z + 0.004), (s * 0.075, BROW_Z)], 0.016) for s in (1, -1)],
     },
     "happy": {
-        "eyes": lambda bm: [decal_strip(bm, arc(s * EYE_X, EYE_Z - 0.006, 0.024, 0.012), 0.011) for s in (1, -1)],
-        "mouth": lambda bm: decal_strip(bm, arc(0, MOUTH_Z + 0.004, 0.03, -0.012), 0.009),
-        "brows": lambda bm: [decal_strip(bm, arc(s * 0.06, BROW_Z + 0.008, 0.028, 0.008), 0.011) for s in (1, -1)],
+        "eyes": lambda bm: [decal_strip(bm, arc(s * EYE_X, EYE_Z - 0.006, 0.022, 0.011), 0.011) for s in (1, -1)],
+        "mouth": lambda bm: decal_strip(bm, arc(0, MOUTH_Z + 0.004, 0.026, -0.011), 0.009),
+        "brows": lambda bm: [decal_strip(bm, arc(s * 0.052, BROW_Z + 0.006, 0.024, 0.007), 0.015) for s in (1, -1)],
     },
     "bright": {
-        "eyes": lambda bm: [decal_ellipse(bm, s * EYE_X, EYE_Z, 0.02, 0.029) for s in (1, -1)]
-                           + [decal_ellipse(bm, 0, MOUTH_Z, 0.016, 0.011)],
-        "shine": lambda bm: [decal_ellipse(bm, s * EYE_X + 0.006, EYE_Z + 0.01, 0.006, 0.007, 8, 0.004) for s in (1, -1)],
-        "brows": lambda bm: [decal_strip(bm, arc(s * 0.06, BROW_Z + 0.012, 0.028, 0.01), 0.011) for s in (1, -1)],
+        "eyes": lambda bm: [decal_ellipse(bm, s * EYE_X, EYE_Z, 0.017, 0.026) for s in (1, -1)]
+                           + [decal_ellipse(bm, 0, MOUTH_Z, 0.014, 0.01)],
+        "shine": lambda bm: [decal_ellipse(bm, s * EYE_X + 0.005, EYE_Z + 0.01, 0.005, 0.006, 6, DECAL + 0.002) for s in (1, -1)],
+        "brows": lambda bm: [decal_strip(bm, arc(s * 0.052, BROW_Z + 0.012, 0.024, 0.009), 0.015) for s in (1, -1)],
     },
     "stern": {
-        "eyes": lambda bm: [decal_ellipse(bm, s * EYE_X, EYE_Z - 0.002, 0.02, 0.01) for s in (1, -1)]
-                           + [decal_strip(bm, arc(0, MOUTH_Z, 0.022, 0.0), 0.008)],
-        "brows": lambda bm: [decal_strip(bm, [(s * 0.032, BROW_Z - 0.01), (s * 0.058, BROW_Z - 0.002), (s * 0.088, BROW_Z + 0.006)], 0.013)
+        "eyes": lambda bm: [decal_ellipse(bm, s * EYE_X, EYE_Z - 0.002, 0.016, 0.01) for s in (1, -1)]
+                           + [decal_strip(bm, arc(0, MOUTH_Z, 0.02, 0.0), 0.008)],
+        "brows": lambda bm: [decal_strip(bm, [(s * 0.026, BROW_Z - 0.012), (s * 0.052, BROW_Z - 0.003), (s * 0.08, BROW_Z + 0.006)], 0.018)
                              for s in (1, -1)],
     },
 }
 
 
-# --- hair ---------------------------------------------------------------------------------------
+# --- hair ------------------------------------------------------------------------------------
 
-def cap(bm, front, side, back):
-    """The hair shell: a head-hugging cap cut along a hairline (heights at front, sides, back)."""
+def cap(bm, front, side, back, lift=0.012):
     def keep(p):
         t = abs(math.atan2(p.x, -(p.y - HC.y))) / math.pi       # 0 front .. 1 back
         line = front + (side - front) * min(t * 2, 1) if t < 0.5 else side + (back - side) * (t - 0.5) * 2
         return p.z > line
-    rk.blob(bm, V((0, 0.002, Z + 0.012)), (HR.x + 0.014, HR.y + 0.016, HR.z + 0.008), 16, 10, keep=keep)
+    rk.blob(bm, V((0, 0.004, Z + 0.012)), (HR.x + lift, HR.y + lift + 0.004, HR.z + lift * 0.6), 12, 8, keep=keep)
 
 
-def fringe(bm, count, x_span, top, bottom, sweep=0.0, width=0.035):
-    for i in range(count):
-        x = -x_span + 2 * x_span * i / max(count - 1, 1)
-        base, n = on_head(x, top, 0.012)
-        tip, _ = on_head(max(-0.15, min(0.15, x + sweep)), bottom, 0.014)
-        shard(bm, base, tip, n, width, 0.018, bend=0.006)
+def fringe(bm, xs, top, bottom, sweep=0.0, width=0.05):
+    for x in xs:
+        base, n = on_head(x, top, 0.016)
+        tip, _ = on_head(max(-0.13, min(0.13, x + sweep)), bottom, 0.02)
+        lock(bm, base, tip, n, width, 0.028)
 
 
-def side_tufts(bm, low):
+def side_locks(bm, low, width=0.05):
     for s in (1, -1):
-        for yaw, pitch in ((75, 5), (95, 0)):
-            base, n = around(s * yaw, pitch + 15, 0.012)
-            tip, _ = around(s * (yaw + 5), low, 0.016)
-            shard(bm, base, tip, n, 0.04, 0.02)
+        base, n = around(s * 82, 22, 0.014)
+        tip, _ = around(s * 88, low, 0.022)
+        lock(bm, base, tip, n, width, 0.028)
 
 
-def back_tufts(bm, low, count=4):
+def back_locks(bm, low, count=4, width=0.06):
     for i in range(count):
-        yaw = 180 - 50 + 100 * i / (count - 1)
-        base, n = around(yaw, 0, 0.012)
-        tip, _ = around(yaw, low, 0.02)
-        shard(bm, base, tip, n, 0.045, 0.02)
+        yaw = 180 - 55 + 110 * i / (count - 1)
+        base, n = around(yaw, 10, 0.014)
+        tip, _ = around(yaw, low, 0.024)
+        lock(bm, base, tip, n, width, 0.03)
 
 
 def hair_short(bm):
+    cap(bm, Z + 0.07, Z - 0.005, Z - 0.085)
+    fringe(bm, (-0.08, -0.025, 0.03, 0.085), Z + 0.105, Z + 0.045, sweep=0.015)
+    side_locks(bm, -15)
+    back_locks(bm, -35)
+
+
+def hair_messy_base(bm):
     cap(bm, Z + 0.07, Z - 0.01, Z - 0.09)
-    fringe(bm, 5, 0.1, Z + 0.105, Z + 0.045)
-    side_tufts(bm, -20)
-    back_tufts(bm, -40)
+    fringe(bm, (-0.085, -0.03, 0.025, 0.08), Z + 0.1, Z + 0.035, sweep=-0.02, width=0.055)
+    side_locks(bm, -25)
+    back_locks(bm, -40, 5)
 
 
-def hair_swept(bm):
-    cap(bm, Z + 0.075, Z - 0.01, Z - 0.09)
-    fringe(bm, 4, 0.08, Z + 0.12, Z + 0.05, sweep=0.07, width=0.045)
-    side_tufts(bm, -15)
-    back_tufts(bm, -35)
-
-
-def hair_spiky(bm):
-    cap(bm, Z + 0.07, Z - 0.0, Z - 0.08)
-    fringe(bm, 4, 0.08, Z + 0.1, Z + 0.06, width=0.03)
-    for yaw in range(0, 360, 45):
-        base, n = around(yaw, 55, 0.01)
-        tip = base + (n * 1.0 + V((0, 0, 0.9))).normalized() * 0.1
-        shard(bm, base, tip, V((0, 0, 1)).cross(n).normalized().cross(n) * -1, 0.035, 0.03)
-    back_tufts(bm, -30)
+def hair_messy_top(bm):
+    # Big spiky locks sticking up and out (hidden under hats).
+    for yaw, pitch in ((0, 62), (50, 55), (-50, 55), (110, 45), (-110, 45), (180, 50), (150, 35), (-150, 35)):
+        base, n = around(yaw, pitch - 12, 0.01)
+        out = (n + V((0, 0, 0.6))).normalized()
+        lock(bm, base, base + out * 0.12, n.cross(V((0, 0, 1))).normalized().cross(out) if abs(n.z) < 0.99 else V((1, 0, 0)), 0.05, 0.035)
 
 
 def hair_long(bm):
     cap(bm, Z + 0.07, Z - 0.02, Z - 0.1)
-    fringe(bm, 4, 0.08, Z + 0.105, Z + 0.05, sweep=0.03)
-    # Long locks framing the face, and a mass down the back.
+    fringe(bm, (-0.07, -0.015, 0.04), Z + 0.105, Z + 0.045, sweep=0.02)
     for s in (1, -1):
-        base, n = around(s * 70, 20, 0.014)
-        shard(bm, base, base + V((s * 0.02, 0.01, -0.26)), n, 0.05, 0.024)
-    rk.tube(bm, [V((0, 0.1, Z + 0.02)), V((0, 0.14, Z - 0.13)), V((0, 0.13, Z - 0.28))],
-            [(0.15, 0.07), (0.14, 0.05), (0.1, 0.03)], ref=V((1, 0, 0)), seg=6)
+        base, n = around(s * 72, 18, 0.016)
+        lock(bm, base, base + V((s * 0.02, 0.015, -0.3)), n, 0.06, 0.03)
+    rk.tube(bm, [V((0, 0.085, Z + 0.03)), V((0, 0.135, Z - 0.13)), V((0, 0.12, Z - 0.3))],
+            [(0.15, 0.07), (0.14, 0.055), (0.1, 0.03)], ref=V((1, 0, 0)), seg=5)
 
 
 def hair_ponytail(bm):
-    cap(bm, Z + 0.08, Z - 0.005, Z - 0.07)
-    base = V((0, HC.y + HR.y + 0.01, Z + 0.03))
-    rk.tube(bm, [base, base + V((0, 0.03, -0.01))], [(0.03, 0.03)] * 2, ref=V((1, 0, 0)), seg=6)   # the tie
-    rk.tube(bm, [base + V((0, 0.03, 0)), base + V((0, 0.07, -0.1)), base + V((0, 0.06, -0.26))],
-            [(0.045, 0.04), (0.04, 0.035), (0.005, 0.005)], ref=V((1, 0, 0)), seg=5)
+    cap(bm, Z + 0.075, Z - 0.005, Z - 0.07)
+    fringe(bm, (-0.075, -0.02, 0.04), Z + 0.1, Z + 0.05, sweep=-0.02, width=0.045)
+    base = V((0, HC.y + HR.y + 0.012, Z + 0.06))
+    rk.tube(bm, [base, base + V((0, 0.03, -0.005))], [(0.035, 0.035)] * 2, ref=V((1, 0, 0)), seg=5)
+    rk.tube(bm, [base + V((0, 0.03, 0)), base + V((0, 0.08, -0.1)), base + V((0, 0.07, -0.3))],
+            [(0.055, 0.045), (0.05, 0.04), (0.006, 0.006)], ref=V((1, 0, 0)), seg=5)
 
 
 def hair_bun(bm):
     cap(bm, Z + 0.08, Z - 0.005, Z - 0.07)
-    rk.blob(bm, V((0, 0.12, Z + 0.14)), (0.062, 0.058, 0.058), 8, 5)
+    rk.blob(bm, V((0, 0.11, Z + 0.14)), (0.065, 0.06, 0.06), 6, 4)
 
 
 def hair_weights(p):
-    # Anything hanging below the skull follows the neck and upper back a little.
     if p.z > Z - 0.1:
         return {"Head": 1.0}
     return rk.weights_by_distance(["Head", "neck_01", "spine_03"], top=2)(p)
 
 
-# --- beards ---------------------------------------------------------------------------------------
+# --- beards ------------------------------------------------------------------------------------
 
-def jaw_shell(bm, low, lift=0.012):
-    rk.blob(bm, HC + V((0, -0.005, 0)), (HR.x + lift, HR.y + lift, HR.z + lift * 0.5), 16, 12,
-            keep=lambda p: low < p.z < Z - 0.035 and p.y < HC.y - 0.02)
+def jaw_shell(bm, low, lift=0.014):
+    rk.blob(bm, HC + V((0, -0.004, 0)), (HR.x + lift, HR.y + lift, HR.z + lift * 0.5), 12, 10,
+            keep=lambda p: low < p.z < Z - 0.03 and p.y < HC.y - 0.015)
     for v in bm.verts:
-        if low - 0.3 < v.co.z < Z - 0.03:
-            v.co.x *= head_radius_x(v.co.z) / HR.x
+        v.co.x *= head_radius_x(v.co.z) / HR.x
 
 
 def mustache(bm, droop=0.03, width=0.06):
     for s in (1, -1):
-        base, n = on_head(s * 0.01, Z - 0.048, 0.012)
-        tip, _ = on_head(s * width, Z - 0.048 - droop, 0.014)
-        shard(bm, base, tip, n, 0.018, 0.012)
+        base, n = on_head(s * 0.008, Z - 0.046, 0.018)
+        tip, _ = on_head(s * width, Z - 0.046 - droop, 0.02)
+        lock(bm, base, tip, n, 0.022, 0.014, 0.004)
 
 
 def beard_short(bm):
-    jaw_shell(bm, Z - 0.19)
+    jaw_shell(bm, Z - 0.18)
     mustache(bm, 0.02, 0.05)
 
 
 def beard_full(bm):
-    jaw_shell(bm, Z - 0.19, 0.016)
-    for x in (-0.06, 0.0, 0.06):
-        base, n = on_head(x, Z - 0.14, 0.02)
-        shard(bm, base, base + V((x * 0.3, -0.02, -0.12)), n, 0.045, 0.025)
-    mustache(bm, 0.035, 0.07)
+    jaw_shell(bm, Z - 0.18, 0.02)
+    for x in (-0.055, 0.0, 0.055):
+        base, n = on_head(x, Z - 0.13, 0.03)
+        lock(bm, base, base + V((x * 0.3, -0.03, -0.13)), n, 0.05, 0.03)
+    mustache(bm, 0.035, 0.068)
 
 
 def beard_goatee(bm):
-    base, n = on_head(0, Z - 0.1, 0.012)
-    shard(bm, base, base + V((0, -0.02, -0.1)), n, 0.035, 0.02)
+    base, n = on_head(0, Z - 0.1, 0.018)
+    lock(bm, base, base + V((0, -0.025, -0.1)), n, 0.04, 0.024)
     mustache(bm, 0.02, 0.045)
 
 
@@ -266,25 +264,18 @@ def beard_mustache(bm):
     mustache(bm, 0.035, 0.07)
 
 
-# --- body ----------------------------------------------------------------------------------------
+# --- body and clothes ------------------------------------------------------------------------
 
-def hood(bm):
-    def keep(p):
-        face_hole = p.y < HC.y - 0.06 and Z - 0.16 < p.z < Z + 0.095 and abs(p.x) < 0.13
-        return not face_hole and p.z > Z - 0.18
-    rk.blob(bm, V((0, 0.005, Z + 0.015)), (HR.x + 0.035, HR.y + 0.035, HR.z + 0.03), 16, 10, keep=keep)
-    rk.tube(bm, [V((0, 0.155, Z + 0.09)), V((0, 0.23, Z - 0.04)), V((0, 0.25, Z - 0.16))],
-            [(0.09, 0.06), (0.05, 0.032), (0.012, 0.012)], ref=V((1, 0, 0)), seg=6)
+def delete_faces(bm, test):
+    """Removes faces whose centre passes `test` (used to open a jacket front or a V-neck)."""
+    dead = [f for f in bm.faces if test(f.calc_center_median())]
+    bmesh.ops.delete(bm, geom=dead, context="FACES")
 
 
-def hood_mantle(bm):
-    rk.tube(bm, rk.ring_path(V((0, 0.02, 1.52)), 0.19, 0.16, 10), [(0.055, 0.042)] * 10, ref=V((0, 0, 1)), seg=5, closed=True)
-
-
-def skirt_weights(p):
-    # The tunic below the belt follows the nearer leg strongly, so legs don't poke through.
+def skirt_weights(p, top=0.99):
+    # Cloth below the belt follows the nearer leg strongly, so legs don't poke through.
     side = "thigh_l" if p.x > 0 else "thigh_r"
-    leg = max(0.0, min(0.6, (1.0 - p.z) * 2.6))
+    leg = max(0.0, min(0.75, (top - p.z) * 2.2))
     upper = rk.weights_by_distance(["pelvis", "spine_01"])(p)
     out = {k: v * (1 - leg) for k, v in upper.items()}
     out[side] = out.get(side, 0) + leg
@@ -297,69 +288,166 @@ def torso_weights(p):
     return rk.weights_by_distance(["pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "clavicle_l", "clavicle_r"])(p)
 
 
-TORSO_Z = (0.78, 0.9, 1.0, 1.1, 1.28, 1.42, 1.5, 1.56)
-TORSO_R = [(0.225, 0.18), (0.205, 0.16), (0.19, 0.145), (0.18, 0.137), (0.2, 0.148), (0.21, 0.142), (0.145, 0.11), (0.078, 0.068)]
+# The torso, as rings: (height, x radius, y radius). Garments are shells a bit larger.
+SHIRT = [(0.94, 0.18, 0.14), (1.1, 0.172, 0.132), (1.28, 0.195, 0.145), (1.42, 0.205, 0.14), (1.5, 0.14, 0.108), (1.56, 0.075, 0.066)]
 
 
-def strap(bm):
-    # A diagonal strap from the left shoulder to the right hip, front and back.
-    for y_sign in (-1, 1):
-        pts = [V((0.15, y_sign * 0.135, 1.46)), V((0.05, y_sign * 0.158, 1.3)), V((-0.07, y_sign * 0.152, 1.14)), V((-0.17, y_sign * 0.13, 1.02))]
-        rk.tube(bm, pts, [(0.026, 0.008)] * 4, ref=V((1, 0, 1)), seg=4)
-    rk.blob(bm, V((-0.19, 0.0, 0.97)), (0.05, 0.07, 0.06), 6, 4)       # the bag on the hip
+def shell(zs_radii, grow, seg=8):
+    pts = [V((0, 0.018, z)) for z, rx, ry in zs_radii]
+    radii = [(rx + grow, ry + grow) for z, rx, ry in zs_radii]
+    return pts, radii
+
+
+def shirt(bm):
+    pts, radii = shell(SHIRT, 0.0)
+    rk.tube(bm, pts, radii, seg=8)
+
+
+def tunic(bm):
+    rings = [(0.78, 0.225, 0.18), (0.9, 0.2, 0.158)] + SHIRT[:-1]
+    pts, radii = shell(rings, 0.016)
+    rk.tube(bm, pts, radii, seg=8, caps=False)
+    delete_faces(bm, lambda c: c.y < -0.05 and c.z > 1.33 and abs(c.x) < 0.07)     # V-neck
+
+
+def jacket(bm):
+    rings = [(0.9, 0.205, 0.16)] + SHIRT[:-1]
+    pts, radii = shell(rings, 0.024)
+    rk.tube(bm, pts, radii, seg=10, caps=False)
+    delete_faces(bm, lambda c: c.y < -0.05 and abs(c.x) < 0.045 and c.z < 1.46)    # open front
+    rk.tube(bm, rk.ring_path(V((0, 0.02, 1.52)), 0.15, 0.125, 10), [(0.04, 0.03)] * 10, ref=V((0, 0, 1)), seg=4, closed=True)
+
+
+def coat(bm):
+    rings = [(0.5, 0.25, 0.2), (0.7, 0.235, 0.185), (0.9, 0.21, 0.163)] + SHIRT[:-1]
+    pts, radii = shell(rings, 0.028)
+    rk.tube(bm, pts, radii, seg=10, caps=False)
+    delete_faces(bm, lambda c: c.y < -0.05 and abs(c.x) < 0.05 and c.z < 1.3)      # open front
+    rk.tube(bm, rk.ring_path(V((0, 0.025, 1.5)), 0.16, 0.13, 10), [(0.055, 0.04)] * 10, ref=V((0, 0, 1)), seg=4, closed=True)
 
 
 def vest(bm):
-    zs = [z for z in TORSO_Z if 0.95 <= z <= 1.5]
-    rs = [(r[0] + 0.02, r[1] + 0.02) for z, r in zip(TORSO_Z, TORSO_R) if 0.95 <= z <= 1.5]
-    pts = [V((0, 0.02, z)) for z in zs]
-    rk.tube(bm, pts, rs, seg=10, caps=False)
+    rings = [(0.96, 0.19, 0.15)] + SHIRT[1:-1]
+    pts, radii = shell(rings, 0.045)
+    rk.tube(bm, pts, radii, seg=8, caps=False)
+    delete_faces(bm, lambda c: c.y < -0.05 and abs(c.x) < 0.06)                   # open front
+    delete_faces(bm, lambda c: abs(c.x) > 0.17 and c.z > 1.3)                       # arm holes
+
+
+def strap(bm):
+    for y_sign in (-1, 1):
+        pts = [V((0.16, y_sign * 0.15, 1.46)), V((0.05, y_sign * 0.185, 1.3)), V((-0.08, y_sign * 0.18, 1.12)), V((-0.18, y_sign * 0.15, 1.0))]
+        rk.tube(bm, pts, [(0.03, 0.01)] * 4, ref=V((1, 0, 1)), seg=4)
+    rk.blob(bm, V((-0.22, -0.02, 0.9)), (0.06, 0.09, 0.08), 6, 4)       # satchel on the hip
+
+
+def scarf(bm):
+    rk.tube(bm, rk.ring_path(V((0, 0.012, 1.53)), 0.13, 0.12, 10), [(0.062, 0.05)] * 10, ref=V((0, 0, 1)), seg=5, closed=True)
+    rk.tube(bm, [V((0.05, -0.1, 1.5)), V((0.08, -0.16, 1.4)), V((0.1, -0.17, 1.28))],
+            [(0.06, 0.02), (0.055, 0.018), (0.05, 0.016)], ref=V((1, 0, 0)), seg=4)          # tail at the front
+
+
+def cape(bm):
+    rk.tube(bm, [V((0, 0.14, 1.5)), V((0, 0.2, 1.15)), V((0, 0.25, 0.72))], [(0.21, 0.025), (0.26, 0.025), (0.3, 0.03)], ref=V((1, 0, 0)), seg=8)
+
+
+def backpack(bm):
+    rk.tube(bm, [V((0, 0.18, 0.98)), V((0, 0.22, 1.2)), V((0, 0.2, 1.4))], [(0.17, 0.08), (0.18, 0.09), (0.16, 0.08)], ref=V((1, 0, 0)), seg=6)
+    for s in (1, -1):
+        rk.tube(bm, [V((s * 0.1, 0.14, 1.42)), V((s * 0.11, -0.05, 1.48)), V((s * 0.12, -0.16, 1.3)), V((s * 0.12, -0.14, 1.05))],
+                [(0.024, 0.008)] * 4, ref=V((1, 0, 0)), seg=4)                   # shoulder straps
+
+
+def bedroll(bm):
+    rk.tube(bm, [V((-0.22, 0.2, 1.46)), V((0.22, 0.2, 1.46))], [(0.07, 0.07)] * 2, ref=V((0, 0, 1)), seg=6)
+
+
+def hat(bm):
+    # A wide brim with a slight droop, a tapered crown.
+    brim = rk.ring_path(V((0, 0.0, Z + 0.1)), 0.29, 0.28, 12)
+    ring_in = [bm.verts.new(V((p.x * 0.52, p.y * 0.52 - 0.004, p.z + 0.012))) for p in brim]
+    ring_out = [bm.verts.new(V((p.x, p.y, p.z - 0.03))) for p in brim]
+    ring_in_b = [bm.verts.new(V((v.co.x, v.co.y, v.co.z - 0.018))) for v in ring_in]
+    ring_out_b = [bm.verts.new(V((v.co.x, v.co.y, v.co.z - 0.016))) for v in ring_out]
+    n = len(brim)
+    for k in range(n):
+        k2 = (k + 1) % n
+        bm.faces.new((ring_in[k], ring_out[k], ring_out[k2], ring_in[k2]))
+        bm.faces.new((ring_in_b[k2], ring_out_b[k2], ring_out_b[k], ring_in_b[k]))
+        bm.faces.new((ring_out[k], ring_out_b[k], ring_out_b[k2], ring_out[k2]))
+    rk.tube(bm, [V((0, 0.0, Z + 0.1)), V((0, 0.0, Z + 0.2)), V((0, 0.005, Z + 0.25))], [(0.16, 0.155), (0.145, 0.14), (0.11, 0.105)], seg=8)
+
+
+def hat_band(bm):
+    rk.tube(bm, [V((0, 0.0, Z + 0.11)), V((0, 0.0, Z + 0.15))], [(0.162, 0.157), (0.155, 0.15)], seg=8, caps=False)
+
+
+def headband(bm):
+    rk.tube(bm, [V((0, 0.0, Z + 0.045)), V((0, 0.0, Z + 0.085))], [(HR.x + 0.02, HR.y + 0.022)] * 2, seg=10, caps=False)
+    for s in (1, -1):
+        rk.tube(bm, [V((s * 0.02, HR.y + 0.01, Z + 0.06)), V((s * 0.07, HR.y + 0.05, Z - 0.02)), V((s * 0.09, HR.y + 0.06, Z - 0.1))],
+                [(0.025, 0.006)] * 3, ref=V((1, 0, 0)), seg=4)
+
+
+def hood(bm):
+    def keep(p):
+        face_hole = p.y < HC.y - 0.06 and Z - 0.15 < p.z < Z + 0.09 and abs(p.x) < 0.12
+        return not face_hole and p.z > Z - 0.17
+    rk.blob(bm, V((0, 0.005, Z + 0.015)), (HR.x + 0.04, HR.y + 0.04, HR.z + 0.035), 12, 8, keep=keep)
+    rk.tube(bm, [V((0, 0.15, Z + 0.09)), V((0, 0.22, Z - 0.04)), V((0, 0.24, Z - 0.16))],
+            [(0.09, 0.06), (0.05, 0.032), (0.012, 0.012)], ref=V((1, 0, 0)), seg=5)
+    rk.tube(bm, rk.ring_path(V((0, 0.02, 1.52)), 0.19, 0.16, 10), [(0.055, 0.042)] * 10, ref=V((0, 0, 1)), seg=5, closed=True)
+
+
+def shoulder(bm, s, size):
+    rk.blob(bm, V((s * 0.2, 0.05, 1.46)), size, 8, 6, keep=lambda p: p.z > 1.42)
 
 
 def build(arm):
     parts = []
-    flat = {"smooth": False}      # crisp low-poly facets for clothes and gear
+    flat = {"smooth": False, "shade_var": SHADE}
+    headw = rk.fixed("Head")
+    decal = {"smooth": False, "recalc": False, "outward": FRONT}
 
     def part(name, mat, weights, builder, **kw):
         parts.append(rk.build_part(arm, name, mat, weights, builder, **kw))
 
-    headw = rk.fixed("Head")
-    decal = {"smooth": False, "recalc": False, "outward": FRONT}
     # --- always-on body ------------------------------------------------------------------
-    part("H_base_head", "Skin", headw, head)
-    part("H_base_nose", "Skin", headw, lambda bm: rk.blob(bm, on_head(0, Z - 0.03, 0.004)[0], (0.02, 0.022, 0.026), 8, 6))
-    part("H_ears", "Skin", headw, lambda bm: [rk.blob(bm, V((s * (HR.x - 0.004), 0.0, Z - 0.012)), (0.026, 0.036, 0.046), 8, 6) for s in (1, -1)])
+    part("H_base_head", "Skin", headw, head, smooth=False, shade_var=0.03)
+    part("H_base_nose", "Skin", headw, lambda bm: rk.tube(bm, [on_head(0, Z - 0.012, -0.005)[0], on_head(0, Z - 0.038, 0.022)[0]],
+                                                           [(0.018, 0.012), (0.014, 0.01)], ref=V((1, 0, 0)), seg=4), smooth=False)
+    part("H_ears", "Skin", headw, lambda bm: [rk.blob(bm, V((s * (HR.x - 0.002), 0.0, Z - 0.01)), (0.024, 0.032, 0.042), 6, 4) for s in (1, -1)], smooth=False)
     part("H_base_neck", "Skin", rk.weights_by_distance(["spine_03", "neck_01", "Head"]),
-         lambda bm: rk.tube(bm, [V((0, 0.005, 1.45)), V((0, 0.0, 1.62))], [(0.052, 0.052)] * 2, seg=8))
-    part("H_base_tunic", "Main", torso_weights, lambda bm: rk.tube(bm, [V((0, 0.02, z)) for z in TORSO_Z], TORSO_R, seg=10), **flat)
-    part("H_base_hem", "Second", torso_weights,
-         lambda bm: rk.tube(bm, rk.ring_path(V((0, 0.02, 0.795)), 0.224, 0.179, 10), [(0.018, 0.014)] * 10, ref=V((0, 0, 1)), seg=4, closed=True), **flat)
-    # A V-neck: two lapels down the chest.
-    part("H_base_lapels", "Second", rk.weights_by_distance(["spine_03", "spine_02"]),
-         lambda bm: [rk.tube(bm, [V((s * 0.085, -0.105, 1.51)), V((s * 0.04, -0.14, 1.42)), V((0, -0.152, 1.33))],
-                             [(0.022, 0.007)] * 3, ref=V((1, 0, 0)), seg=4) for s in (1, -1)], **flat)
+         lambda bm: rk.tube(bm, [V((0, 0.005, 1.45)), V((0, 0.0, 1.62))], [(0.052, 0.05)] * 2, seg=6), smooth=False)
+    part("H_base_shirt", "Cloth", torso_weights, shirt, **flat)
     part("H_base_belt", "Leather", rk.weights_by_distance(["pelvis", "spine_01"]),
-         lambda bm: rk.tube(bm, rk.ring_path(V((0, 0.02, 1.0)), 0.193, 0.148, 10), [(0.03, 0.02)] * 10, ref=V((0, 0, 1)), seg=4, closed=True), **flat)
-    part("H_base_pouch", "Leather", rk.fixed("pelvis"), lambda bm: rk.blob(bm, V((0.17, -0.07, 0.96)), (0.045, 0.035, 0.05), 6, 4), **flat)
-    part("H_base_buckle", "Metal", rk.fixed("pelvis"), lambda bm: rk.blob(bm, V((0, -0.135, 1.0)), (0.036, 0.014, 0.03), 6, 4), **flat)
+         lambda bm: rk.tube(bm, rk.ring_path(V((0, 0.018, 0.98)), 0.215, 0.172, 10), [(0.034, 0.022)] * 10, ref=V((0, 0, 1)), seg=4, closed=True), **flat)
+    part("H_base_buckle", "Metal", rk.fixed("pelvis"), lambda bm: rk.blob(bm, V((0, -0.16, 0.98)), (0.04, 0.014, 0.034), 4, 2), **flat)
+    part("H_base_pouches", "Leather", rk.fixed("pelvis"),
+         lambda bm: [rk.blob(bm, V((s * 0.19, -0.08, 0.93)), (0.05, 0.035, 0.055), 6, 4) for s in (1, -1)], **flat)
     for s, side in ((1, "l"), (-1, "r")):
         arm_bones = [f"clavicle_{side}", f"upperarm_{side}", f"lowerarm_{side}", f"hand_{side}"]
-        pts = [V((s * x, 0.066, 1.441)) for x in (0.15, 0.3, 0.466, 0.6, 0.7)]
+        pts = [V((s * x, 0.066, 1.441)) for x in (0.14, 0.3, 0.466, 0.58)]
         part(f"H_base_sleeve_{side}", "Main", rk.weights_by_distance(arm_bones, top=2),
-             lambda bm, pts=pts: rk.tube(bm, pts, [(0.078, 0.078), (0.069, 0.069), (0.06, 0.06), (0.056, 0.056), (0.054, 0.054)], ref=V((0, 0, 1)), seg=8), **flat)
-        bracer = [V((s * x, 0.066, 1.441)) for x in (0.57, 0.64, 0.735)]
+             lambda bm, pts=pts: rk.tube(bm, pts, [(0.088, 0.088), (0.078, 0.078), (0.07, 0.07), (0.072, 0.072)], ref=V((0, 0, 1)), seg=6), **flat)
+        cuff = [V((s * x, 0.066, 1.441)) for x in (0.56, 0.61)]
+        part(f"H_base_cuff_{side}", "Cloth", rk.weights_by_distance([f"lowerarm_{side}"], top=1),
+             lambda bm, pts=cuff: rk.tube(bm, pts, [(0.078, 0.078)] * 2, ref=V((0, 0, 1)), seg=6), **flat)
+        bracer = [V((s * x, 0.066, 1.441)) for x in (0.6, 0.67, 0.735)]
         part(f"H_base_bracer_{side}", "Leather", rk.weights_by_distance([f"lowerarm_{side}", f"hand_{side}"], top=2),
-             lambda bm, pts=bracer: rk.tube(bm, pts, [(0.064, 0.064), (0.066, 0.066), (0.062, 0.062)], ref=V((0, 0, 1)), seg=8), **flat)
-        part(f"H_base_glove_{side}", "Leather", rk.fixed(f"hand_{side}"),
-             lambda bm, s=s: rk.blob(bm, V((s * 0.79, 0.066, 1.438)), (0.068, 0.047, 0.056), 8, 6), **flat)
-        x = s * 0.089
+             lambda bm, pts=bracer: rk.tube(bm, pts, [(0.066, 0.066), (0.07, 0.07), (0.064, 0.064)], ref=V((0, 0, 1)), seg=6), **flat)
+        part(f"H_base_hand_{side}", "Skin", rk.fixed(f"hand_{side}"),
+             lambda bm, s=s: rk.tube(bm, [V((s * 0.74, 0.066, 1.44)), V((s * 0.8, 0.066, 1.438)), V((s * 0.86, 0.064, 1.43))],
+                                     [(0.058, 0.04), (0.062, 0.042), (0.05, 0.036)], ref=V((0, 0, 1)), seg=6), smooth=False)
+        x = s * 0.092
         part(f"H_base_leg_{side}", "Second", rk.weights_by_distance(["pelvis", f"thigh_{side}", f"calf_{side}"], top=2),
-             lambda bm, x=x: rk.tube(bm, [V((x, 0.0, 0.97)), V((x, 0.0, 0.55)), V((x, 0.02, 0.3))], [(0.092, 0.092), (0.074, 0.074), (0.062, 0.062)], seg=8), **flat)
-        boot = [V((x, 0.03, 0.42)), V((x, 0.03, 0.14)), V((x, -0.02, 0.06)), V((x, -0.14, 0.05)), V((x, -0.21, 0.045))]
+             lambda bm, x=x: rk.tube(bm, [V((x, 0.0, 0.99)), V((x * 1.08, 0.0, 0.72)), V((x, 0.01, 0.5)), V((x, 0.025, 0.36))],
+                                     [(0.115, 0.115), (0.108, 0.108), (0.092, 0.092), (0.082, 0.082)], seg=7), **flat)
+        boot = [V((x, 0.03, 0.44)), V((x, 0.03, 0.15)), V((x, -0.02, 0.07)), V((x, -0.15, 0.055)), V((x, -0.23, 0.05))]
         part(f"H_base_boot_{side}", "Leather", rk.weights_by_distance([f"calf_{side}", f"foot_{side}", f"ball_{side}"], top=2),
-             lambda bm, pts=boot: rk.tube(bm, pts, [(0.074, 0.074), (0.076, 0.08), (0.078, 0.082), (0.068, 0.054), (0.057, 0.042)], ref=V((1, 0, 0)), seg=8), **flat)
+             lambda bm, pts=boot: rk.tube(bm, pts, [(0.085, 0.085), (0.088, 0.092), (0.092, 0.1), (0.084, 0.065), (0.07, 0.05)], ref=V((1, 0, 0)), seg=7), **flat)
         part(f"H_base_bootcuff_{side}", "Leather", rk.weights_by_distance([f"calf_{side}"], top=1),
-             lambda bm, x=x: rk.tube(bm, [V((x, 0.03, 0.38)), V((x, 0.03, 0.44))], [(0.083, 0.083)] * 2, seg=8), **flat)
+             lambda bm, x=x: rk.tube(bm, [V((x, 0.03, 0.4)), V((x, 0.03, 0.47))], [(0.1, 0.1), (0.104, 0.104)], seg=7), **flat)
 
     # --- faces ------------------------------------------------------------------------------
     for name, f in FACES.items():
@@ -367,37 +455,45 @@ def build(arm):
         part(f"H_face_{name}_brows", "Hair", headw, f["brows"], **decal)
         if "shine" in f:
             part(f"H_face_{name}_shine", "Shine", headw, f["shine"], **decal)
-    part("H_cheeks_blush", "Blush", headw, lambda bm: [decal_ellipse(bm, s * 0.092, Z - 0.035, 0.024, 0.013) for s in (1, -1)], **decal)
+    part("H_cheeks_blush", "Blush", headw, lambda bm: [decal_ellipse(bm, s * 0.085, Z - 0.03, 0.022, 0.012) for s in (1, -1)], **decal)
 
-    # --- optional parts ----------------------------------------------------------------------
-    for style, fn in (("short", hair_short), ("swept", hair_swept), ("spiky", hair_spiky), ("long", hair_long),
+    # --- hair and beards --------------------------------------------------------------------
+    for style, fn in (("short", hair_short), ("messy", hair_messy_base), ("long", hair_long),
                       ("ponytail", hair_ponytail), ("bun", hair_bun)):
         part(f"H_hair_{style}", "Hair", hair_weights, fn, **flat)
+    part("H_hair_messy_top", "Hair", headw, hair_messy_top, **flat)
     for style, fn in (("short", beard_short), ("full", beard_full), ("goatee", beard_goatee), ("mustache", beard_mustache)):
         part(f"H_beard_{style}", "Hair", headw, fn, **flat)
-    part("H_head_hood", "Accent", headw, hood, **flat)
-    part("H_head_hood_mantle", "Accent", rk.weights_by_distance(["spine_03", "neck_01", "clavicle_l", "clavicle_r"]), hood_mantle, **flat)
+
+    # --- clothes and gear ---------------------------------------------------------------------
+    part("H_top_tunic", "Main", torso_weights, tunic, **flat)
+    part("H_top_jacket", "Main", torso_weights, jacket, **flat)
+    part("H_top_coat", "Main", torso_weights, coat, **flat)
     part("H_chest_strap", "Leather", torso_weights, strap, **flat)
     part("H_chest_vest", "Leather", torso_weights, vest, **flat)
     for s, side in ((1, "l"), (-1, "r")):
-        part(f"H_shoulders_pads_{side}", "Leather", rk.weights_by_distance([f"clavicle_{side}", f"upperarm_{side}"], top=2),
-             lambda bm, s=s: rk.blob(bm, V((s * 0.2, 0.05, 1.47)), (0.11, 0.1, 0.07), 10, 8, keep=lambda p: p.z > 1.43), **flat)
-    part("H_back_scarf", "Accent", rk.weights_by_distance(["spine_03", "neck_01"]),
-         lambda bm: (rk.tube(bm, rk.ring_path(V((0, 0.01, 1.525)), 0.128, 0.118, 12), [(0.05, 0.038)] * 12, ref=V((0, 0, 1)), seg=6, closed=True),
-                     rk.tube(bm, [V((0.04, 0.115, 1.52)), V((0.06, 0.175, 1.38)), V((0.07, 0.195, 1.22)), V((0.08, 0.205, 1.08))],
-                             [(0.066, 0.018), (0.062, 0.016), (0.057, 0.015), (0.052, 0.014)], ref=V((1, 0, 0)), seg=6)), **flat)
-    part("H_back_cape", "Accent", rk.weights_by_distance(["spine_03", "spine_02", "spine_01", "pelvis"], top=2),
-         lambda bm: rk.tube(bm, [V((0, 0.13, 1.5)), V((0, 0.19, 1.15)), V((0, 0.24, 0.72))], [(0.2, 0.025), (0.25, 0.025), (0.29, 0.03)], ref=V((1, 0, 0)), seg=10), **flat)
+        w = rk.weights_by_distance([f"clavicle_{side}", f"upperarm_{side}"], top=2)
+        part(f"H_shoulders_pads_{side}", "Leather", w, lambda bm, s=s: shoulder(bm, s, (0.11, 0.1, 0.07)), **flat)
+        part(f"H_shoulders_plates_{side}", "Metal", w, lambda bm, s=s: shoulder(bm, s, (0.13, 0.12, 0.085)), **flat)
+    neck_w = rk.weights_by_distance(["spine_03", "neck_01", "spine_02"])
+    part("H_back_scarf", "Accent", neck_w, scarf, **flat)
+    part("H_back_cape", "Accent", rk.weights_by_distance(["spine_03", "spine_02", "spine_01", "pelvis"], top=2), cape, **flat)
+    back_w = rk.weights_by_distance(["spine_02", "spine_03"], top=2)
+    part("H_back_backpack", "Leather", back_w, backpack, **flat)
+    part("H_back_backpack_roll", "Accent", back_w, bedroll, **flat)
+    part("H_head_hat", "Accent", headw, hat, **flat)
+    part("H_head_hat_band", "Leather", headw, hat_band, **flat)
+    part("H_head_band", "Accent", headw, headband, **flat)
+    part("H_head_hood", "Accent", rk.weights_by_distance(["Head", "neck_01", "spine_03"], top=2), hood, **flat)
     return parts
 
 
 def group_of(o):
     if o.name.startswith("H_base_"):
         return "H_base_" + o.data.materials[0].name   # one mesh per colour
-    if o.name.startswith("H_shoulders_pads"):
-        return "H_shoulders_pads"
-    if o.name.startswith("H_head_hood"):
-        return "H_head_hood"
+    for prefix in ("H_shoulders_pads", "H_shoulders_plates"):
+        if o.name.startswith(prefix):
+            return prefix
     return None
 
 

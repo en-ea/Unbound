@@ -14,6 +14,7 @@ const HERO := "res://assets/characters/hero.glb"
 ## Universal Animation Library 2 (Quaternius, CC0): tree chopping, harvesting, sword and shield moves.
 const EXTRA_ANIMS := DIR + "UAL2_Standard.glb"
 const LOOKS := ["hero", "wanderer", "villager"]
+const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const HAIR_COLOR := Color(0.36, 0.22, 0.13)   # the hair textures are grey, made for tinting
 const NECK_Y := 1.47          # keep only the base body's head (the outfit covers the rest)
 
@@ -174,6 +175,7 @@ func apply_hero_look() -> void:
 		return
 	var p := hero_look.parts
 	var hooded: bool = p["head"] == "hood"
+	var covered: bool = p["head"] in ["hat", "hood"]
 	for node in _parts:
 		var mi := node as MeshInstance3D
 		if mi == null:
@@ -184,23 +186,31 @@ func apply_hero_look() -> void:
 		elif n == "H_ears":
 			mi.visible = not hooded
 		elif n.begins_with("H_hair_"):
-			mi.visible = not hooded and n == "H_hair_" + p["hair"]
+			# Hair hides under a hood; spiky "_top" locks also hide under a hat.
+			mi.visible = n.begins_with("H_hair_" + p["hair"]) and not hooded and not (n.ends_with("_top") and covered)
 		else:
-			var bits := n.split("_")   # H_<slot>_<choice>
+			var bits := n.split("_")   # H_<slot>_<choice>[_extra]
 			mi.visible = bits.size() >= 3 and p.get(bits[1], "") == bits[2]
 		for s in mi.mesh.get_surface_count():
 			var src := mi.mesh.surface_get_material(s)
-			if src and CharacterLook.PALETTES.has(src.resource_name):
-				mi.set_surface_override_material(s, _slot_material(src.resource_name))
+			if src:
+				mi.set_surface_override_material(s, _slot_material(src))
 
 
-func _slot_material(slot: String) -> StandardMaterial3D:
+## One shared material per colour slot, using the world's faceted shader: the slot's colour times
+## each face's small shade variation (stored in the model's UVs). Hit flashes use it too.
+func _slot_material(src: Material) -> ShaderMaterial:
+	var slot := src.resource_name
 	if not _slot_materials.has(slot):
-		var m := StandardMaterial3D.new()
-		m.roughness = 0.9
+		var m := ShaderMaterial.new()
+		m.shader = SOLID_SHADER
+		m.set_shader_parameter("sway", 0.0)
 		_slot_materials[slot] = m
-	var mat: StandardMaterial3D = _slot_materials[slot]
-	mat.albedo_color = hero_look.color(slot)
+	var mat: ShaderMaterial = _slot_materials[slot]
+	if CharacterLook.PALETTES.has(slot):
+		mat.set_shader_parameter("albedo", hero_look.color(slot))
+	elif src is StandardMaterial3D:
+		mat.set_shader_parameter("albedo", (src as StandardMaterial3D).albedo_color)
 	return mat
 
 
