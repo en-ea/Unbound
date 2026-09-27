@@ -9,10 +9,11 @@ const TURN_SPEED := 12.0
 const GRAVITY := 22.0
 
 @onready var visual: CharacterVisual = $Visual
+@onready var gatherer: Node = $Gatherer
 
 
 func _physics_process(delta: float) -> void:
-	var move := Controls.get_move()
+	var move := Controls.get_move() if not gatherer.is_busy() else Vector2.ZERO
 	var strength := move.length()
 	var target_speed := 0.0
 	if strength > 0.1:

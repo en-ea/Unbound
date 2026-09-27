@@ -26,6 +26,11 @@ var _meshes := {}          # "model|kind" -> Mesh with our materials
 var _trees: Array[Vector2] = []
 var _tree_grid := {}        # Vector2i cell -> Array[Vector2] of trees in it
 var _colliders: StaticBody3D
+var _pending_gatherables: Array[Dictionary] = []
+
+## Filled by build(): one entry per gatherable thing, for ResourceVisuals.
+## {type, xf: Transform3D, multimesh: MultiMesh, index: int, collider: CollisionShape3D, scale}
+var gatherables: Array[Dictionary] = []
 
 
 func build(shape: WorldShape) -> void:
@@ -66,7 +71,8 @@ func _scatter_trees() -> void:
 			continue
 		_add_tree(p)
 		var model: String = pines.pick_random() if (edge > 48.0 and _rng.randf() < 0.6) else commons.pick_random()
-		_place(model, "tree", p, _rng.randf_range(0.85, 1.25), 0.25)
+		var gather := "" if model == "tree_dead_1" else ("apple_tree" if model == "tree_apple_1" else "tree")
+		_place(model, "tree", p, _rng.randf_range(0.85, 1.25), 0.25, gather)
 
 
 func _scatter_landmarks() -> void:
@@ -118,15 +124,15 @@ func _scatter_rocks() -> void:
 		var ang := _rng.randf() * TAU
 		var p := WorldShape.HILL_CENTER + Vector2.from_angle(ang) * _rng.randf_range(10.0, 15.0)
 		if _shape.path_distance(p) > 2.5:
-			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.0), 0.3)
+			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.0), 0.3, "rock")
 	for i in 6:
 		var ang := _rng.randf() * TAU
 		var p := WorldShape.POND_CENTER + Vector2.from_angle(ang) * (WorldShape.POND_RADIUS + _rng.randf_range(0.5, 2.5))
-		_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.0), 0.25)
+		_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.0), 0.25, "rock")
 	for i in 400:
 		var p := _random_point(54.0)
 		if _rng.randf() < 0.05 and _clear_of_features(p, 3.0, 9.0) and not _near_tree(p, 2.5):
-			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.2), 0.3)
+			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.2), 0.3, "rock")
 	var pebbles := ["Pebble_Round_1", "Pebble_Round_2", "Pebble_Round_3", "Pebble_Square_1", "Pebble_Square_3", "Pebble_Square_5"]
 	for i in 1500:
 		var p := _random_point(56.0)
@@ -157,7 +163,7 @@ func _plant_at(p: Vector2) -> void:
 		if r < 0.12:
 			_place(["Fern_1", "Plant_1"].pick_random(), "small", p, _rng.randf_range(0.35, 0.5), 0.3)
 		elif r < 0.16:
-			_place(["Mushroom_Common", "Mushroom_Laetiporus"].pick_random(), "small", p, _rng.randf_range(0.6, 0.9), 0.2)
+			_place(["Mushroom_Common", "Mushroom_Laetiporus"].pick_random(), "small", p, _rng.randf_range(0.6, 0.9), 0.2, "mushroom")
 		elif r < 0.2:
 			_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
 		return
@@ -166,7 +172,7 @@ func _plant_at(p: Vector2) -> void:
 	elif r < 0.36 + m * 0.3:
 		_place("Grass_Wispy_Short", "small", p, _rng.randf_range(0.5, 0.8), 0.25)
 	elif m > 0.55 and r < 0.52 + m * 0.2:
-		_place(["Flower_3_Single", "Flower_4_Single", "Flower_3_Group"].pick_random(), "small", p, _rng.randf_range(0.25, 0.4), 0.3)
+		_place(["Flower_3_Single", "Flower_4_Single", "Flower_3_Group"].pick_random(), "small", p, _rng.randf_range(0.25, 0.4), 0.3, "flower")
 	elif r < 0.66:
 		_place(["Clover_1", "Plant_7", "Petal_1", "Petal_3"].pick_random(), "small", p, _rng.randf_range(0.5, 0.8), 0.2)
 	elif r < 0.665:
@@ -204,7 +210,7 @@ func _near_tree(p: Vector2, gap: float) -> bool:
 	return false
 
 
-func _place(model: String, kind: String, p: Vector2, scale: float, tilt: float) -> void:
+func _place(model: String, kind: String, p: Vector2, scale: float, tilt: float, gather := "") -> void:
 	var y := _shape.height_at(p.x, p.y) - 0.05 * scale
 	var basis := Basis(Vector3.UP, _rng.randf() * TAU)
 	if tilt > 0.0:
@@ -215,11 +221,15 @@ func _place(model: String, kind: String, p: Vector2, scale: float, tilt: float) 
 		_batches[key] = []
 	_batches[key].append(xf)
 	var radius: float = KINDS[kind]["collide"]
+	var collider: CollisionShape3D = null
 	if radius > 0.0:
-		_add_collider(xf.origin, radius * scale)
+		collider = _add_collider(xf.origin, radius * scale)
+	if gather != "":
+		_pending_gatherables.append({"type": gather, "xf": xf, "key": key, "index": _batches[key].size() - 1,
+			"collider": collider, "scale": scale})
 
 
-func _add_collider(at: Vector3, radius: float) -> void:
+func _add_collider(at: Vector3, radius: float) -> CollisionShape3D:
 	var shape := CylinderShape3D.new()
 	shape.radius = radius
 	shape.height = 3.0
@@ -227,9 +237,11 @@ func _add_collider(at: Vector3, radius: float) -> void:
 	col.shape = shape
 	col.position = at + Vector3(0, 1.5, 0)
 	_colliders.add_child(col)
+	return col
 
 
 func _flush() -> void:
+	var by_key := {}
 	for key: String in _batches:
 		var parts := key.split("|")
 		var kind: Dictionary = KINDS[parts[1]]
@@ -252,6 +264,11 @@ func _flush() -> void:
 			mmi.visibility_range_end_margin = 6.0
 			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		add_child(mmi)
+		by_key[key] = mm
+	for g in _pending_gatherables:
+		g["multimesh"] = by_key[g["key"]]
+		gatherables.append(g)
+	_pending_gatherables.clear()
 	_batches.clear()
 
 

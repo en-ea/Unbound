@@ -1,0 +1,156 @@
+extends Node3D
+## A dropped item: pops out in an arc, lands and bobs, then flies to the player when they come
+## near and goes into the Inventory with a "+1 Wood" popup.
+
+const MAGNET_RANGE := 2.4
+const GRAVITY := 14.0
+const SOUNDS := {"pickup": preload("res://assets/sounds/pickup.wav"), "rare": preload("res://assets/sounds/rare.wav")}
+
+var item := ""
+var _velocity := Vector3.ZERO
+var _ground_y := 0.0
+var _player: Node3D
+var _age := 0.0
+var _landed := false
+var _collecting := false
+var _mesh: MeshInstance3D
+
+
+func launch(item_id: String, from: Vector3, velocity: Vector3, ground_y: float, player: Node3D) -> void:
+	item = item_id
+	_velocity = velocity
+	_ground_y = ground_y
+	_player = player
+	global_position = from
+	_mesh = make_mesh(item)
+	add_child(_mesh)
+	if Items.rarity_of(item) == Items.Rarity.RARE:
+		_add_sparkle()
+
+
+func _process(delta: float) -> void:
+	_age += delta
+	var target := _player.global_position + Vector3(0, 1.0, 0)
+	if _collecting:
+		var to := target - global_position
+		if to.length() < 0.35:
+			_collect()
+			return
+		global_position += to.normalized() * minf(to.length(), (6.0 + _age * 10.0) * delta)
+		return
+	if not _landed:
+		_velocity.y -= GRAVITY * delta
+		global_position += _velocity * delta
+		if global_position.y <= _ground_y + 0.15 and _velocity.y < 0.0:
+			global_position.y = _ground_y + 0.15
+			_landed = true
+	else:
+		_mesh.position.y = 0.08 + sin(_age * 3.0) * 0.05
+	_mesh.rotation.y += delta * 1.5
+	if _age > 0.5 and global_position.distance_to(_player.global_position) < MAGNET_RANGE:
+		_collecting = true
+
+
+func _collect() -> void:
+	Inventory.add(item, 1)
+	var rare := Items.rarity_of(item) != Items.Rarity.COMMON
+	var sound := AudioStreamPlayer.new()
+	sound.stream = SOUNDS["rare" if rare else "pickup"]
+	sound.volume_db = -8.0 if not rare else -4.0
+	sound.pitch_scale = randf_range(0.95, 1.1)
+	get_parent().add_child(sound)
+	sound.play()
+	sound.finished.connect(sound.queue_free)
+	var label := Label3D.new()
+	label.text = "+1 " + Items.name_of(item)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.font_size = 40
+	label.outline_size = 10
+	label.modulate = Items.RARITY_COLORS[Items.rarity_of(item)] if rare else Color(1, 0.98, 0.92)
+	label.pixel_size = 0.006
+	get_parent().add_child(label)
+	label.global_position = _player.global_position + Vector3(randf_range(-0.3, 0.3), 2.3, 0)
+	var rise := label.create_tween().set_parallel()
+	rise.tween_property(label, "global_position:y", label.global_position.y + 0.8, 1.1)
+	rise.tween_property(label, "modulate:a", 0.0, 1.1).set_delay(0.3)
+	rise.chain().tween_callback(label.queue_free)
+	queue_free()
+
+
+func _add_sparkle() -> void:
+	var p := CPUParticles3D.new()
+	p.amount = 8
+	p.lifetime = 0.9
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 0.25
+	p.gravity = Vector3(0, 0.5, 0)
+	p.initial_velocity_max = 0.2
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * 0.05
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.albedo_color = Items.color_of(item) * 2.5
+	quad.material = mat
+	p.mesh = quad
+	add_child(p)
+
+
+## A small faceted mesh for an item (also used for warm-up).
+static func make_mesh(item_id: String) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	var color := Items.color_of(item_id)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.roughness = 0.8
+	match Items.DEFS[item_id]["shape"]:
+		"log":
+			var m := CylinderMesh.new()
+			m.top_radius = 0.07
+			m.bottom_radius = 0.075
+			m.height = 0.32
+			m.radial_segments = 6
+			m.rings = 1
+			mi.mesh = m
+			mi.rotation = Vector3(0, 0, PI / 2)
+		"rock":
+			var m := SphereMesh.new()
+			m.radius = 0.1
+			m.height = 0.16
+			m.radial_segments = 6
+			m.rings = 3
+			mi.mesh = m
+		"cap":
+			var m := CylinderMesh.new()
+			m.top_radius = 0.03
+			m.bottom_radius = 0.1
+			m.height = 0.08
+			m.radial_segments = 7
+			m.rings = 1
+			mi.mesh = m
+		"gem":
+			var m := CylinderMesh.new()
+			m.top_radius = 0.0
+			m.bottom_radius = 0.07
+			m.height = 0.2
+			m.radial_segments = 5
+			m.rings = 1
+			mi.mesh = m
+			mat.emission_enabled = true
+			mat.emission = color
+			mat.emission_energy_multiplier = 1.5
+		_:
+			var m := SphereMesh.new()
+			m.radius = 0.08
+			m.height = 0.16
+			m.radial_segments = 7
+			m.rings = 4
+			mi.mesh = m
+	if item_id == "glowcap":
+		mat.emission_enabled = true
+		mat.emission = color
+		mat.emission_energy_multiplier = 1.2
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi

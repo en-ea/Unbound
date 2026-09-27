@@ -98,10 +98,30 @@ def hum():
     save("hum", loopable(x, 1.0), 0.4)
 
 
+def pickups():
+    # A soft plucked "blip" for normal pickups, a little sparkly chime for rare finds.
+    n = int(0.18 * RATE)
+    t = np.arange(n) / RATE
+    f = 660 + 500 * (t / t[-1])
+    blip = np.sin(2 * np.pi * np.cumsum(f) / RATE) * np.exp(-t * 22)
+    blip += np.sin(2 * np.pi * np.cumsum(f * 2) / RATE) * np.exp(-t * 30) * 0.3
+    save("pickup", blip, 0.6)
+    notes = [880, 1109, 1319, 1760]
+    n = int(0.9 * RATE)
+    t = np.arange(n) / RATE
+    chime = np.zeros(n)
+    for i, f in enumerate(notes):
+        start = int(i * 0.07 * RATE)
+        tt = t[: n - start]
+        chime[start:] += (np.sin(2 * np.pi * f * tt) + 0.3 * np.sin(2 * np.pi * f * 2.01 * tt)) * np.exp(-tt * 5)
+    save("rare", chime, 0.6)
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     steps()
     ambience()
     birds()
     hum()
+    pickups()
     print("sounds written to", os.path.abspath(OUT))

@@ -2,14 +2,19 @@ extends CanvasLayer
 ## HUD: the joystick, FPS stats, and a small "Dev" menu (30/60 FPS, skip time, looks).
 
 const LOOK_PICKER := preload("res://scripts/ui/look_picker.gd")
+const ACTION_BUTTON := preload("res://scripts/ui/action_button.gd")
+const INVENTORY_PANEL := preload("res://scripts/ui/inventory_panel.gd")
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
 
 @export var day_night: Node
 @export var character: CharacterVisual
 @export var camera_rig: Node3D
+@export var player: Node3D
 
 var _fps_label: Label
 var _joystick: Control
+var _action: Control
+var _bag: Button
 var _cap_button: Button
 var _column: VBoxContainer
 var _menu: VBoxContainer
@@ -22,6 +27,20 @@ func _ready() -> void:
 	_joystick = Control.new()
 	_joystick.set_script(preload("res://scripts/ui/joystick.gd"))
 	add_child(_joystick)
+
+	_action = Control.new()
+	_action.set_script(ACTION_BUTTON)
+	add_child(_action)
+	var gatherer: Node = player.get_node("Gatherer")
+	_action.pressed.connect(gatherer.act)
+	gatherer.target_changed.connect(_action.set_verb)
+	_bag = UIStyle.button(self, "Bag", Vector2(110, 56), 22)
+	_bag.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	_bag.offset_left = -340
+	_bag.offset_right = -230
+	_bag.offset_top = -120
+	_bag.offset_bottom = -64
+	_bag.pressed.connect(open_bag)
 
 	_fps_label = Label.new()
 	_fps_label.position = MARGIN
@@ -65,17 +84,32 @@ func _process(delta: float) -> void:
 		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000]
 
 
-func open_look_picker() -> void:
+func open_bag() -> void:
+	_set_play_ui(false)
+	Controls.locked = true
+	var panel := Control.new()
+	panel.set_script(INVENTORY_PANEL)
+	add_child(panel)
+	panel.closed.connect(func() -> void:
+		Controls.locked = false
+		_set_play_ui(true))
+
+
+func _set_play_ui(on: bool) -> void:
 	_menu.visible = false
-	_column.visible = false
-	_joystick.visible = false
+	_column.visible = on
+	_joystick.visible = on
+	_action.visible = on
+	_bag.visible = on
+
+
+func open_look_picker() -> void:
+	_set_play_ui(false)
 	var picker := Control.new()
 	picker.set_script(LOOK_PICKER)
 	add_child(picker)
 	picker.open(character, camera_rig)
-	picker.closed.connect(func() -> void:
-		_column.visible = true
-		_joystick.visible = true)
+	picker.closed.connect(func() -> void: _set_play_ui(true))
 
 
 func _toggle_cap() -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/world/day_night.gd" id="2"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scripts/world/landmark_light.gd" id="10"]
 [ext_resource type="Script" path="res://scripts/audio/ambience.gd" id="11"]
 [ext_resource type="Script" path="res://scripts/core/warmup.gd" id="12"]
+[ext_resource type="Script" path="res://scripts/world/resource_visuals.gd" id="13"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
@@ -44,6 +45,10 @@ terrain = NodePath("../Terrain")
 script = ExtResource("10")
 day_night = NodePath("../WorldEnvironment")
 
+[node name="ResourceVisuals" type="Node3D" parent="." node_paths=PackedStringArray("player")]
+script = ExtResource("13")
+player = NodePath("../Player")
+
 [node name="Player" parent="." instance=ExtResource("5")]
 
 [node name="CameraRig" type="Node3D" parent="." node_paths=PackedStringArray("target")]
@@ -58,11 +63,12 @@ script = ExtResource("7")
 day_night = NodePath("../WorldEnvironment")
 follow = NodePath("../Player")
 
-[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("day_night", "character", "camera_rig")]
+[node name="HUD" type="CanvasLayer" parent="." node_paths=PackedStringArray("day_night", "character", "camera_rig", "player")]
 script = ExtResource("8")
 day_night = NodePath("../WorldEnvironment")
 character = NodePath("../Player/Visual")
 camera_rig = NodePath("../CameraRig")
+player = NodePath("../Player")
 
 [node name="DevArgs" type="Node" parent="." node_paths=PackedStringArray("day_night")]
 script = ExtResource("9")

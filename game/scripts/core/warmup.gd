@@ -35,6 +35,7 @@ func _process(_delta: float) -> void:
 	_frame += 1
 	if _frame == 1:
 		_landmark_home = landmark.global_position
+		get_tree().call_group("warmup", "warm", focus.global_position)
 		for p: CPUParticles3D in _particles():
 			_homes[p] = p.position
 	if _frame <= WARM_FRAMES:
@@ -45,6 +46,7 @@ func _process(_delta: float) -> void:
 		sun.shadow_enabled = _frame * 2 <= WARM_FRAMES
 	elif _frame == WARM_FRAMES + 1:
 		landmark.global_position = _landmark_home
+		get_tree().call_group("warmup", "unwarm")
 		for p: CPUParticles3D in _particles():
 			p.position = _homes.get(p, p.position)
 			p.restart()

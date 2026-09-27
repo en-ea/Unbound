@@ -23,7 +23,14 @@ const RUN := "Jog_Fwd"
 ## faster (quicker, shorter-looking steps).
 const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2}
 
+const TOOLS := {"axe": "res://assets/items/axe.glb", "pickaxe": "res://assets/items/pickaxe.glb"}
+## How a tool sits in the right hand (its handle runs along its own +Y).
+const TOOL_ROTATION := Vector3(0.0, 0.0, 90.0)     # degrees
+const TOOL_OFFSET := Vector3(0.0, 0.0, 0.0)
+
 var _anim: AnimationPlayer
+var _action_left := 0.0      # seconds left of a one-shot action (swing, pick-up)
+var _tools := {}             # name -> Node3D in the hand
 var _skeleton: Skeleton3D
 var _current := ""
 var _parts: Array[Node] = []   # everything the current look added to the skeleton
@@ -42,7 +49,41 @@ func _ready() -> void:
 	set_look(LOOKS[0])
 	for anim_name in [IDLE, WALK, RUN]:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
+	_make_tools()
 	play_motion(0.0)
+
+
+func _process(delta: float) -> void:
+	if _action_left > 0.0:
+		_action_left -= delta
+		if _action_left <= 0.0:
+			_current = ""      # let play_motion pick idle/walk/run again
+
+
+## Plays a one-shot animation (a swing); idle/walk/run resume when it ends.
+func play_action(anim_name: String, speed := 1.0) -> void:
+	_action_left = _anim.get_animation(anim_name).length / speed
+	_current = anim_name
+	_anim.speed_scale = 1.0
+	_anim.play(anim_name, 0.12, speed)
+
+
+func show_tool(tool_name: String) -> void:
+	for t: String in _tools:
+		_tools[t].visible = t == tool_name
+
+
+func _make_tools() -> void:
+	var hand := BoneAttachment3D.new()
+	hand.bone_name = "hand_r"
+	_skeleton.add_child(hand)
+	for t: String in TOOLS:
+		var tool := (load(TOOLS[t]) as PackedScene).instantiate() as Node3D
+		tool.rotation_degrees = TOOL_ROTATION
+		tool.position = TOOL_OFFSET
+		tool.visible = false
+		hand.add_child(tool)
+		_tools[t] = tool
 
 
 func set_look(new_look: String) -> void:
@@ -102,6 +143,8 @@ func next_look() -> void:
 
 
 func play_motion(speed: float) -> void:
+	if _action_left > 0.0:
+		return
 	var anim_name := IDLE
 	if speed > 3.0:
 		anim_name = RUN
