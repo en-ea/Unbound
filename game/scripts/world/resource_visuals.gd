@@ -49,6 +49,7 @@ func setup(gatherables: Array[Dictionary]) -> void:
 	WorldResources.depleted.connect(_on_depleted)
 	WorldResources.respawned.connect(_on_respawned)
 	WorldResources.grown.connect(_on_grown)
+	WorldResources.loaded.connect(_on_loaded)
 
 
 ## The instance transform at the node's current size (saplings are smaller).
@@ -130,6 +131,24 @@ func _fell(id: int) -> void:
 func _on_grown(id: int, _size: float) -> void:
 	if WorldResources.is_available(id):
 		_pose(id, _shown(id))
+
+
+## After loading a save: gone things show as gone (trees as stumps), saplings at their size.
+func _on_loaded() -> void:
+	for id: int in _entries:
+		var g: Dictionary = _entries[id]
+		if WorldResources.is_available(id):
+			if WorldResources.size_factor(id) < 1.0:
+				_pose(id, _shown(id))
+			continue
+		if g["collider"]:
+			g["collider"].disabled = true
+		_pose(id, Transform3D(Basis.from_scale(Vector3.ONE * 0.001), g["xf"].origin))
+		if WorldResources.is_tree(id):
+			var stump := STUMP.instantiate() as Node3D
+			stump.transform = Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3.ONE * g["scale"] * WorldResources.size_factor(id)), g["xf"].origin)
+			add_child(stump)
+			_stumps[id] = stump
 
 
 func _on_respawned(id: int) -> void:

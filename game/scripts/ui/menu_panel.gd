@@ -1,5 +1,5 @@
 extends Control
-## The in-game menu (gear button): resume, change your look, settings, and the dev tools.
+## The in-game menu (gear button): resume, save, change your look, settings, and the dev tools.
 
 signal closed
 signal open_character
@@ -24,6 +24,10 @@ func _ready() -> void:
 	var title := UIStyle.label(column, "Paused", 34)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UIStyle.menu_button(column, "Resume", true).pressed.connect(_close)
+	var save := UIStyle.menu_button(column, "Save")
+	save.pressed.connect(func() -> void:
+		SaveGame.save_game()
+		save.text = "Saved")
 	UIStyle.menu_button(column, "Character").pressed.connect(func() -> void:
 		open_character.emit()
 		queue_free())
@@ -37,6 +41,13 @@ func _ready() -> void:
 	dev.add_theme_constant_override("separation", 10)
 	column.add_child(dev)
 	UIStyle.button(dev, "Time +", Vector2(140, 44), 18).pressed.connect(func() -> void: day_night.skip(0.125))
+	# Wipes the save; asks for a second tap first.
+	var wipe := UIStyle.button(dev, "Start over", Vector2(160, 44), 18)
+	wipe.pressed.connect(func() -> void:
+		if wipe.text == "Sure? Tap again":
+			SaveGame.start_over()
+		else:
+			wipe.text = "Sure? Tap again")
 
 
 func _close() -> void:

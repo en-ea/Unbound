@@ -21,4 +21,5 @@ func _ready() -> void:
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)
 	player.spawn_point = player.global_position
+	SaveGame.attach(player, $WorldEnvironment)
 	camera_rig.snap()

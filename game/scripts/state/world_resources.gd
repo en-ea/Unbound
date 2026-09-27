@@ -7,6 +7,7 @@ signal hit(id: int, hits_left: int)
 signal depleted(id: int, drops: Array)     # drops: Array of item ids (one entry per item)
 signal respawned(id: int)
 signal grown(id: int, size: float)          # a regrowing tree got bigger (size = scale factor)
+signal loaded                               # a save was loaded: visuals redraw every node
 
 ## Per type: hits to deplete, seconds to grow back, reach radius, tool, and drops.
 ## Drops: [item, min, max, chance].
@@ -158,6 +159,37 @@ func _process(delta: float) -> void:
 			n["hits_left"] += _hits_for(id) - hits_before      # a bigger size takes more hits
 			if floori(before * 20.0) != floori(n["growth"] * 20.0) or n["growth"] >= 1.0:
 				grown.emit(id, size_factor(id))
+
+
+## Plain data for the save file: [hits_left, growth, seconds until regrowth or -1] per node.
+## Nodes are placed in the same order every run, so the list index is the id.
+func to_data() -> Array:
+	var now := _now()
+	var out := []
+	for n in _nodes:
+		var wait: float = n["respawn_at"] - now if n["respawn_at"] >= 0.0 else -1.0
+		out.append([n["hits_left"], snappedf(n["growth"], 0.001), snappedf(wait, 0.1)])
+	return out
+
+
+## Applies a save (after the world has been placed). Ignored if the world layout changed.
+func load_data(data: Array) -> void:
+	if data.size() != _nodes.size():
+		return
+	var now := _now()
+	for id in _nodes.size():
+		var d: Array = data[id]
+		var n := _nodes[id]
+		n["growth"] = clampf(d[1], 0.0, 1.0)
+		n["respawn_at"] = now + maxf(d[2], 0.0) if d[2] >= 0.0 else -1.0
+		n["hits_left"] = clampi(int(d[0]), 1, _hits_for(id))
+	loaded.emit()
+
+
+## Forgets every node (starting over; the world places them again).
+func reset() -> void:
+	_nodes.clear()
+	_grid.clear()
 
 
 func _cell(p: Vector3) -> Vector2i:

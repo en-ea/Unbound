@@ -26,7 +26,7 @@ The owner doesn't code: they direct and playtest, and Claude builds. Keep replie
 
 ## Commands (PowerShell, from C:\SoonGame)
 - Check scripts and import assets: `tools\Godot_v4.7.2-stable_win64_console.exe --headless --path game --import`
-- Export for the phone: `tools\Godot_v4.7.2-stable_win64_console.exe --headless --path game --export-release "Web" ../build/web/index.html`, then copy `tools-src\app.webmanifest` into `build\web\`.
+- Export for the phone: `tools\Godot_v4.7.2-stable_win64_console.exe --headless --path game --export-release "Web" ../build/web/index.html`, then copy `tools-src\app.webmanifest` and `tools-src\offline.sw.js` into `build\web\`.
 - Publish for the phone anywhere: `bash tools-src/publish_web.sh`, then commit and push to https://github.com/en-ea/Unbound (Vercel serves the `web/` folder).
 - Serve to the phone on home Wi-Fi: `node tools-src/serve.js` (run it in the background). The phone opens https://192.168.0.22:8080. The phone already trusts the dev certificate ("SoonGame Dev Root").
 - Dev args (after `--`; any dev arg skips the title screen unless `--title`): `--lineup` (all outfits), `--view=d,pitch`, `--fighttest`, `--gatheroffset=x,z`, `--shot=path.png`, `--time=0.5`, `--walk=x,y`, `--at=x,z`, `--zoom=5`, `--picker`, `--showcase` (all tree models in a row), `--touchtest` (see `game/scripts/dev/dev_args.gd`).
@@ -35,7 +35,7 @@ The owner doesn't code: they direct and playtest, and Claude builds. Keep replie
 
 ## Gotchas learned
 - **HTTPS:** Godot web requires it (secure context), hence the dev cert and the HTTPS server.
-- **No Godot PWA service worker:** it breaks in iPhone Safari. The PWA is disabled in the export. `serve.js` serves a self-removing service worker at `index.service.worker.js` to clean up old installs. Offline support will get its own simple service worker (milestone M5).
+- **No Godot PWA service worker:** it breaks in iPhone Safari. The PWA is disabled in the export. `serve.js` serves a self-removing service worker at `index.service.worker.js` to clean up old installs. Offline play uses our own `offline.sw.js` (network first, cache fallback after 4 s).
 - **Touch:** track fingers by index (joystick finger vs camera or button finger). Ignore drag jumps over 200 px. The HTML head_include blocks page scroll and zoom.
 - **Vertex colours:** set `vertex_color_is_srgb = true`. Filmic tonemap. Keep ambient light modest, or everything washes out.
 - **Free-asset colours:** check the imported colours (Kenney leaves came in as cyan).

@@ -74,7 +74,7 @@ func _scatter_trees() -> void:
 		if _near_tree(p, spacing):
 			continue
 		_add_tree(p)
-		var model: String = pines.pick_random() if (edge > 48.0 and _rng.randf() < 0.6) else commons.pick_random()
+		var model: String = _pick(pines) if (edge > 48.0 and _rng.randf() < 0.6) else _pick(commons)
 		var gather := "" if model == "tree_dead_1" else ("apple_tree" if model == "tree_apple_1" else "tree")
 		# Sizes vary a lot: young, grown and old trees take different work and give different wood.
 		_place(model, "tree", p, _rng.randf_range(0.72, 1.4), 0.2, gather)
@@ -118,7 +118,7 @@ func _scatter_path_stones() -> void:
 			if _rng.randf() < 0.45 or maxf(absf(a.x), absf(a.y)) > WorldShape.PLAY_HALF:
 				continue
 			var p := a.lerp(b, d / length) + side * _rng.randf_range(-0.7, 0.7)
-			_place(stones.pick_random(), "ground", p, _rng.randf_range(0.7, 1.0), 0.02)
+			_place(_pick(stones), "ground", p, _rng.randf_range(0.7, 1.0), 0.02)
 
 
 func _scatter_rocks() -> void:
@@ -128,21 +128,21 @@ func _scatter_rocks() -> void:
 		var ang := _rng.randf() * TAU
 		var p := WorldShape.HILL_CENTER + Vector2.from_angle(ang) * _rng.randf_range(10.0, 15.0)
 		if _shape.path_distance(p) > 2.5:
-			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.0), 0.3, "rock")
+			_place(_pick(rocks), "rock", p, _rng.randf_range(0.5, 1.0), 0.3, "rock")
 	for i in 6:
 		var ang := _rng.randf() * TAU
 		var p := WorldShape.POND_CENTER + Vector2.from_angle(ang) * (WorldShape.POND_RADIUS + _rng.randf_range(0.5, 2.5))
-		_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.0), 0.25, "rock")
+		_place(_pick(rocks), "rock", p, _rng.randf_range(0.5, 1.0), 0.25, "rock")
 	for i in 400:
 		var p := _random_point(54.0)
 		if _rng.randf() < 0.05 and _clear_of_features(p, 3.0, 9.0) and not _near_tree(p, 2.5):
-			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.2), 0.3, "rock")
+			_place(_pick(rocks), "rock", p, _rng.randf_range(0.5, 1.2), 0.3, "rock")
 	var pebbles := ["pebble_1", "pebble_2"]
 	for i in 1500:
 		var p := _random_point(56.0)
 		var pd := _shape.path_distance(p)
 		if pd > 1.2 and pd < 3.0 and _rng.randf() < 0.35:
-			_place(pebbles.pick_random(), "ground", p, _rng.randf_range(0.8, 1.5), 0.0)
+			_place(_pick(pebbles), "ground", p, _rng.randf_range(0.8, 1.5), 0.0)
 
 
 func _scatter_plants() -> void:
@@ -167,21 +167,21 @@ func _plant_at(p: Vector2) -> void:
 		if r < 0.12:
 			_place("fern_1", "small", p, _rng.randf_range(0.8, 1.2), 0.2)
 		elif r < 0.16:
-			_place(["mushroom_1", "mushroom_2"].pick_random(), "small", p, _rng.randf_range(0.9, 1.2), 0.15, "mushroom")
+			_place(_pick(["mushroom_1", "mushroom_2"]), "small", p, _rng.randf_range(0.9, 1.2), 0.15, "mushroom")
 		elif r < 0.2:
-			_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
+			_place(_pick(["bush_1", "bush_2", "bush_flower_1"]), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
 		return
 	# Sparse grass keeps the ground clean; it gathers a little more in lush patches.
 	if r < 0.1 + m * 0.18:
-		_place(["grass_1", "grass_2"].pick_random(), "small", p, _rng.randf_range(0.9, 1.4), 0.2)
+		_place(_pick(["grass_1", "grass_2"]), "small", p, _rng.randf_range(0.9, 1.4), 0.2)
 	elif r < 0.13 + m * 0.2:
 		_place("grass_3", "small", p, _rng.randf_range(1.2, 1.8), 0.2)
 	elif m > 0.45 and r < 0.54 + m * 0.2:
-		_place(["flower_1", "flower_2", "flower_3", "flower_4", "flower_5"].pick_random(), "small", p, _rng.randf_range(0.85, 1.15), 0.2, "flower")
+		_place(_pick(["flower_1", "flower_2", "flower_3", "flower_4", "flower_5"]), "small", p, _rng.randf_range(0.85, 1.15), 0.2, "flower")
 	elif r < 0.66:
 		pass                          # open ground
 	elif r < 0.665:
-		_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
+		_place(_pick(["bush_1", "bush_2", "bush_flower_1"]), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
 
 
 # --- helpers -------------------------------------------------------------------
@@ -318,3 +318,8 @@ func _mesh_for(model: String, kind_name: String) -> Mesh:
 			mesh.surface_set_material(s, solid)
 	_meshes[key] = mesh
 	return mesh
+
+
+## A random entry using the seeded generator, so the world is the same every launch.
+func _pick(list: Array) -> Variant:
+	return list[_rng.randi() % list.size()]

@@ -33,3 +33,22 @@ func count(item: String) -> int:
 ## Items the player has, in the order they were first found.
 func items() -> Array[String]:
 	return _order.filter(func(i: String) -> bool: return _counts[i] > 0)
+
+
+## Plain data for the save file, in found order.
+func to_data() -> Dictionary:
+	var out := {}
+	for item in _order:
+		out[item] = _counts[item]
+	return out
+
+
+## Replaces the whole inventory (loading a save).
+func load_data(data: Dictionary) -> void:
+	_counts.clear()
+	_order.clear()
+	for item: String in data:
+		if Items.DEFS.has(item):
+			_counts[item] = int(data[item])
+			_order.append(item)
+			changed.emit(item, _counts[item])
