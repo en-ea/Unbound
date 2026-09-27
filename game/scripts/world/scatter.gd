@@ -47,6 +47,7 @@ func build(shape: WorldShape) -> void:
 	_scatter_path_stones()
 	_scatter_rocks()
 	_scatter_plants()
+	_scatter_ores()
 	_flush()
 
 
@@ -123,6 +124,27 @@ func _scatter_path_stones() -> void:
 				continue
 			last = p
 			_place(_pick(stones), "ground", p, _rng.randf_range(0.7, 1.0), 0.02)
+
+
+## Ore rocks (placed last so everything else keeps its spot): copper around the hill, iron
+## deep in the north woods.
+func _scatter_ores() -> void:
+	var placed := 0
+	for i in 200:
+		if placed >= 7:
+			break
+		var p := WorldShape.HILL_CENTER + Vector2.from_angle(_rng.randf() * TAU) * _rng.randf_range(9.0, 17.0)
+		if _clear_of_features(p, 2.5, 9.0) and not _near_tree(p, 2.5):
+			_place("ore_copper", "rock", p, _rng.randf_range(0.7, 0.9), 0.2, "copper_rock")
+			placed += 1
+	placed = 0
+	for i in 200:
+		if placed >= 5:
+			break
+		var p := Vector2(_rng.randf_range(-30, 40), _rng.randf_range(-52, -36))
+		if _clear_of_features(p, 2.5, 9.0) and not _near_tree(p, 2.5):
+			_place("ore_iron", "rock", p, _rng.randf_range(0.7, 0.9), 0.2, "iron_rock")
+			placed += 1
 
 
 func _scatter_rocks() -> void:

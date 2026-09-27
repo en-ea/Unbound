@@ -90,12 +90,12 @@ func attack() -> void:
 		return
 	_step = (_step + 1) % COMBO.size() if _since < CHAIN_WINDOW else 0
 	var anim: String = COMBO[_step]
-	var length := visual.animation_length(anim) / SPEED
+	var length := visual.animation_length(anim) / (SPEED * Gear.speed("sword"))
 	if target:
 		var to := target.global_position - player.global_position
 		visual.rotation.y = atan2(to.x, to.z)
 	visual.show_tool("sword")
-	visual.play_action(anim, SPEED)
+	visual.play_action(anim, SPEED * Gear.speed("sword"))
 	_busy = length * 0.85
 	_impact = length * 0.45
 	_swing_target = target
@@ -130,7 +130,7 @@ func _land_hit() -> void:
 		return
 	if t.global_position.distance_to(player.global_position) > REACH + 0.8:
 		return
-	t.take_hit(player.global_position)
+	t.take_hit(player.global_position, Gear.power("sword"))
 	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
 	_sparks.restart()
 	visual.hit_stop(0.06)

@@ -81,6 +81,17 @@ def shard(color, mat, height=0.26, width=0.06, seg=5):
     return b
 
 
+def ore_chunk(color, seed):
+    """A grey nugget with a few crystals of ore sticking out."""
+    rnd = random.Random(seed)
+    b = Builder(["Item", "Glow"])
+    clump(b, V((0, 0, -0.02)), 0.09, 1, rnd, (0.5, 0.49, 0.47), "Item", 0.8)
+    for a in (0.3, 2.4, 4.4):
+        d = V((math.cos(a) * 0.6, math.sin(a) * 0.6, 0.8)).normalized()
+        b.paint(b.new_faces(lambda d=d: rk.tube(b.bm, [d * 0.03, d * 0.15], [(0.035, 0.03), (0.006, 0.006)], ref=V((0, 0, 1)), seg=5)), "Item", color)
+    return b
+
+
 def amber():
     rnd = random.Random(7)
     b = Builder(["Item", "Glow"])
@@ -131,4 +142,6 @@ export("resin", amber(), OUT)
 export("hide", hide(), OUT)
 export("tusk", tusk(), OUT)
 export("pelt", hide((0.6, 0.64, 0.72)), OUT)
+export("copper", ore_chunk((0.93, 0.55, 0.3), 5), OUT)
+export("iron", ore_chunk((0.8, 0.84, 0.92), 6), OUT)
 export("fang", fang(), OUT)

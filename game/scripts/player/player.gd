@@ -32,6 +32,7 @@ var _stun := 0.0
 var _knock := Vector3.ZERO
 var health := MAX_HEALTH
 var spawn_point := Vector3.ZERO
+var _station: Node3D = null     # a workbench (or other "interactable") in reach
 var _since_hit := 99.0
 var _regen := 0.0
 var _down := 0.0
@@ -48,8 +49,22 @@ func act() -> void:
 		return
 	if fighter.verb != "":
 		fighter.attack()
+	elif is_instance_valid(_station):
+		_station.interact()
 	else:
 		gatherer.act()
+
+
+## The closest node in group "interactable" whose `reach` we are inside (it has `verb` and interact()).
+func _nearest_station() -> Node3D:
+	var best: Node3D = null
+	var best_d := INF
+	for n: Node3D in get_tree().get_nodes_in_group("interactable"):
+		var d := Vector2(n.global_position.x - global_position.x, n.global_position.z - global_position.z).length()
+		if d < n.reach and d < best_d:
+			best_d = d
+			best = n
+	return best
 
 
 ## Dodge roll: a quick roll in the stick direction (or forward). Charges miss you mid-roll.
@@ -128,7 +143,10 @@ func _physics_process(delta: float) -> void:
 			get_tree().call_group("camera_rig", "snap")
 			got_up.emit()
 		return
-	var new_verb: String = fighter.verb if fighter.verb != "" else gatherer.verb
+	_station = _nearest_station()
+	var new_verb: String = fighter.verb
+	if new_verb == "":
+		new_verb = _station.verb if _station else gatherer.verb
 	if new_verb != verb:
 		verb = new_verb
 		verb_changed.emit(verb)

@@ -25,6 +25,7 @@ var _impact := -1.0
 var _swing_target := -1
 var _queued := false
 var _shake := 0.0
+var _power := 1
 
 
 func is_busy() -> bool:
@@ -44,7 +45,7 @@ func _physics_process(delta: float) -> void:
 	if _impact >= 0.0:
 		_impact -= delta
 		if _impact < 0.0 and _swing_target >= 0:
-			WorldResources.hit_node(_swing_target)
+			WorldResources.hit_node(_swing_target, _power)
 			if _shake > 0.0:
 				visual.hit_stop()
 				get_tree().call_group("camera_rig", "shake", _shake)
@@ -64,13 +65,19 @@ func act() -> void:
 	if target < 0 or Controls.locked:
 		return
 	var info := WorldResources.type_info(target)
-	var swing: Dictionary = SWINGS[info["tool"]]
+	var tool: String = info["tool"]
+	var swing: Dictionary = SWINGS[tool]
+	var pace := Gear.speed(tool) if tool != "" else 1.0
+	_power = Gear.power(tool) if tool != "" else 1
+	if tool != "" and Gear.tier(tool) < info.get("min_tier", 0):
+		_power = 0                     # too hard for this pickaxe: it just glances off
+		get_tree().call_group("hud", "hint", "Needs a %s" % Gear.tool_name(tool, info["min_tier"]))
 	var at: Vector3 = WorldResources.get_node_data(target)["pos"]
 	var to := at - player.global_position
 	visual.rotation.y = atan2(to.x, to.z)
-	visual.show_tool(info["tool"])
-	visual.play_action(swing["anim"], swing["speed"], swing["start"])
-	_busy = swing["time"]
-	_impact = swing["impact"]
+	visual.show_tool(tool)
+	visual.play_action(swing["anim"], swing["speed"] * pace, swing["start"])
+	_busy = swing["time"] / pace
+	_impact = swing["impact"] / pace
 	_swing_target = target
 	_shake = swing["shake"]

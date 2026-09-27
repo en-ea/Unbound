@@ -16,6 +16,8 @@ const DEFS := {
 	"shard": {"name": "Glimmer Shard", "color": Color(0.5, 0.85, 1.0), "rarity": Rarity.RARE},
 	"hide": {"name": "Boar Hide", "color": Color(0.42, 0.34, 0.38), "rarity": Rarity.COMMON},
 	"tusk": {"name": "Boar Tusk", "color": Color(0.93, 0.88, 0.74), "rarity": Rarity.UNCOMMON},
+	"copper": {"name": "Copper Ore", "color": Color(0.9, 0.55, 0.3), "rarity": Rarity.COMMON},
+	"iron": {"name": "Iron Ore", "color": Color(0.72, 0.76, 0.84), "rarity": Rarity.UNCOMMON},
 	"pelt": {"name": "Wolf Pelt", "color": Color(0.6, 0.64, 0.72), "rarity": Rarity.UNCOMMON},
 	"fang": {"name": "Wolf Fang", "color": Color(0.97, 0.95, 0.88), "rarity": Rarity.RARE},
 }

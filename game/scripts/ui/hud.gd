@@ -9,6 +9,7 @@ const PICKUP_FEED := preload("res://scripts/ui/pickup_feed.gd")
 const TITLE_SCREEN := preload("res://scripts/ui/title_screen.gd")
 const MENU_PANEL := preload("res://scripts/ui/menu_panel.gd")
 const SETTINGS_PANEL := preload("res://scripts/ui/settings_panel.gd")
+const CRAFTING_PANEL := preload("res://scripts/ui/crafting_panel.gd")
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
 ## Title camera: close on the character, who stands to the right of the title.
 const TITLE_VIEW := {"distance": 5.0, "pitch": -7.0, "offset": Vector3(-1.35, 0.25, 0.0)}
@@ -27,12 +28,14 @@ var _feed: Control
 var _title: Control
 var _hearts: Control
 var _map: Control
+var _hint: Label
 var _worst := 0.0
 var _worst_shown := 0.0
 var _timer := 0.0
 
 
 func _ready() -> void:
+	add_to_group("hud")
 	_add_vignette()
 	_joystick = Control.new()
 	_joystick.set_script(preload("res://scripts/ui/joystick.gd"))
@@ -89,6 +92,15 @@ func _ready() -> void:
 	Settings.changed.connect(_on_settings_changed)
 	_on_settings_changed()
 
+	_hint = UIStyle.label(self, "", 24)
+	_hint.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_hint.position.y = 110
+	_hint.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+	_hint.add_theme_constant_override("outline_size", 8)
+	_hint.modulate.a = 0.0
+
 	show_title()
 
 
@@ -134,6 +146,22 @@ func start_game(instant := false) -> void:
 	Controls.locked = false
 	camera_rig.reset_view(0.01 if instant else 0.9)
 	_set_play_ui(true)
+
+
+## A short message at the top of the screen ("Needs a Stone Pickaxe", "Made a Copper Axe!").
+func hint(text: String) -> void:
+	_hint.text = text
+	_hint.modulate.a = 1.0
+	if _hint.has_meta("tween"):
+		(_hint.get_meta("tween") as Tween).kill()
+	var t := create_tween()
+	t.tween_interval(1.6)
+	t.tween_property(_hint, "modulate:a", 0.0, 0.5)
+	_hint.set_meta("tween", t)
+
+
+func open_crafting() -> void:
+	_modal(CRAFTING_PANEL)
 
 
 func open_bag() -> void:

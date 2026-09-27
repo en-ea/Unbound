@@ -1,12 +1,15 @@
 extends Control
-## The Bag: a grid of item cards (icon colour, name, count, rarity edge). Reads Inventory.
+## The Bag: your tools (tap a tier you own to use it) and a grid of item cards (icon, name, count,
+## rarity edge). Reads Inventory and Gear.
 
 signal closed
 
 const COLUMNS := 4
+const CRAFTING := preload("res://scripts/ui/crafting_panel.gd")
 
 var _grid: GridContainer
 var _empty: Label
+var _gear: VBoxContainer
 
 
 func _ready() -> void:
@@ -35,6 +38,9 @@ func _ready() -> void:
 	var title := UIStyle.label(header, "Bag", 28)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	UIStyle.button(header, "Close", Vector2(120, 46), 20).pressed.connect(_close)
+	_gear = VBoxContainer.new()
+	_gear.add_theme_constant_override("separation", 6)
+	column.add_child(_gear)
 	_empty = UIStyle.label(column, "Nothing yet. Chop a tree, mine a rock, or pick a flower.", 20, true)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -47,7 +53,37 @@ func _ready() -> void:
 	scroll.add_child(_grid)
 	Inventory.changed.connect(_on_changed)
 	ItemIcons.icon_ready.connect(_on_icon_ready)
+	Gear.changed.connect(_refresh_gear)
 	_refresh()
+	_refresh_gear()
+
+
+## One row per tool slot: a badge for every tier you own; the equipped one is bigger.
+func _refresh_gear() -> void:
+	for c in _gear.get_children():
+		c.queue_free()
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 26)
+	_gear.add_child(row)
+	for slot: String in Gear.SLOTS:
+		var group := HBoxContainer.new()
+		group.add_theme_constant_override("separation", 6)
+		row.add_child(group)
+		for t: int in Gear.owned[slot]:
+			var on := Gear.tier(slot) == t
+			var b := Button.new()
+			b.flat = true
+			b.custom_minimum_size = Vector2(52, 52)
+			var badge := CRAFTING.badge(slot, t, 44 if on else 32)
+			badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			b.add_child(badge)
+			badge.position = Vector2(4, 4) if on else Vector2(10, 10)
+			b.pressed.connect(Gear.equip.bind(slot, t))
+			group.add_child(b)
+	var names: Array[String] = []
+	for slot: String in Gear.SLOTS:
+		names.append(Gear.tool_name(slot, Gear.tier(slot)))
+	UIStyle.label(_gear, "Using: " + ", ".join(names) + "  (tap a badge to switch)", 16, true)
 
 
 func _on_icon_ready(_item: String) -> void:
@@ -116,5 +152,6 @@ static func item_icon(item: String, size: float) -> Control:
 func _close() -> void:
 	Inventory.changed.disconnect(_on_changed)
 	ItemIcons.icon_ready.disconnect(_on_icon_ready)
+	Gear.changed.disconnect(_refresh_gear)
 	closed.emit()
 	queue_free()

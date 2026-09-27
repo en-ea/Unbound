@@ -23,6 +23,10 @@ func _ready() -> void:
 	treasure.player = player
 	add_child(treasure)
 	treasure.build(shape)
+	var workbench := Node3D.new()
+	workbench.set_script(preload("res://scripts/world/workbench.gd"))
+	add_child(workbench)
+	workbench.build(shape, Vector2(-1.0, 7.0))
 	var critters := Node3D.new()
 	critters.set_script(preload("res://scripts/world/critters.gd"))
 	critters.player = player

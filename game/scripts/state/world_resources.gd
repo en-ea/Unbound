@@ -18,6 +18,11 @@ const TYPES := {
 		"drops": [["wood", 2, 2, 1.0], ["apple", 1, 3, 1.0], ["resin", 1, 1, 0.08]]},
 	"rock": {"hits": 5, "respawn": 90.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine",
 		"drops": [["stone", 2, 3, 1.0], ["flint", 1, 1, 0.15], ["shard", 1, 1, 0.04]]},
+	# Ore rocks need a better pickaxe (min_tier, see Gear.TIERS).
+	"copper_rock": {"hits": 6, "respawn": 120.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine", "min_tier": 1,
+		"drops": [["copper", 2, 3, 1.0], ["stone", 1, 2, 1.0]]},
+	"iron_rock": {"hits": 8, "respawn": 150.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine", "min_tier": 2,
+		"drops": [["iron", 2, 3, 1.0], ["stone", 1, 2, 1.0], ["shard", 1, 1, 0.08]]},
 	"mushroom": {"hits": 1, "respawn": 40.0, "radius": 0.3, "tool": "", "verb": "Pick",
 		"drops": [["mushroom", 1, 1, 1.0], ["glowcap", 1, 1, 0.06]]},
 	"flower": {"hits": 1, "respawn": 40.0, "radius": 0.3, "tool": "", "verb": "Pick",
@@ -114,12 +119,13 @@ func nearest(pos: Vector3, reach: float) -> int:
 	return best
 
 
-## The action: one hit on a node. Returns true if that hit depleted it.
-func hit_node(id: int) -> bool:
+## The action: one hit on a node, taking `power` hits off it (0 = a glancing blow that does
+## nothing, e.g. a pickaxe too weak for the ore). Returns true if that hit depleted it.
+func hit_node(id: int, power := 1) -> bool:
 	var n := _nodes[id]
 	if n["respawn_at"] >= 0.0:
 		return false
-	n["hits_left"] -= 1
+	n["hits_left"] = maxi(n["hits_left"] - power, 0)
 	hit.emit(id, n["hits_left"])
 	if n["hits_left"] > 0:
 		return false

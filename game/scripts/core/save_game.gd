@@ -1,6 +1,6 @@
 extends Node
 ## Saves the game on the device: your items, the state of trees/rocks/plants, where you stand and
-## the time of day. It saves by itself every few seconds and whenever the app goes to the
+## the time of day, and your tools. It saves by itself every few seconds and whenever the app goes to the
 ## background, so you can stop anywhere. (Your look is saved by CharacterLook; settings by Settings.)
 
 const PATH := "user://save.json"
@@ -42,6 +42,7 @@ func save_game() -> void:
 	var data := {
 		"version": VERSION,
 		"inventory": Inventory.to_data(),
+		"gear": Gear.to_data(),
 		"world": WorldResources.to_data(),
 		"layout": str(WorldResources.layout_id()),     # as text: JSON would round a big number
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y},
@@ -59,6 +60,7 @@ func load_game() -> void:
 	if not data is Dictionary or data.get("version", 0) != VERSION:
 		return
 	Inventory.load_data(data.get("inventory", {}))
+	Gear.load_data(data.get("gear", {}))
 	if data.get("layout", "") == str(WorldResources.layout_id()):
 		WorldResources.load_data(data.get("world", []))
 	var pl: Dictionary = data.get("player", {})
@@ -74,5 +76,6 @@ func start_over() -> void:
 	DirAccess.remove_absolute(PATH)
 	_enabled = false        # don't save the old world on the way out
 	Inventory.load_data({})
+	Gear.load_data({})
 	WorldResources.reset()
 	get_tree().reload_current_scene()

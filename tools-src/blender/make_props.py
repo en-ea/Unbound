@@ -1,5 +1,5 @@
 """Builds small faceted props: a treasure chest (base, and a lid built around its hinge so the game
-can swing it open), a mossy ruined arch, and a rabbit. Exported to game/assets/props/.
+can swing it open), a ruined arch (round drums, glowing rune, ivy), a rabbit, and the village workbench. Exported to game/assets/props/.
 Front faces -Y in Blender (+Z in Godot).
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_props.py
@@ -81,28 +81,121 @@ def chest_lid():
     return b
 
 
+def soft(b, make, color, offset=0.05, segs=1, mat="Prop"):
+    """Builds a shape with `make`, rounds its edges with a small bevel, paints it one colour."""
+    def run():
+        before = set(b.bm.edges)
+        make()
+        edges = [e for e in b.bm.edges if e not in before]
+        bmesh.ops.bevel(b.bm, geom=edges, offset=offset, segments=segs, profile=0.5, affect="EDGES", clamp_overlap=True)
+    b.paint(b.new_faces(run), mat, color)
+
+
+def cube(b, center, size, rot=None):
+    def make():
+        geom = bmesh.ops.create_cube(b.bm, size=1.0)
+        for v in geom["verts"]:
+            p = V((v.co.x * size[0], v.co.y * size[1], v.co.z * size[2]))
+            if rot:
+                p.rotate(rot)
+            v.co = p + center
+    return make
+
+
+def drum(b, bottom, top, r, color, seg=8):
+    """A round column drum between two points."""
+    soft(b, lambda: rk.tube(b.bm, [bottom, top], [(r, r)] * 2, ref=V((1, 0, 0)) if abs((top - bottom).normalized().z) > 0.9 else V((0, 0, 1)), seg=seg), color, 0.03)
+
+
+RUIN_STONE = (0.76, 0.74, 0.7)
+RUIN_DARK = (0.64, 0.63, 0.61)
+RUNE = (0.5, 0.96, 0.9)
+IVY = [(0.4, 0.62, 0.3), (0.46, 0.68, 0.33)]
+
+
 def ruin():
-    """A broken stone arch: one tall pillar, one snapped one, part of the lintel, fallen blocks, moss."""
-    b = Builder(["Prop"])
-    def pillar(x, blocks, lean=0.0):
-        for i in range(blocks):
-            s = 0.62 - (i % 2) * 0.04
-            box(b, V((x + lean * i, rnd.uniform(-0.03, 0.03), 0.3 + i * 0.58)), (s, s, 0.56), rnd.choice(STONE), 0.06,
-                tilt=None if i < blocks - 1 else Euler((rnd.uniform(-0.08, 0.08), rnd.uniform(-0.1, 0.1), rnd.uniform(0, 0.4))))
-        box(b, V((x, 0, 0.08)), (0.9, 0.9, 0.18), STONE[3], 0.04)
-    pillar(-1.3, 6)
-    pillar(1.3, 3, 0.02)
-    for i in range(3):                                    # what's left of the lintel
-        box(b, V((-1.3 + i * 0.66, 0, 3.72 + (0.05 if i == 1 else 0))), (0.66, 0.68, 0.42), rnd.choice(STONE), 0.05,
-            tilt=Euler((0, 0.06 * i, 0)))
-    for p, s in ((V((1.9, -0.8, 0.22)), 0.46), (V((0.6, -1.1, 0.2)), 0.42), (V((2.4, 0.5, 0.2)), 0.4), (V((-2.2, -0.6, 0.15)), 0.3)):
-        box(b, p, (s * 1.2, s, s), rnd.choice(STONE), 0.06, tilt=Euler((rnd.uniform(-0.3, 0.3), rnd.uniform(-0.3, 0.3), rnd.uniform(0, 1.5))))
-    for i in range(7):                                    # a low broken wall behind
-        h = 0.35 + (0.3 if i in (1, 2, 4) else 0.0)
-        box(b, V((-2.0 + i * 0.62, 1.1, h / 2)), (0.6, 0.45, h), rnd.choice(STONE), 0.06)
-    for p, r in ((V((-1.3, 0.1, 3.5)), 0.28), (V((-0.6, 0.0, 3.95)), 0.24), (V((1.3, 0.1, 1.85)), 0.3), (V((-1.55, 0.2, 0.3)), 0.3),
-                 (V((1.0, 1.1, 0.7)), 0.25), (V((-0.4, 1.2, 0.45)), 0.22), (V((1.9, -0.8, 0.45)), 0.2)):
-        clump(b, p, r, 1, rnd, rnd.choice(MOSS), "Prop", 0.55)
+    """A broken arch on a stepped platform: round column drums (one pillar whole, one snapped),
+    half a lintel with a glowing rune keystone, hanging ivy, fallen drums and moss."""
+    b = Builder(["Prop", "Glow"])
+    soft(b, cube(b, V((0, 0, 0.05)), (4.6, 3.0, 0.3)), RUIN_DARK, 0.06)
+    for i, (x, w, tilt) in enumerate(((-1.35, 1.4, 0.0), (0.12, 1.4, 0.04), (1.45, 1.1, -0.06))):   # cracked top step
+        soft(b, cube(b, V((x, 0.1, 0.28)), (w - 0.06, 2.2, 0.18), Euler((tilt, 0, 0))), RUIN_STONE, 0.05)
+    for x, drums in ((-1.35, 6), (1.35, 2)):
+        soft(b, cube(b, V((x, 0.1, 0.5)), (0.9, 0.9, 0.3)), RUIN_DARK, 0.05)
+        for i in range(drums):
+            z0 = 0.65 + i * 0.55
+            snapped = x > 0 and i == drums - 1            # the broken pillar's top drum sits askew
+            top = V((x + 0.08, 0.14, z0 + 0.45)) if snapped else V((x, 0.1, z0 + 0.52))
+            drum(b, V((x, 0.1, z0)), top, 0.34 - (i % 2) * 0.02, RUIN_STONE)
+    cap = 0.65 + 6 * 0.55
+    soft(b, cube(b, V((-1.35, 0.1, cap + 0.12)), (0.95, 0.95, 0.26)), RUIN_DARK, 0.05)
+    soft(b, cube(b, V((-0.55, 0.1, cap + 0.5)), (2.3, 0.8, 0.5)), RUIN_STONE, 0.06)                 # half a lintel
+    soft(b, cube(b, V((0.52, 0.1, cap + 0.44)), (0.5, 0.82, 0.62), Euler((0, 0.2, 0))), RUIN_DARK, 0.05)   # keystone, jutting
+    # The rune on the keystone: a glowing ring with a diamond inside.
+    ring = lambda: rk.tube(b.bm, [V((0.55, -0.32, cap + 0.44)), V((0.55, -0.36, cap + 0.44))], [(0.17, 0.17)] * 2, ref=V((1, 0, 0)), seg=10)
+    b.paint(b.new_faces(ring), "Glow", RUNE)
+    diamond = lambda: rk.tube(b.bm, [V((0.55, -0.34, cap + 0.3)), V((0.55, -0.34, cap + 0.44)), V((0.55, -0.34, cap + 0.58))],
+                               [(0.01, 0.01), (0.07, 0.03), (0.01, 0.01)], ref=V((1, 0, 0)), seg=4)
+    b.paint(b.new_faces(diamond), "Glow", (0.85, 1.0, 0.98))
+    for x, length in ((-1.1, 1.6), (-0.6, 1.1), (-0.15, 1.9), (0.3, 0.8)):   # ivy hanging off the lintel
+        p0 = V((x, -0.32, cap + 0.3))
+        p1 = p0 + V((0.05, -0.04, -length))
+        paint(b, b.new_faces(lambda p0=p0, p1=p1: rk.tube(b.bm, [p0, p1], [(0.02, 0.02)] * 2, seg=4)), IVY[0], 0.0)
+        for k in range(int(length / 0.25)):
+            clump(b, p0.lerp(p1, (k + 0.5) / (length / 0.25)) + V((rnd.uniform(-0.05, 0.05), -0.03, 0)), 0.07, 1, rnd, rnd.choice(IVY), "Prop", 0.6)
+    for p, r in ((V((-0.9, 0.1, cap + 0.8)), 0.3), (V((-1.4, 0.1, cap + 0.3)), 0.24), (V((1.4, 0.1, 1.72)), 0.28), (V((-1.7, -0.5, 0.45)), 0.22)):
+        clump(b, p, r, 1, rnd, rnd.choice(IVY), "Prop", 0.5)
+    drum(b, V((1.6, -1.6, 0.3)), V((2.2, -1.9, 0.33)), 0.32, RUIN_STONE)       # fallen drums
+    drum(b, V((0.4, -1.9, 0.28)), V((0.95, -2.3, 0.3)), 0.3, RUIN_STONE)
+    soft(b, cube(b, V((2.3, 0.4, 0.3)), (0.9, 0.6, 0.45), Euler((0.2, -0.3, 0.6))), RUIN_DARK, 0.05)
+    for x in (-2.0, -1.4, 1.9):                                  # grass tufts at the base
+        clump(b, V((x, -1.4, 0.12)), 0.18, 1, rnd, rnd.choice(IVY), "Prop", 0.6)
+    return b
+
+
+STRAW = [(0.9, 0.74, 0.4), (0.86, 0.69, 0.36)]
+WB_WOOD = (0.6, 0.41, 0.26)
+WB_DARK = (0.42, 0.28, 0.19)
+IRON_D = (0.34, 0.35, 0.38)
+
+
+def workbench():
+    """The village workbench: a sturdy bench with a vise, hammer and saw, an anvil on a stump,
+    all under a round straw canopy on four posts (the round house's look). Faces -Y."""
+    b = Builder(["Prop", "Glow"])
+    for x in (-1.25, 1.25):                          # posts at the back, so the camera sees the bench
+        for y in (0.4, 2.0):
+            soft(b, cube(b, V((x, y, 1.4)), (0.18, 0.18, 2.8)), WB_DARK, 0.04)
+            soft(b, cube(b, V((x, y, 0.08)), (0.34, 0.34, 0.16)), RUIN_DARK, 0.04)
+    # Round straw canopy in two tiers with a little finial.
+    c = V((0, 1.2, 0))
+    for r0, z0, r1, z1 in ((1.95, 2.7, 1.1, 3.35), (1.25, 3.2, 0.1, 4.0)):
+        faces = b.new_faces(lambda r0=r0, z0=z0, r1=r1, z1=z1: rk.tube(b.bm, [c + V((0, 0, z0)), c + V((0, 0, z0 + 0.16)), c + V((0, 0, z1))],
+                                                                       [(r0, r0), (r0 * 0.96, r0 * 0.96), (r1, r1)], seg=14))
+        for f in faces:
+            b.paint([f], "Prop", rnd.choice(STRAW))
+    soft(b, lambda: rk.tube(b.bm, [c + V((0, 0, 3.95)), c + V((0, 0, 4.35))], [(0.04, 0.04)] * 2, seg=5), WB_DARK, 0.01)
+    clump(b, c + V((0, 0, 4.4)), 0.08, 1, rnd, (0.95, 0.78, 0.4), "Prop", 1.0)
+    # The bench: thick top, legs, a shelf with logs, a vise, a hammer and a saw.
+    soft(b, cube(b, V((0, 0.3, 0.92)), (2.0, 0.85, 0.14)), WB_WOOD, 0.04)
+    for x in (-0.85, 0.85):
+        for y in (0.0, 0.6):
+            soft(b, cube(b, V((x, y, 0.45)), (0.12, 0.12, 0.9)), WB_DARK, 0.02)
+    soft(b, cube(b, V((0, 0.3, 0.3)), (1.8, 0.7, 0.08)), WB_WOOD, 0.02)
+    for i in range(3):
+        soft(b, lambda i=i: rk.tube(b.bm, [V((-0.7, 0.1 + i * 0.22, 0.44)), V((0.2, 0.1 + i * 0.22, 0.44))], [(0.09, 0.09)] * 2, ref=V((0, 0, 1)), seg=6), (0.7, 0.5, 0.32), 0.02)
+    soft(b, cube(b, V((0.85, 0.0, 1.08)), (0.22, 0.26, 0.2)), IRON_D, 0.02)                       # vise
+    soft(b, cube(b, V((0.85, -0.18, 1.08)), (0.05, 0.3, 0.05)), IRON_D, 0.01)
+    soft(b, cube(b, V((-0.3, 0.2, 1.02)), (0.5, 0.06, 0.05), Euler((0, 0, 0.3))), WB_DARK, 0.01)   # hammer
+    soft(b, cube(b, V((-0.08, 0.27, 1.05)), (0.12, 0.1, 0.1), Euler((0, 0, 0.3))), IRON_D, 0.02)
+    soft(b, cube(b, V((0.3, 0.45, 1.0)), (0.6, 0.04, 0.02)), (0.85, 0.87, 0.9), 0.005)             # saw blade on the bench
+    # Anvil on a stump, beside the bench.
+    soft(b, lambda: rk.tube(b.bm, [V((-1.7, -0.3, 0.0)), V((-1.7, -0.3, 0.55))], [(0.3, 0.3), (0.28, 0.28)], seg=8), WB_WOOD, 0.03)
+    soft(b, cube(b, V((-1.7, -0.3, 0.68)), (0.24, 0.5, 0.22)), IRON_D, 0.03)
+    soft(b, cube(b, V((-1.7, -0.3, 0.84)), (0.34, 0.7, 0.12)), IRON_D, 0.03)
+    # A lantern hanging from the canopy, glowing warm.
+    soft(b, lambda: rk.tube(b.bm, [V((1.1, -0.3, 2.78)), V((1.1, -0.3, 2.3))], [(0.012, 0.012)] * 2, seg=4), IRON_D, 0.002)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((1.1, -0.3, 2.18)), (0.11, 0.11, 0.15), 6, 4)), "Glow", (1.0, 0.76, 0.4))
     return b
 
 
@@ -131,3 +224,4 @@ export("chest_base", chest_base(), OUT)
 export("chest_lid", chest_lid(), OUT)
 export("ruin_arch", ruin(), OUT)
 export("rabbit", rabbit(), OUT)
+export("workbench", workbench(), OUT)

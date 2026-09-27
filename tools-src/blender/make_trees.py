@@ -175,6 +175,21 @@ def rock(seed, squash=0.72):
     return b
 
 
+def ore_rock(seed, ore_colors):
+    """A boulder studded with chunky ore crystals (copper: orange with a hint of green; iron: silver)."""
+    rnd = random.Random(seed)
+    b = rock(seed, 0.75)
+    for i in range(9):
+        a = rnd.uniform(0, math.tau)
+        up = rnd.uniform(0.15, 0.85)
+        d = V((math.cos(a) * math.sqrt(1 - up * up), math.sin(a) * math.sqrt(1 - up * up), up))
+        base = V((d.x * 0.92, d.y * 0.92, d.z * 0.92 * 0.75 + 0.35))
+        tip = base + d * rnd.uniform(0.22, 0.38)
+        faces = b.new_faces(lambda base=base, tip=tip: rk.tube(b.bm, [base - d * 0.1, tip], [(0.12, 0.1), (0.02, 0.02)], ref=V((0, 0, 1)), seg=5))
+        b.paint(faces, "Stone", rnd.choice(ore_colors))
+    return b
+
+
 def stones(seed, count=4):
     """A few flat faceted slabs, for stepping stones along the path."""
     rnd = random.Random(seed)
@@ -302,6 +317,8 @@ export("bush_flower_1", bush(13, flowers=True))
 export("tree_stump", stump(1))
 for i in range(3):
     export(f"rock_{i + 1}", rock(100 + i))
+export("ore_copper", ore_rock(131, [(0.95, 0.56, 0.3), (0.86, 0.46, 0.24), (0.3, 0.72, 0.6)]))
+export("ore_iron", ore_rock(137, [(0.8, 0.84, 0.92), (0.66, 0.7, 0.8), (0.9, 0.92, 0.98)]))
 for i in range(3):
     export(f"stones_{i + 1}", stones(110 + i))
 for i in range(2):

@@ -38,6 +38,7 @@ var _skeleton: Skeleton3D
 var _current := ""
 var _action_left := 0.0      # seconds left of a one-shot action (swing, pick-up)
 var _tools := {}             # name -> Node3D in the hand
+var _tool_metal := {}        # name -> the material of its head, tinted by tier
 var _parts: Array[MeshInstance3D] = []
 var _slot_materials := {}    # colour slot -> ShaderMaterial shared by the hero's meshes
 var _flash := 0.0
@@ -115,6 +116,8 @@ func flash() -> void:
 func show_tool(tool_name: String) -> void:
 	for t: String in _tools:
 		_tools[t].visible = t == tool_name
+	if _tool_metal.has(tool_name):              # the head shows the tool's tier (stone, copper, iron)
+		(_tool_metal[tool_name] as StandardMaterial3D).albedo_color = Gear.color(tool_name)
 
 
 ## Shows the hero's chosen parts and applies its colours.
@@ -180,6 +183,13 @@ func _make_tools() -> void:
 		tool.visible = false
 		hand.add_child(tool)
 		_tools[t] = tool
+		for mi: MeshInstance3D in tool.find_children("*", "MeshInstance3D", true, false):
+			for surf in mi.mesh.get_surface_count():
+				var src := mi.mesh.surface_get_material(surf)
+				if src and src.resource_name == "Metal":
+					var metal := (src as StandardMaterial3D).duplicate() as StandardMaterial3D
+					mi.set_surface_override_material(surf, metal)
+					_tool_metal[t] = metal
 
 
 ## Adds the extra animation library. If its skeleton's bone frames differ from this rig's (e.g.

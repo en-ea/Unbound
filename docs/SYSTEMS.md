@@ -14,6 +14,20 @@ functions; visual scripts listen to signals. Keep it that way (co-op later).
 2. `game/scripts/world/scatter.gd`: place it with `_place(model, kind, pos, scale, tilt, "<type>")`.
    Shake, chips, sounds, stumps, regrowth and drops are handled by `resource_visuals.gd`.
 
+## Tools, tiers and crafting (M4)
+- `game/scripts/state/gear.gd` (autoload `Gear`): `TIERS` (Worn, Stone, Copper, Iron: power = hits per
+  swing / sword damage, speed = swing speed), `RECIPES` (slot, tier, cost in items), owned and equipped
+  tools, and the actions `craft()` and `equip()`. Saved with the game.
+- Resource types can require a tier with `min_tier` (ore rocks in `world_resources.gd`); a weaker tool
+  just glances off and the HUD hints what's needed.
+- The workbench (`world/workbench.gd`) is an "interactable": any node in that group with `verb`, `reach`
+  and `interact()` takes over the action button when you're near (see `player.gd`).
+- Screens: `ui/crafting_panel.gd` (workbench), tool badges in the Bag (`ui/inventory_panel.gd`).
+- Tool heads are tinted by tier in `character_visual.gd` (`show_tool`).
+
+## Minimap
+Anything in group `"map_building"` with a `"map_size"` meta (Vector2 footprint) shows as a building.
+
 ## Add an enemy
 Copy the boar pattern: a model made of parts with pivots (`tools-src/blender/make_boar.py`), a
 visual script that animates the parts in code (`boar_visual.gd`), a behaviour script with a small

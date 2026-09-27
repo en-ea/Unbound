@@ -13,9 +13,9 @@ const SOUNDS := {"open": preload("res://assets/sounds/tree_creak.wav"), "rare": 
 const LID_HINGE := Vector3(0, 0.47, -0.3)
 const LID_OPEN := -1.9
 
-## Ruins (x, z) and chests (x, z, turn in degrees). Chest spots are also in WorldShape.keep_clear.
+## Ruins (x, z) and chests (x, z, turn in degrees, lift: chests in a ruin sit on its platform). Chest spots are also in WorldShape.keep_clear.
 const RUINS := [Vector2(-38, -12), Vector2(40, 22)]
-const CHESTS := [Vector3(-38, -11.2, 0), Vector3(40, 22.8, 0), Vector3(31, -40, 25)]
+const CHESTS := [Vector4(-38, -11.2, 0, 0.37), Vector4(40, 22.8, 0, 0.37), Vector4(31, -40, 25, 0)]
 
 @export var player: Node3D
 
@@ -33,8 +33,8 @@ func build(shape: WorldShape) -> void:
 		ruin.global_position = Vector3(r.x, shape.height_at(r.x, r.y) - 0.1, r.y)
 		for x in [-1.3, 1.3]:
 			_collider(ruin, Vector3(x, 1.5, 0), Vector3(0.7, 3.0, 0.7))
-	for c: Vector3 in CHESTS:
-		var at := Vector3(c.x, shape.height_at(c.x, c.y), c.y)
+	for c: Vector4 in CHESTS:
+		var at := Vector3(c.x, shape.height_at(c.x, c.y) + c.w, c.y)
 		var id := WorldResources.add_node("chest", at)
 		var root := Node3D.new()
 		add_child(root)

@@ -44,6 +44,8 @@ func build(shape: WorldShape) -> void:
 				mat.set_shader_parameter("glow", 1.5 if src and src.resource_name == "Glow" else 0.0)
 				mi.set_surface_override_material(s, mat)
 		add_child(house)
+		house.add_to_group("map_building")           # the minimap draws every building in this group
+		house.set_meta("map_size", Vector2(h["size"].x, h["size"].z))
 		house.global_position = Vector3(at.x, shape.height_at(at.x, at.y) - 0.15, at.y)
 		var body := StaticBody3D.new()
 		var col := CollisionShape3D.new()
