@@ -5,7 +5,7 @@ const DIR := "res://assets/sounds/"
 const KENNEY := "res://assets/kenney_impact/"
 # Metres between footfalls, taken from the walk/jog animations (feet land twice per loop).
 const WALK_STRIDE := 0.65
-const RUN_STRIDE := 2.5
+const RUN_STRIDE := 1.95   # the jog plays a bit faster than its natural pace (shorter strides)
 
 var shape: WorldShape        # set by main
 var _sounds := {}
@@ -15,11 +15,12 @@ var _travelled := 0.0
 
 
 func _ready() -> void:
-	# Recorded CC0 footsteps (Kenney Impact Sounds); the crunchy "snow" set reads as gravel.
-	for pair in [["grass", "grass"], ["dirt", "snow"]]:
-		_sounds[pair[0]] = [] as Array[AudioStream]
-		for i in 5:
-			_sounds[pair[0]].append(load(KENNEY + "footstep_%s_%03d.ogg" % [pair[1], i]))
+	# Recorded CC0 footsteps (Kenney Impact Sounds). The dirt path reuses them, played lower
+	# and softer, which reads as packed earth.
+	_sounds["grass"] = [] as Array[AudioStream]
+	for i in 5:
+		_sounds["grass"].append(load(KENNEY + "footstep_grass_%03d.ogg" % i))
+	_sounds["dirt"] = _sounds["grass"]
 	_sounds["water"] = [] as Array[AudioStream]
 	for i in 3:
 		_sounds["water"].append(load(DIR + "step_water_%d.wav" % i))
@@ -52,6 +53,6 @@ func _step(speed: float) -> void:
 	elif shape and shape.path_distance(Vector2(pos.x, pos.z)) < 1.8:
 		surface = "dirt"
 	stream = _sounds[surface].pick_random()
-	pitch_scale = randf_range(0.9, 1.1)
-	volume_db = -6.0 if speed > 3.0 else -11.0
+	pitch_scale = randf_range(0.72, 0.82) if surface == "dirt" else randf_range(0.9, 1.1)
+	volume_db = (-6.0 if speed > 3.0 else -11.0) - (2.0 if surface == "dirt" else 0.0)
 	play()

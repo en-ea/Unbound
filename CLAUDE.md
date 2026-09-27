@@ -26,7 +26,7 @@ The owner doesn't code: they direct and playtest, and Claude builds. Keep replie
 - Check scripts and import assets: `tools\Godot_v4.7.2-stable_win64_console.exe --headless --path game --import`
 - Export for the phone: `tools\Godot_v4.7.2-stable_win64_console.exe --headless --path game --export-release "Web" ../build/web/index.html`, then copy `tools-src\app.webmanifest` into `build\web\`.
 - Serve to the phone: `node tools-src/serve.js` (run it in the background). The phone opens https://192.168.0.22:8080. The phone already trusts the dev certificate ("SoonGame Dev Root").
-- Dev args (after `--`): `--shot=path.png`, `--time=0.5`, `--walk=x,y`, `--at=x,z`, `--zoom=5`, `--touchtest` (see `game/scripts/dev/dev_args.gd`).
+- Dev args (after `--`): `--shot=path.png`, `--time=0.5`, `--walk=x,y`, `--at=x,z`, `--zoom=5`, `--picker`, `--showcase` (all tree models in a row), `--touchtest` (see `game/scripts/dev/dev_args.gd`).
 - Screenshot check: add a dev-only `--shot=path.png` user arg that saves the viewport after ~180 frames and quits. Run with a 60 s time limit (Start-Process + WaitForExit), because a script error leaves the window hanging.
 - Open the editor for the owner: `tools\Godot_v4.7.2-stable_win64.exe --path game -e`
 
@@ -43,3 +43,4 @@ The owner doesn't code: they direct and playtest, and Claude builds. Keep replie
 - Game state (inventory, world, characters) is separate from visuals and input, and changes go through clear action functions. This keeps co-op possible later.
 - Only CC0 assets. Kenney audio is fine (only its models were rejected): `game/assets/kenney_impact/` (footsteps, wood/mining impacts). Keep each pack's licence file next to its models under `game/assets/<pack>/`.
 - Commit after each working step (branch off main for bigger work).
+- Godot garbled Blender vertex colours on import: put per-face colours in UVs instead (see make_trees.py and foliage_solid.gdshader).

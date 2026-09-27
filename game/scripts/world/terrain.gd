@@ -8,9 +8,6 @@ const WATER_SHADER := preload("res://shaders/water.gdshader")
 # Ground colours (sRGB).
 const GRASS_LIGHT := Color(0.58, 0.68, 0.38)
 const GRASS_DARK := Color(0.36, 0.52, 0.30)
-const DIRT := Color(0.58, 0.49, 0.38)
-const SAND := Color(0.74, 0.67, 0.50)
-const MUD := Color(0.32, 0.36, 0.28)
 const ROCK := Color(0.47, 0.46, 0.42)
 
 var material: ShaderMaterial
@@ -62,6 +59,11 @@ func build(shape: WorldShape) -> void:
 	material = ShaderMaterial.new()
 	material.shader = TERRAIN_SHADER
 	material.set_shader_parameter("cloud_noise", _cloud_texture())
+	material.set_shader_parameter("path_points", WorldShape.path)
+	material.set_shader_parameter("path_count", WorldShape.path.size())
+	material.set_shader_parameter("pond_center", WorldShape.POND_CENTER)
+	material.set_shader_parameter("pond_radius", WorldShape.POND_RADIUS)
+	material.set_shader_parameter("water_y", WorldShape.WATER_Y)
 	mesh.surface_set_material(0, material)
 
 	var mi := MeshInstance3D.new()
@@ -81,16 +83,11 @@ func build(shape: WorldShape) -> void:
 	_build_water()
 
 
+## Grass shades and rock on steep slopes. The path and pond shore are drawn by the shader,
+## per pixel, so their edges stay crisp.
 func _ground_color(shape: WorldShape, x: float, z: float, _h: float, up: float) -> Color:
-	var p := Vector2(x, z)
 	var c := GRASS_DARK.lerp(GRASS_LIGHT, shape.meadow_noise(x, z))
-	c = c.lerp(ROCK, smoothstep(0.86, 0.72, up))
-	var path_d := shape.path_distance(p)
-	c = c.lerp(DIRT, (1.0 - smoothstep(1.0, 2.2, path_d)) * 0.9)
-	var pond_d := shape.pond_distance(p) - WorldShape.POND_RADIUS
-	c = c.lerp(SAND, 1.0 - smoothstep(0.5, 2.5, pond_d))
-	c = c.lerp(MUD, 1.0 - smoothstep(-3.0, 0.0, pond_d))
-	return c
+	return c.lerp(ROCK, smoothstep(0.86, 0.72, up))
 
 
 func _cloud_texture() -> NoiseTexture2D:

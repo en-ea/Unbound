@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bxlpn8ne6bfv5"
-path="res://.godot/imported/tree_tall_1.glb-c75e0924fc69593b88ec5a7da37610af.scn"
+uid="uid://bvuet6lddxl7v"
+path="res://.godot/imported/tree_oak_1.glb-1918c2cf5a38532e1ea4d12e8227d933.scn"
 
 [deps]
 
-source_file="res://assets/nature/tree_tall_1.glb"
-dest_files=["res://.godot/imported/tree_tall_1.glb-c75e0924fc69593b88ec5a7da37610af.scn"]
+source_file="res://assets/nature/tree_oak_1.glb"
+dest_files=["res://.godot/imported/tree_oak_1.glb-1918c2cf5a38532e1ea4d12e8227d933.scn"]
 
 [params]
 

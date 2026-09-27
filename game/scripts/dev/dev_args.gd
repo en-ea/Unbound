@@ -6,6 +6,7 @@ extends Node
 ##   --at=x,z          start the player at this spot
 ##   --zoom=5          camera distance (for close-up checks)
 ##   --picker          open the look picker
+##   --showcase        line up one of every tree/bush model in front of the player
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 
 @export var day_night: Node
@@ -14,6 +15,7 @@ var _shot_path := ""
 var _frames := 0
 var _touch_test := false
 var _start_at := Vector2.INF
+var _showcase := false
 
 
 func _ready() -> void:
@@ -35,6 +37,8 @@ func _ready() -> void:
 			get_node("../CameraRig").set_distance.call_deferred(float(arg.trim_prefix("--zoom=")))
 		elif arg == "--picker":
 			get_node("../HUD").open_look_picker.call_deferred()
+		elif arg == "--showcase":
+			_showcase = true
 		elif arg == "--touchtest":
 			_touch_test = true
 	if _shot_path == "" and not _touch_test:
@@ -43,6 +47,8 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	_frames += 1
+	if _frames == 3 and _showcase:
+		_build_showcase()
 	if _frames == 2 and _start_at != Vector2.INF:
 		var player := get_node("../Player") as Node3D
 		player.global_position = Vector3(_start_at.x, WorldShape.new().height_at(_start_at.x, _start_at.y) + 0.3, _start_at.y)
@@ -74,3 +80,19 @@ func _run_touch_test() -> void:
 	elif _frames == 90:
 		print("TOUCHTEST joystick=", Controls.joystick, " player=", get_node("../Player").global_position)
 		get_tree().quit()
+
+
+func _build_showcase() -> void:
+	var scatter := get_node("../Scatter")
+	var player := get_node("../Player") as Node3D
+	var models: Array[String] = []
+	for f in DirAccess.get_files_at("res://assets/nature"):
+		if f.ends_with(".glb"):
+			models.append(f.get_basename())
+	for i in models.size():
+		var mi := MeshInstance3D.new()
+		mi.mesh = scatter._mesh_for(models[i], "tree")
+		add_child(mi)
+		var col := i % 6
+		var row := i / 6
+		mi.global_position = player.global_position + Vector3((col - 2.5) * 4.5, 0, -6.0 - row * 6.0)

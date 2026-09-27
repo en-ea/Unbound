@@ -43,8 +43,8 @@ func build(shape: WorldShape) -> void:
 
 func _scatter_trees() -> void:
 	# Weighted mix: mostly plain leafy trees, a few tall, apple and blossom ones.
-	var commons := ["tree_round_1", "tree_round_2", "tree_round_3", "tree_round_1", "tree_round_2",
-		"tree_tall_1", "tree_tall_1", "tree_apple_1", "tree_blossom_1"]
+	var commons := ["tree_oak_1", "tree_oak_2", "tree_round_1", "tree_round_2", "tree_round_1",
+		"tree_small_1", "tree_small_2", "tree_tall_1", "tree_apple_1", "tree_blossom_1", "tree_dead_1"]
 	var pines := ["tree_pine_1", "tree_pine_2"]
 	for i in 6000:
 		if _trees.size() >= 230:
@@ -157,7 +157,7 @@ func _plant_at(p: Vector2) -> void:
 		elif r < 0.16:
 			_place(["Mushroom_Common", "Mushroom_Laetiporus"].pick_random(), "small", p, _rng.randf_range(0.6, 0.9), 0.2)
 		elif r < 0.2:
-			_place(["bush_1", "bush_2"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
+			_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
 		return
 	if r < 0.30 + m * 0.3:
 		_place("Grass_Common_Short", "small", p, _rng.randf_range(0.45, 0.75), 0.25)
@@ -168,7 +168,7 @@ func _plant_at(p: Vector2) -> void:
 	elif r < 0.66:
 		_place(["Clover_1", "Plant_7", "Petal_1", "Petal_3"].pick_random(), "small", p, _rng.randf_range(0.5, 0.8), 0.2)
 	elif r < 0.665:
-		_place(["bush_1", "bush_2"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
+		_place(["bush_1", "bush_2", "bush_flower_1"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
 
 
 # --- helpers -------------------------------------------------------------------
@@ -223,13 +223,14 @@ func _flush() -> void:
 		var list: Array = _batches[key]
 		var mm := MultiMesh.new()
 		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.use_colors = parts[1] in ["tree", "bush"]
+		# Per-tree tint goes in custom data, so it multiplies the clump colours (vertex colours).
+		mm.use_custom_data = parts[1] in ["tree", "bush"]
 		mm.mesh = _mesh_for(parts[0], parts[1])
 		mm.instance_count = list.size()
 		for i in list.size():
 			mm.set_instance_transform(i, list[i])
-			if mm.use_colors:
-				mm.set_instance_color(i, _tint(list[i].origin))
+			if mm.use_custom_data:
+				mm.set_instance_custom_data(i, _tint(list[i].origin))
 		var mmi := MultiMeshInstance3D.new()
 		mmi.multimesh = mm
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if kind["shadow"] else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -265,7 +266,7 @@ func _mesh_for(model: String, kind_name: String) -> Mesh:
 		if std == null:
 			continue
 		var name := std.resource_name
-		if name in ["Canopy", "Needles", "Blossom", "Fruit"]:
+		if name in ["Canopy", "Needles", "Blossom", "Fruit", "Flower"]:
 			var solid := ShaderMaterial.new()
 			solid.shader = SOLID_FOLIAGE_SHADER
 			solid.set_shader_parameter("albedo", std.albedo_color)

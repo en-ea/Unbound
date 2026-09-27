@@ -1,14 +1,19 @@
 shader_type spatial;
-// Solid leaf blobs (our own trees and bushes): soft two-tone shading, per-clump and per-tree
-// tint (vertex colour x instance colour), a soft glowing edge, and wind sway.
+// Solid leaf blobs (our own trees and bushes): soft two-tone shading, a colour per clump
+// (stored in UV/UV2 by make_trees.py), a small per-tree tint, a soft glowing edge, wind sway.
 
 uniform vec4 albedo : source_color = vec4(0.4, 0.58, 0.3, 1.0);
 uniform float sway = 0.06;          // metres of movement at the top
 uniform float sway_height = 6.0;    // model height where the sway is full
 
 varying float top_light;
+varying vec3 tint;
 
 void vertex() {
+	tint = INSTANCE_CUSTOM.rgb;
+	if (tint == vec3(0.0)) {
+		tint = vec3(1.0);   // not a MultiMesh instance
+	}
 	vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	float k = clamp(VERTEX.y / sway_height, 0.0, 1.0);
 	k *= k;
@@ -20,7 +25,8 @@ void vertex() {
 }
 
 void fragment() {
-	ALBEDO = albedo.rgb * COLOR.rgb * mix(0.66, 1.0, top_light);
+	vec3 clump = vec3(UV.x, UV.y, UV2.x);
+	ALBEDO = albedo.rgb * clump * tint * mix(0.76, 1.02, top_light);
 	ROUGHNESS = 0.95;
 	SPECULAR = 0.1;
 	RIM = 0.18;

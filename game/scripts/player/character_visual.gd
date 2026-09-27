@@ -19,7 +19,9 @@ const IDLE := "Idle"        # Godot drops the "_Loop" suffix on import
 const WALK := "Walk"
 const RUN := "Jog_Fwd"
 ## Ground speed (m/s) each animation was made for, so feet don't slide.
-const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 5.36}
+## The jog's real pace is 5.36 m/s, but its long strides looked like lunging, so it plays ~30%
+## faster (quicker, shorter-looking steps).
+const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2}
 
 var _anim: AnimationPlayer
 var _skeleton: Skeleton3D
