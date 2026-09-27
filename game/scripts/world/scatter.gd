@@ -1,0 +1,248 @@
+extends Node3D
+## Scatters the Quaternius nature models over the meadow.
+## Each model is drawn with MultiMeshes split into chunks, so off-screen chunks are culled.
+
+const NATURE := "res://assets/quaternius_nature/%s.gltf"
+const FOLIAGE_SHADER := preload("res://shaders/foliage.gdshader")
+const CHUNK := 20.0
+const GRASS_TINT := Color(0.78, 0.84, 0.72)   # the pack's grass is a bit neon
+
+## Per model: cast shadows, visibility range (0 = always), wind sway (metres), sway height.
+const KINDS := {
+	"tree": {"shadow": true, "range": 0.0, "sway": 0.12, "sway_h": 7.0, "collide": 0.35},
+	"big_tree": {"shadow": true, "range": 0.0, "sway": 0.2, "sway_h": 15.0, "collide": 1.1},
+	"bush": {"shadow": false, "range": 70.0, "sway": 0.05, "sway_h": 1.4, "collide": 0.0},
+	"rock": {"shadow": true, "range": 0.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.8},
+	"small": {"shadow": false, "range": 48.0, "sway": 0.08, "sway_h": 1.2, "collide": 0.0},
+	"ground": {"shadow": false, "range": 48.0, "sway": 0.0, "sway_h": 1.0, "collide": 0.0},
+}
+
+var _shape: WorldShape
+var _rng := RandomNumberGenerator.new()
+var _batches := {}         # "model|kind|cx|cz" -> Array[Transform3D]
+var _meshes := {}          # "model|kind" -> Mesh with our materials
+var _trees: Array[Vector2] = []
+var _colliders: StaticBody3D
+
+
+func build(shape: WorldShape) -> void:
+	_shape = shape
+	_rng.seed = 1234
+	_colliders = StaticBody3D.new()
+	add_child(_colliders)
+	_scatter_trees()
+	_scatter_landmarks()
+	_scatter_path_stones()
+	_scatter_rocks()
+	_scatter_plants()
+	_flush()
+
+
+# --- placement rules ---------------------------------------------------------
+
+func _scatter_trees() -> void:
+	var commons := ["CommonTree_1", "CommonTree_2", "CommonTree_3", "CommonTree_4", "CommonTree_5"]
+	var pines := ["Pine_1", "Pine_2", "Pine_3", "Pine_4", "Pine_5"]
+	for i in 6000:
+		if _trees.size() >= 230:
+			break
+		var p := _random_point(72.0)
+		var edge := maxf(absf(p.x), absf(p.y))
+		var forest := _shape.meadow_noise(p.x * 0.6 + 40.0, p.y * 0.6)
+		var chance := 0.02
+		if edge > 50.0:
+			chance = 0.9
+		elif forest > 0.62:
+			chance = 0.55
+		if _rng.randf() > chance or not _clear_of_features(p, 4.5, 11.0):
+			continue
+		var spacing := 3.6 if edge > 50.0 else 4.5
+		if _near_tree(p, spacing):
+			continue
+		_trees.append(p)
+		var model: String = pines.pick_random() if (edge > 48.0 and _rng.randf() < 0.6) else commons.pick_random()
+		_place(model, "tree", p, _rng.randf_range(0.85, 1.25), 0.25)
+
+
+func _scatter_landmarks() -> void:
+	# An old twisted tree on the hilltop, a dead tree by the pond.
+	var top := WorldShape.HILL_CENTER + Vector2(-3.0, -3.0)
+	_place("TwistedTree_1", "big_tree", top, 0.75, 0.0)
+	_trees.append(top)
+	var pond := WorldShape.POND_CENTER + Vector2(-WorldShape.POND_RADIUS - 3.0, -6.0)
+	_place("DeadTree_2", "tree", pond, 0.5, 0.0)
+
+
+func _scatter_path_stones() -> void:
+	var stones := ["RockPath_Round_Small_1", "RockPath_Round_Small_2", "RockPath_Round_Small_3",
+		"RockPath_Square_Small_1", "RockPath_Square_Small_2"]
+	var path := WorldShape.path
+	for i in path.size() - 1:
+		var a := path[i]
+		var b := path[i + 1]
+		var length := a.distance_to(b)
+		var side := (b - a).normalized().orthogonal()
+		var d := 0.0
+		while d < length:
+			d += _rng.randf_range(1.0, 1.8)
+			if _rng.randf() < 0.45 or maxf(absf(a.x), absf(a.y)) > WorldShape.PLAY_HALF:
+				continue
+			var p := a.lerp(b, d / length) + side * _rng.randf_range(-0.7, 0.7)
+			_place(stones.pick_random(), "ground", p, _rng.randf_range(0.7, 1.0), 0.02)
+
+
+func _scatter_rocks() -> void:
+	var rocks := ["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"]
+	# Around the hill and the pond shore, plus a few loose ones.
+	for i in 10:
+		var ang := _rng.randf() * TAU
+		var p := WorldShape.HILL_CENTER + Vector2.from_angle(ang) * _rng.randf_range(9.0, 14.0)
+		if _shape.path_distance(p) > 2.5:
+			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.8, 1.6), 0.3)
+	for i in 6:
+		var ang := _rng.randf() * TAU
+		var p := WorldShape.POND_CENTER + Vector2.from_angle(ang) * (WorldShape.POND_RADIUS + _rng.randf_range(0.5, 2.5))
+		_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.0), 0.25)
+	for i in 400:
+		var p := _random_point(54.0)
+		if _rng.randf() < 0.05 and _clear_of_features(p, 3.0, 9.0) and not _near_tree(p, 2.5):
+			_place(rocks.pick_random(), "rock", p, _rng.randf_range(0.5, 1.2), 0.3)
+	var pebbles := ["Pebble_Round_1", "Pebble_Round_2", "Pebble_Round_3", "Pebble_Square_1", "Pebble_Square_3", "Pebble_Square_5"]
+	for i in 1500:
+		var p := _random_point(56.0)
+		var pd := _shape.path_distance(p)
+		if pd > 1.2 and pd < 3.0 and _rng.randf() < 0.35:
+			_place(pebbles.pick_random(), "ground", p, _rng.randf_range(0.8, 1.5), 0.0)
+
+
+func _scatter_plants() -> void:
+	var step := 1.5
+	var x := -56.0
+	while x < 56.0:
+		var z := -56.0
+		while z < 56.0:
+			var p := Vector2(x, z) + Vector2(_rng.randf_range(-0.7, 0.7), _rng.randf_range(-0.7, 0.7))
+			_plant_at(p)
+			z += step
+		x += step
+
+
+func _plant_at(p: Vector2) -> void:
+	if _shape.pond_distance(p) < WorldShape.POND_RADIUS + 1.5 or _shape.path_distance(p) < 1.6:
+		return
+	var m := _shape.meadow_noise(p.x, p.y)
+	var near_tree := _near_tree(p, 3.5)
+	var r := _rng.randf()
+	if near_tree:
+		if r < 0.12:
+			_place(["Fern_1", "Plant_1"].pick_random(), "small", p, _rng.randf_range(0.35, 0.5), 0.3)
+		elif r < 0.16:
+			_place(["Mushroom_Common", "Mushroom_Laetiporus"].pick_random(), "small", p, _rng.randf_range(0.6, 0.9), 0.2)
+		elif r < 0.2:
+			_place(["Bush_Common", "Bush_Common_Flowers"].pick_random(), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
+		return
+	if r < 0.30 + m * 0.3:
+		_place("Grass_Common_Short", "small", p, _rng.randf_range(0.45, 0.75), 0.25)
+	elif r < 0.36 + m * 0.3:
+		_place("Grass_Wispy_Short", "small", p, _rng.randf_range(0.5, 0.8), 0.25)
+	elif m > 0.55 and r < 0.52 + m * 0.2:
+		_place(["Flower_3_Single", "Flower_4_Single", "Flower_3_Group"].pick_random(), "small", p, _rng.randf_range(0.25, 0.4), 0.3)
+	elif r < 0.66:
+		_place(["Clover_1", "Plant_7", "Petal_1", "Petal_3"].pick_random(), "small", p, _rng.randf_range(0.5, 0.8), 0.2)
+	elif r < 0.665:
+		_place("Bush_Common_Flowers", "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
+
+
+# --- helpers -------------------------------------------------------------------
+
+func _random_point(half: float) -> Vector2:
+	return Vector2(_rng.randf_range(-half, half), _rng.randf_range(-half, half))
+
+
+func _clear_of_features(p: Vector2, path_gap: float, spawn_gap: float) -> bool:
+	return _shape.path_distance(p) > path_gap \
+		and _shape.pond_distance(p) > WorldShape.POND_RADIUS + 2.5 \
+		and p.distance_to(WorldShape.SPAWN) > spawn_gap \
+		and p.distance_to(WorldShape.HILL_CENTER) > 7.0
+
+
+func _near_tree(p: Vector2, gap: float) -> bool:
+	for t in _trees:
+		if t.distance_squared_to(p) < gap * gap:
+			return true
+	return false
+
+
+func _place(model: String, kind: String, p: Vector2, scale: float, tilt: float) -> void:
+	var y := _shape.height_at(p.x, p.y) - 0.05 * scale
+	var basis := Basis(Vector3.UP, _rng.randf() * TAU)
+	if tilt > 0.0:
+		basis = Basis(Vector3(_rng.randf_range(-1, 1), 0, _rng.randf_range(-1, 1)).normalized(), _rng.randf() * tilt) * basis
+	var xf := Transform3D(basis.scaled(Vector3.ONE * scale), Vector3(p.x, y, p.y))
+	var key := "%s|%s|%d|%d" % [model, kind, floori(p.x / CHUNK), floori(p.y / CHUNK)]
+	if not _batches.has(key):
+		_batches[key] = []
+	_batches[key].append(xf)
+	var radius: float = KINDS[kind]["collide"]
+	if radius > 0.0:
+		_add_collider(xf.origin, radius * scale)
+
+
+func _add_collider(at: Vector3, radius: float) -> void:
+	var shape := CylinderShape3D.new()
+	shape.radius = radius
+	shape.height = 3.0
+	var col := CollisionShape3D.new()
+	col.shape = shape
+	col.position = at + Vector3(0, 1.5, 0)
+	_colliders.add_child(col)
+
+
+func _flush() -> void:
+	for key: String in _batches:
+		var parts := key.split("|")
+		var kind: Dictionary = KINDS[parts[1]]
+		var list: Array = _batches[key]
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = _mesh_for(parts[0], parts[1])
+		mm.instance_count = list.size()
+		for i in list.size():
+			mm.set_instance_transform(i, list[i])
+		var mmi := MultiMeshInstance3D.new()
+		mmi.multimesh = mm
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if kind["shadow"] else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if kind["range"] > 0.0:
+			mmi.visibility_range_end = kind["range"]
+			mmi.visibility_range_end_margin = 6.0
+			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		add_child(mmi)
+	_batches.clear()
+
+
+## Loads a model once and swaps foliage materials for the wind-sway shader.
+func _mesh_for(model: String, kind_name: String) -> Mesh:
+	var key := model + "|" + kind_name
+	if _meshes.has(key):
+		return _meshes[key]
+	var scene := (load(NATURE % model) as PackedScene).instantiate()
+	var src := scene.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+	var mesh := src.mesh.duplicate() as Mesh
+	scene.free()
+	var kind: Dictionary = KINDS[kind_name]
+	for s in mesh.get_surface_count():
+		var std := mesh.surface_get_material(s) as StandardMaterial3D
+		if std == null:
+			continue
+		var name := std.resource_name
+		if name.begins_with("Leaves") or name.begins_with("Leaf") or name == "Grass" or name == "Flowers":
+			var mat := ShaderMaterial.new()
+			mat.shader = FOLIAGE_SHADER
+			mat.set_shader_parameter("albedo_tex", std.albedo_texture)
+			var tint := GRASS_TINT if name == "Grass" else Color.WHITE
+			mat.set_shader_parameter("albedo", std.albedo_color * tint)
+			mat.set_shader_parameter("sway", kind["sway"])
+			mat.set_shader_parameter("sway_height", kind["sway_h"])
+			mesh.surface_set_material(s, mat)
+	_meshes[key] = mesh
+	return mesh
