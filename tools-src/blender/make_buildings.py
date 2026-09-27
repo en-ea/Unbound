@@ -16,6 +16,8 @@
                  (faceted slate, stepped hex/octagon bases, glowing crystals and runes, gold trims).
   house_arch:    one smooth barrel roof sweeping near the ground, wood front, round glowing window.
   house_gable:   raised on a plinth, pale walls, tall off-centre charcoal roof with a prow, window slit.
+  house_storybook: stone ground floor, cream plaster above, tall flared blue-slate roof, big arched
+                 gable window, arched door with hood and lanterns, side porch.
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -959,6 +961,154 @@ def gable_house():
     return b
 
 
+def storybook_cottage():
+    """A two-level cottage for the main village: a warm stone ground floor and cream plaster above,
+    under a tall blue-slate roof whose eaves flare gently outward (the roof is about half the
+    height, as on the swoop lodge). The front gable carries a big glowing arched window; below it
+    an arched door with a little hood and two lanterns, two small windows with flower boxes. A low
+    open porch off the right side with a bench. Timber only at the corners and bands. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    STONE_W = (0.76, 0.7, 0.62)
+    STONE_Q = (0.68, 0.63, 0.57)
+    PLASTER = (0.95, 0.89, 0.77)
+    TIMBER = (0.43, 0.29, 0.2)
+    ROOF = (0.31, 0.44, 0.55)
+    RIDGE = (0.24, 0.34, 0.43)
+    DOOR = (0.55, 0.36, 0.23)
+    LIGHT = (1.0, 0.8, 0.46)
+    W, D = 4.2, 4.8                 # footprint
+    S = 1.3                          # stone storey height
+    U = 3.3                          # top of the plaster walls
+    EAVE, PEAK = 2.55, 7.1           # roof eave and ridge heights
+    HALF = W / 2 + 0.75              # roof half-width at the eave
+    FY = -D / 2                      # the front face
+
+    # --- ground floor: stone, with slightly proud corner stones --------------------------------
+    soft(b, cube_at(b, V((0, 0, S / 2)), (W + 0.16, D + 0.16, S)), STONE_W, 0.07)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            for k, h in enumerate((0.42, 0.42, 0.36)):
+                big = k % 2 == 0
+                cx = sx * (W / 2 + 0.04 - (0.2 if big else 0.14))
+                cy = sy * (D / 2 + 0.04 - (0.14 if big else 0.2))
+                soft(b, cube_at(b, V((cx, cy, 0.22 + k * 0.43)), ((0.46 if big else 0.32) + 0.04, (0.32 if big else 0.46) + 0.04, h)), STONE_Q, 0.05)
+    soft(b, cube_at(b, V((0, 0, S + 0.05)), (W + 0.24, D + 0.24, 0.12)), TIMBER, 0.03)          # sill band
+
+    # --- upper storey and gables: cream plaster, the gable following the roof's curve ----------
+    def x_at(v):                                     # roof half-width at height fraction v (concave)
+        return HALF * (1 - v) ** 1.3
+
+    edge = []
+    for k in range(16):
+        v = 0.2 + k * 0.05
+        x, z = x_at(v) - 0.14, EAVE + v * (PEAK - EAVE) - 0.36
+        if 0.05 < x < W / 2 and z > U:
+            edge.append((x, z))
+    outline = [(-W / 2, S), (W / 2, S), (W / 2, U)] + edge + [(0, PEAK - 0.62)] + [(-x, z) for x, z in reversed(edge)] + [(-W / 2, U)]
+    soft(b, outline_prism(b, outline, -D / 2, D / 2), PLASTER, 0.05)
+    for sx in (-1, 1):                               # corner posts and the band under the gable
+        for sy in (-1, 1):
+            soft(b, cube_at(b, V((sx * W / 2, sy * D / 2, (S + U) / 2)), (0.2, 0.2, U - S)), TIMBER, 0.03)
+    for y in (FY - 0.02, D / 2 + 0.02):
+        soft(b, cube_at(b, V((0, y, U)), (W + 0.1, 0.16, 0.16)), TIMBER, 0.03)
+
+    # --- roof: two thick planes, the eaves flaring gently outward ------------------------------
+    thick = 0.28
+    for side in (-1, 1):
+        def plane(side=side):
+            bm = b.bm
+            nu, nv = 4, 8
+            grid = [[None] * (nv + 1) for _ in range(nu + 1)]
+            for i in range(nu + 1):
+                u = i / nu
+                for j in range(nv + 1):
+                    v = j / nv
+                    y0 = FY - 0.6 - 0.35 * v * v             # a slight prow at the front
+                    y1 = D / 2 + 0.6
+                    x = side * (x_at(v) + 0.02)
+                    z = EAVE + v * (PEAK - EAVE) + 0.12 * (1 - v) ** 3 * abs(2 * u - 1) ** 2
+                    grid[i][j] = bm.verts.new(V((x, y0 + u * (y1 - y0), z)))
+            faces = []
+            for i in range(nu):
+                for j in range(nv):
+                    q = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]]
+                    faces.append(bm.faces.new(q if side < 0 else list(reversed(q))))
+            for f in faces:
+                f.normal_update()
+            if sum(f.normal.z for f in faces) < 0:
+                bmesh.ops.reverse_faces(bm, faces=faces)
+            bmesh.ops.solidify(bm, geom=faces, thickness=thick)
+        b.paint(b.new_faces(plane), "Build", ROOF)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, FY - 0.95, PEAK + 0.06)), V((0, D / 2 + 0.6, PEAK + 0.06))],
+                                        [(0.13, 0.15)] * 2, ref=V((1, 0, 0)), seg=6)), "Build", RIDGE)
+
+    # --- front gable: the big arched window ------------------------------------------------------
+    wz0, ww, wh = U + 0.25, 1.25, 1.75
+    soft(b, outline_prism(b, arch_outline(0, wz0, ww + 0.24, wh + 0.12, 8), FY - 0.08, FY + 0.05), TIMBER, 0.035)
+    b.paint(b.new_faces(outline_prism(b, arch_outline(0, wz0 + 0.06, ww, wh, 8), FY - 0.1, FY - 0.07)), "Glow", LIGHT)
+    soft(b, cube_at(b, V((0, FY - 0.12, wz0 + wh / 2 + 0.04)), (0.05, 0.04, wh - 0.1)), TIMBER, 0.01, 1)
+    soft(b, cube_at(b, V((0, FY - 0.12, wz0 + wh * 0.42)), (ww - 0.04, 0.04, 0.05)), TIMBER, 0.01, 1)
+    soft(b, cube_at(b, V((0, FY - 0.13, wz0 - 0.06)), (ww + 0.45, 0.24, 0.1)), TIMBER, 0.02)      # sill
+
+    # --- ground floor front: arched door with a hood and lanterns, two windows with flowers --------
+    sy = FY - 0.08                                     # the stone face
+    soft(b, outline_prism(b, arch_outline(0, 0.0, 1.22, 2.05, 8), sy - 0.06, sy + 0.05), TIMBER, 0.035)
+    soft(b, outline_prism(b, arch_outline(0, 0.0, 0.98, 1.92, 8), sy - 0.1, sy - 0.05), DOOR, 0.03)
+    for x in (-0.24, 0.24):
+        soft(b, cube_at(b, V((x, sy - 0.11, 0.95)), (0.035, 0.03, 1.7)), TIMBER, 0.008, 1)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.3, sy - 0.14, 1.0)), (0.05, 0.035, 0.05), 6, 4)), "Build", (0.92, 0.76, 0.42))
+    soft(b, cube_at(b, V((0, sy - 0.42, 2.28)), (1.55, 0.78, 0.1), Euler((-0.42, 0, 0))), ROOF, 0.03)   # door hood
+    for x in (-0.62, 0.62):
+        soft(b, cube_at(b, V((x, sy - 0.25, 2.06)), (0.06, 0.4, 0.06), Euler((0.5, 0, 0))), TIMBER, 0.01, 1)
+    for x in (-0.95, 0.95):                              # lanterns either side of the door
+        soft(b, cube_at(b, V((x, sy - 0.14, 1.7)), (0.05, 0.28, 0.05)), TIMBER, 0.01, 1)
+        b.paint(b.new_faces(lambda x=x: rk.tube(b.bm, [V((x, sy - 0.3, 1.64)), V((x, sy - 0.3, 1.42))], [(0.1, 0.1), (0.085, 0.085)], seg=6)), "Glow", LIGHT)
+        b.paint(b.new_faces(lambda x=x: rk.tube(b.bm, [V((x, sy - 0.3, 1.64)), V((x, sy - 0.3, 1.74))], [(0.12, 0.12), (0.02, 0.02)], seg=6)), "Build", TIMBER)
+    for x in (-1.55, 1.55):                              # small windows with flower boxes
+        soft(b, cube_at(b, V((x, sy - 0.03, 0.85)), (0.62, 0.1, 0.62)), TIMBER, 0.02)
+        b.paint(b.new_faces(cube_at(b, V((x, sy - 0.07, 0.85)), (0.46, 0.04, 0.46))), "Glow", LIGHT)
+        soft(b, cube_at(b, V((x, sy - 0.1, 0.85)), (0.04, 0.03, 0.46)), TIMBER, 0.005, 1)
+        soft(b, cube_at(b, V((x, sy - 0.22, 0.47)), (0.72, 0.26, 0.2)), TIMBER, 0.02)
+        for k in range(4):
+            clump(b, V((x - 0.24 + k * 0.16, sy - 0.24, 0.62)), 0.075, 1, rnd, FLOWERS[k % len(FLOWERS)], "Build", 1.0)
+    for i in range(2):                                   # stone steps
+        soft(b, cube_at(b, V((0, sy - 0.45 - i * 0.36, 0.1 - i * 0.04)), (1.5 - i * 0.2, 0.4, 0.2 - i * 0.04)), STONE_Q, 0.04)
+
+    # --- chimney on the left slope ---------------------------------------------------------------------
+    soft(b, cube_at(b, V((-1.25, 1.2, 5.4)), (0.62, 0.62, 3.8)), STONE_W, 0.05)
+    soft(b, cube_at(b, V((-1.25, 1.2, 7.35)), (0.78, 0.78, 0.14)), STONE_Q, 0.03)
+    soft(b, cube_at(b, V((-1.25, 1.2, 7.52)), (0.3, 0.3, 0.2)), STONE_Q, 0.03)
+
+    # --- the open porch on the right: a lean-to roof on two posts, a bench, a barrel ---------------------
+    px0, px1 = HALF - 0.05, W / 2 + 2.1
+    for y in (-1.3, 1.3):
+        soft(b, cube_at(b, V((px1 - 0.15, y, 0.95)), (0.16, 0.16, 1.9)), TIMBER, 0.03)
+    soft(b, cube_at(b, V(((px0 + px1) / 2 + 0.1, 0.0, 0.08)), (px1 - W / 2 + 0.1, 3.0, 0.16)), STONE_Q, 0.04)
+    def lean_to():
+        bm = b.bm
+        pts = [V((px0 - 0.4, -1.65, 2.62)), V((px1 + 0.2, -1.65, 1.92)), V((px1 + 0.2, 1.65, 1.92)), V((px0 - 0.4, 1.65, 2.62))]
+        top = [bm.verts.new(p) for p in pts]
+        bot = [bm.verts.new(p - V((0, 0, 0.16))) for p in pts]
+        bm.faces.new(top)
+        bm.faces.new(list(reversed(bot)))
+        for i in range(4):
+            j = (i + 1) % 4
+            bm.faces.new((top[j], top[i], bot[i], bot[j]))
+    soft(b, lean_to, ROOF, 0.03)
+    soft(b, cube_at(b, V((W / 2 + 0.55, 0.2, 0.5)), (0.42, 1.5, 0.08)), TIMBER, 0.02)               # bench
+    for y in (-0.4, 0.8):
+        soft(b, cube_at(b, V((W / 2 + 0.55, y, 0.28)), (0.36, 0.08, 0.4)), TIMBER, 0.01, 1)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((px1 - 0.55, -0.9, 0.16)), V((px1 - 0.55, -0.9, 0.5)), V((px1 - 0.55, -0.9, 0.84))],
+                                        [(0.24, 0.24), (0.28, 0.28), (0.24, 0.24)], seg=10)), "Build", (0.52, 0.36, 0.24))
+
+    # --- a few stepping stones and flowers at the base ---------------------------------------------------
+    for i, (x, y) in enumerate(((0.15, sy - 1.45), (-0.2, sy - 2.2), (0.25, sy - 2.95))):
+        soft(b, cube_at(b, V((x, y, 0.02)), (0.72, 0.52, 0.1), Euler((0, 0, 0.35 * i - 0.3))), STONE_Q, 0.05)
+    for x, y in ((-2.2, sy - 0.3), (-1.0, sy - 0.35), (1.1, sy - 0.3)):
+        clump(b, V((x, y, 0.12)), 0.18, 1, rnd, (0.42, 0.62, 0.3), "Build", 0.6)
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -975,3 +1125,4 @@ export("house_grotto", grotto_house(), OUT)
 export("house_tower", rune_tower(), OUT)
 export("house_arch", arch_cottage(), OUT)
 export("house_gable", gable_house(), OUT)
+export("house_storybook", storybook_cottage(), OUT)
