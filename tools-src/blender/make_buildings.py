@@ -146,6 +146,25 @@ def cottage():
     for i in range(6):                        # stone chimney with a cap
         box(b, V((1.2, 0.7, F + H + 0.9 + i * 0.3)), (0.62, 0.62, 0.3), rnd.choice(STONE), 0.06)
     box(b, V((1.2, 0.7, F + H + 2.75)), (0.78, 0.78, 0.12), STONE[3])
+    # A covered porch over the door, a roof dormer, a picket fence and a garden bed.
+    for x in (-0.75, 0.75):
+        beam(b, V((x, -D / 2 - 1.1, 0)), V((x, -D / 2 - 1.1, F + 2.3)), 0.08, TIMBER)
+    slab(b, [V((-1.0, -D / 2 - 1.35, F + 2.3)), V((1.0, -D / 2 - 1.35, F + 2.3)), V((1.0, -D / 2, F + 2.75)), V((-1.0, -D / 2, F + 2.75))], 0.1, RED_ROOF[2])
+    box(b, V((-1.2, -0.55, F + H + 0.75)), (0.9, 0.8, 0.8), PLASTER)
+    window(b, -1.2, F + H + 0.75, -0.95, 0.45, 0.45)
+    slab(b, [V((-1.75, -1.15, F + H + 1.1)), V((-0.65, -1.15, F + H + 1.1)), V((-0.65, -0.1, F + H + 1.45)), V((-1.75, -0.1, F + H + 1.45))], 0.08, RED_ROOF[0])
+    for i in range(-9, 10):
+        if abs(i) < 2:
+            continue
+        x = i * 0.34
+        box(b, V((x, -D / 2 - 2.6, 0.35)), (0.08, 0.06, 0.7), (0.93, 0.9, 0.84), 0.02)
+    for y in (0.2, 0.5):
+        for s in (-1, 1):
+            box(b, V((s * 1.9, -D / 2 - 2.62, y)), (2.4, 0.05, 0.06), (0.93, 0.9, 0.84), 0.02)
+    box(b, V((-1.6, -D / 2 - 1.8, 0.1)), (2.0, 0.9, 0.2), (0.4, 0.3, 0.22))
+    for i in range(12):
+        clump(b, V((-2.5 + i * 0.16, -D / 2 - 1.8 + (i % 3 - 1) * 0.22, 0.28)), 0.1, 1, rnd,
+              rnd.choice([(0.92, 0.4, 0.5), (0.98, 0.8, 0.3), (0.45, 0.66, 0.3), (0.62, 0.5, 0.9)]), "Build", 1.0)
     lx = -W / 2 - 0.9                         # lean-to with barrels and a crate
     for y in (-0.9, 0.9):
         beam(b, V((lx - 0.6, y, 0)), V((lx - 0.6, y, 1.9)), 0.08, TIMBER)
