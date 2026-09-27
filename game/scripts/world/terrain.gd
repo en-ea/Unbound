@@ -1,7 +1,7 @@
 extends StaticBody3D
 ## Builds the ground mesh, its collision, the pond water and the edge walls from WorldShape.
 
-const STEP := 1.0
+const STEP := 2.0            # big triangles: the faceted low-poly look
 const TERRAIN_SHADER := preload("res://shaders/terrain.gdshader")
 const WATER_SHADER := preload("res://shaders/water.gdshader")
 
@@ -77,6 +77,7 @@ func build(shape: WorldShape) -> void:
 	hm.map_data = heights
 	var col := CollisionShape3D.new()
 	col.shape = hm
+	col.scale = Vector3(STEP, 1.0, STEP)
 	add_child(col)
 
 	_build_walls()

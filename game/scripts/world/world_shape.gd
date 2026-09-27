@@ -38,7 +38,7 @@ func height_at(x: float, z: float) -> float:
 	var p := Vector2(x, z)
 	var path_d := path_distance(p)
 	# Gentle rolling ground, calmer along the path.
-	var h := (_noise.get_noise_2d(x, z) * 0.5 + 0.5) * 2.6 * lerpf(0.35, 1.0, smoothstep(1.5, 6.0, path_d))
+	var h := (_noise.get_noise_2d(x, z) * 0.5 + 0.5) * 3.4 * lerpf(0.35, 1.0, smoothstep(1.5, 6.0, path_d))
 	# Hills rise around the edges and close the meadow in.
 	var edge := maxf(absf(x), absf(z)) / HALF_SIZE
 	h += smoothstep(0.6, 1.0, edge) * 16.0

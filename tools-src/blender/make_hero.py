@@ -143,7 +143,7 @@ FACES = {
 
 # --- hair ------------------------------------------------------------------------------------
 
-def cap(bm, front, side, back, lift=0.012):
+def cap(bm, front, side, back, lift=0.022):
     def keep(p):
         t = abs(math.atan2(p.x, -(p.y - HC.y))) / math.pi       # 0 front .. 1 back
         line = front + (side - front) * min(t * 2, 1) if t < 0.5 else side + (back - side) * (t - 0.5) * 2
@@ -153,24 +153,24 @@ def cap(bm, front, side, back, lift=0.012):
 
 def fringe(bm, xs, top, bottom, sweep=0.0, width=0.05):
     for x in xs:
-        base, n = on_head(x, top, 0.016)
-        tip, _ = on_head(max(-0.13, min(0.13, x + sweep)), bottom, 0.02)
-        lock(bm, base, tip, n, width, 0.028)
+        base, n = on_head(x, top + 0.02, 0.012)       # rooted inside the cap
+        tip, _ = on_head(max(-0.13, min(0.13, x + sweep)), bottom, 0.024)
+        lock(bm, base, tip, n, width * 1.3, 0.036)
 
 
 def side_locks(bm, low, width=0.05):
     for s in (1, -1):
-        base, n = around(s * 82, 22, 0.014)
-        tip, _ = around(s * 88, low, 0.022)
-        lock(bm, base, tip, n, width, 0.028)
+        base, n = around(s * 82, 30, 0.01)
+        tip, _ = around(s * 88, low, 0.026)
+        lock(bm, base, tip, n, width * 1.3, 0.036)
 
 
 def back_locks(bm, low, count=4, width=0.06):
     for i in range(count):
         yaw = 180 - 55 + 110 * i / (count - 1)
-        base, n = around(yaw, 10, 0.014)
-        tip, _ = around(yaw, low, 0.024)
-        lock(bm, base, tip, n, width, 0.03)
+        base, n = around(yaw, 20, 0.01)
+        tip, _ = around(yaw, low, 0.028)
+        lock(bm, base, tip, n, width * 1.3, 0.038)
 
 
 def hair_short(bm):
@@ -190,7 +190,7 @@ def hair_messy_base(bm):
 def hair_messy_top(bm):
     # Big spiky locks sticking up and out (hidden under hats).
     for yaw, pitch in ((0, 62), (50, 55), (-50, 55), (110, 45), (-110, 45), (180, 50), (150, 35), (-150, 35)):
-        base, n = around(yaw, pitch - 12, 0.01)
+        base, n = around(yaw, pitch - 12, 0.0)
         out = (n + V((0, 0, 0.6))).normalized()
         lock(bm, base, base + out * 0.12, n.cross(V((0, 0, 1))).normalized().cross(out) if abs(n.z) < 0.99 else V((1, 0, 0)), 0.05, 0.035)
 

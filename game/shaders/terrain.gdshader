@@ -38,6 +38,8 @@ float path_distance(vec2 p) {
 }
 
 void fragment() {
+	// Flat (faceted) normals: each ground triangle catches the light on its own.
+	NORMAL = normalize(cross(dFdy(VERTEX), dFdx(VERTEX)));
 	vec2 p = world_pos.xz;
 	vec3 c = COLOR.rgb;
 	// Large soft patches: sunny yellow-greens and cooler greens.
