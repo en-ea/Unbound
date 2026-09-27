@@ -15,6 +15,7 @@
   house_hex / house_grotto / house_tower: the dark diorama style from the owner's references
                  (faceted slate, stepped hex/octagon bases, glowing crystals and runes, gold trims).
   house_arch:    one smooth barrel roof sweeping near the ground, wood front, round glowing window.
+  house_gable:   raised on a plinth, pale walls, tall off-centre charcoal roof with a prow, window slit.
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -888,6 +889,76 @@ def arch_cottage():
     return b
 
 
+def gable_house():
+    """Raised on a stone plinth: clean pale walls under a tall, steep charcoal roof whose ridge sits
+    off-centre (one side sweeps lower) and juts forward to a point; thin dark frame lines along the
+    gable edges meeting past the peak; a tall glowing window slit over a tall straight door."""
+    b = Builder(["Build", "Glow"])
+    WALL = (0.88, 0.89, 0.9)
+    PLINTH = (0.6, 0.62, 0.66)
+    ROOF = (0.22, 0.25, 0.3)
+    FRAME = (0.32, 0.3, 0.31)
+    LIGHT = (1.0, 0.85, 0.6)
+    W, D, F, H = 3.6, 4.6, 0.6, 2.5              # width, depth, plinth height, wall height
+    RX, PEAK = 0.45, F + H + 3.7                  # ridge offset to the right, ridge height
+    soft(b, cube_at(b, V((0, 0, F / 2 - 0.05)), (W + 1.0, D + 1.0, F + 0.1)), PLINTH, 0.07)
+    for i in range(3):                            # steps up to the plinth
+        soft(b, cube_at(b, V((-0.2, -D / 2 - 0.75 - i * 0.32, F - 0.12 - i * 0.2)), (1.4, 0.34, 0.2)), PLINTH, 0.05)
+    eave_l, eave_r = F + H, F + H + 0.55          # the right eave sits higher: a lopsided, sharp roof
+    outline = [(-W / 2, F), (W / 2, F), (W / 2, eave_r), (RX, PEAK - 0.35), (-W / 2, eave_l)]
+    soft(b, outline_prism(b, outline, -D / 2, D / 2), WALL, 0.05)
+    # Roof: two thick planes from each eave to the off-centre ridge; the front edge juts forward
+    # more towards the top.
+    thick = 0.26
+    for side, x_eave, z_eave in ((-1, -W / 2 - 0.55, eave_l - 0.4), (1, W / 2 + 0.45, eave_r - 0.3)):
+        def plane(x_eave=x_eave, z_eave=z_eave, side=side):
+            bm = b.bm
+            nu, nv = 3, 3
+            grid = [[None] * (nv + 1) for _ in range(nu + 1)]
+            for i in range(nu + 1):
+                u = i / nu
+                for j in range(nv + 1):
+                    v = j / nv                           # 0 at the eave, 1 at the ridge
+                    x = x_eave + (RX - x_eave) * v
+                    z = z_eave + (PEAK - z_eave) * v
+                    y0 = -D / 2 - 0.5 - 1.1 * v * v      # the prow
+                    y1 = D / 2 + 0.5
+                    grid[i][j] = bm.verts.new(V((x, y0 + u * (y1 - y0), z)))
+            faces = []
+            for i in range(nu):
+                for j in range(nv):
+                    q = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]]
+                    faces.append(bm.faces.new(q if side < 0 else list(reversed(q))))
+            for f in faces:
+                f.normal_update()
+            if sum(f.normal.z for f in faces) < 0:
+                bmesh.ops.reverse_faces(bm, faces=faces)
+            bmesh.ops.solidify(bm, geom=faces, thickness=thick)
+        b.paint(b.new_faces(plane), "Build", ROOF)
+    # Thin dark frame lines along the front gable, meeting in a point just past the peak.
+    fy = -D / 2 - 0.03
+    tip = V((RX + 0.08, fy, PEAK + 0.35))
+    beam(b, V((-W / 2 - 0.1, fy, eave_l - 0.1)), tip, 0.04, FRAME)
+    beam(b, V((W / 2 + 0.1, fy, eave_r - 0.1)), tip, 0.04, FRAME)
+    # The tall window slit up the gable, and a tall straight door with a glowing transom.
+    wx = RX * 0.6
+    soft(b, cube_at(b, V((wx, fy - 0.03, F + H + 1.25)), (0.5, 0.1, 2.3)), FRAME, 0.03)
+    soft(b, cube_at(b, V((wx, fy - 0.07, F + H + 1.25)), (0.3, 0.04, 2.1)), LIGHT, 0.01, 1, "Glow")
+    soft(b, cube_at(b, V((-0.2, fy - 0.03, F + 1.05)), (1.0, 0.1, 2.1)), FRAME, 0.03)
+    soft(b, cube_at(b, V((-0.2, fy - 0.07, F + 0.98)), (0.8, 0.04, 1.9)), (0.4, 0.3, 0.25), 0.02)
+    soft(b, cube_at(b, V((-0.2, fy - 0.07, F + 2.02)), (0.8, 0.04, 0.1)), LIGHT, 0.01, 1, "Glow")
+    soft(b, cube_at(b, V((0.1, fy - 0.1, F + 1.0)), (0.04, 0.04, 0.34)), (0.85, 0.75, 0.5), 0.01, 1)
+    # A side window each side, a square lantern by the door, a tall square chimney.
+    for s in (-1, 1):
+        soft(b, cube_at(b, V((s * (W / 2 + 0.03), 0.6, F + 1.4)), (0.1, 0.9, 0.9)), FRAME, 0.03)
+        soft(b, cube_at(b, V((s * (W / 2 + 0.07), 0.6, F + 1.4)), (0.04, 0.72, 0.72)), LIGHT, 0.01, 1, "Glow")
+    soft(b, cube_at(b, V((-1.25, fy - 0.12, F + 1.75)), (0.18, 0.18, 0.28)), FRAME, 0.02, 1)
+    soft(b, cube_at(b, V((-1.25, fy - 0.16, F + 1.75)), (0.12, 0.06, 0.2)), LIGHT, 0.01, 1, "Glow")
+    soft(b, cube_at(b, V((-0.9, 1.1, PEAK - 0.9)), (0.55, 0.55, 2.2)), (0.4, 0.42, 0.46), 0.04)
+    soft(b, cube_at(b, V((-0.9, 1.1, PEAK + 0.25)), (0.7, 0.7, 0.12)), ROOF, 0.03)
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -903,3 +974,4 @@ export("house_hex", hex_house(), OUT)
 export("house_grotto", grotto_house(), OUT)
 export("house_tower", rune_tower(), OUT)
 export("house_arch", arch_cottage(), OUT)
+export("house_gable", gable_house(), OUT)
