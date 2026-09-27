@@ -8,7 +8,7 @@ const PARTS := ["Body", "Head", "Leg_FL", "Leg_FR", "Leg_BL", "Leg_BR", "Tail", 
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 
 var speed := 0.0            # ground speed, set by Boar
-var mode := "walk"          # walk / alert / charge / hurt / dead
+var mode := "walk"          # walk / alert / stalk / charge / hurt / dead
 ## Other creatures reuse this script (see wolf_visual.gd) with their own model and sizes.
 var model_scene: PackedScene = preload("res://assets/creatures/boar.glb")
 var paws := true            # paws the ground when alert
@@ -95,7 +95,7 @@ func _process(delta: float) -> void:
 	_flash = maxf(_flash - delta * 5.0, 0.0)
 	for m in _materials:
 		m.set_shader_parameter("flash", _flash)
-	var warn := mode == "alert" or mode == "charge"
+	var warn := mode in ["alert", "charge", "stalk"]
 	_eyes = move_toward(_eyes, 1.0 if warn else 0.0, delta * 4.0)
 	for m in _eye_materials:
 		m.set_shader_parameter("glow", _eyes * 2.5)

@@ -46,7 +46,7 @@ func is_rolling() -> bool:
 func act() -> void:
 	if _roll > 0.0 or _stun > 0.0:
 		return
-	if fighter.target:
+	if fighter.verb != "":
 		fighter.attack()
 	else:
 		gatherer.act()
@@ -54,8 +54,9 @@ func act() -> void:
 
 ## Dodge roll: a quick roll in the stick direction (or forward). Charges miss you mid-roll.
 func roll() -> void:
-	if _roll > 0.0 or _stun > 0.0 or gatherer.is_busy() or fighter.is_busy() or Controls.locked:
+	if _roll > 0.0 or _stun > 0.0 or gatherer.is_busy() or Controls.locked:
 		return
+	fighter.cancel()        # a roll cuts a swing short
 	var m := Controls.get_move()
 	if m.length() > 0.1:
 		_roll_dir = Vector3(m.x, 0, m.y).normalized()
@@ -134,8 +135,11 @@ func _physics_process(delta: float) -> void:
 	if _roll > 0.0 or _stun > 0.0:
 		_special_move(delta)
 		return
-	var busy: bool = gatherer.is_busy() or fighter.is_busy()
-	var move := Controls.get_move() if not busy else Vector2.ZERO
+	# Gathering roots you in place; swinging the sword only slows you (and steps you in).
+	var swinging: bool = fighter.is_busy()
+	var move := Controls.get_move() if not gatherer.is_busy() else Vector2.ZERO
+	if swinging:
+		move *= 0.45
 	var strength := move.length()
 	var target_speed := 0.0
 	if strength > 0.1:
@@ -143,22 +147,27 @@ func _physics_process(delta: float) -> void:
 	# The camera never rotates, so screen up is world -Z.
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))
+	flat += fighter.step_velocity()
 	velocity.x = flat.x
 	velocity.z = flat.z
 	velocity.y = 0.0 if is_on_floor() else velocity.y - GRAVITY * delta
 	move_and_slide()
 
 	var speed := Vector2(velocity.x, velocity.z).length()
-	if strength > 0.1:
+	if strength > 0.1 and not swinging:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(dir.x, dir.z), clampf(TURN_SPEED * delta, 0.0, 1.0))
 	visual.play_motion(speed)
 
 
-## Rolling or being knocked back: the move is forced, not steered.
+## Rolling (steerable with the stick) or being knocked back (forced).
 func _special_move(delta: float) -> void:
 	var flat: Vector3
 	if _roll > 0.0:
 		_roll -= delta
+		var m := Controls.get_move()
+		if m.length() > 0.3:
+			_roll_dir = _roll_dir.slerp(Vector3(m.x, 0, m.y).normalized(), clampf(7.0 * delta, 0.0, 1.0)).normalized()
+			visual.rotation.y = atan2(_roll_dir.x, _roll_dir.z)
 		flat = _roll_dir * ROLL_SPEED
 	else:
 		_stun -= delta

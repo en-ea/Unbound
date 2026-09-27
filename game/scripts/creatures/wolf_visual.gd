@@ -23,6 +23,11 @@ func _pose(swing: float, bob: float, head_pitch: float, stride: float) -> void:
 			jaw_open = 0.18 + sin(_time * 22.0) * 0.04
 			tail_lift = -0.25
 			tail_wag = 0.0
+		"stalk":           # loping around you, head low, lips curled
+			head_pitch = 0.18
+			jaw_open = 0.12
+			tail_lift = -0.15
+			tail_wag = 0.0
 		"charge":          # stretched out, jaws wide
 			head_pitch = 0.1
 			jaw_open = 0.55

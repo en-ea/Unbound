@@ -228,6 +228,10 @@ func warm(at: Vector3) -> void:
 		add_child(sample)
 		_warm_nodes.append(sample)
 		i += 1
+	var beam := DROP.make_beam("shard")
+	beam.position = at + Vector3(0, 0.5, -1.5)
+	add_child(beam)
+	_warm_nodes.append(beam)
 	_burst(at + Vector3(0, 1, -1), Color.WHITE, 4)
 
 

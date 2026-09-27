@@ -89,8 +89,7 @@ func _physics_process(delta: float) -> void:
 			elif _t > 0.7:
 				_enter(State.CIRCLE)
 		State.CIRCLE:
-			face = toward
-			# Strafe around the player, drifting in or out to hold the circling distance.
+			# Lope around the player (facing where it runs), drifting in or out to hold the distance.
 			var around := toward.cross(Vector3.UP) * _side
 			want = (around + toward * clampf((dist - CIRCLE_RADIUS) * 0.6, -1.0, 1.0)).normalized() * CIRCLE_SPEED
 			if lost:
@@ -200,7 +199,7 @@ func _enter(new_state: State) -> void:
 	visual.crouch = new_state == State.WINDUP
 	if new_state == State.CIRCLE:
 		_circle_time = randf_range(1.2, 2.6)
-	visual.mode = {State.ALERT: "alert", State.CIRCLE: "alert", State.WINDUP: "alert", State.LUNGE: "charge",
+	visual.mode = {State.ALERT: "alert", State.CIRCLE: "stalk", State.WINDUP: "alert", State.LUNGE: "charge",
 		State.HURT: "hurt", State.DEAD: "dead"}.get(new_state, "walk")
 	if new_state == State.ALERT:
 		_play("growl", randf_range(0.9, 1.1))
