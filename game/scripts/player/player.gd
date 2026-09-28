@@ -7,8 +7,9 @@ const RUN_THRESHOLD := 0.75
 const ACCEL := 12.0
 const TURN_SPEED := 12.0
 const GRAVITY := 22.0
-const ROLL_SPEED := 7.5
+const ROLL_SPEED := 8.5        # at the start; it eases down to about half by the end
 const ROLL_TIME := 0.55
+const ROLL_COOLDOWN := 0.25    # a short breath between rolls, so it can't be spammed
 
 signal verb_changed(verb: String)       # what the action button does right now
 signal health_changed(health: int, max_health: int)
@@ -27,6 +28,7 @@ const INVULNERABLE := 1.2      # after a hit, enemies can't hurt you again for a
 
 var verb := ""
 var _roll := 0.0
+var _roll_rest := 0.0
 var _roll_dir := Vector3.FORWARD
 var _stun := 0.0
 var _knock := Vector3.ZERO
@@ -81,7 +83,7 @@ func _nearest_station() -> Node3D:
 
 ## Dodge roll: a quick roll in the stick direction (or forward). Charges miss you mid-roll.
 func roll() -> void:
-	if _roll > 0.0 or _stun > 0.0 or gatherer.is_busy() or Controls.locked:
+	if _roll > 0.0 or _roll_rest > 0.0 or _stun > 0.0 or gatherer.is_busy() or Controls.locked:
 		return
 	fighter.cancel()        # a roll cuts a swing short
 	var m := Controls.get_move()
@@ -92,6 +94,8 @@ func roll() -> void:
 	visual.rotation.y = atan2(_roll_dir.x, _roll_dir.z)
 	visual.play_action("Roll", visual.animation_length("Roll") / ROLL_TIME)
 	_roll = ROLL_TIME
+	$Sounds.play_roll()
+	$Effects.burst(true)
 
 
 ## Something hit us (a boar charge): pushed back and briefly stunned. No damage for now.
@@ -151,6 +155,7 @@ func take_damage(amount: int) -> void:
 
 func _physics_process(delta: float) -> void:
 	_since_hit += delta
+	_roll_rest = maxf(_roll_rest - delta, 0.0)
 	if _safe > 0.0:
 		_safe -= delta
 		visual.visible = _safe <= 0.0 or fmod(_safe, 0.2) > 0.1      # blink while protected
@@ -210,11 +215,15 @@ func _special_move(delta: float) -> void:
 	var flat: Vector3
 	if _roll > 0.0:
 		_roll -= delta
+		if _roll <= 0.0:
+			_roll_rest = ROLL_COOLDOWN
+			$Effects.burst(false)             # a puff where you land
 		var m := Controls.get_move()
-		if m.length() > 0.3:
-			_roll_dir = _roll_dir.slerp(Vector3(m.x, 0, m.y).normalized(), clampf(7.0 * delta, 0.0, 1.0)).normalized()
+		if m.length() > 0.3:                   # a little steering, not a full turn
+			_roll_dir = _roll_dir.slerp(Vector3(m.x, 0, m.y).normalized(), clampf(3.0 * delta, 0.0, 1.0)).normalized()
 			visual.rotation.y = atan2(_roll_dir.x, _roll_dir.z)
-		flat = _roll_dir * ROLL_SPEED
+		var t := 1.0 - _roll / ROLL_TIME       # 0 at the start of the roll, 1 at the end
+		flat = _roll_dir * ROLL_SPEED * lerpf(1.1, 0.45, t * t)
 	else:
 		_stun -= delta
 		flat = _knock

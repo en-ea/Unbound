@@ -17,6 +17,7 @@ Run: tools/blender/blender.exe --background --python tools-src/blender/make_hero
 import math
 import os
 import sys
+import bpy  # noqa: F401  (first, so bmesh is available when run as the bpy module)
 import bmesh
 from mathutils import Vector as V
 
@@ -236,10 +237,15 @@ def hair_braid(bm):
 
 def hair_mohawk(bm):
     cap(bm, Z + 0.02, Z - 0.03, Z - 0.1, lift=0.006)    # close-cropped sides
-    for yaw, pitch, ln in ((0, 38, 0.1), (0, 58, 0.13), (0, 76, 0.15), (180, 80, 0.15), (180, 60, 0.14), (180, 40, 0.12), (180, 20, 0.1)):
-        base, n = around(yaw, pitch, 0.0)
-        out = (n + V((0, 0.35 if yaw else -0.1, 0.5))).normalized()
-        lock(bm, base, base + out * ln, V((1, 0, 0)), 0.04, 0.05)
+    # A crest of separate spikes from the brow over to the back, each leaning back a little.
+    for i in range(9):
+        t = i / 8
+        yaw = 0 if t < 0.5 else 180
+        pitch = 30 + t * 120 if t < 0.5 else 150 - (t - 0.5) * 2 * 120
+        pitch = min(pitch, 88)
+        base, n = around(yaw, pitch, -0.004)
+        out = (n + V((0, 0.45, 0.35))).normalized()
+        lock(bm, base, base + out * (0.07 + 0.03 * math.sin(math.pi * t)), V((1, 0, 0)), 0.03, 0.045, 0.004)
 
 
 def hair_swept(bm):
@@ -267,23 +273,34 @@ def jaw_shell(bm, low, lift=0.014):
         v.co.x *= head_radius_x(v.co.z) / HR.x
 
 
+def sideburns(bm, low=-35, width=0.03):
+    """Strips of beard from the hairline by the ears down to the jaw, so a beard joins the hair."""
+    for s in (1, -1):
+        top, n = around(s * 84, 22, 0.012)
+        mid, _ = around(s * 80, -5, 0.014)
+        bottom, _ = around(s * 70, low, 0.016)
+        rk.tube(bm, [top, mid, bottom], [(width, 0.012), (width * 1.1, 0.013), (width * 1.2, 0.014)], ref=V((0, 0, 1)), seg=4)
+
+
 def mustache(bm, droop=0.03, width=0.06):
     for s in (1, -1):
-        base, n = on_head(s * 0.008, Z - 0.046, 0.018)
-        tip, _ = on_head(s * width, Z - 0.046 - droop, 0.02)
+        base, n = on_head(s * 0.008, Z - 0.046, 0.012)
+        tip, _ = on_head(s * width, Z - 0.046 - droop, 0.014)
         lock(bm, base, tip, n, 0.022, 0.014, 0.004)
 
 
 def beard_short(bm):
     jaw_shell(bm, Z - 0.18)
+    sideburns(bm, -38, 0.026)
     mustache(bm, 0.02, 0.05)
 
 
 def beard_full(bm):
-    jaw_shell(bm, Z - 0.18, 0.02)
-    for x in (-0.055, 0.0, 0.055):
-        base, n = on_head(x, Z - 0.13, 0.03)
-        lock(bm, base, base + V((x * 0.3, -0.03, -0.13)), n, 0.05, 0.03)
+    jaw_shell(bm, Z - 0.185, 0.016)
+    sideburns(bm, -40, 0.034)
+    for x in (-0.05, 0.0, 0.05):                  # locks rooted in the beard, hanging down from the chin
+        base, n = on_head(x, Z - 0.12, 0.008)
+        lock(bm, base, base + V((x * 0.25, -0.02, -0.12)), n, 0.05, 0.03, 0.006)
     mustache(bm, 0.035, 0.068)
 
 
@@ -298,7 +315,7 @@ def beard_mustache(bm):
 
 
 def beard_stubble(bm):
-    jaw_shell(bm, Z - 0.165, 0.004)          # a close shadow of beard hugging the jaw
+    jaw_shell(bm, Z - 0.165, 0.004)          # a close shadow of beard hugging the jaw, up to the ears
 
 
 def beard_chinstrap(bm):
@@ -306,11 +323,12 @@ def beard_chinstrap(bm):
             keep=lambda p: Z - 0.175 < p.z < Z - 0.1 and p.y < HC.y + 0.02)
     for v in bm.verts:
         v.co.x *= head_radius_x(v.co.z) / HR.x
+    sideburns(bm, -35, 0.024)
 
 
 def beard_braided(bm):
     beard_full(bm)
-    chin, n = on_head(0, Z - 0.15, 0.03)
+    chin, n = on_head(0, Z - 0.15, 0.012)
     for i in range(5):                        # a braid hanging off the chin
         rk.blob(bm, chin + V((0, -0.035 + i * 0.004, -0.09 - i * 0.042)), (0.03 - i * 0.003, 0.024, 0.03), 6, 4)
 
@@ -536,7 +554,8 @@ def build(arm):
     marks = {
         "freckles": lambda bm: [decal_ellipse(bm, s * (0.06 + dx), Z - 0.022 + dz, 0.0045, 0.0045, 5, DECAL + 0.001)
                                 for s in (1, -1) for dx, dz in ((0.0, 0.0), (0.018, 0.006), (0.034, -0.004), (0.012, -0.016), (0.028, 0.016))],
-        "scar": lambda bm: decal_strip(bm, [(0.028, EYE_Z + 0.05), (0.05, EYE_Z + 0.004), (0.07, EYE_Z - 0.05)], 0.011, DECAL + 0.002),
+        "scar": lambda bm: [decal_strip(bm, [(0.04, EYE_Z - 0.035), (0.066, EYE_Z - 0.06), (0.09, EYE_Z - 0.078)], 0.01, DECAL + 0.002),
+                            decal_strip(bm, [(0.058, EYE_Z - 0.066), (0.076, EYE_Z - 0.05)], 0.008, DECAL + 0.003)],   # a cheek scar with a stitch
         "warpaint": lambda bm: [decal_strip(bm, [(s * 0.03, EYE_Z - 0.03 - k * 0.022), (s * 0.085, EYE_Z - 0.045 - k * 0.022)], 0.013, DECAL + 0.002)
                                 for s in (1, -1) for k in (0, 1)],
         "stripe": lambda bm: decal_strip(bm, [(-0.05, BROW_Z + 0.04), (-0.05, EYE_Z - 0.06)], 0.02, DECAL + 0.001),
@@ -578,9 +597,22 @@ def build(arm):
                       ("swept", hair_swept)):
         part(f"H_hair_{style}", "Hair", hair_weights, fn, **flat)
     part("H_hair_messy_top", "Hair", headw, hair_messy_top, **flat)
+    # Under a hat or bandana: the same style with everything above the brim taken away,
+    # so nothing pokes through (the game swaps these in).
+    def under_hat(fn):
+        def build_it(bm):
+            fn(bm)
+            delete_faces(bm, lambda c: c.z > Z + 0.055)
+        return build_it
+    for style, fn in (("short", hair_short), ("messy", hair_messy_base), ("long", hair_long),
+                      ("ponytail", hair_ponytail), ("bun", hair_bun), ("braid", hair_braid), ("mohawk", hair_mohawk),
+                      ("swept", hair_swept)):
+        part(f"H_hair_{style}_hat", "Hair", hair_weights, under_hat(fn), **flat)
     for style, fn in (("short", beard_short), ("full", beard_full), ("goatee", beard_goatee), ("mustache", beard_mustache),
                       ("stubble", beard_stubble), ("chinstrap", beard_chinstrap), ("braided", beard_braided)):
-        part(f"H_beard_{style}", "Hair", headw, fn, **flat)
+        # The jaw shell is an open surface: orient every face away from the head's centre instead of
+        # letting a normal recalculation flip it inside out (which hid the beard from the front).
+        part(f"H_beard_{style}", "Hair", headw, fn, smooth=False, recalc=False, outward=lambda c: c - HC, shade_var=SHADE)
 
     # --- clothes and gear ---------------------------------------------------------------------
     part("H_top_tunic", "Main", torso_weights, tunic, **flat)

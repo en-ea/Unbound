@@ -123,10 +123,11 @@ def build_part(arm, name, material, weight_fn, builder, smooth=True, recalc=True
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.0005)
     if recalc:
         bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    if outward is not None:
+    if outward is not None:           # a direction, or a function of the face centre giving one
         for f in bm.faces:
             f.normal_update()
-            if f.normal.dot(outward) < 0:
+            d = outward(f.calc_center_median()) if callable(outward) else outward
+            if f.normal.dot(d) < 0:
                 f.normal_flip()
     mesh = bpy.data.meshes.new(name)
     bm.to_mesh(mesh)

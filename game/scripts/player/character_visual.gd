@@ -134,8 +134,13 @@ func apply_hero_look() -> void:
 		elif n == "H_ears":
 			mi.visible = true
 		elif n.begins_with("H_hair_"):
-			# Spiky "_top" locks hide under a hat or bandana.
-			mi.visible = n.begins_with("H_hair_" + p["hair"]) and not (n.ends_with("_top") and covered)
+			# Under a hat or bandana the "_hat" cut of the style shows (nothing pokes through);
+			# otherwise the full style (with the messy style's spiky "_top" locks).
+			var style := "H_hair_" + String(p["hair"])
+			if covered:
+				mi.visible = n == style + "_hat"
+			else:
+				mi.visible = n == style or n == style + "_top"
 		else:
 			var bits := n.split("_")   # H_<slot>_<choice>[_extra]
 			mi.visible = bits.size() >= 3 and p.get(bits[1], "") == bits[2]

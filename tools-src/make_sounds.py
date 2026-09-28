@@ -238,6 +238,47 @@ def whoosh():
     save("swing", lo + hi, 0.45)
 
 
+def grains(n, rate_hz, seed):
+    """Random crackle: short clicks at about rate_hz, for gravel and dry grass."""
+    r = np.random.default_rng(seed)
+    x = np.zeros(n)
+    k = r.random(n) < rate_hz / RATE
+    x[k] = r.normal(size=k.sum())
+    return x
+
+
+def footsteps():
+    """Softer, fuller footsteps than the old recordings: a low heel thump plus a crisp grass rustle
+    (grass) or a dull thud with gravel crunch (dirt). Six of each, so they never repeat obviously."""
+    for i in range(6):
+        r = np.random.default_rng(40 + i)
+        n = int(0.2 * RATE)
+        noise = r.normal(size=n)
+        thump = low(noise, 170, 4) * env(n, 0.004, 9) * 2.2
+        rustle = band(noise, 1800, 6500) * env(n, 0.012, 3) * (0.55 + 0.45 * low(r.normal(size=n), 40) * 8)
+        body = band(noise, 500, 1400) * env(n, 0.006, 5) * 0.5
+        save(f"step_grass_{i}", thump + rustle * 0.35 + body, 0.5)
+        thud = low(noise, 240, 4) * env(n, 0.003, 7) * 2.6
+        crunch = band(grains(n, 900, 60 + i), 900, 3500) * env(n, 0.01, 2.5) * 3.0
+        save(f"step_dirt_{i}", thud + crunch * 0.3 + band(noise, 300, 900) * env(n, 0.004, 6) * 0.4, 0.5)
+
+
+def roll():
+    """A dodge roll: a quick cloth swish, then the body landing with a soft thud and a grass rustle."""
+    n = int(0.6 * RATE)
+    t = np.arange(n) / RATE
+    x = rng.normal(size=n)
+    swish_env = np.exp(-((t - 0.14) / 0.08) ** 2)
+    sweep = band(x, 350, 2400) * swish_env
+    hi = band(x, 2500, 6000) * swish_env ** 2 * 0.4
+    land = np.zeros(n)
+    k = int(0.3 * RATE)
+    m = n - k
+    y = rng.normal(size=m)
+    land[k:] = low(y, 160, 4) * env(m, 0.004, 8) * 3.0 + band(y, 1500, 6000) * env(m, 0.01, 3) * 0.5
+    save("roll", sweep + hi + land, 0.6)
+
+
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
     steps()
@@ -249,4 +290,6 @@ if __name__ == "__main__":
     boar()
     whoosh()
     wolf()
+    footsteps()
+    roll()
     print("sounds written to", os.path.abspath(OUT))

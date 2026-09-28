@@ -24,6 +24,8 @@ var _tab_buttons := {}
 var _rng := RandomNumberGenerator.new()
 var _ring: MeshInstance3D
 var _flash_slot := ""
+var _pitch := 0.0            # extra camera tilt from dragging up/down
+var _zoomed := true          # the Zoom button toggles close-up / whole body on any tab
 
 
 func open(visual: CharacterVisual, camera_rig: Node3D) -> void:
@@ -58,7 +60,7 @@ func _build() -> void:
 	titles.add_theme_constant_override("separation", 0)
 	column.add_child(titles)
 	UIStyle.label(titles, "Your look", 28)
-	UIStyle.label(titles, "Drag on the left to turn around", 15, true)
+	UIStyle.label(titles, "Drag on the left to turn and tilt", 15, true)
 	var tabs := HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 6)
 	column.add_child(tabs)
@@ -81,6 +83,9 @@ func _build() -> void:
 	footer.add_theme_constant_override("separation", 12)
 	footer.alignment = BoxContainer.ALIGNMENT_END
 	column.add_child(footer)
+	UIStyle.button(footer, "Zoom", Vector2(120, 50)).pressed.connect(func() -> void:
+		_zoomed = not _zoomed
+		_frame_camera())
 	UIStyle.button(footer, "Shuffle", Vector2(140, 50)).pressed.connect(_randomize)
 	UIStyle.button(footer, "Done", Vector2(140, 50)).pressed.connect(_close)
 	_refresh()
@@ -88,16 +93,17 @@ func _build() -> void:
 
 func _show_tab(tab: String) -> void:
 	_tab = tab
+	_zoomed = tab in ["face", "hair"]
 	_refresh()
 	_frame_camera()
 
 
 ## Close on the face for Face and Hair; the whole body otherwise.
 func _frame_camera() -> void:
-	var v: Array = CLOSE_VIEW if _tab in ["face", "hair"] else FULL_VIEW
+	var v: Array = CLOSE_VIEW if _zoomed else FULL_VIEW
 	var offset: Vector3 = v[2]
 	offset.y *= _visual.hero_look.height
-	_camera_rig.set_view(v[0], v[1], offset, 0.7)
+	_camera_rig.set_view(v[0], v[1] + _pitch, offset, 0.7)
 
 
 func _refresh() -> void:
@@ -256,6 +262,12 @@ func _input(event: InputEvent) -> void:
 		var drag := event as InputEventScreenDrag
 		if drag.position.x < get_viewport().get_visible_rect().size.x - PANEL_W - 40.0:
 			_visual.rotation.y += drag.relative.x * 0.012
+			if absf(drag.relative.y) > absf(drag.relative.x) * 0.6:      # mostly up/down: tilt the view
+				_pitch = clampf(_pitch - drag.relative.y * 0.15, -30.0, 25.0)
+				var v: Array = CLOSE_VIEW if _zoomed else FULL_VIEW
+				var offset: Vector3 = v[2]
+				offset.y *= _visual.hero_look.height
+				_camera_rig.set_view(v[0], v[1] + _pitch, offset, 0.05)
 
 
 ## A soft ring of light under the character while the screen is open.
