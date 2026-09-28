@@ -1,0 +1,3 @@
+t=1min AP=43.8C SKIN=32.4C 
+t=2min AP=41.6C SKIN=32.4C 
+t=3min AP=40.3C SKIN=32.2C 

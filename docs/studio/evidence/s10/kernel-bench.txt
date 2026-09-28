@@ -1,0 +1,6 @@
+UA: Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.0.0 Mobile Safari/537.36
+500-year history: median 43.6 ms, max 60.2 ms (20 seeds)
+world hash for seed 24757: 40572043 (PC gave 40572043)
+edit the past and recompute to today: median 16.8 ms
+catch-up of 30 years: 1.6 ms
+storm view of year 160: 0.6 ms
