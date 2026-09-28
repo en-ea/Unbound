@@ -1647,6 +1647,225 @@ def stump_house():
     return b
 
 
+def annulus(b, z0, z1, r_in, r_out, color, seg=24, mat="Build"):
+    """A flat ring (a washer) from z0 to z1."""
+    def make():
+        bm = b.bm
+        rings = []
+        for z in (z0, z1):
+            for r in (r_in, r_out):
+                rings.append([bm.verts.new(V((math.cos(k * math.tau / seg) * r, math.sin(k * math.tau / seg) * r, z))) for k in range(seg)])
+        bi, bo, ti, to = rings
+        for k in range(seg):
+            k2 = (k + 1) % seg
+            bm.faces.new((to[k], to[k2], ti[k2], ti[k]))      # top
+            bm.faces.new((bi[k], bi[k2], bo[k2], bo[k]))      # bottom
+            bm.faces.new((bo[k], bo[k2], to[k2], to[k]))      # outer wall
+            bm.faces.new((ti[k], ti[k2], bi[k2], bi[k]))      # inner wall
+    faces = b.new_faces(make)
+    b.paint(faces, mat, color)
+    return faces
+
+
+def round_base(b, r, fence_gap=(-2.1, -1.0), flowers=12):
+    """A grassy disc with a rustic fence round it (a gap at the front) and flowers."""
+    GRASS = [(0.42, 0.62, 0.3), (0.48, 0.68, 0.33), (0.38, 0.58, 0.28)]
+    faces = b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, -0.05)), V((0, 0, 0.12))], [(r, r)] * 2, seg=28))
+    for f in faces:
+        b.paint([f], "Build", rnd.choice(GRASS))
+    posts = 22
+    for k in range(posts):
+        a = k * math.tau / posts
+        if fence_gap[0] < a - math.tau < fence_gap[1] or fence_gap[0] < a < fence_gap[1] or fence_gap[0] + math.tau < a:
+            continue
+        p = V((math.cos(a) * (r - 0.25), math.sin(a) * (r - 0.25), 0.45))
+        soft(b, cube_at(b, p, (0.12, 0.12, 0.7)), H_WOOD, 0.02, 1)
+        a2 = a + math.tau / posts
+        if fence_gap[0] < a2 - math.tau < fence_gap[1] or fence_gap[0] < a2 < fence_gap[1]:
+            continue
+        q = V((math.cos(a2) * (r - 0.25), math.sin(a2) * (r - 0.25), 0.55))
+        beam(b, p + V((0, 0, 0.1)), q + V((0, 0, 0.0)), 0.05, WOOD[0])
+    for k in range(flowers):
+        a = rnd.uniform(0, math.tau)
+        d = rnd.uniform(r * 0.72, r * 0.88)
+        clump(b, V((math.cos(a) * d, math.sin(a) * d, 0.2)), 0.12, 1, rnd, rnd.choice(FLOWERS + MOSS[:2]), "Build", 0.8)
+
+
+def round_walls(b, r, h, lo, hi, posts=10, z0=0.12):
+    """Round plaster walls with timber posts and a top band."""
+    walls = b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, z0)), V((0, 0, z0 + h))], [(r, r)] * 2, seg=24))
+    b.gradient(walls, lo, hi)
+    for k in range(posts):
+        a = k * math.tau / posts + math.pi / posts
+        p = V((math.cos(a) * (r + 0.04), math.sin(a) * (r + 0.04), z0 + h / 2))
+        soft(b, cube_at(b, p, (0.16, 0.16, h), Euler((0, 0, a))), TIMBER, 0.02, 1)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, z0 + h - 0.12)), V((0, 0, z0 + h + 0.06))], [(r + 0.07, r + 0.07)] * 2, seg=24, caps=False)), "Build", TIMBER)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, z0)), V((0, 0, z0 + 0.35))], [(r + 0.06, r + 0.06)] * 2, seg=24, caps=False)), "Build", STONE[1])
+
+
+def dual_ring_house():
+    """Reference 3: a low round house under a flat roof with a raised inner ring round an open
+    courtyard; pink-tan plaster with timber posts, an arched door and round windows, on a grassy
+    disc with a fence and flowers. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    R, H = 3.0, 2.1
+    round_base(b, 4.4)
+    round_walls(b, R, H, (0.72, 0.52, 0.44), (0.84, 0.66, 0.56))
+    top = 0.12 + H
+    annulus(b, top, top + 0.22, 1.5, R + 0.3, (0.62, 0.42, 0.26))                  # the flat roof with a rim
+    annulus(b, top + 0.22, top + 0.3, 1.5, R + 0.3, (0.78, 0.62, 0.48))
+    annulus(b, top + 0.3, top + 0.8, 1.35, 1.8, (0.66, 0.46, 0.3))                # the raised inner ring
+    annulus(b, top + 0.8, top + 0.9, 1.3, 1.85, (0.8, 0.64, 0.46))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, top - 0.6)), V((0, 0, top + 0.05))], [(1.36, 1.36)] * 2, seg=20)), "Build", (0.2, 0.15, 0.12))
+    round_door(b, 0, -R - 0.05, 0.25, 1.0, 1.7)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.75, -R - 0.25, 1.75)), (0.1, 0.1, 0.14), 6, 4)), "Glow", H_GLOW)
+    for a in (-2.2, -0.95, 0.3, 2.8):
+        out = V((math.cos(a), math.sin(a), 0))
+        round_window(b, out * (R - 0.02) + V((0, 0, 1.3)), out, 0.3, a in (-2.2, -0.95))
+    for x in (-1.1, 1.2):                                                           # a barrel and a pot
+        barrel(b, V((x * 1.9, -R + 0.1 + abs(x) * 0.3, 0.12)))
+    for i in range(4):
+        soft(b, cube_at(b, V((0, -R - 0.9 - i * 0.55, 0.13)), (0.8, 0.4, 0.06), Euler((0, 0, 0.2 * i))), STONE[i % 4], 0.03)
+    return b
+
+
+def market_house():
+    """Reference 4: a round house with a big layered straw cone roof, timber-framed walls with round
+    windows, and three striped market stalls round the front, full of fruit and veg. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    R, H = 3.0, 2.4
+    for i in range(10):                                                             # a stone footing
+        a = i * math.tau / 10
+        soft(b, cube_at(b, V((math.cos(a) * 3.05, math.sin(a) * 3.05, 0.12)), (1.9, 0.55, 0.3), Euler((0, 0, a + math.pi / 2))), STONE[i % 4], 0.05)
+    round_walls(b, R, H, (0.74, 0.54, 0.46), (0.86, 0.68, 0.58))
+    top = 0.12 + H
+    # Roof: a wide overhanging straw cone with a second shallower tier above.
+    for r0, z0, r1, z1 in ((R + 0.8, top - 0.1, 1.9, top + 1.1), (2.2, top + 0.95, 0.12, top + 2.4)):
+        faces = b.new_faces(lambda r0=r0, z0=z0, r1=r1, z1=z1: rk.tube(b.bm, [V((0, 0, z0)), V((0, 0, z0 + 0.18)), V((0, 0, z1))],
+                                                                       [(r0, r0), (r0 - 0.05, r0 - 0.05), (r1, r1)], seg=22))
+        for f in faces:
+            b.paint([f], "Build", rnd.choice(STRAW))
+    round_door(b, 0, -R - 0.05, 0.25, 1.0, 1.8)
+    for a in (-2.1, -1.05, 0.9, 2.3):
+        out = V((math.cos(a), math.sin(a), 0))
+        round_window(b, out * (R - 0.02) + V((0, 0, 1.75)), out, 0.3, True)
+    # Three stalls round the front: counter, produce crates, posts and a striped awning.
+    STRIPES = [((0.85, 0.3, 0.25), (0.96, 0.9, 0.8)), ((0.3, 0.45, 0.7), (0.96, 0.9, 0.8)), ((0.85, 0.65, 0.25), (0.96, 0.9, 0.8))]
+    for i, a in enumerate((-2.35, -0.8, 0.75)):
+        if abs(a + math.pi / 2) < 0.4:
+            continue
+        out = V((math.cos(a), math.sin(a), 0))
+        side = V((-out.y, out.x, 0))
+        base = out * (R + 1.55)
+        rot = Euler((0, 0, a - math.pi / 2))
+        soft(b, cube_at(b, base + V((0, 0, 0.45)), (1.7, 0.7, 0.9), rot), H_WOOD, 0.03)
+        for k in range(3):
+            crate = base + side * ((k - 1) * 0.52) + V((0, 0, 0.98))
+            soft(b, cube_at(b, crate, (0.46, 0.5, 0.14), rot), WOOD[1], 0.02, 1)
+            produce = [(0.85, 0.2, 0.15), (0.45, 0.7, 0.28), (0.95, 0.6, 0.2), (0.7, 0.3, 0.6)][(i + k) % 4]
+            for m in range(3):
+                clump(b, crate + side * ((m - 1) * 0.13) + out * rnd.uniform(-0.1, 0.1) + V((0, 0, 0.12)), 0.09, 1, rnd, produce, "Build", 0.9)
+        for sgn in (-1, 1):
+            soft(b, cube_at(b, base + side * (0.8 * sgn) + out * 0.3 + V((0, 0, 1.1)), (0.09, 0.09, 2.2)), H_WOOD, 0.02, 1)
+        lo, hi = STRIPES[i]
+        for k in range(6):                                                         # the awning, in stripes
+            c = base + side * (-0.78 + k * 0.31) + out * 0.35 + V((0, 0, 2.0))
+            soft(b, cube_at(b, c, (0.31, 1.35, 0.06), Euler((-0.38, 0, a - math.pi / 2))), lo if k % 2 == 0 else hi, 0.01, 1)
+    for p in (V((1.6, -3.6, 0)), V((-1.4, -3.7, 0))):
+        barrel(b, p)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.8, -R - 0.25, 1.85)), (0.1, 0.1, 0.14), 6, 4)), "Glow", H_GLOW)
+    return b
+
+
+def swoop_home():
+    """Reference 2: a large cottage of dark vertical planks under a deep blue roof whose slopes swoop
+    (steep at the ridge, flat at the eaves) and curl up at the corners, with a front cross-gable over
+    an arched door, a big round glowing window, lanterns, steps, a chimney and a grassy base. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    ROOF = [(0.3, 0.37, 0.62), (0.34, 0.41, 0.66), (0.27, 0.33, 0.57)]
+    RIM = (0.2, 0.24, 0.42)
+    PLANK = [(0.6, 0.4, 0.26), (0.66, 0.45, 0.29), (0.55, 0.36, 0.23)]
+    W, D, WALL, PEAK = 5.4, 4.0, 2.4, 4.6
+    GRASS = [(0.36, 0.54, 0.28), (0.42, 0.6, 0.3)]
+    faces = b.new_faces(lambda: rk.tube(b.bm, [V((0, -0.5, -0.05)), V((0, -0.5, 0.18))], [(4.4, 3.6)] * 2, seg=24))
+    for f in faces:
+        b.paint([f], "Build", rnd.choice(GRASS))
+    soft(b, cube_at(b, V((0, 0, 0.3)), (W + 0.3, D + 0.3, 0.3)), STONE[1], 0.06)
+    for i in range(10):                                                             # plank walls
+        x = -W / 2 + (i + 0.5) * W / 10
+        soft(b, cube_at(b, V((x, 0, 0.45 + WALL / 2)), (W / 10, D, WALL)), PLANK[i % 3], 0.03, 1)
+    for x in (-W / 2, W / 2):                                                       # corner posts
+        for y in (-D / 2, D / 2):
+            soft(b, cube_at(b, V((x, y, 0.45 + WALL / 2)), (0.24, 0.24, WALL + 0.1)), TIMBER, 0.03)
+    def slope(sgn, x0, x1, y_eave, y_ridge, z_eave, z_ridge, curl=0.5):
+        def fn(u, v):
+            x = x0 + (x1 - x0) * u
+            y = y_eave + (y_ridge - y_eave) * v
+            z = z_eave + (z_ridge - z_eave) * v ** 1.9 + curl * abs(2 * u - 1) ** 4 * (1 - v) ** 2
+            return V((x, y, z))
+        return fn
+    def colorize(f, u, v):
+        b.paint([f], "Build", ROOF[int(u * 12 + v * 5) % 3])
+    top = 0.45 + WALL
+    for sgn in (-1, 1):                                                              # main roof: ridge along x
+        b.new_faces(lambda sgn=sgn: _grid_shell(b, slope(sgn, -W / 2 - 0.7, W / 2 + 0.7, sgn * (D / 2 + 0.55), 0, top + 0.05, PEAK + 0.45), 10, 5, 0.18, colorize, RIM))
+    # End walls under the roof: plank gables following the curve.
+    for x in (-W / 2 + 0.05, W / 2 - 0.05):
+        pts = []
+        for k in range(9):
+            v = k / 8
+            pts.append((-(D / 2) * (1 - v), top - 0.1 + (PEAK + 0.3 - top) * v ** 1.9))
+        outline = [(-D / 2, top - 0.3)] + pts + [(-y, z) for y, z in reversed(pts[:-1])] + [(D / 2, top - 0.3)]
+        def gable(x=x, outline=outline):
+            bm = b.bm
+            front = [bm.verts.new(V((x - 0.1, y, z))) for y, z in outline]
+            back = [bm.verts.new(V((x + 0.1, y, z))) for y, z in outline]
+            bm.faces.new(front)
+            bm.faces.new(list(reversed(back)))
+            for i in range(len(outline)):
+                j = (i + 1) % len(outline)
+                bm.faces.new((front[j], front[i], back[i], back[j]))
+        b.paint(b.new_faces(gable), "Build", PLANK[1])
+    # Front cross-gable over the door (ridge along y), its own swoop and curled eaves.
+    gx, gy0 = 1.0, -D / 2 - 1.3
+    for sgn in (-1, 1):
+        def cross(u, v, sgn=sgn):
+            y = gy0 + (0.2 - gy0) * u
+            x = gx + sgn * (1.9 * (1 - v))
+            z = top - 0.1 + (PEAK - 0.2 - top + 0.1) * v ** 1.9 + 0.45 * (1 - u) ** 4 * (1 - v) ** 2
+            return V((x, y, z))
+        b.new_faces(lambda cross=cross: _grid_shell(b, cross, 6, 4, 0.16, colorize, RIM))
+    soft(b, outline_prism(b, [(gx - 1.7, top - 0.2), (gx + 1.7, top - 0.2), (gx + 1.1, top + 0.5), (gx, PEAK - 0.45), (gx - 1.1, top + 0.5)], gy0 + 0.35, -D / 2), PLANK[0], 0.03)
+    soft(b, cube_at(b, V((gx, (gy0 + 0.35 - D / 2) / 2, 0.45 + WALL / 2)), (2.9, -D / 2 - gy0 - 0.35, WALL)), PLANK[2], 0.03)
+    fy = gy0 + 0.33
+    soft(b, outline_prism(b, arch_outline(gx, 0.45, 1.3, 2.05), fy - 0.12, fy + 0.05), TIMBER, 0.04)
+    soft(b, outline_prism(b, arch_outline(gx, 0.5, 1.05, 1.9), fy - 0.16, fy - 0.1), (0.5, 0.33, 0.21), 0.03)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((gx + 0.3, fy - 0.2, 1.3)), (0.05, 0.04, 0.05), 5, 3)), "Build", (0.9, 0.75, 0.4))
+    soft(b, outline_prism(b, [(gx - 0.35, top + 0.45), (gx + 0.35, top + 0.45), (gx, top + 1.1)], fy - 0.06, fy + 0.02), (0.3, 0.2, 0.14), 0.01)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((gx, fy - 0.04, top + 0.6)), V((gx, fy - 0.08, top + 0.6))], [(0.22, 0.2)] * 2, ref=V((1, 0, 0)), seg=3)), "Glow", H_GLOW)
+    for i in range(3):                                                               # steps
+        soft(b, cube_at(b, V((gx, fy - 0.35 - i * 0.35, 0.36 - i * 0.12)), (1.5, 0.36, 0.14)), WOOD[i % 3], 0.03)
+    # Big round glowing window on the left, lanterns by the door, chimney.
+    wy = -D / 2 - 0.02
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-1.4, wy + 0.05, 1.7)), V((-1.4, wy - 0.12, 1.7))], [(0.62, 0.62)] * 2, ref=V((1, 0, 0)), seg=14)), "Build", TIMBER)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-1.4, wy - 0.12, 1.7)), V((-1.4, wy - 0.15, 1.7))], [(0.5, 0.5)] * 2, ref=V((1, 0, 0)), seg=14)), "Glow", H_GLOW)
+    beam(b, V((-1.9, wy - 0.17, 1.7)), V((-0.9, wy - 0.17, 1.7)), 0.035, TIMBER)
+    beam(b, V((-1.4, wy - 0.17, 1.2)), V((-1.4, wy - 0.17, 2.2)), 0.035, TIMBER)
+    for x in (gx - 0.95, -0.35):
+        b.paint(b.new_faces(lambda x=x: rk.blob(b.bm, V((x, (fy if x > 0 else wy) - 0.25, 1.9)), (0.12, 0.12, 0.17), 6, 4)), "Glow", H_GLOW)
+        soft(b, cube_at(b, V((x, (fy if x > 0 else wy) - 0.12, 2.12)), (0.06, 0.25, 0.06)), (0.2, 0.18, 0.18), 0.01, 1)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-1.8, 0.6, 3.0)), V((-1.8, 0.6, 5.6))], [(0.32, 0.32), (0.28, 0.28)], seg=8)), "Build", (0.6, 0.52, 0.48))
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-1.8, 0.6, 5.6)), V((-1.8, 0.6, 5.8))], [(0.38, 0.38)] * 2, seg=8)), "Build", (0.5, 0.44, 0.42))
+    for k in range(8):                                                               # bushes and a bit of fence
+        a = rnd.uniform(0, math.tau)
+        clump(b, V((math.cos(a) * 3.9, -0.5 + math.sin(a) * 3.2, 0.3)), 0.28, 1, rnd, rnd.choice(MOSS), "Build", 0.8)
+    for x in (-3.9, -3.2, 3.4, 4.1):
+        soft(b, cube_at(b, V((x, -2.7, 0.55)), (0.12, 0.12, 0.8)), H_WOOD, 0.02, 1)
+    beam(b, V((-3.9, -2.7, 0.75)), V((-3.2, -2.7, 0.75)), 0.05, WOOD[0])
+    beam(b, V((3.4, -2.7, 0.75)), V((4.1, -2.7, 0.75)), 0.05, WOOD[0])
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -1669,3 +1888,6 @@ export("house_lantern", lantern_house(), OUT)
 export("house_hull", hull_house(), OUT)
 export("house_skep", skep_cottage(), OUT)
 export("house_stump", stump_house(), OUT)
+export("house_ring", dual_ring_house(), OUT)
+export("house_market", market_house(), OUT)
+export("house_swoophome", swoop_home(), OUT)
