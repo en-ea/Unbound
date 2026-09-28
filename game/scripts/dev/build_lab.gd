@@ -23,7 +23,7 @@ func _ready() -> void:
 	add_to_group("build_lab")
 
 
-func enter() -> void:
+func enter(spot := Vector2(0.0, 7.5)) -> void:
 	if active:
 		return
 	if not _built:
@@ -35,7 +35,7 @@ func enter() -> void:
 	if env:
 		_fog_was = env.fog_enabled
 		env.fog_enabled = false
-	player.global_position = AT + Vector3(0, 0.6, 7.5)
+	player.global_position = AT + Vector3(spot.x, 0.6, spot.y)
 	player.velocity = Vector3.ZERO
 	get_tree().call_group("camera_rig", "snap")
 
@@ -79,7 +79,7 @@ func _build() -> void:
 	col.position.y = -0.5
 	body.add_child(col)
 	add_child(body)
-	_row(FRONT, 0.0, 14.0)
+	_row(FRONT, 0.0, 12.0)
 	_row(BACK, -18.0, 12.0)
 
 

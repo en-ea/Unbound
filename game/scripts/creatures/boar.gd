@@ -72,7 +72,7 @@ func _physics_process(delta: float) -> void:
 					_regen = 0.0
 					health += 1
 			var home_dist := Vector2(global_position.x - home.x, global_position.z - home.z).length()
-			if dist < SIGHT and player.can_be_targeted() and home_dist < LEASH:
+			if dist < SIGHT and absf(player.global_position.y - global_position.y) < 6.0 and player.can_be_targeted() and home_dist < LEASH:
 				_enter(State.ALERT)
 			elif to_goal.length() > 0.6 and _t < 8.0:
 				want = to_goal.normalized() * WALK_SPEED

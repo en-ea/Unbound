@@ -84,7 +84,7 @@ func _physics_process(delta: float) -> void:
 				health = max_health       # calm again: healed
 			var to_goal := _goal - global_position
 			to_goal.y = 0.0
-			if dist < SIGHT and player.can_be_targeted() and _home_distance() < LEASH:
+			if dist < SIGHT and absf(player.global_position.y - global_position.y) < 6.0 and player.can_be_targeted() and _home_distance() < LEASH:
 				_enter(State.ALERT)
 			elif to_goal.length() > 0.6 and _t < 8.0:
 				want = to_goal.normalized() * WALK_SPEED
