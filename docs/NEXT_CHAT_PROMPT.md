@@ -4,7 +4,7 @@ Where we are: M1-M4 are done: walking, gathering, fighting (boar, wolf packs), c
 
 The big plan is decided in docs/GAME_PLAN.md. Houses are parked for now (placeholders are fine).
 
-Done since: regions + the Whispering Wood (made bigger, with placeholder places), food and cooking, coins + trader + the Smithy, home base (locked early, yard building), the balance file, a new Bag and trader screen, two new lab houses (Skep cottage, Stump house: waiting for my verdict), the test menu (Settings > Codes > Paladin).
-Next: better mobs and fighting (not too easy) before any boss or story; then what docs/GAME_PLAN.md lists.
+Done since: regions + the Whispering Wood (bigger, with placeholder places and a proper gateway), food and cooking, coins + trader + the Smithy, home base (locked early; move houses; yard building with Snap), the balance file (state/balance.gd), new Bag and trader screens, roll/footsteps/footfall puffs, beard/hair/scar fixes, the test menu (Settings > Codes > Paladin, QWERTY keys). Build lab front row: Market round house, Large swoop home, Dual ring house (from my AI pictures, make_village.py), Stump house, Swoop lodge.
+Next: the fighting overhaul (stamina for sprint/roll/heavy attack, enemies that warn before attacking, 2-3 new forest enemies, better hit feel), then the loot and gear chase (weapons as loot, two weapon slots with the bow, full rarities, first armour). Still to redo: a proper character pass (hair/beards), and the village rebuilt in the chosen style.
 
-Keep usage low: read only the files a task needs, avoid screenshots unless a visual check really matters, commit after each working step, keep replies short, and tell me what to test.
+Cloud sessions: run `bash tools-src/cloud_setup.sh` first (Godot + Blender). Keep usage low: read only the files a task needs, avoid screenshots unless a visual check really matters, commit after each working step, keep replies short, and tell me what to test.
