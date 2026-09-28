@@ -7,6 +7,7 @@ uniform float sway = 0.06;          // metres of movement at the top
 uniform float sway_height = 6.0;    // model height where the sway is full
 uniform float glow = 0.0;           // gentle self-light (glowing items)
 uniform float flash = 0.0;          // white hit flash (creatures)
+uniform float warn = 0.0;           // red-hot glow before an attack (creatures)
 
 varying float top_light;
 varying vec3 tint;
@@ -30,7 +31,8 @@ void fragment() {
 	vec3 clump = vec3(UV.x, UV.y, UV2.x);
 	ALBEDO = albedo.rgb * clump * tint * mix(0.76, 1.02, top_light);
 	ALBEDO = mix(ALBEDO, vec3(1.0, 0.92, 0.88), flash);
-	EMISSION = ALBEDO * glow + vec3(0.6) * flash;
+	ALBEDO = mix(ALBEDO, vec3(0.85, 0.16, 0.08), warn * 0.3);
+	EMISSION = ALBEDO * glow + vec3(0.6) * flash + vec3(0.8, 0.14, 0.04) * warn * 0.3;
 	ROUGHNESS = 0.95;
 	SPECULAR = 0.1;
 	RIM = 0.18;

@@ -9,6 +9,7 @@ extends Node
 ##   --showcase        line up one of every tree/bush model in front of the player
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
+##   --telltest        a boar frozen mid-warning in front of you, stamina part used (for screenshots)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
 ##   --lineup          stand every outfit preset in a row in front of the camera
 ##   --title           keep the title screen (otherwise any dev argument skips it)
@@ -27,6 +28,7 @@ var _showcase := false
 var _lineup := false
 var _gather_test := false
 var _fight_test := false
+var _tell_test := false
 var _gather_offset := Vector3(0, 0.3, -1.3)
 
 
@@ -107,6 +109,8 @@ func _ready() -> void:
 				picker[0]._show_tab(tab))
 		elif arg == "--fighttest":
 			_fight_test = true
+		elif arg == "--telltest":
+			_tell_test = true
 		elif arg.begins_with("--gatheroffset="):
 			var v := arg.trim_prefix("--gatheroffset=").split(",")
 			_gather_offset = Vector3(float(v[0]), 0.3, float(v[1]))
@@ -131,6 +135,8 @@ func _process(_delta: float) -> void:
 		_run_gather_test()
 	if _fight_test:
 		_run_fight_test()
+	if _tell_test:
+		_run_tell_test()
 	if _frames == 3 and _lineup:
 		_build_lineup()
 	if _frames == 3 and _showcase:
@@ -240,6 +246,21 @@ func _run_fight_test() -> void:
 			" inventory ", Inventory.items().map(func(i: String) -> String: return "%s x%d" % [i, Inventory.count(i)]))
 	if _frames == 300 and _shot_path == "":
 		get_tree().quit()
+
+
+func _run_tell_test() -> void:
+	var player := get_node("../Player") as Node3D
+	var boars := get_tree().get_nodes_in_group("enemy")
+	if boars.is_empty():
+		return
+	var boar: Node3D = boars[0]
+	if _frames == 20:
+		player.global_position = boar.global_position + Vector3(1.0, 0.3, 3.0)
+		get_node("../CameraRig").snap()
+	if _frames > 20 and player.stamina.value > 45.0:
+		player.stamina._spend(player.stamina.value - 45.0)
+	if boar.state == Boar.State.WINDUP:
+		boar._t = minf(boar._t, 0.55)       # hold the warning about two-thirds through
 
 
 func _build_lineup() -> void:

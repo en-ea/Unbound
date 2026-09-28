@@ -9,7 +9,8 @@ const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const BAR_SHADER := preload("res://shaders/health_bar.gdshader")
 
 var speed := 0.0            # ground speed, set by Boar
-var mode := "walk"          # walk / alert / stalk / charge / hurt / dead
+var mode := "walk"          # walk / alert / windup / stalk / charge / hurt / dead
+var tell := 0.0             # 0..1 through an attack's wind-up: glows and the "!" swells
 ## Other creatures reuse this script (see wolf_visual.gd) with their own model and sizes.
 var model_scene: PackedScene = preload("res://assets/creatures/boar.glb")
 var paws := true            # paws the ground when alert
@@ -34,6 +35,7 @@ var _phase := 0.0
 var _time := 0.0
 var _flash := 0.0
 var _flash_set := 0.0
+var _tell_set := 0.0
 var _fall := 0.0
 
 
@@ -89,6 +91,7 @@ func show_health(fraction: float, hit_points := 5) -> void:
 
 
 func reset() -> void:
+	tell = 0.0
 	_fall = 0.0
 	_trail = 1.0
 	_fill = 1.0
@@ -103,17 +106,24 @@ func _process(delta: float) -> void:
 		for m in _materials:
 			m.set_shader_parameter("flash", _flash)
 		_flash_set = _flash
-	var warn := mode in ["alert", "charge", "stalk"]
+	if tell > 0.0 or _tell_set > 0.0:           # a hot pulse that quickens as the attack nears
+		var w := tell * (0.55 + 0.45 * sin(_time * lerpf(14.0, 30.0, tell)))
+		for m in _materials:
+			m.set_shader_parameter("warn", w)
+		_tell_set = tell
+	var warn := mode in ["alert", "windup", "charge", "stalk"]
 	var eyes := move_toward(_eyes, 1.0 if warn else 0.0, delta * 4.0)
 	if eyes != _eyes:
 		_eyes = eyes
 		for m in _eye_materials:
 			m.set_shader_parameter("glow", _eyes * 2.5)
-	var mark_a := move_toward(_alert_mark.modulate.a, 1.0 if mode == "alert" else 0.0, delta * 6.0)
-	_alert_mark.modulate.a = mark_a
+	var mark_a := move_toward(_alert_mark.modulate.a, 1.0 if mode in ["alert", "windup"] or tell > 0.0 else 0.0, delta * 6.0)
+	var mark_col := Color(1.0, 0.35, 0.25).lerp(Color(1.0, 0.86, 0.45), tell * (0.5 + 0.5 * sin(_time * 30.0)))
+	_alert_mark.modulate = Color(mark_col, mark_a)
 	_alert_mark.outline_modulate.a = mark_a
-	_alert_mark.position.y = mark_height + sin(_time * 10.0) * 0.05
-	_dust.emitting = mode == "charge"
+	_alert_mark.scale = Vector3.ONE * (1.0 + tell * 0.6)
+	_alert_mark.position.y = mark_height + sin(_time * 10.0) * 0.05 + tell * 0.15
+	_dust.emitting = mode == "charge" or mode == "windup"
 	_bar_time -= delta
 	_bar_alpha = move_toward(_bar_alpha, 1.0 if _bar_time > 0.0 else 0.0, delta * 5.0)
 	_trail_wait -= delta
@@ -142,6 +152,11 @@ func _process(delta: float) -> void:
 			swing = 0.0
 			if paws:       # paw the ground with a front leg
 				_parts["Leg_FR"].transform = _rest["Leg_FR"] * Transform3D(Basis(Vector3.RIGHT, -0.6 * maxf(sin(_time * 9.0), 0.0)), Vector3.ZERO)
+		"windup":        # head down, tusks forward, pawing hard
+			head_pitch = 0.28 + sin(_time * 20.0) * 0.03
+			swing = 0.0
+			if paws:
+				_parts["Leg_FR"].transform = _rest["Leg_FR"] * Transform3D(Basis(Vector3.RIGHT, -0.75 * maxf(sin(_time * 16.0), 0.0)), Vector3.ZERO)
 		"hurt":
 			head_pitch = -0.3
 	_pose(swing, bob, head_pitch, stride)
@@ -153,7 +168,7 @@ func _pose(swing: float, bob: float, head_pitch: float, stride: float) -> void:
 	for leg: String in ["Leg_FL", "Leg_BR"]:
 		_parts[leg].transform = _rest[leg] * Transform3D(Basis(Vector3.RIGHT, swing), Vector3.ZERO)
 	for leg: String in ["Leg_FR", "Leg_BL"]:
-		if leg == "Leg_FR" and mode == "alert" and paws:
+		if leg == "Leg_FR" and mode in ["alert", "windup"] and paws:
 			continue
 		_parts[leg].transform = _rest[leg] * Transform3D(Basis(Vector3.RIGHT, -swing), Vector3.ZERO)
 

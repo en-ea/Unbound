@@ -1,7 +1,8 @@
 class_name Boar
 extends CharacterBody3D
-## The boar: wanders near its home; when the player comes close it snorts, paws the ground and
-## charges. A charge that connects knocks the player back (it can't kill for now). Five hits
+## The boar: wanders near its home; when the player comes close it snorts, then lowers its head and
+## paws the ground (the warning: it glows and a lane on the ground shows where it will go, locking
+## its aim shortly before) and charges. A charge that connects knocks the player back (it can't kill for now). Five hits
 ## kill it: it squeals, falls over, drops hide (and sometimes a tusk), and comes back later.
 
 const WALK_SPEED := 1.3
@@ -13,6 +14,9 @@ const MAX_HEALTH := 10         # the real value comes from Balance.BOAR (set in 
 const GRAVITY := 20.0
 const LEASH := 20.0            # chases no further than this from home, then gives up
 const REGEN_EVERY := 3.0       # heals 1 while calm
+const WINDUP := 0.8            # seconds of warning before a charge
+const AIM_LOCK := 0.6          # after this part of the wind-up it stops turning: sidestep now
+const LANE := 8.0              # the warning lane's length (metres)
 const SOUNDS := {
 	"snort": preload("res://assets/sounds/boar_snort.wav"),
 	"squeal": preload("res://assets/sounds/boar_squeal.wav"),
@@ -21,7 +25,7 @@ const SOUNDS := {
 const DROP := preload("res://scripts/world/drop.gd")
 const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
 
-enum State { WANDER, ALERT, CHARGE, RECOVER, HURT, DEAD }
+enum State { WANDER, ALERT, WINDUP, CHARGE, RECOVER, HURT, DEAD }
 
 var player: Node3D
 var home := Vector3.ZERO
@@ -37,6 +41,7 @@ var _charge_dir := Vector3.FORWARD
 var _push := Vector3.ZERO
 var _regen := 0.0
 var _audio: AudioStreamPlayer3D
+var _tell: AttackTell
 @onready var visual: BoarVisual = $Visual
 
 
@@ -45,6 +50,8 @@ func _ready() -> void:
 	_audio = AudioStreamPlayer3D.new()
 	_audio.unit_size = 8.0
 	add_child(_audio)
+	_tell = AttackTell.new()
+	add_child(_tell)
 	_goal = global_position
 	var tough: Dictionary = Balance.REGION_TOUGHNESS.get(Region.current, {"hp": 1.0, "damage": 0})
 	max_health = roundi(Balance.BOAR["hp"] * tough["hp"])
@@ -88,8 +95,18 @@ func _physics_process(delta: float) -> void:
 			if not player.can_be_targeted() or _home_distance() > LEASH:
 				_goal = home
 				_enter(State.WANDER)
-			elif _t > 0.9:
-				_charge_dir = to_player.normalized()
+			elif _t > 0.35:
+				_enter(State.WINDUP)
+		State.WINDUP:
+			if _t < WINDUP * AIM_LOCK:
+				_face(to_player, delta * 5.0)
+				_charge_dir = Vector3(sin(rotation.y), 0, cos(rotation.y))
+			visual.tell = clampf(_t / WINDUP, 0.0, 1.0)
+			_tell.aim(global_position, _charge_dir, LANE, 1.1, visual.tell)
+			if not player.can_be_targeted() or _home_distance() > LEASH:
+				_goal = home
+				_enter(State.WANDER)
+			elif _t > WINDUP:
 				_enter(State.CHARGE)
 		State.CHARGE:
 			want = _charge_dir * CHARGE_SPEED
@@ -115,7 +132,7 @@ func _physics_process(delta: float) -> void:
 	velocity = Vector3(flat.x, velocity.y - GRAVITY * delta if not is_on_floor() else 0.0, flat.z)
 	if state != State.DEAD:
 		move_and_slide()
-	if want.length() > 0.1 and state != State.ALERT:
+	if want.length() > 0.1 and state != State.ALERT and state != State.WINDUP:
 		_face(want, delta * (10.0 if state == State.CHARGE else 4.0))
 	visual.speed = Vector2(velocity.x, velocity.z).length()
 
@@ -187,7 +204,10 @@ func _respawn() -> void:
 func _enter(new_state: State) -> void:
 	state = new_state
 	_t = 0.0
-	visual.mode = {State.ALERT: "alert", State.CHARGE: "charge", State.HURT: "hurt", State.DEAD: "dead"}.get(new_state, "walk")
+	if new_state != State.WINDUP:
+		_tell.stop()
+		visual.tell = 0.0
+	visual.mode = {State.ALERT: "alert", State.WINDUP: "windup", State.CHARGE: "charge", State.HURT: "hurt", State.DEAD: "dead"}.get(new_state, "walk")
 	if new_state == State.ALERT:
 		_play("snort", randf_range(0.9, 1.1))
 
