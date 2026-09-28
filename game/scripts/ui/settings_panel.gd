@@ -9,6 +9,7 @@ const CODE := "paladin"
 var _rows: VBoxContainer
 var _page := "settings"      # settings / code / cheats
 var _msg: Label
+var _typed := ""
 
 
 func _ready() -> void:
@@ -66,29 +67,41 @@ func _page_first() -> void:
 			_cheat_page()
 
 
+## The iPhone keyboard doesn't open for web text boxes, so the code is typed on letter buttons.
 func _code_page() -> void:
 	UIStyle.label(_rows, "Enter a code", 22)
-	var edit := LineEdit.new()
-	edit.placeholder_text = "Code"
-	edit.custom_minimum_size = Vector2(0, 54)
-	edit.add_theme_font_size_override("font_size", 24)
-	_rows.add_child(edit)
+	var shown := UIStyle.label(_rows, _typed if _typed != "" else "_", 30)
+	shown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_msg = UIStyle.label(_rows, "", 18, true)
+	var keys := GridContainer.new()
+	keys.columns = 9
+	keys.add_theme_constant_override("h_separation", 6)
+	keys.add_theme_constant_override("v_separation", 6)
+	_rows.add_child(keys)
+	for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+		UIStyle.button(keys, letter, Vector2(54, 50), 22).pressed.connect(func() -> void:
+			if _typed.length() < 16:
+				_typed += letter
+			shown.text = _typed)
+	UIStyle.button(keys, "⌫", Vector2(54, 50), 22).pressed.connect(func() -> void:
+		_typed = _typed.left(-1)
+		shown.text = _typed if _typed != "" else "_")
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	_rows.add_child(row)
-	var try := func() -> void:
-		if edit.text.strip_edges().to_lower() == CODE:
+	UIStyle.button(row, "Back", Vector2(140, 50)).pressed.connect(func() -> void:
+		_typed = ""
+		_page = "settings"
+		_refresh())
+	UIStyle.button(row, "Enter", Vector2(140, 50)).pressed.connect(func() -> void:
+		if _typed.to_lower() == CODE:
+			_typed = ""
 			_page = "cheats"
 			_refresh()
 		else:
-			_msg.text = "That code doesn't do anything."
-	UIStyle.button(row, "Back", Vector2(140, 50)).pressed.connect(func() -> void:
-		_page = "settings"
-		_refresh())
-	UIStyle.button(row, "Enter", Vector2(140, 50)).pressed.connect(try)
-	edit.text_submitted.connect(func(_t: String) -> void: try.call())
-	edit.grab_focus.call_deferred()
+			_typed = ""
+			shown.text = "_"
+			_msg.text = "That code doesn't do anything.")
 
 
 ## Test helpers: each button gives you something straight away.
