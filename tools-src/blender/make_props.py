@@ -274,39 +274,6 @@ def scaffold():
     return b
 
 
-def smithy():
-    """An open-fronted smithy: a stone forge with glowing coals and a tall chimney, a slate roof on
-    timber posts, an anvil on a stump, a quench barrel and tools on the wall. Faces -Y."""
-    b = Builder(["Prop", "Glow"])
-    soft(b, cube(b, V((0, 0.2, 0.1)), (4.6, 3.6, 0.2)), RUIN_DARK, 0.05)
-    # Forge at the back left: stone block, coals, chimney.
-    soft(b, cube(b, V((-1.2, 1.2, 0.6)), (1.6, 1.1, 1.0)), STONE[1], 0.06)
-    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((-1.2, 1.05, 1.12)), (0.55, 0.35, 0.08), 8, 3)), "Glow", (1.0, 0.42, 0.1))
-    soft(b, cube(b, V((-1.2, 1.45, 2.2)), (1.0, 0.6, 2.2)), STONE[3], 0.05)
-    soft(b, cube(b, V((-1.2, 1.45, 4.1)), (0.7, 0.45, 1.6)), STONE[0], 0.05)
-    soft(b, cube(b, V((-1.2, 1.45, 4.95)), (0.85, 0.6, 0.12)), RUIN_DARK, 0.02)
-    # Posts and a sloped slate roof.
-    for x in (-2.1, 2.1):
-        for y in (-1.4, 1.7):
-            soft(b, cube(b, V((x, y, 1.5)), (0.2, 0.2, 2.8 + (0.4 if y > 0 else 0))), WB_DARK, 0.03)
-    for k in range(5):
-        y = -1.8 + k * 0.8
-        z = 2.95 + k * 0.18
-        soft(b, cube(b, V((0, y, z)), (5.0, 0.95, 0.12), Euler((-0.22, 0, 0))), (0.36, 0.4, 0.5) if k % 2 else (0.42, 0.46, 0.56), 0.02)
-    # Anvil on a stump, quench barrel, hanging tools.
-    soft(b, lambda: rk.tube(b.bm, [V((0.6, -0.4, 0.2)), V((0.6, -0.4, 0.75))], [(0.32, 0.32), (0.3, 0.3)], seg=8), WB_WOOD, 0.03)
-    soft(b, cube(b, V((0.6, -0.4, 0.88)), (0.26, 0.55, 0.24)), IRON_D, 0.03)
-    soft(b, cube(b, V((0.6, -0.4, 1.05)), (0.38, 0.8, 0.14)), IRON_D, 0.03)
-    soft(b, lambda: rk.tube(b.bm, [V((1.6, 0.9, 0.2)), V((1.6, 0.9, 1.0))], [(0.35, 0.35), (0.38, 0.38)], seg=10), WB_WOOD, 0.03)
-    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((1.6, 0.9, 0.98)), (0.32, 0.32, 0.02), 8, 2)), "Prop", (0.3, 0.45, 0.55))
-    soft(b, cube(b, V((0.8, 1.72, 1.9)), (1.6, 0.08, 1.0)), WOOD[1], 0.02)
-    for x in (0.3, 0.8, 1.3):
-        soft(b, cube(b, V((x, 1.64, 1.9)), (0.06, 0.04, 0.6)), IRON_D, 0.01)
-    # A warm lantern at the front post.
-    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((2.1, -1.55, 2.3)), (0.12, 0.12, 0.16), 6, 4)), "Glow", (1.0, 0.76, 0.4))
-    return b
-
-
 export("chest_base", chest_base(), OUT)
 export("chest_lid", chest_lid(), OUT)
 export("ruin_arch", ruin(), OUT)
@@ -401,7 +368,6 @@ def gateway():
 export("campfire", campfire(), OUT)
 export("site_board", site_board(), OUT)
 export("scaffold", scaffold(), OUT)
-export("smithy", smithy(), OUT)
 export("fence", fence(), OUT)
 export("lantern_post", lantern_post(), OUT)
 export("bench", bench(), OUT)

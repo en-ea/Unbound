@@ -5,6 +5,7 @@
                    a round stone chimney with smoke, on a grassy mound with fences and bushes.
   house_market:    "Market stalls round house".
   house_ring:      "Dual ring round house".
+  smithy:          the village Smithy (a project), in the swoop home's style.
 Reuses the helpers in make_buildings.py. Front faces -Y (+Z in Godot). Exported to game/assets/buildings/.
 
 Run: blender --background --python tools-src/blender/make_village.py   (or the bpy module in cloud sessions)
@@ -349,11 +350,199 @@ def ring_house():
     return b
 
 
+# --- 4. Smithy (a village project) ---------------------------------------------------------------
+
+def swoop_hip(b, corners, eave, apex, curl, tile, rim, nu=12, nv=10):
+    """A hip roof of four swooping faces (flat at the eaves, steep near the apex), corners curling up."""
+    for k in range(4):
+        A, B = corners[k], corners[(k + 1) % 4]
+        def face(u, v, A=A, B=B):
+            base = A + (B - A) * u
+            v = v * 0.96
+            p = base * (1 - v) + V((apex.x, apex.y, 0)) * v
+            z = eave + (apex.z - eave) * v ** 1.75 + curl * abs(2 * u - 1) ** 3 * (1 - v) ** 3
+            return V((p.x, p.y, z))
+        def colour(f, u, v):
+            b.paint([f], "Build", tile[(int(v * nv) + (1 if int(u * nu) % 5 == 0 else 0)) % 3])
+        b.new_faces(lambda face=face, colour=colour: _grid_shell(b, face, nu, nv, 0.2, colour, rim))
+    soft(b, lambda: rk.tube(b.bm, [apex + V((0, 0, -0.35)), apex + V((0, 0, 0.1)), apex + V((0, 0, 0.5))], [(0.16, 0.16), (0.09, 0.09), (0.02, 0.02)], seg=6), rim, 0.02)
+
+
+def smithy():
+    """The village smithy, in the swoop home's style: a stone floor on a grassy mound, a plank
+    workshop open at the front under a navy swooping roof, a round stone forge with glowing coals,
+    a copper hood and a tall chimney with smoke, bellows, an anvil on a stump with a hammer, a quench
+    barrel, a weapon rack, tools on the back wall, ingots, coal, lanterns and a hanging anvil sign.
+    Footprint about 6 x 4.4 m. Front faces -Y."""
+    b = Builder(["Build", "Glow"])
+    TILE = [(0.3, 0.37, 0.56), (0.34, 0.42, 0.62), (0.27, 0.33, 0.51)]
+    RIM = (0.46, 0.52, 0.7)
+    PLANK = [(0.74, 0.52, 0.33), (0.79, 0.57, 0.36), (0.69, 0.48, 0.3), (0.76, 0.54, 0.34)]
+    POST = (0.56, 0.37, 0.23)
+    STONE = [(0.62, 0.6, 0.58), (0.55, 0.54, 0.53), (0.68, 0.66, 0.63), (0.5, 0.49, 0.5)]
+    DARK_IRON = (0.24, 0.24, 0.27)
+    STEEL = (0.72, 0.74, 0.78)
+    COPPER = (0.8, 0.47, 0.28)
+    EMBER = (0.9, 0.3, 0.05)
+    W, D, Z0, WALL = 5.6, 4.0, 0.35, 2.9
+    TOP = Z0 + WALL
+    grass_mound(b, 4.4, 3.4, cy=0.1, h=0.2)
+    soft(b, cube_at(b, V((0, 0, Z0 / 2 + 0.05)), (W + 0.3, D + 0.3, Z0)), (0.6, 0.52, 0.42), 0.07)
+    for i in range(18):                                         # flagstones on the floor
+        x, y = rnd.uniform(-W / 2 + 0.4, W / 2 - 0.4), rnd.uniform(-D / 2 + 0.3, D / 2 - 0.3)
+        soft(b, cube_at(b, V((x, y, Z0 + 0.02)), (rnd.uniform(0.5, 0.8), rnd.uniform(0.4, 0.6), 0.05), Euler((0, 0, rnd.uniform(-0.3, 0.3)))), rnd.choice(STONE[:3]), 0.02, 1)
+
+    def planks(x0, x1, y, z0, z1, along="x", n=None):
+        n = n or max(3, int(abs(x1 - x0) / 0.36))
+        w = (x1 - x0) / n
+        for i in range(n):
+            c = x0 + (i + 0.5) * w
+            size = (abs(w) - 0.015, 0.1, z1 - z0) if along == "x" else (0.1, abs(w) - 0.015, z1 - z0)
+            p = V((c, y, (z0 + z1) / 2)) if along == "x" else V((y, c, (z0 + z1) / 2))
+            soft(b, cube_at(b, p, size), PLANK[(i * 7) % 4], 0.015, 1)
+    # Walls: the back, and the back half of each side; the front stands open on thick posts.
+    planks(-W / 2, W / 2, D / 2, Z0, TOP)
+    planks(0.0, D / 2, -W / 2, Z0, TOP, along="y")
+    planks(0.0, D / 2, W / 2, Z0, TOP, along="y")
+    for x in (-W / 2, W / 2):
+        for y in (-D / 2, 0.0, D / 2):
+            soft(b, cube_at(b, V((x, y, (Z0 + TOP) / 2)), (0.28, 0.28, WALL + 0.1)), POST, 0.04)
+        beam(b, V((x, -D / 2, TOP - 0.1)), V((x, D / 2, TOP - 0.1)), 0.1, POST)
+    for y in (-D / 2, D / 2):
+        soft(b, cube_at(b, V((0, y, TOP - 0.1)), (W + 0.2, 0.2, 0.22)), POST, 0.03)
+    for x in (-W / 2, W / 2):                                   # knee braces at the open front
+        beam(b, V((x, -D / 2, TOP - 0.75)), V((x * 0.8, -D / 2, TOP - 0.15)), 0.06, POST)
+
+    # The roof.
+    O = 0.6
+    corners = [V((-W / 2 - O, -D / 2 - O, 0)), V((W / 2 + O, -D / 2 - O, 0)), V((W / 2 + O, D / 2 + O, 0)), V((-W / 2 - O, D / 2 + O, 0))]
+    swoop_hip(b, corners, TOP - 0.1, V((0.4, 0.3, TOP + 2.2)), 0.75, TILE, RIM)
+
+    # The forge: a round stone hearth at the back left with a glowing coal bed and a mouth.
+    fc = V((-1.45, 0.6, 0))
+    for ring in range(3):
+        for k in range(10):
+            a = k / 10 * math.tau + ring * 0.3
+            p = fc + V((math.cos(a) * 0.82, math.sin(a) * 0.82, Z0 + 0.18 + ring * 0.3))
+            soft(b, cube_at(b, p, (0.5, 0.36, 0.3), Euler((0, 0, a))), rnd.choice(STONE), 0.05, 1)
+    soft(b, lambda: rk.tube(b.bm, [fc + V((0, 0, Z0)), fc + V((0, 0, Z0 + 0.95))], [(0.72, 0.72)] * 2, seg=10), STONE[3], 0.03, 1)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, fc + V((0, 0, Z0 + 0.97)), (0.62, 0.62, 0.1), 10, 4)), "Build", (0.2, 0.13, 0.11))
+    for i in range(14):                                         # coals heaped on the fire, the middle ones glowing
+        r = 0.5 * math.sqrt(rnd.random())
+        a = rnd.uniform(0, math.tau)
+        hot = r < 0.32
+        b.paint(b.new_faces(lambda r=r, a=a: rk.blob(b.bm, fc + V((math.cos(a) * r, math.sin(a) * r, Z0 + 1.03)), (0.13, 0.11, 0.07), 5, 3)),
+                "Glow" if hot else "Build", EMBER if hot else (0.17, 0.15, 0.15))
+    soft(b, outline_prism(b, arch_outline(fc.x, Z0 + 0.12, 0.62, 0.55), fc.y - 0.95, fc.y - 0.7), STONE[3], 0.03)
+    b.paint(b.new_faces(outline_prism(b, arch_outline(fc.x, Z0 + 0.14, 0.44, 0.44), fc.y - 0.99, fc.y - 0.95)), "Glow", EMBER)
+    # A copper hood over the fire and a tall round chimney up through the roof, smoking.
+    soft(b, lambda: rk.tube(b.bm, [fc + V((0, 0, Z0 + 1.55)), fc + V((0, 0, Z0 + 1.85)), fc + V((0, 0, Z0 + 2.35))], [(0.88, 0.88), (0.6, 0.6), (0.34, 0.34)], seg=10), COPPER, 0.03)
+    soft(b, lambda: rk.tube(b.bm, [fc + V((0, 0, Z0 + 1.52)), fc + V((0, 0, Z0 + 1.6))], [(0.92, 0.92)] * 2, seg=10), DARK_IRON, 0.02, 1)
+    for a in (0.8, 2.35, 3.9, 5.45):                            # hood stays
+        beam(b, fc + V((math.cos(a) * 0.8, math.sin(a) * 0.8, Z0 + 1.0)), fc + V((math.cos(a) * 0.86, math.sin(a) * 0.86, Z0 + 1.55)), 0.03, DARK_IRON)
+    faces = b.new_faces(lambda: rk.tube(b.bm, [fc + V((0, 0, Z0 + 2.3)), fc + V((0, 0, TOP + 3.3))], [(0.36, 0.36), (0.3, 0.3)], seg=10))
+    for f in faces:
+        b.paint([f], "Build", rnd.choice(STONE))
+    soft(b, lambda: rk.tube(b.bm, [fc + V((0, 0, TOP + 3.25)), fc + V((0, 0, TOP + 3.5))], [(0.42, 0.42)] * 2, seg=10), STONE[1], 0.03)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [fc + V((0, 0, TOP + 3.5)), fc + V((0, 0, TOP + 3.53))], [(0.26, 0.26)] * 2, seg=10)), "Glow", EMBER)
+    for i, (dz, r) in enumerate(((4.0, 0.26), (4.55, 0.33), (5.15, 0.25))):
+        b.paint(b.new_faces(lambda dz=dz, r=r, i=i: rk.blob(b.bm, fc + V((0.12 * i, -0.06 * i, TOP + dz)), (r, r, r * 0.9), 7, 5)), "Build", (0.3, 0.29, 0.32))
+    # Bellows beside the forge: two boards with a leather bag between, and a nozzle.
+    bl = V((-2.35, -0.05, Z0 + 0.65))
+    soft(b, cube_at(b, bl + V((0, 0, -0.14)), (0.5, 0.8, 0.05), Euler((0.1, 0, 0))), PLANK[2], 0.02, 1)
+    soft(b, cube_at(b, bl + V((0, 0, 0.16)), (0.5, 0.8, 0.05), Euler((-0.2, 0, 0))), PLANK[0], 0.02, 1)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, bl, (0.24, 0.36, 0.14), 8, 5)), "Build", (0.45, 0.28, 0.18))
+    beam(b, bl + V((0.1, 0.4, 0.0)), fc + V((-0.55, -0.1, Z0 + 0.7)), 0.05, DARK_IRON)
+    soft(b, cube_at(b, bl + V((0, -0.2, -0.45)), (0.4, 0.4, 0.5)), POST, 0.02, 1)
+    # Coal heap by the forge, a few coals still glowing.
+    for i in range(10):
+        p = V((-2.3 + rnd.uniform(-0.3, 0.3), 1.35 + rnd.uniform(-0.25, 0.25), Z0 + 0.08 + rnd.uniform(0, 0.12)))
+        b.paint(b.new_faces(lambda p=p: rk.blob(b.bm, p, (0.14, 0.12, 0.09), 5, 3)), "Glow" if i % 4 == 0 else "Build", (0.7, 0.24, 0.08) if i % 4 == 0 else (0.15, 0.14, 0.15))
+
+    # The anvil on a stump, with a hammer resting on it.
+    av = V((0.55, -0.55, 0))
+    faces = b.new_faces(lambda: rk.tube(b.bm, [av + V((0, 0, Z0)), av + V((0, 0, Z0 + 0.55))], [(0.36, 0.36), (0.32, 0.32)], seg=9))
+    for f in faces:
+        b.paint([f], "Build", PLANK[2])
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [av + V((0, 0, Z0 + 0.55)), av + V((0, 0, Z0 + 0.57))], [(0.3, 0.3)] * 2, seg=9)), "Build", (0.86, 0.7, 0.48))
+    soft(b, cube_at(b, av + V((0, 0, Z0 + 0.66)), (0.42, 0.3, 0.18)), DARK_IRON, 0.03, 1)
+    soft(b, cube_at(b, av + V((0, 0, Z0 + 0.8)), (0.22, 0.18, 0.14)), DARK_IRON, 0.02, 1)
+    soft(b, cube_at(b, av + V((-0.05, 0, Z0 + 0.94)), (0.62, 0.26, 0.14)), (0.3, 0.3, 0.34), 0.03, 1)
+    soft(b, lambda: rk.tube(b.bm, [av + V((0.25, 0, Z0 + 0.95)), av + V((0.45, 0, Z0 + 0.95)), av + V((0.62, 0, Z0 + 0.99))], [(0.07, 0.1), (0.05, 0.06), (0.01, 0.01)], seg=6), (0.3, 0.3, 0.34), 0.01, 1)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [av + V((-0.33, 0, Z0 + 1.02)), av + V((0.2, 0, Z0 + 1.02))], [(0.1, 0.1)] * 2, seg=4)), "Build", STEEL)
+    beam(b, av + V((-0.1, -0.05, Z0 + 1.07)), av + V((-0.15, -0.5, Z0 + 1.1)), 0.035, PLANK[0])
+    soft(b, cube_at(b, av + V((-0.1, 0.02, Z0 + 1.09)), (0.16, 0.1, 0.1)), DARK_IRON, 0.02, 1)
+    # A glowing bar on the anvil, just out of the fire.
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [av + V((0.05, -0.02, Z0 + 1.05)), av + V((0.3, 0.05, Z0 + 1.05))], [(0.025, 0.025)] * 2, seg=4)), "Glow", EMBER)
+
+    # The quench barrel with water, and tongs leaning on it.
+    barrel(b, V((1.55, -0.85, Z0)))
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((1.55, -0.85, Z0 + 0.66)), (0.25, 0.25, 0.02), 8, 2)), "Build", (0.28, 0.46, 0.56))
+    for s in (-1, 1):
+        beam(b, V((1.3 + s * 0.03, -1.15, Z0 + 0.05)), V((1.42 + s * 0.05, -0.95, Z0 + 0.95)), 0.02, DARK_IRON)
+
+    # A weapon rack against the right wall: three swords and an axe.
+    rx = W / 2 - 0.35
+    for y in (0.35, 1.55):
+        soft(b, cube_at(b, V((rx, y, Z0 + 0.8)), (0.1, 0.1, 1.6)), POST, 0.02, 1)
+    for z in (0.3, 1.25):
+        beam(b, V((rx, 0.3, Z0 + z)), V((rx, 1.6, Z0 + z)), 0.05, POST)
+    for i, y in enumerate((0.6, 0.95, 1.3)):
+        tip, hilt = V((rx - 0.05, y, Z0 + 0.3)), V((rx - 0.12, y, Z0 + 1.35))
+        b.paint(b.new_faces(lambda tip=tip, hilt=hilt: rk.tube(b.bm, [tip, tip + (hilt - tip) * 0.12, hilt], [(0.01, 0.005), (0.05, 0.012), (0.045, 0.012)], ref=V((0, 1, 0)), seg=4)), "Build", STEEL)
+        beam(b, hilt + V((0, -0.14, 0)), hilt + V((0, 0.14, 0)), 0.035, (0.85, 0.7, 0.36) if i == 1 else DARK_IRON)
+        beam(b, hilt, hilt + V((-0.02, 0, 0.22)), 0.035, (0.45, 0.28, 0.18))
+    # Tools on the back wall: hammers and tongs on a board.
+    soft(b, cube_at(b, V((0.9, D / 2 - 0.1, Z0 + 1.55)), (1.8, 0.06, 0.8)), PLANK[1], 0.02, 1)
+    for i, x in enumerate((0.2, 0.55, 0.9, 1.25, 1.6)):
+        y = D / 2 - 0.17
+        if i % 2 == 0:
+            beam(b, V((x, y, Z0 + 1.25)), V((x, y, Z0 + 1.8)), 0.03, PLANK[0])
+            soft(b, cube_at(b, V((x, y, Z0 + 1.82)), (0.2, 0.08, 0.09)), DARK_IRON, 0.02, 1)
+        else:
+            for s in (-1, 1):
+                beam(b, V((x, y, Z0 + 1.85)), V((x + s * 0.06, y, Z0 + 1.2)), 0.02, DARK_IRON)
+    # Ingots stacked on a crate at the front right, and a small crate of ore.
+    soft(b, cube_at(b, V((2.1, -1.35, Z0 + 0.3)), (0.7, 0.6, 0.6)), PLANK[3], 0.03)
+    for i in range(5):
+        row, k = (0, i) if i < 3 else (1, i - 3)
+        p = V((1.93 + k * 0.17 + row * 0.08, -1.35, Z0 + 0.66 + row * 0.08))
+        soft(b, cube_at(b, p, (0.14, 0.3, 0.07)), [COPPER, STEEL, (0.62, 0.62, 0.66)][i % 3], 0.015, 1)
+    soft(b, cube_at(b, V((-0.6, -1.5, Z0 + 0.22)), (0.5, 0.45, 0.4), Euler((0, 0, 0.25))), PLANK[2], 0.03)
+    for i in range(5):
+        clump(b, V((-0.6 + rnd.uniform(-0.15, 0.15), -1.5 + rnd.uniform(-0.12, 0.12), Z0 + 0.46)), 0.1, 1, rnd, rnd.choice([(0.5, 0.36, 0.3), (0.55, 0.42, 0.34)]), "Build", 0.8)
+
+    # Lanterns on the front posts, and a hanging sign with an anvil on it.
+    for x in (-W / 2, W / 2):
+        soft(b, cube_at(b, V((x, -D / 2 - 0.2, TOP - 0.55)), (0.05, 0.4, 0.05)), IRON, 0.01, 1)
+        lantern(b, V((x, -D / 2 - 0.38, TOP - 0.9)), 0.12)
+    sx = W / 2 + 0.15
+    beam(b, V((sx - 0.1, -D / 2 - 0.1, TOP - 0.35)), V((sx + 0.95, -D / 2 - 0.1, TOP - 0.35)), 0.05, IRON)
+    beam(b, V((sx - 0.1, -D / 2 - 0.1, TOP - 0.85)), V((sx + 0.55, -D / 2 - 0.1, TOP - 0.38)), 0.035, IRON)
+    for x in (sx + 0.35, sx + 0.8):
+        beam(b, V((x, -D / 2 - 0.1, TOP - 0.38)), V((x, -D / 2 - 0.1, TOP - 0.6)), 0.012, IRON)
+    soft(b, cube_at(b, V((sx + 0.575, -D / 2 - 0.1, TOP - 0.9)), (0.8, 0.07, 0.6)), PLANK[1], 0.03)
+    for side in (-1, 1):                                        # the anvil emblem on both faces
+        y = -D / 2 - 0.1 + side * 0.045
+        soft(b, cube_at(b, V((sx + 0.575, y, TOP - 0.78)), (0.46, 0.02, 0.1)), DARK_IRON, 0.005, 1)
+        soft(b, cube_at(b, V((sx + 0.575, y, TOP - 0.9)), (0.14, 0.02, 0.14)), DARK_IRON, 0.005, 1)
+        soft(b, cube_at(b, V((sx + 0.575, y, TOP - 1.02)), (0.32, 0.02, 0.08)), DARK_IRON, 0.005, 1)
+    # A stone path out front, bushes round the back.
+    for i in range(3):
+        soft(b, cube_at(b, V((0.3 + rnd.uniform(-0.2, 0.2), -D / 2 - 0.55 - i * 0.55, 0.12)), (0.75, 0.42, 0.08), Euler((0, 0, rnd.uniform(-0.4, 0.4)))), rnd.choice(STONE), 0.03)
+    for a in [k * 0.5 for k in range(13)]:
+        if math.sin(a) < -0.2:
+            continue
+        p = V((math.cos(a) * 3.9, 0.1 + math.sin(a) * 2.9, 0.25))
+        clump(b, p, rnd.uniform(0.3, 0.42), 1, rnd, rnd.choice(mb.MOSS), "Build", 0.8)
+    return b
+
+
 if __name__ == "__main__":
     bpy.ops.wm.read_factory_settings(use_empty=True)
     rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
     os.makedirs(OUT, exist_ok=True)
     only = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
-    for name, fn in (("house_swoophome", swoop_home), ("house_market", market_house), ("house_ring", ring_house)):
+    for name, fn in (("house_swoophome", swoop_home), ("house_market", market_house), ("house_ring", ring_house), ("smithy", smithy)):
         if not only or name in only:
             export(name, fn(), OUT)

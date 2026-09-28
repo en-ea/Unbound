@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://oij72xfmppwy"
-path="res://.godot/imported/smithy.glb-d76a8953535a839e1efb86c55d3a11a5.scn"
+uid="uid://282mena60wx6"
+path="res://.godot/imported/smithy.glb-a75b99836408ba69ef8c29dd088a653a.scn"
 
 [deps]
 
-source_file="res://assets/props/smithy.glb"
-dest_files=["res://.godot/imported/smithy.glb-d76a8953535a839e1efb86c55d3a11a5.scn"]
+source_file="res://assets/buildings/smithy.glb"
+dest_files=["res://.godot/imported/smithy.glb-a75b99836408ba69ef8c29dd088a653a.scn"]
 
 [params]
 
