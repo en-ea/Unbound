@@ -21,6 +21,8 @@
   house_turret:  curved oval body, bell roof in tile rows, round dormer, turret, shell canopy door.
   house_lantern: plaster cottage, flared hip roof in tile rows opening into a glowing lantern cupola.
   house_hull:    stone cottage roofed with an upturned boat hull, side-on: prow and lantern, portholes.
+  house_skep:    meadow: a dome of stacked straw coils like an old beehive, hex window glowing honey-gold.
+  house_stump:   forest: a home in a colossal tree stump, roots, mossy shingle cone roof, fungus steps.
 Front faces -Y in Blender (+Z in Godot, towards the camera). Exported to game/assets/buildings/.
 
 Run: tools/blender/blender.exe --background --python tools-src/blender/make_buildings.py
@@ -1470,6 +1472,181 @@ def hull_house():
     return b
 
 
+def skep_cottage():
+    """Meadow: a home shaped like an old straw beehive (a skep): a tall dome of fat stacked straw coils,
+    honey-gold light glowing from a hex window up high, a round door under a swooping wooden hood on a
+    little plank porch with honey pots, flower boxes under round windows, a lantern, and a stack of
+    painted hive boxes beside it. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    COIL = [(0.93, 0.76, 0.42), (0.86, 0.68, 0.35), (0.9, 0.72, 0.38), (0.82, 0.63, 0.31)]
+    HONEY = (1.0, 0.72, 0.28)
+    WOOD_W = (0.6, 0.4, 0.25)
+    WOOD_D = (0.4, 0.27, 0.19)
+    STONE_L = [(0.72, 0.7, 0.66), (0.64, 0.62, 0.58)]
+    R, TOP, COILS = 2.9, 6.0, 8
+    def radius(z):                                  # the skep's bell: steep sides, round top
+        t = min(max(z / TOP, 0.0), 1.0)
+        return R * (1.0 - t ** 2.2) ** 0.55 + 0.05
+    for k in range(10):                             # a ring of footing stones
+        a = k * math.tau / 10
+        soft(b, cube_at(b, V((math.cos(a) * 2.75, math.sin(a) * 2.75, 0.15)), (1.1, 0.8, 0.4), Euler((0, 0, a))), STONE_L[k % 2], 0.08)
+    # The dome: one tube up the middle, bulging per coil so the straw rings read clearly.
+    pts, radii = [], []
+    steps = COILS * 4
+    for i in range(steps + 1):
+        z = 0.3 + (TOP - 0.3) * i / steps
+        bulge = 0.16 * math.sin(math.pi * (i % 4) / 4) if i < steps - 2 else 0.0
+        r = radius(z - 0.3) + bulge
+        pts.append(V((0, 0, z)))
+        radii.append((max(r, 0.05), max(r, 0.05)))
+    faces = b.new_faces(lambda: rk.tube(b.bm, pts, radii, ref=V((1, 0, 0)), seg=20))
+    for f in faces:
+        z = f.calc_center_median().z
+        b.paint([f], "Build", COIL[int((z - 0.3) / ((TOP - 0.3) / COILS)) % len(COIL)])
+    # A wooden knob and a little crooked chimney on top.
+    soft(b, lambda: rk.tube(b.bm, [V((0, 0, TOP - 0.05)), V((0, 0, TOP + 0.35)), V((0, 0, TOP + 0.55))], [(0.3, 0.3), (0.22, 0.22), (0.05, 0.05)], seg=8), WOOD_D, 0.03)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((1.0, 0.6, 4.6)), V((1.15, 0.7, 6.1)), V((1.05, 0.75, 6.5))], [(0.2, 0.2), (0.18, 0.18), (0.22, 0.22)], seg=7)), "Build", STONE_L[0])
+    # Front: a swooping wooden hood over a round door, on a plank porch.
+    fy = -radius(0.9) - 0.1
+    round_door(b, 0, fy, 0.45, 1.0, 1.85)
+    def hood():
+        bm = b.bm
+        nu, nv = 8, 3
+        grid = []
+        for i in range(nu + 1):
+            u = i / nu
+            row = []
+            for j in range(nv + 1):
+                v = j / nv
+                x = (u - 0.5) * 2.4
+                y = fy - 0.1 - v * 1.1
+                z = 2.75 - v * 0.45 + 0.35 * (abs(u - 0.5) * 2) ** 2 - 0.25 * math.sin(math.pi * u) * v
+                row.append(bm.verts.new(V((x, y, z))))
+            grid.append(row)
+        fs = []
+        for i in range(nu):
+            for j in range(nv):
+                fs.append(bm.faces.new([grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]]))
+        for f in fs:
+            f.normal_update()
+        if sum(f.normal.z for f in fs) < 0:
+            bmesh.ops.reverse_faces(bm, faces=fs)
+        bmesh.ops.solidify(bm, geom=fs, thickness=0.12)
+    b.paint(b.new_faces(hood), "Build", WOOD_W)
+    for x in (-1.05, 1.05):
+        soft(b, cube_at(b, V((x, fy - 1.1, 1.35)), (0.14, 0.14, 2.3)), WOOD_D, 0.03)
+    soft(b, cube_at(b, V((0, fy - 0.8, 0.32)), (2.8, 1.8, 0.14)), WOOD_W, 0.03)
+    for i in range(2):
+        soft(b, cube_at(b, V((0, fy - 1.9 - i * 0.35, 0.18 - i * 0.12)), (1.4, 0.35, 0.12)), WOOD_D, 0.03)
+    for x, h in ((-0.8, 0.35), (-0.55, 0.28), (0.85, 0.32)):   # honey pots on the porch
+        b.paint(b.new_faces(lambda x=x, h=h: rk.tube(b.bm, [V((x, fy - 1.3, 0.4)), V((x, fy - 1.3, 0.4 + h * 0.5)), V((x, fy - 1.3, 0.4 + h))],
+                                                     [(0.13, 0.13), (0.17, 0.17), (0.09, 0.09)], seg=8)), "Build", (0.85, 0.55, 0.3))
+        b.paint(b.new_faces(lambda x=x, h=h: rk.blob(b.bm, V((x, fy - 1.3, 0.42 + h)), (0.1, 0.1, 0.04), 8, 2)), "Glow", HONEY)
+    # A lantern on the right post, round windows with flower boxes, and the glowing hex window up top.
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((1.05, fy - 1.25, 2.05)), (0.12, 0.12, 0.16), 6, 4)), "Glow", HONEY)
+    for a, z in ((-2.15, 1.55), (-0.95, 1.55)):
+        out = V((math.cos(a), math.sin(a), 0))
+        round_window(b, out * (radius(z - 0.3) - 0.02) + V((0, 0, z)), out, 0.36, True)
+    zh = 3.9
+    hex_window(b, V((0, -radius(zh - 0.3) + 0.02, zh)), V((0, -1, 0)), 0.42, HONEY)
+    # Painted hive boxes stacked beside the house, and a few flowers.
+    for i, c in enumerate(((0.95, 0.9, 0.78), (0.95, 0.78, 0.4), (0.62, 0.78, 0.8))):
+        soft(b, cube_at(b, V((3.4, -0.8, 0.3 + i * 0.46)), (0.8, 0.8, 0.42), Euler((0, 0, 0.1 * i))), c, 0.04)
+    soft(b, cube_at(b, V((3.4, -0.8, 1.72)), (1.0, 1.0, 0.1)), WOOD_D, 0.03)
+    for k in range(7):
+        a = -1.9 + k * 0.28
+        clump(b, V((math.cos(a) * 3.3, math.sin(a) * 3.3, 0.25)), 0.14, 1, rnd, rnd.choice(FLOWERS), "Build", 0.9)
+    return b
+
+
+def stump_house():
+    """Forest: a home inside a colossal old tree stump. The flared trunk in faceted bark strips with
+    great roots sprawling into the ground; the cut top is capped by a steep mossy shingle roof with a
+    crooked chimney; a round yellow door between two roots, round lit windows, shelf-fungus steps
+    spiralling up to a little balcony, a branch holding a lantern, and red mushrooms. Faces -Y."""
+    b = Builder(["Build", "Glow"])
+    BARK = [(0.66, 0.48, 0.34), (0.72, 0.53, 0.37), (0.6, 0.43, 0.3), (0.76, 0.57, 0.4)]
+    CUT = (0.82, 0.66, 0.44)
+    SHROOM = (0.95, 0.82, 0.6)
+    SHINGLE_M = [(0.36, 0.5, 0.3), (0.42, 0.56, 0.32), (0.32, 0.45, 0.28)]
+    WOOD_D = (0.36, 0.24, 0.17)
+    DOOR = (0.95, 0.76, 0.3)
+    LIGHT = (1.0, 0.78, 0.42)
+    TOP = 4.6
+    def radius(z):
+        return 2.0 + 1.3 * math.exp(-z * 1.5)
+    pts = [V((0, 0, z)) for z in (0.0, 0.25, 0.6, 1.0, 1.6, 2.4, 3.3, 4.2, TOP)]
+    faces = b.new_faces(lambda: rk.tube(b.bm, pts, [(radius(p.z), radius(p.z)) for p in pts], ref=V((1, 0, 0)), seg=16))
+    for f in faces:                                 # vertical bark strips
+        c = f.calc_center_median()
+        k = int((math.atan2(c.y, c.x) + math.pi) / math.tau * 16)
+        b.paint([f], "Build", BARK[k % len(BARK)])
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, TOP)), V((0, 0, TOP + 0.08))], [(radius(TOP) + 0.05,) * 2] * 2, seg=16)), "Build", CUT)
+    # Roots: sprawling out and down, leaving the front clear for the door.
+    for k in range(9):
+        a = -math.pi / 2 + 0.55 + k * (math.tau - 1.1) / 8
+        d = V((math.cos(a), math.sin(a), 0))
+        root = [d * 2.4 + V((0, 0, 1.1)), d * 3.3 + V((0, 0, 0.45)), d * 4.2 + V((0, 0, 0.1)), d * 4.9 + V((0, 0, -0.1))]
+        faces = b.new_faces(lambda root=root: rk.tube(b.bm, root, [(0.5, 0.42), (0.38, 0.32), (0.24, 0.2), (0.08, 0.08)], ref=V((0, 0, 1)), seg=7))
+        b.paint(faces, "Build", BARK[k % len(BARK)])
+    # A steep cone roof in mossy shingle rows, with an overhang and a crooked stone chimney.
+    rows = 6
+    for i in range(rows):
+        z0 = TOP + 0.05 + i * 0.42
+        r0 = radius(TOP) + 0.55 - i * 0.44
+        r1 = r0 - 0.5
+        faces = b.new_faces(lambda z0=z0, r0=r0, r1=r1: rk.tube(b.bm, [V((0, 0, z0)), V((0, 0, z0 + 0.14)), V((0, 0, z0 + 0.62))],
+                                                                [(r0, r0), (r0 - 0.04, r0 - 0.04), (max(r1, 0.08), max(r1, 0.08))], seg=14))
+        b.paint(faces, "Build", SHINGLE_M[i % 3])
+    soft(b, lambda: rk.tube(b.bm, [V((0, 0, TOP + 2.6)), V((0, 0, TOP + 3.1))], [(0.12, 0.12), (0.02, 0.02)], seg=6), WOOD_D, 0.02)
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((1.1, 0.7, TOP + 0.5)), V((1.25, 0.8, TOP + 1.9)), V((1.1, 0.9, TOP + 2.4))],
+                                        [(0.24, 0.24), (0.22, 0.22), (0.27, 0.27)], seg=7)), "Build", (0.62, 0.6, 0.58))
+    # The door: a round yellow door in a dark frame, with stepping stones.
+    fy = -radius(1.0) + 0.15
+    soft(b, outline_prism(b, arch_outline(0, 0.2, 1.4, 2.1), fy - 0.12, fy + 0.3), WOOD_D, 0.04)
+    soft(b, outline_prism(b, arch_outline(0, 0.25, 1.1, 1.9), fy - 0.18, fy - 0.1), DOOR, 0.03)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.3, fy - 0.22, 1.05)), (0.07, 0.05, 0.07), 6, 4)), "Build", (0.35, 0.3, 0.25))
+    for i, (x, y) in enumerate(((0.1, -0.8), (-0.25, -1.6), (0.2, -2.4))):
+        soft(b, cube_at(b, V((x, fy + y, 0.05)), (0.8, 0.6, 0.14), Euler((0, 0, 0.3 * i))), (0.6, 0.6, 0.58), 0.08)
+    # Round lit windows.
+    for a, z, r in ((-2.3, 1.7, 0.38), (-0.75, 2.9, 0.34), (-1.9, 3.7, 0.28)):
+        out = V((math.cos(a), math.sin(a), 0))
+        p = out * (radius(z) - 0.05) + V((0, 0, z))
+        paint(b, b.new_faces(lambda p=p, out=out, r=r: rk.tube(b.bm, [p - out * 0.05, p + out * 0.14], [(r + 0.08, r + 0.08)] * 2, ref=V((0, 0, 1)), seg=12)), WOOD_D, 0.0)
+        b.paint(b.new_faces(lambda p=p, out=out, r=r: rk.tube(b.bm, [p + out * 0.14, p + out * 0.17], [(r, r)] * 2, ref=V((0, 0, 1)), seg=12)), "Glow", LIGHT)
+    # Shelf-fungus steps spiralling up the right side to a small balcony.
+    for i in range(7):
+        a = -0.9 + i * 0.32
+        z = 0.7 + i * 0.5
+        out = V((math.cos(a), math.sin(a), 0))
+        c = out * (radius(z) + 0.28) + V((0, 0, z))
+        b.paint(b.new_faces(lambda c=c: rk.blob(b.bm, c, (0.45, 0.45, 0.1), 8, 3)), "Build", SHROOM if i % 2 == 0 else (0.92, 0.7, 0.45))
+    a = 1.35
+    out = V((math.cos(a), math.sin(a), 0))
+    deck = out * (radius(4.0) + 0.55) + V((0, 0, 4.0))
+    soft(b, cube_at(b, deck, (1.5, 1.2, 0.12), Euler((0, 0, a))), (0.6, 0.42, 0.28), 0.03)
+    for s in (-0.6, 0.6):
+        side = V((-out.y, out.x, 0))
+        soft(b, cube_at(b, deck + out * 0.5 + side * s + V((0, 0, 0.35)), (0.08, 0.08, 0.7)), WOOD_D, 0.02)
+    soft(b, cube_at(b, deck + out * 0.5 + V((0, 0, 0.68)), (1.3, 0.08, 0.07), Euler((0, 0, a + math.pi / 2))), WOOD_D, 0.02)
+    # A branch reaching out to the left with a hanging lantern.
+    br = [V((-radius(3.4) + 0.2, -0.4, 3.4)), V((-3.2, -0.8, 3.8)), V((-3.9, -1.0, 4.3))]
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, br, [(0.22, 0.22), (0.14, 0.14), (0.06, 0.06)], ref=V((0, 0, 1)), seg=6)), "Build", BARK[0])
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((-3.4, -0.88, 3.95)), V((-3.4, -0.88, 3.3))], [(0.012, 0.012)] * 2, seg=4)), "Build", (0.2, 0.18, 0.18))
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((-3.4, -0.88, 3.15)), (0.13, 0.13, 0.18), 6, 4)), "Glow", LIGHT)
+    # Moss on the roots and red mushrooms at the foot.
+    for k in range(10):
+        a = rnd.uniform(0, math.tau)
+        d = rnd.uniform(2.6, 3.8)
+        clump(b, V((math.cos(a) * d, math.sin(a) * d, 0.25)), 0.22, 1, rnd, rnd.choice(MOSS), "Build", 0.6)
+    for k in range(5):
+        a = -1.2 + k * 0.5
+        p = V((math.cos(a) * 3.0, math.sin(a) * 3.0, 0))
+        soft(b, lambda p=p: rk.tube(b.bm, [p, p + V((0, 0, 0.3))], [(0.05, 0.05)] * 2, seg=5), (0.95, 0.92, 0.84), 0.01, 1)
+        b.paint(b.new_faces(lambda p=p: rk.blob(b.bm, p + V((0, 0, 0.32)), (0.17, 0.17, 0.09), 8, 3)), "Build", (0.85, 0.2, 0.17))
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Build": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
@@ -1490,3 +1667,5 @@ export("house_storybook", storybook_cottage(), OUT)
 export("house_turret", turret_cottage(), OUT)
 export("house_lantern", lantern_house(), OUT)
 export("house_hull", hull_house(), OUT)
+export("house_skep", skep_cottage(), OUT)
+export("house_stump", stump_house(), OUT)

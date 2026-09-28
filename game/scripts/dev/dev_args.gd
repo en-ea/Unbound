@@ -42,8 +42,13 @@ func _ready() -> void:
 			_shot_path = arg.trim_prefix("--shot=")
 		elif arg.begins_with("--shotframe="):
 			_shot_frame = int(arg.trim_prefix("--shotframe="))
-		elif arg == "--lab":
+		elif arg.begins_with("--lab"):                    # --lab, or --lab=x,z to stand at a spot in it
 			get_tree().call_group.call_deferred("build_lab", "enter")
+			if arg.begins_with("--lab="):
+				var v := arg.trim_prefix("--lab=").split(",")
+				get_tree().create_timer(0.2).timeout.connect(func() -> void:
+					(get_node("../Player") as Node3D).global_position = Vector3(float(v[0]), -299.4, float(v[1]))
+					get_node("../CameraRig").snap())
 		elif arg == "--craft" or arg == "--bag":      # open a screen (with some items to show)
 			for item in ["wood", "stone", "flint", "copper", "hide", "apple", "resin"]:
 				Inventory.add(item, 5)

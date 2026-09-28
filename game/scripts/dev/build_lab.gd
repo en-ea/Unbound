@@ -6,8 +6,8 @@ extends Node3D
 const TREASURE := preload("res://scripts/world/treasure.gd")
 const AT := Vector3(0, -300, 0)
 ## [name, model, footprint]: the newest styles in the front row.
-const FRONT := [["Hill house", "house_hill", 6.5], ["Lantern house", "house_lantern", 6.5], ["Hull house", "house_hull", 6.5], ["Swoop lodge", "house_lodge", 6.0]]
-const BACK := [["Turret cottage", "house_turret", 6.5], ["Storybook cottage", "house_storybook", 6.5], ["Gable house", "house_gable", 5.5], ["Arch cottage", "house_arch", 6.0], ["Round house", "house_round", 5.0], ["Cottage", "house_cottage", 6.0], ["Cabin", "house_cabin", 6.0],
+const FRONT := [["Hill house", "house_hill", 6.5], ["Skep cottage (meadow)", "house_skep", 7.0], ["Stump house (forest)", "house_stump", 8.0], ["Swoop lodge", "house_lodge", 6.0]]
+const BACK := [["Lantern house", "house_lantern", 6.5], ["Hull house", "house_hull", 6.5], ["Turret cottage", "house_turret", 6.5], ["Storybook cottage", "house_storybook", 6.5], ["Gable house", "house_gable", 5.5], ["Arch cottage", "house_arch", 6.0], ["Round house", "house_round", 5.0], ["Cottage", "house_cottage", 6.0], ["Cabin", "house_cabin", 6.0],
 	["Loaf cottage", "house_loaf", 6.0], ["Windmill", "windmill", 5.0], ["Hex house (later)", "house_hex", 6.5],
 	["Rune tower (later)", "house_tower", 6.0], ["Grotto house (later)", "house_grotto", 6.5]]
 
