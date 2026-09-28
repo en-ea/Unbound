@@ -5,9 +5,11 @@ const BOAR := preload("res://scenes/boar.tscn")
 const WOLF := preload("res://scenes/wolf.tscn")
 ## Per region: where boars live, wolf packs (two wolves each), and lone shadow wolves (tougher).
 const HOMES := {
-	"meadow": {"boars": [Vector2(20, 28), Vector2(-24, 12)], "wolves": [Vector2(6, -38), Vector2(-44, -4)], "shadow": []},
-	"forest": {"boars": [Vector2(26, -40)], "wolves": [Vector2(-20, -30), Vector2(30, 6), Vector2(-30, 20)],
-		"shadow": [Vector2(10, 40), Vector2(-40, -10)]},
+	"meadow": {"boars": [Vector2(20, 28), Vector2(-24, 12), Vector2(58, 20), Vector2(-60, 30)],
+		"wolves": [Vector2(6, -38), Vector2(-44, -4), Vector2(-62, -76), Vector2(70, -60)], "shadow": []},
+	"forest": {"boars": [Vector2(26, -40), Vector2(70, -20)],
+		"wolves": [Vector2(-20, -30), Vector2(30, 6), Vector2(-30, 20), Vector2(60, -64), Vector2(-80, 10), Vector2(40, 80)],
+		"shadow": [Vector2(10, 40), Vector2(-40, -10), Vector2(-50, 64), Vector2(76, 40)]},
 }
 
 @export var player: Node3D

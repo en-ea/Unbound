@@ -17,8 +17,10 @@ const LID_OPEN := -1.9
 ## Ruins (x, z) and chests (x, z, turn in degrees, lift: chests in a ruin sit on its platform). Chest spots are also in WorldShape.keep_clear.
 ## Per region.
 const RUINS := {"meadow": [Vector2(-38, -12), Vector2(40, 22)], "forest": [Vector2(34, -18)]}
-const CHESTS := {"meadow": [Vector4(-38, -11.2, 0, 0.37), Vector4(40, 22.8, 0, 0.37), Vector4(31, -40, 25, 0)],
-	"forest": [Vector4(34, -17.2, 0, 0.37), Vector4(-36, 30, -30, 0), Vector4(-40, -40, 60, 0)]}
+const CHESTS := {"meadow": [Vector4(-38, -11.2, 0, 0.37), Vector4(40, 22.8, 0, 0.37), Vector4(31, -40, 25, 0),
+		Vector4(-73, -60, 20, 0), Vector4(-67, 60, -40, 0)],
+	"forest": [Vector4(34, -17.2, 0, 0.37), Vector4(-36, 30, -30, 0), Vector4(-40, -40, 60, 0),
+		Vector4(64, 49, 10, 0), Vector4(-66, -42, 70, 0)]}
 
 @export var player: Node3D
 

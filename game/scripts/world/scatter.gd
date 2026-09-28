@@ -6,6 +6,7 @@ const OWN := "res://assets/nature/%s.glb"          # all models: tools-src/blend
 const SOLID_FOLIAGE_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const CHUNK := 30.0
 const TREE_CELL := 5.0      # grid cell for fast "is there a tree near here" checks
+const EDGE := WorldShape.PLAY_HALF - 8.0     # past this, the woods close in around the region
 
 ## Per model: cast shadows, visibility range (0 = always), wind sway (metres), sway height.
 const KINDS := {
@@ -62,24 +63,24 @@ func _scatter_trees() -> void:
 	var commons := ["tree_oak_1", "tree_oak_2", "tree_round_1", "tree_round_2", "tree_round_1",
 		"tree_small_1", "tree_small_2", "tree_tall_1", "tree_apple_1", "tree_blossom_1", "tree_dead_1"]
 	var pines := ["tree_pine_1", "tree_pine_2"]
-	for i in 6000:
-		if _trees.size() >= 230:
+	for i in 16000:
+		if _trees.size() >= 620:
 			break
-		var p := _random_point(72.0)
+		var p := _random_point(WorldShape.HALF_SIZE - 8.0)
 		var edge := maxf(absf(p.x), absf(p.y))
 		var forest := _shape.meadow_noise(p.x * 0.6 + 40.0, p.y * 0.6)
 		var chance := 0.02
-		if edge > 50.0:
+		if edge > EDGE:
 			chance = 0.9
 		elif forest > 0.62:
 			chance = 0.55
 		if _rng.randf() > chance or not _clear_of_features(p, 4.5, 11.0):
 			continue
-		var spacing := 3.6 if edge > 50.0 else 4.5
+		var spacing := 3.6 if edge > EDGE else 4.5
 		if _near_tree(p, spacing):
 			continue
 		_add_tree(p)
-		var model: String = _pick(pines) if (edge > 48.0 and _rng.randf() < 0.6) else _pick(commons)
+		var model: String = _pick(pines) if (edge > EDGE - 2.0 and _rng.randf() < 0.6) else _pick(commons)
 		var gather := "" if model == "tree_dead_1" else ("apple_tree" if model == "tree_apple_1" else "tree")
 		# Sizes vary a lot: young, grown and old trees take different work and give different wood.
 		_place(model, "tree", p, _rng.randf_range(0.72, 1.4), 0.2, gather)
@@ -90,15 +91,15 @@ func _scatter_trees() -> void:
 func _scatter_forest_trees() -> void:
 	var leafy := ["tree_oak_1", "tree_oak_2", "tree_round_2", "tree_tall_1", "tree_small_2", "tree_dead_1"]
 	var pines := ["tree_pine_1", "tree_pine_2"]
-	for i in 9000:
-		if _trees.size() >= 380:
+	for i in 24000:
+		if _trees.size() >= 950:
 			break
-		var p := _random_point(72.0)
+		var p := _random_point(WorldShape.HALF_SIZE - 8.0)
 		var edge := maxf(absf(p.x), absf(p.y))
 		var thick := _shape.meadow_noise(p.x * 0.5 - 30.0, p.y * 0.5)
-		if _rng.randf() > (0.95 if edge > 50.0 else 0.35 + thick * 0.6) or not _clear_of_features(p, 3.5, 6.0):
+		if _rng.randf() > (0.95 if edge > EDGE else 0.35 + thick * 0.6) or not _clear_of_features(p, 3.5, 6.0):
 			continue
-		if _near_tree(p, 3.1 if edge > 50.0 else 3.6):
+		if _near_tree(p, 3.1 if edge > EDGE else 3.6):
 			continue
 		_add_tree(p)
 		var pine := _rng.randf() < 0.55
@@ -188,13 +189,13 @@ func _scatter_rocks() -> void:
 		var ang := _rng.randf() * TAU
 		var p := WorldShape.POND_CENTER + Vector2.from_angle(ang) * (WorldShape.POND_RADIUS + _rng.randf_range(0.5, 2.5))
 		_place(_pick(rocks), "rock", p, _rng.randf_range(0.5, 1.0), 0.25, "rock")
-	for i in 400:
-		var p := _random_point(54.0)
+	for i in 1100:
+		var p := _random_point(WorldShape.PLAY_HALF - 4.0)
 		if _rng.randf() < 0.05 and _clear_of_features(p, 3.0, 9.0) and not _near_tree(p, 2.5):
 			_place(_pick(rocks), "rock", p, _rng.randf_range(0.5, 1.2), 0.3, "rock")
 	var pebbles := ["pebble_1", "pebble_2"]
-	for i in 1500:
-		var p := _random_point(56.0)
+	for i in 4000:
+		var p := _random_point(WorldShape.PLAY_HALF - 2.0)
 		var pd := _shape.path_distance(p)
 		if pd > 1.2 and pd < 3.0 and _rng.randf() < 0.35:
 			_place(_pick(pebbles), "ground", p, _rng.randf_range(0.8, 1.5), 0.0)
@@ -202,10 +203,11 @@ func _scatter_rocks() -> void:
 
 func _scatter_plants() -> void:
 	var step := 1.8
-	var x := -56.0
-	while x < 56.0:
-		var z := -56.0
-		while z < 56.0:
+	var half := WorldShape.PLAY_HALF - 2.0
+	var x := -half
+	while x < half:
+		var z := -half
+		while z < half:
 			var p := Vector2(x, z) + Vector2(_rng.randf_range(-0.7, 0.7), _rng.randf_range(-0.7, 0.7))
 			_plant_at(p)
 			z += step

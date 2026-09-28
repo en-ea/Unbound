@@ -6,8 +6,8 @@ extends Node
 const NAMES := {"meadow": "Home Meadow", "forest": "Whispering Wood"}
 ## Gates: region -> [{to, at (x, z) of the gate trigger, arrive (x, z) in the other region, radius}].
 const GATES := {
-	"meadow": [{"to": "forest", "at": Vector2(-2.3, 55.5), "arrive": Vector2(-3.0, -48.0), "radius": 3.0}],
-	"forest": [{"to": "meadow", "at": Vector2(-2.6, -55.5), "arrive": Vector2(-2.0, 48.0), "radius": 3.0}],
+	"meadow": [{"to": "forest", "at": Vector2(-0.4, 93.5), "arrive": Vector2(-0.2, -86.0), "radius": 3.0}],
+	"forest": [{"to": "meadow", "at": Vector2(2.0, -93.5), "arrive": Vector2(1.5, 86.0), "radius": 3.0}],
 }
 
 var current := "meadow"

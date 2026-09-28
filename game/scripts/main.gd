@@ -36,13 +36,18 @@ func _ready() -> void:
 	var fire := Node3D.new()
 	fire.set_script(preload("res://scripts/world/campfire.gd"))
 	add_child(fire)
-	fire.build(shape, Vector2(-3.5, 27.0) if meadow else Vector2(2.5, -45.5))
+	fire.build(shape, Vector2(-3.5, 27.0) if meadow else Vector2(4.0, -81.5))
 	for id: String in Projects.DEFS:
 		if Projects.DEFS[id]["region"] == Region.current:
 			var site := Node3D.new()
 			site.set_script(preload("res://scripts/world/project_site.gd"))
 			add_child(site)
 			site.build(shape, id)
+	var places := Node3D.new()
+	places.set_script(preload("res://scripts/world/places.gd"))
+	places.player = player
+	add_child(places)
+	places.build(shape)
 	var gates := Node3D.new()
 	gates.set_script(preload("res://scripts/world/region_gates.gd"))
 	gates.player = player
