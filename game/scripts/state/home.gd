@@ -67,6 +67,13 @@ func change_house(choice: String) -> bool:
 	return true
 
 
+## The action (test menu only): give the home back: no house, empty yard, the plot for sale again.
+func reset() -> void:
+	house = ""
+	pieces = []
+	changed.emit()
+
+
 func inside(x: float, z: float) -> bool:
 	return absf(x - PLOT_CENTER.x) <= PLOT_HALF.x and absf(z - (PLOT_CENTER.y + 2.0)) <= PLOT_HALF.y
 

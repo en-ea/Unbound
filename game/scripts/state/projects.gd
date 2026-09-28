@@ -3,6 +3,7 @@ extends Node
 ## and unlock things. Fund one through fund(). Sites: world/project_site.gd.
 
 signal built(id: String)
+signal unbuilt(id: String)        # only from the test menu
 
 const DEFS := {
 	"smithy": {"name": "Smithy", "region": "meadow", "at": Vector2(-17.0, 12.0),
@@ -40,6 +41,15 @@ func fund(id: String) -> bool:
 	built.emit(id)
 	Gear.changed.emit()       # the workbench shows what it unlocked
 	return true
+
+
+## The action (test menu only): take a built project down again, back to its scaffolding. No refund.
+func unbuild(id: String) -> void:
+	if not is_built(id):
+		return
+	_built.erase(id)
+	unbuilt.emit(id)
+	Gear.changed.emit()
 
 
 func to_data() -> Array:

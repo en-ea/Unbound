@@ -81,10 +81,19 @@ built from simple shapes; their ground is a clearing in `WorldShape.REGIONS`.
 ## Minimap
 Anything in group `"map_building"` with a `"map_size"` meta (Vector2 footprint) shows as a building.
 
+## Stamina and fighting moves
+- `player/stamina.gd` (a child of the player): `use("roll"|"heavy")`, `drain()` while sprinting, `winded` when
+  emptied (until `winded_until`). Numbers in `Balance.STAMINA`, `SPRINT_SPEED`, `HEAVY_DAMAGE`, `HEAVY_PUSH`.
+- Sprint = hold the Roll button after the roll (`Controls.sprint_button`; Q on the keyboard). Heavy = the Heavy
+  button that shows in fights (`fighter.heavy()`, F on the keyboard). The ring beside the player: `ui/stamina_ring.gd`.
+- Attack warnings: `creatures/attack_tell.gd` (a ground lane, `shaders/attack_tell.gdshader`) plus `visual.tell`
+  (0..1, red-hot glow via `warn` in foliage_solid). Enemies call `_tell.aim()` each frame of a WINDUP state and
+  lock their aim part-way (`AIM_LOCK`). Dev: `--telltest` freezes a boar mid-warning.
+
 ## Add an enemy
 Copy the boar pattern: a model made of parts with pivots (`tools-src/blender/make_boar.py`), a
 visual script that animates the parts in code (`boar_visual.gd`), a behaviour script with a small
-state machine and `take_hit()` / `is_alive()` / group `"enemy"` (`boar.gd`), and spawn it from
+state machine and `take_hit()` / `is_alive()` / group `"enemy"` (`boar.gd`, with a WINDUP state that shows the warning lane), and spawn it from
 `scripts/creatures/enemies.gd`. The player's `fighter.gd` finds anything in group `"enemy"`.
 
 ## Add a character look or outfit
@@ -102,7 +111,7 @@ scripts; `lowpoly.py` / `rigkit.py`). Ground: `shaders/terrain.gdshader`. Light,
 
 ## Test menu (for the owner)
 Menu → Settings → Codes → "Paladin": buttons that give coins, items, food, Steel tools, the biggest bag,
-skill levels, build every village project, heal, or travel. In `ui/settings_panel.gd` (`_cheat_page`);
+skill levels, build every village project (or undo them all), give the home back (`Home.reset()`), heal, or travel. In `ui/settings_panel.gd` (`_cheat_page`);
 add a button there whenever a new system needs quick testing. Dev: `--cheats` opens it.
 
 ## Testing without the phone

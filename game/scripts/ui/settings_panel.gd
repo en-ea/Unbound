@@ -141,6 +141,10 @@ func _cheat_page() -> void:
 					for i: String in Projects.cost(id):
 						Inventory.add(i, Projects.cost(id)[i])
 					Projects.fund(id)],
+		["Undo all projects", func() -> void:
+			for id: String in Projects.DEFS:
+				Projects.unbuild(id)],
+		["Undo home + yard", func() -> void: Home.reset()],
 		["Skills +5 levels", func() -> void:
 			for sk: String in Skills.SKILLS:
 				var target := mini(Skills.level(sk) + 5, Skills.MAX_LEVEL)

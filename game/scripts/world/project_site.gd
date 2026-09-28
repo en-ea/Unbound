@@ -30,6 +30,9 @@ func build(shape: WorldShape, id: String) -> void:
 	Projects.built.connect(func(b: String) -> void:
 		if b == _id:
 			_show(true))
+	Projects.unbuilt.connect(func(b: String) -> void:
+		if b == _id:
+			_show(false))
 
 
 func _show(animate: bool) -> void:
