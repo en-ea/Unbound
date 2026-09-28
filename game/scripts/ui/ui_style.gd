@@ -94,3 +94,32 @@ static func swatch(parent: Node, color: Color, selected: bool, size := 38.0) -> 
 		b.add_theme_stylebox_override(state, box)
 	parent.add_child(b)
 	return b
+
+
+## A small gold coin, for prices.
+static func coin(parent: Node, size := 18.0) -> Control:
+	var c := Panel.new()
+	c.custom_minimum_size = Vector2(size, size)
+	c.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(1.0, 0.8, 0.3)
+	box.border_color = Color(0.8, 0.55, 0.15)
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(int(size))
+	c.add_theme_stylebox_override("panel", box)
+	parent.add_child(c)
+	return c
+
+
+## "(coin) 120" in gold.
+static func price(parent: Node, amount: int, font_size := 20, ok := true) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(row)
+	coin(row, font_size * 0.85)
+	var l := label(row, str(amount), font_size)
+	l.add_theme_color_override("font_color", Color(1.0, 0.84, 0.4) if ok else Color(1.0, 0.58, 0.52))
+	return row

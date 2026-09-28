@@ -48,6 +48,7 @@ func _ready() -> void:
 	column.add_child(header)
 	var title := UIStyle.label(header, {"cook": "Campfire", "trade": "Trader", "project": "Village project", "home": "Your home"}[mode], 30)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UIStyle.coin(header, 22)
 	_coins = UIStyle.label(header, "", 24)
 	_coins.add_theme_color_override("font_color", COIN)
 	_coins.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -93,7 +94,7 @@ func _on_icon(_i: String) -> void:
 func _refresh() -> void:
 	if not is_inside_tree():
 		return
-	_coins.text = "%d coins" % Money.coins
+	_coins.text = str(Money.coins)
 	for c in _tabs.get_children():
 		c.queue_free()
 	for c in _grid.get_children():
@@ -107,6 +108,7 @@ func _refresh() -> void:
 					Food.cook.bind(r).unbind(0))
 		"trade":
 			var names := ["Buy", "Sell"]
+			_grid.columns = 3 if _tab == 0 else 1
 			for i in names.size():
 				var b := UIStyle.button(_tabs, names[i], Vector2(130, 44), 20)
 				b.modulate = Color(1.0, 0.9, 0.66) if i == _tab else Color(1, 1, 1, 0.55)
@@ -123,9 +125,22 @@ func _refresh() -> void:
 					_offer("" if item == "tool" else item, label, text, {}, offer["price"], "Buy",
 						Money.buy.bind(offer).unbind(0), offer["sold"], offer.get("tool", []))
 			else:
-				_note.text = "Tap Sell for one, or Sell all."
+				var worth := 0
+				var loot := 0
 				for item: String in Inventory.items():
-					_sell_card(item)
+					worth += Items.value_of(item) * Inventory.count(item)
+					if Items.kind_of(item) == "loot":
+						loot += Items.value_of(item) * Inventory.count(item)
+				_note.text = "Everything you carry is worth %d coins." % worth
+				var all_loot := UIStyle.button(_tabs, "Sell all loot (%d)" % loot, Vector2(220, 44), 18)
+				all_loot.disabled = loot == 0
+				all_loot.pressed.connect(func() -> void:
+					for item: String in Inventory.items():
+						if Items.kind_of(item) == "loot":
+							Money.sell(item, Inventory.count(item))
+					_audio.play())
+				for item: String in Inventory.items():
+					_sell_row(item)
 		"home":
 			if Home.owned():
 				_note.text = "Your %s. Build fences, lanterns, benches, flower beds, a campfire, a workbench and more in the yard." % Home.HOUSES[Home.house][0]
@@ -151,7 +166,12 @@ func _refresh() -> void:
 
 ## A card with a picture, a name, some text, a cost and a button that runs `action`.
 func _offer(item: String, title: String, text: String, cost: Dictionary, coins: int, verb: String, action: Callable, done := false, tool: Array = [], locked := false) -> void:
-	var v := _card()
+	var edge := Color(1, 1, 1, 0.12)
+	if item != "" and Items.DEFS.has(item) and Items.rarity_of(item) > 0:
+		edge = Items.RARITY_COLORS[Items.rarity_of(item)]
+	elif not tool.is_empty() and tool[1]["rarity"] > 0:
+		edge = Items.RARITY_COLORS[tool[1]["rarity"]]
+	var v := _card(edge)
 	if item != "":
 		v.add_child(INVENTORY.item_icon(item, 64))
 	elif not tool.is_empty():
@@ -165,6 +185,9 @@ func _offer(item: String, title: String, text: String, cost: Dictionary, coins: 
 		var l := UIStyle.label(v, text, 15, true)
 		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if mode == "trade" and item != "" and Items.DEFS.has(item):
+		var have := UIStyle.label(v, "You have %d" % Inventory.count(item), 14, true)
+		have.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var costs := HFlowContainer.new()
 	costs.alignment = FlowContainer.ALIGNMENT_CENTER
 	costs.add_theme_constant_override("h_separation", 8)
@@ -173,10 +196,11 @@ func _offer(item: String, title: String, text: String, cost: Dictionary, coins: 
 	for c: String in cost:
 		costs.add_child(_cost_chip(c, cost[c]))
 	if coins > 0:
-		var cl := UIStyle.label(costs, "%d coins" % coins, 19)
-		cl.add_theme_color_override("font_color", COIN if Money.coins >= coins else Color(1.0, 0.58, 0.52))
+		UIStyle.price(costs, coins, 20, Money.coins >= coins)
 	var can := not done and not locked and Money.coins >= coins and Gear.can_afford(cost)
 	var b := UIStyle.button(v, verb if can or done or locked else "Need more", Vector2(0, 50), 20)
+	if coins > 0 and can and mode == "trade":
+		b.text = "%s  ·  %d" % [verb, coins]
 	if done:
 		b.text = "Sold out"
 	b.disabled = not can
@@ -186,33 +210,42 @@ func _offer(item: String, title: String, text: String, cost: Dictionary, coins: 
 		_refresh())
 
 
-func _sell_card(item: String) -> void:
-	var v := _card()
-	v.add_child(INVENTORY.item_icon(item, 56))
-	var t := UIStyle.label(v, "%s × %d" % [Items.name_of(item), Inventory.count(item)], 18)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	t.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var p := UIStyle.label(v, "%d coins each" % Items.value_of(item), 16)
-	p.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	p.add_theme_color_override("font_color", COIN)
+## One line per item: picture, name and count, price each, Sell 1 and Sell all (with the total).
+func _sell_row(item: String) -> void:
+	var row_box := PanelContainer.new()
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(1, 1, 1, 0.05)
+	box.set_corner_radius_all(14)
+	box.set_content_margin_all(6)
+	box.border_color = Items.RARITY_COLORS[Items.rarity_of(item)]
+	box.set_border_width_all(2 if Items.rarity_of(item) > 0 else 0)
+	row_box.add_theme_stylebox_override("panel", box)
+	row_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row_box.custom_minimum_size.x = 820
+	row_box.mouse_filter = Control.MOUSE_FILTER_PASS
+	_grid.add_child(row_box)
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 6)
-	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	row.alignment = BoxContainer.ALIGNMENT_END
-	v.add_child(row)
-	UIStyle.button(row, "Sell", Vector2(80, 46), 18).pressed.connect(func() -> void:
+	row.add_theme_constant_override("separation", 12)
+	row_box.add_child(row)
+	row.add_child(INVENTORY.item_icon(item, 44))
+	var n := UIStyle.label(row, "%s  ×%d" % [Items.name_of(item), Inventory.count(item)], 19)
+	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	n.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	UIStyle.price(row, Items.value_of(item), 18)
+	UIStyle.label(row, "each", 14, true).vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	UIStyle.button(row, "Sell 1", Vector2(96, 44), 17).pressed.connect(func() -> void:
 		Money.sell(item, 1))
-	UIStyle.button(row, "Sell all", Vector2(100, 46), 18).pressed.connect(func() -> void:
+	UIStyle.button(row, "Sell all (%d)" % (Items.value_of(item) * Inventory.count(item)), Vector2(150, 44), 17).pressed.connect(func() -> void:
 		Money.sell(item, Inventory.count(item))
 		_audio.play())
 
 
-func _card() -> VBoxContainer:
+func _card(edge := Color(1, 1, 1, 0.12)) -> VBoxContainer:
 	var card := PanelContainer.new()
 	var box := StyleBoxFlat.new()
 	box.bg_color = Color(1, 1, 1, 0.06)
 	box.set_corner_radius_all(18)
-	box.border_color = Color(1, 1, 1, 0.12)
+	box.border_color = edge
 	box.set_border_width_all(2)
 	box.set_content_margin_all(12)
 	card.add_theme_stylebox_override("panel", box)

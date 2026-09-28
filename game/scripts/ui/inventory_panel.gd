@@ -1,22 +1,28 @@
 extends Control
-## The Bag: your equipped tools (tap another tier you own to switch) and a scrolling grid of item
-## cards (icon, name, count, rarity edge). Reads Inventory and Gear.
+## The Bag. Left: your equipped tools (tap another one you own to switch; Drop) and your skills.
+## Right: your items as a tidy grid, filtered by All / Materials / Food / Loot. Tap an item to see
+## what it's for, what the trader pays, and (for food) eat it. Reads Inventory, Gear and Skills.
 
 signal closed
 
-const COLUMNS := 4
+const COLUMNS := 5
 const CRAFTING := preload("res://scripts/ui/crafting_panel.gd")
+const FILTERS := {"all": "All", "material": "Materials", "food": "Food", "loot": "Loot"}
 
 var _grid: GridContainer
 var _empty: Label
 var _gear: VBoxContainer
 var _slots: Label
+var _tabs: HBoxContainer
+var _detail: PanelContainer
+var _filter := "all"
+var _selected := ""
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new()
-	shade.color = Color(0, 0, 0, 0.35)
+	shade.color = Color(0, 0, 0, 0.4)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	shade.gui_input.connect(func(e: InputEvent) -> void:
 		if e is InputEventMouseButton and e.pressed:
@@ -25,40 +31,62 @@ func _ready() -> void:
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", UIStyle.panel())
 	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.custom_minimum_size = Vector2(800, 620)
-	panel.offset_left = -400
-	panel.offset_right = 400
-	panel.offset_top = -310
-	panel.offset_bottom = 310
+	panel.offset_left = -560
+	panel.offset_right = 560
+	panel.offset_top = -330
+	panel.offset_bottom = 330
 	add_child(panel)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 14)
+	column.add_theme_constant_override("separation", 12)
 	panel.add_child(column)
 	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 14)
 	column.add_child(header)
-	var title := UIStyle.label(header, "Bag", 28)
+	var title := UIStyle.label(header, "Bag", 30)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var coins := UIStyle.label(header, "%d coins" % Money.coins, 22)
-	coins.add_theme_color_override("font_color", Color(1.0, 0.82, 0.35))
-	coins.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	coins.custom_minimum_size.x = 150
+	UIStyle.price(header, Money.coins, 24)
 	UIStyle.button(header, "Close", Vector2(120, 46), 20).pressed.connect(_close)
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 18)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(body)
 	_gear = VBoxContainer.new()
-	_gear.add_theme_constant_override("separation", 6)
-	column.add_child(_gear)
-	_slots = UIStyle.label(column, "ITEMS", 15, true)
-	_empty = UIStyle.label(column, "Nothing yet. Chop a tree, mine a rock, or pick a flower.", 20, true)
+	_gear.add_theme_constant_override("separation", 8)
+	_gear.custom_minimum_size.x = 300
+	body.add_child(_gear)
+	var right := VBoxContainer.new()
+	right.add_theme_constant_override("separation", 10)
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	body.add_child(right)
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 6)
+	right.add_child(top)
+	_tabs = HBoxContainer.new()
+	_tabs.add_theme_constant_override("separation", 6)
+	_tabs.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(_tabs)
+	_slots = UIStyle.label(top, "", 15, true)
+	_slots.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_empty = UIStyle.label(right, "Nothing here yet.", 18, true)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.scroll_deadzone = 8
-	column.add_child(scroll)
+	right.add_child(scroll)
 	_grid = GridContainer.new()
 	_grid.columns = COLUMNS
-	_grid.add_theme_constant_override("h_separation", 12)
-	_grid.add_theme_constant_override("v_separation", 12)
+	_grid.add_theme_constant_override("h_separation", 10)
+	_grid.add_theme_constant_override("v_separation", 10)
 	_grid.mouse_filter = Control.MOUSE_FILTER_PASS
 	scroll.add_child(_grid)
+	_detail = PanelContainer.new()
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(1, 1, 1, 0.06)
+	box.set_corner_radius_all(16)
+	box.set_content_margin_all(10)
+	_detail.add_theme_stylebox_override("panel", box)
+	_detail.custom_minimum_size.y = 96
+	right.add_child(_detail)
 	Inventory.changed.connect(_on_changed)
 	ItemIcons.icon_ready.connect(_on_icon_ready)
 	Gear.changed.connect(_refresh_gear)
@@ -72,8 +100,8 @@ func _refresh_gear() -> void:
 	for c in _gear.get_children():
 		c.queue_free()
 	UIStyle.label(_gear, "EQUIPPED", 15, true)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
+	var row := VBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
 	_gear.add_child(row)
 	for slot: String in Gear.SLOTS:
 		var tool := Gear.current(slot)
@@ -97,7 +125,7 @@ func _refresh_gear() -> void:
 			fist.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			fist.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		else:
-			h.add_child(CRAFTING.tool_picture(slot, tool["tier"], 64))
+			h.add_child(CRAFTING.tool_picture(slot, tool["tier"], 56))
 		var info := VBoxContainer.new()
 		info.alignment = BoxContainer.ALIGNMENT_CENTER
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -129,8 +157,9 @@ func _refresh_gear() -> void:
 				else:
 					drop.text = "Sure?")
 	# Skills: name, level and a bar each.
-	var skills := HBoxContainer.new()
-	skills.add_theme_constant_override("separation", 12)
+	UIStyle.label(_gear, "SKILLS", 15, true)
+	var skills := VBoxContainer.new()
+	skills.add_theme_constant_override("separation", 6)
 	_gear.add_child(skills)
 	for skill: String in Skills.SKILLS:
 		var cell := VBoxContainer.new()
@@ -149,7 +178,7 @@ func _refresh_gear() -> void:
 		track.add_child(fill)
 		var perk := UIStyle.label(cell, Skills.perk_text(skill), 13, true)
 		perk.clip_text = true
-	_slots.text = "ITEMS   %d / %d  (%s)" % [Inventory.items().size(), Gear.bag_slots(), Gear.BAGS[Gear.bag]["name"]]
+	_slots.text = "%d / %d slots" % [Inventory.items().size(), Gear.bag_slots()]
 
 
 func _on_icon_ready(item: String) -> void:
@@ -165,39 +194,98 @@ func _on_changed(_item: String, _count: int) -> void:
 
 
 func _refresh() -> void:
+	for c in _tabs.get_children():
+		c.queue_free()
+	for f: String in FILTERS:
+		var b := UIStyle.button(_tabs, FILTERS[f], Vector2(0, 42), 17)
+		b.custom_minimum_size.x = 96
+		b.modulate = Color(1.0, 0.9, 0.66) if f == _filter else Color(1, 1, 1, 0.55)
+		b.pressed.connect(func() -> void:
+			_filter = f
+			_refresh())
 	for c in _grid.get_children():
 		c.queue_free()
-	var items := Inventory.items()
+	var items := Inventory.items().filter(func(i: String) -> bool: return _filter == "all" or Items.kind_of(i) == _filter)
 	_empty.visible = items.is_empty()
-	for item in items:
+	for item: String in items:
 		_grid.add_child(_card(item))
+	if _selected != "" and Inventory.count(_selected) <= 0:
+		_selected = ""
+	_show_detail()
 
 
+## A square tile: picture, a count badge and the name; its edge in the item's rarity colour.
 func _card(item: String) -> Control:
-	var card := PanelContainer.new()
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(1, 1, 1, 0.06)
-	box.set_corner_radius_all(16)
-	box.border_color = Items.RARITY_COLORS[Items.rarity_of(item)]
-	box.set_border_width_all(2)
-	box.set_content_margin_all(10)
-	card.add_theme_stylebox_override("panel", box)
-	card.custom_minimum_size = Vector2(152, 136)
-	card.mouse_filter = Control.MOUSE_FILTER_PASS      # lets a swipe on the card scroll the Bag
+	var card := Button.new()
+	card.focus_mode = Control.FOCUS_NONE
+	card.custom_minimum_size = Vector2(122, 122)
+	card.mouse_filter = Control.MOUSE_FILTER_PASS
+	for state in ["normal", "hover", "pressed"]:
+		var box := StyleBoxFlat.new()
+		var rc: Color = Items.RARITY_COLORS[Items.rarity_of(item)]
+		box.bg_color = Color(1, 1, 1, 0.12 if item == _selected else 0.05)
+		box.set_corner_radius_all(16)
+		box.border_color = Color(1.0, 0.9, 0.66) if item == _selected else rc
+		box.set_border_width_all(3 if item == _selected else 2)
+		card.add_theme_stylebox_override(state, box)
+	card.pressed.connect(func() -> void:
+		_selected = item
+		_refresh())
 	var v := VBoxContainer.new()
+	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_theme_constant_override("separation", 6)
+	v.add_theme_constant_override("separation", 2)
+	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(v)
-	v.add_child(item_icon(item, 64))
-	var name_label := UIStyle.label(v, Items.name_of(item), 17)
+	v.add_child(item_icon(item, 58))
+	var name_label := UIStyle.label(v, Items.name_of(item), 14)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var count := UIStyle.label(v, "× %d" % Inventory.count(item), 20)
-	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if Food.is_food(item):                  # food: an Eat button, and what it does
-		card.tooltip_text = Food.describe(item)
-		var eat := UIStyle.button(v, "Eat", Vector2(0, 40), 18)
-		eat.pressed.connect(func() -> void: get_tree().call_group("player", "eat", item))
+	name_label.clip_text = true
+	name_label.custom_minimum_size.x = 110
+	var count := UIStyle.label(card, "×%d" % Inventory.count(item), 16)
+	count.position = Vector2(8, 4)
+	count.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+	count.add_theme_constant_override("outline_size", 5)
 	return card
+
+
+## The selected item: picture, name, rarity, what it's for, value, and Eat for food.
+func _show_detail() -> void:
+	for c in _detail.get_children():
+		c.queue_free()
+	if _selected == "":
+		var hint := UIStyle.label(_detail, "Tap an item to see what it's for.", 16, true)
+		hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		return
+	var item := _selected
+	var h := HBoxContainer.new()
+	h.add_theme_constant_override("separation", 14)
+	_detail.add_child(h)
+	h.add_child(item_icon(item, 72))
+	var info := VBoxContainer.new()
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 2)
+	h.add_child(info)
+	var name_row := HBoxContainer.new()
+	name_row.add_theme_constant_override("separation", 10)
+	info.add_child(name_row)
+	UIStyle.label(name_row, "%s  ×%d" % [Items.name_of(item), Inventory.count(item)], 21)
+	var r := Items.rarity_of(item)
+	var rl := UIStyle.label(name_row, Items.RARITY_NAMES[r], 15)
+	rl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	rl.add_theme_color_override("font_color", Items.RARITY_COLORS[r] if r > 0 else Color(1, 1, 1, 0.6))
+	var text: String = Food.describe(item) if Food.is_food(item) else Items.DESC.get(item, "")
+	var d := UIStyle.label(info, text, 15, true)
+	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var worth := HBoxContainer.new()
+	worth.add_theme_constant_override("separation", 6)
+	info.add_child(worth)
+	UIStyle.label(worth, "Trader pays", 14, true)
+	UIStyle.price(worth, Items.value_of(item), 15)
+	if Food.is_food(item):
+		var eat := UIStyle.button(h, "Eat", Vector2(110, 56), 20)
+		eat.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		eat.pressed.connect(func() -> void: get_tree().call_group("player", "eat", item))
 
 
 ## The item's rendered picture, or a colour dot while it is still being drawn.

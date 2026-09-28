@@ -67,12 +67,17 @@ func _ready() -> void:
 		elif arg.begins_with("--open="):                  # --open=cook / trade / project:smithy
 			var bits := arg.trim_prefix("--open=").split(":")
 			var props := {"mode": bits[0]}
-			if bits.size() > 1:
+			if bits.size() > 1 and bits[0] == "project":
 				props["project"] = bits[1]
+			elif bits.size() > 1:
+				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
 		elif arg.begins_with("--cheats"):                 # the settings test menu; --cheats=code shows the code page
 			var hud := get_node("../HUD")
 			hud._modal.call_deferred(hud.SETTINGS_PANEL, {"_page": "code" if arg.ends_with("=code") else "cheats"})
+		elif arg.begins_with("--bagpick="):               # the Bag with an item selected
+			var hud := get_node("../HUD")
+			hud._modal.call_deferred(hud.INVENTORY_PANEL, {"_selected": arg.trim_prefix("--bagpick=")})
 		elif arg == "--home":                             # own the home, a few pieces built, build mode on
 			Home.house = "lodge"
 			Home.pieces = [{"id": "campfire", "x": -44.0, "z": 42.0, "turn": 0.0}, {"id": "bench", "x": -44.0, "z": 44.5, "turn": 0.0},

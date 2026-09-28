@@ -4,6 +4,7 @@ Where we are: M1-M4 are done: walking, gathering, fighting (boar, wolf packs), c
 
 The big plan is decided in docs/GAME_PLAN.md. Houses are parked for now (placeholders are fine).
 
-Done since: regions + the Whispering Wood, food and cooking, coins + trader + the Smithy project. Next: step 4 of the build order in docs/GAME_PLAN.md (story start + class tree + two weapon slots).
+Done since: regions + the Whispering Wood (made bigger, with placeholder places), food and cooking, coins + trader + the Smithy, home base (locked early, yard building), the balance file, a new Bag and trader screen, two new lab houses (Skep cottage, Stump house: waiting for my verdict), the test menu (Settings > Codes > Paladin).
+Next: better mobs and fighting (not too easy) before any boss or story; then what docs/GAME_PLAN.md lists.
 
 Keep usage low: read only the files a task needs, avoid screenshots unless a visual check really matters, commit after each working step, keep replies short, and tell me what to test.

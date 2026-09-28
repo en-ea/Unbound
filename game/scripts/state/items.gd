@@ -29,6 +29,21 @@ const DEFS := {
 	"stew": {"name": "Forest Stew", "color": Color(0.6, 0.36, 0.2), "rarity": Rarity.UNCOMMON},
 }
 
+## What each item is for, in a few words (shown in the Bag).
+const DESC := {
+	"wood": "Building and crafting.", "stone": "Tools and building.", "pinewood": "Tough forest wood for Steel tools.",
+	"flint": "Sharp edges for Stone tools.", "copper": "Copper tools.", "iron": "Iron and Steel tools.",
+	"apple": "A snack. Bake into a tart.", "mushroom": "A snack. Cook into skewers or stew.",
+	"flower": "For tarts and flower beds.", "raw_meat": "Cook it at a campfire.",
+	"resin": "Rare. Iron tools and lanterns.", "glowcap": "Rare glowing mushroom for stew.",
+	"shard": "Rare crystal for Steel tools.", "hide": "Boar hide for bags and Copper tools.",
+	"tusk": "A boar's tusk. The trader likes it.", "pelt": "Wolf pelt for packs and Iron swords.",
+	"fang": "A wolf fang for the best swords.", "shadow_pelt": "From shadow wolves. Steel swords.",
+}
+## Loot: things you win from enemies and rare finds (the rest are materials or food).
+const LOOT := ["hide", "tusk", "pelt", "fang", "shadow_pelt", "shard", "glowcap", "resin"]
+const RARITY_NAMES := {Rarity.COMMON: "Common", Rarity.UNCOMMON: "Uncommon", Rarity.RARE: "Rare"}
+
 const MODELS := "res://assets/items/%s.glb"      # tools-src/blender/make_items.py
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 
@@ -47,6 +62,13 @@ static func name_of(id: String) -> String:
 
 static func color_of(id: String) -> Color:
 	return DEFS[id]["color"]
+
+
+## "food", "loot" or "material".
+static func kind_of(id: String) -> String:
+	if Balance.FOODS.has(id) or id == "raw_meat":
+		return "food"
+	return "loot" if id in LOOT else "material"
 
 
 static func value_of(id: String) -> int:
