@@ -14,6 +14,13 @@ extends RefCounted
 const HEARTS := 5
 const REGEN_DELAY := 8.0          # seconds without a hit before hearts start coming back
 const REGEN_EVERY := 6.0          # then one heart this often
+## Stamina: sprinting (hold Roll), rolling and heavy attacks use it; it refills after a short pause.
+## Run it empty and you are winded: no sprint, roll or heavy until it is back to `winded_until`.
+const STAMINA := {"max": 100.0, "regen": 34.0, "delay": 0.6, "sprint": 20.0, "roll": 26.0, "heavy": 34.0,
+	"winded_until": 35.0}
+const SPRINT_SPEED := 7.6         # m/s (a run is 5.4)
+const HEAVY_DAMAGE := 2.5         # a heavy attack does this many times a normal hit (rounded up)
+const HEAVY_PUSH := 2.2           # and knocks the enemy back this much further
 
 # --- enemies: health, damage per hit, seconds to come back, combat XP, found-tool chance ------
 const BOAR := {"hp": 12, "damage": 1, "respawn": 60.0, "xp": 25, "tool": 0.06}

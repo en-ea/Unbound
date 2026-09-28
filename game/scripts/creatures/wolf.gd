@@ -154,7 +154,7 @@ func _physics_process(delta: float) -> void:
 
 
 ## The action: the player hits the wolf.
-func take_hit(from: Vector3, damage := 1) -> void:
+func take_hit(from: Vector3, damage := 1, push := 1.0) -> void:
 	if state == State.DEAD:
 		return
 	health -= damage
@@ -162,7 +162,7 @@ func take_hit(from: Vector3, damage := 1) -> void:
 	visual.show_health(float(health) / max_health, max_health / 2)
 	var away := global_position - from
 	away.y = 0.0
-	_push = away.normalized() * 5.0
+	_push = away.normalized() * 5.0 * push
 	_play("yelp", randf_range(0.95, 1.12))
 	if health <= 0:
 		_die()

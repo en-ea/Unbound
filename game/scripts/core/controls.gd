@@ -6,6 +6,12 @@ extends Node
 var joystick := Vector2.ZERO
 ## True while a menu (like the look picker) has the player's attention.
 var locked := false
+## True while the Roll button is held (roll, then keep holding to sprint).
+var sprint_button := false
+
+
+func is_sprint_held() -> bool:
+	return not locked and (sprint_button or Input.is_physical_key_pressed(KEY_Q))
 
 
 ## Returns the wanted movement on the ground plane, length 0..1.

@@ -3,6 +3,7 @@ extends Control
 ## works while the other thumb holds the joystick. Shows the current verb (Chop / Mine / Pick).
 
 signal pressed
+signal released
 
 var radius := 68.0
 var margin := Vector2(150, 150)      # centre, measured from the bottom-right corner
@@ -39,6 +40,7 @@ func _input(event: InputEvent) -> void:
 		queue_redraw()
 	elif not touch.pressed and touch.index == _held:
 		_held = -1
+		released.emit()
 		queue_redraw()
 
 

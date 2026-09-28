@@ -27,6 +27,8 @@ const INVULNERABLE := 1.2      # after a hit, enemies can't hurt you again for a
 @onready var fighter: Node = $Fighter
 
 var verb := ""
+var stamina: Stamina
+var sprinting := false
 var _roll := 0.0
 var _roll_rest := 0.0
 var _roll_dir := Vector3.FORWARD
@@ -47,6 +49,14 @@ func is_rolling() -> bool:
 	return _roll > 0.0
 
 
+## Heavy attack (the Heavy button in a fight): a slow, big swing that costs stamina.
+func heavy() -> void:
+	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or fighter.is_busy() or Controls.locked:
+		return
+	if stamina.use("heavy"):
+		fighter.heavy()
+
+
 ## The action button: fight if an enemy is in reach, otherwise gather.
 func act() -> void:
 	if _roll > 0.0 or _stun > 0.0:
@@ -61,6 +71,9 @@ func act() -> void:
 
 func _ready() -> void:
 	add_to_group("player")
+	stamina = Stamina.new()
+	stamina.name = "Stamina"
+	add_child(stamina)
 	_ready_drops()
 
 
@@ -84,6 +97,8 @@ func _nearest_station() -> Node3D:
 ## Dodge roll: a quick roll in the stick direction (or forward). Charges miss you mid-roll.
 func roll() -> void:
 	if _roll > 0.0 or _roll_rest > 0.0 or _stun > 0.0 or gatherer.is_busy() or Controls.locked:
+		return
+	if not stamina.use("roll"):
 		return
 	fighter.cancel()        # a roll cuts a swing short
 	var m := Controls.get_move()
@@ -114,6 +129,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			act()
 		elif event.physical_keycode in [KEY_Q, KEY_CTRL]:
 			roll()
+		elif event.physical_keycode == KEY_F:
+			heavy()
 
 
 ## The action: something hurts the player (a boar charge). At 0 hearts they are knocked down
@@ -173,6 +190,7 @@ func _physics_process(delta: float) -> void:
 			health = MAX_HEALTH
 			_safe = INVULNERABLE
 			health_changed.emit(health, MAX_HEALTH)
+			stamina.refill()
 			get_tree().call_group("camera_rig", "snap")
 			got_up.emit()
 		return
@@ -184,6 +202,7 @@ func _physics_process(delta: float) -> void:
 		verb = new_verb
 		verb_changed.emit(verb)
 	if _roll > 0.0 or _stun > 0.0:
+		sprinting = false
 		_special_move(delta)
 		return
 	# Gathering roots you in place; swinging the sword only slows you (and steps you in).
@@ -193,8 +212,13 @@ func _physics_process(delta: float) -> void:
 		move *= 0.45
 	var strength := move.length()
 	var target_speed := 0.0
+	# Holding Roll after the roll keeps you sprinting while stamina lasts.
+	sprinting = Controls.is_sprint_held() and strength >= RUN_THRESHOLD and not swinging and stamina.can("sprint")
+	if sprinting:
+		stamina.drain(delta)
 	if strength > 0.1:
-		target_speed = RUN_SPEED * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
+		var run := Balance.SPRINT_SPEED if sprinting else RUN_SPEED
+		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
 	# The camera never rotates, so screen up is world -Z.
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))

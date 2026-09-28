@@ -23,6 +23,8 @@ var _fps_label: Label
 var _joystick: Control
 var _action: Control
 var _roll: Control
+var _heavy: Control
+var _stamina: Control
 var _corner: HBoxContainer
 var _feed: Control
 var _title: Control
@@ -61,7 +63,24 @@ func _ready() -> void:
 	_roll.font_size = 20
 	add_child(_roll)
 	_roll.set_verb("Roll")
-	_roll.pressed.connect(player.roll)
+	_roll.pressed.connect(func() -> void:
+		Controls.sprint_button = true         # keep holding to sprint after the roll
+		player.roll())
+	_roll.released.connect(func() -> void: Controls.sprint_button = false)
+	_heavy = Control.new()
+	_heavy.set_script(ACTION_BUTTON)
+	_heavy.radius = 40.0
+	_heavy.margin = Vector2(118, 290)
+	_heavy.font_size = 17
+	add_child(_heavy)
+	_heavy.set_verb("Heavy")
+	_heavy.visible = false
+	_heavy.pressed.connect(player.heavy)
+	player.fighter.target_changed.connect(func(_v: String) -> void: _show_heavy())
+	_stamina = Control.new()
+	_stamina.set_script(preload("res://scripts/ui/stamina_ring.gd"))
+	_stamina.player = player
+	add_child(_stamina)
 
 	_corner = HBoxContainer.new()
 	_corner.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -268,6 +287,7 @@ func start_build_mode() -> void:
 	_set_play_ui(true)
 	_action.visible = false
 	_roll.visible = false
+	_heavy.visible = false
 	_corner.visible = false
 	Controls.locked = false
 	var ui := Control.new()
@@ -340,10 +360,22 @@ func _set_play_ui(on: bool) -> void:
 	_joystick.visible = on
 	_action.visible = on
 	_roll.visible = on
+	if not on:
+		Controls.sprint_button = false
+	_show_heavy()
+	_stamina.visible = on
 	_corner.visible = on
 	_feed.visible = on
 	_hearts.visible = on
 	_map.visible = on and Settings.show_map
+
+
+## The Heavy button only shows in a fight (when the action button says Attack).
+func _show_heavy() -> void:
+	var show: bool = _action.visible and player.fighter.verb == "Attack"
+	if show and not _heavy.visible:
+		_heavy.set("_pulse", 1.0)
+	_heavy.visible = show
 
 
 func _on_settings_changed() -> void:

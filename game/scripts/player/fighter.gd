@@ -1,6 +1,7 @@
 extends Node
 ## Sword fighting: finds an enemy in reach and, on the action button, swings a 3-hit combo
 ## (Quaternius UAL2 sword animations). The hit lands mid-swing with a freeze and a camera shake.
+## The Heavy button: a slow overhead blow (costs stamina) that hits much harder and knocks back.
 
 signal target_changed(verb: String)     # "Attack", or "" when no enemy is in reach
 
@@ -13,6 +14,9 @@ const FIST_COMBO := ["Punch_Jab", "Punch_Cross"]    # with no sword
 const SPEED := 1.25
 const CHAIN_WINDOW := 0.45     # tap again within this long after a swing to continue the combo
 const HIT_SOUNDS := "res://assets/kenney_impact/impactPunch_heavy_%03d.ogg"
+## Heavy attack: animation, play speed, and when in it the blow lands (seconds, at speed 1).
+const HEAVY_SWORD := {"anim": "Sword_Attack", "speed": 1.0, "impact": 0.4, "busy": 1.0}
+const HEAVY_FIST := {"anim": "Punch_Cross", "speed": 0.75, "impact": 0.22, "busy": 0.6}
 
 @onready var player: CharacterBody3D = get_parent()
 @onready var visual: CharacterVisual = get_parent().get_node("Visual")
@@ -25,6 +29,7 @@ var _swing_target: Node3D = null
 var _step := 0
 var _since := 99.0
 var _queued := false
+var _heavy := false
 var _audio: AudioStreamPlayer3D
 var _hits: Array[AudioStream] = []
 var _whoosh: AudioStream = preload("res://assets/sounds/swing.wav")
@@ -101,6 +106,7 @@ func attack() -> void:
 	visual.play_action(anim, SPEED * Gear.speed("sword"))
 	_busy = length * 0.85
 	_impact = length * 0.45
+	_heavy = false
 	_swing_target = target
 	_since = -length * 0.85      # the chain window opens when this swing ends
 	_audio.stream = _whoosh
@@ -108,8 +114,30 @@ func attack() -> void:
 	_audio.play()
 
 
+## The Heavy button: one big blow. The player has already paid the stamina.
+func heavy() -> void:
+	var armed := Gear.tier("sword") >= 0
+	var h: Dictionary = HEAVY_SWORD if armed else HEAVY_FIST
+	var speed: float = h["speed"] * Gear.speed("sword")
+	if target:
+		var to := target.global_position - player.global_position
+		visual.rotation.y = atan2(to.x, to.z)
+	visual.show_tool("sword" if armed else "")
+	visual.play_action(h["anim"], speed)
+	_busy = h["busy"] / speed
+	_impact = h["impact"] / speed
+	_heavy = true
+	_queued = false
+	_swing_target = target
+	_since = -_busy - CHAIN_WINDOW       # the light combo starts over afterwards
+	_audio.stream = _whoosh
+	_audio.pitch_scale = randf_range(0.7, 0.78)
+	_audio.play()
+
+
 ## Stops a swing (a roll cancels it).
 func cancel() -> void:
+	_heavy = false
 	_busy = 0.0
 	_impact = -1.0
 	_queued = false
@@ -128,19 +156,25 @@ func step_velocity() -> Vector3:
 
 
 func _land_hit() -> void:
+	var heavy := _heavy
+	_heavy = false
 	var t := _swing_target if is_instance_valid(_swing_target) else _nearest_enemy(REACH)
 	if t == null or not is_instance_valid(t) or not t.is_alive():
 		return
-	if t.global_position.distance_to(player.global_position) > REACH + 0.8:
+	if t.global_position.distance_to(player.global_position) > REACH + (1.2 if heavy else 0.8):
 		return
-	t.take_hit(player.global_position, Gear.damage())
-	Skills.add("combat", Balance.XP_PER_SWORD_HIT)
+	var damage := Gear.damage()
+	if heavy:
+		damage = ceili(damage * Balance.HEAVY_DAMAGE)
+	t.take_hit(player.global_position, damage, Balance.HEAVY_PUSH if heavy else 1.0)
+	Skills.add("combat", Balance.XP_PER_SWORD_HIT * (2 if heavy else 1))
 	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
+	_sparks.amount = 24 if heavy else 12
 	_sparks.restart()
-	visual.hit_stop(0.06)
-	get_tree().call_group("camera_rig", "shake", 0.06)
+	visual.hit_stop(0.11 if heavy else 0.06)
+	get_tree().call_group("camera_rig", "shake", 0.12 if heavy else 0.06)
 	_audio.stream = _hits.pick_random()
-	_audio.pitch_scale = randf_range(0.9, 1.05)
+	_audio.pitch_scale = randf_range(0.72, 0.8) if heavy else randf_range(0.9, 1.05)
 	_audio.play()
 
 

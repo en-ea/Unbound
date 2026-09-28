@@ -14,10 +14,11 @@ const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const IDLE := "Idle"        # Godot drops the "_Loop" suffix on import
 const WALK := "Walk"
 const RUN := "Jog_Fwd"
+const SPRINT := "Sprint"
 ## Ground speed (m/s) each animation was made for, so feet don't slide.
 ## The jog's real pace is 5.36 m/s, but its long strides looked like lunging, so it plays ~30%
 ## faster (quicker, shorter-looking steps).
-const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2}
+const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2, "Sprint": 6.6}
 
 const TOOLS := {"axe": "res://assets/items/axe.glb", "pickaxe": "res://assets/items/pickaxe.glb",
 	"sword": "res://assets/items/sword.glb"}
@@ -54,7 +55,7 @@ func _ready() -> void:
 		mi.free()   # the grey mannequin
 	_attach_hero()
 	apply_hero_look()
-	for anim_name in [IDLE, WALK, RUN]:
+	for anim_name in [IDLE, WALK, RUN, SPRINT]:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	_add_extra_animations()
 	_make_tools()
@@ -76,7 +77,9 @@ func play_motion(speed: float) -> void:
 	if _action_left > 0.0:
 		return
 	var anim_name := IDLE
-	if speed > 3.0:
+	if speed > 6.4:
+		anim_name = SPRINT
+	elif speed > 3.0:
 		anim_name = RUN
 	elif speed > 0.2:
 		anim_name = WALK
