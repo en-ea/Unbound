@@ -25,6 +25,9 @@ Skills="*res://scripts/state/skills.gd"
 WorldResources="*res://scripts/state/world_resources.gd"
 ItemIcons="*res://scripts/ui/item_icons.gd"
 SaveGame="*res://scripts/core/save_game.gd"
+Food="*res://scripts/state/food.gd"
+Money="*res://scripts/state/money.gd"
+Projects="*res://scripts/state/projects.gd"
 Region="*res://scripts/core/region.gd"
 
 [display]

@@ -153,7 +153,7 @@ func _die() -> void:
 
 
 func _loot() -> Array[String]:
-	var items: Array[String] = ["hide"]
+	var items: Array[String] = ["hide", "raw_meat"]
 	if randf() < 0.5:
 		items.append("hide")
 	if randf() < 0.3:

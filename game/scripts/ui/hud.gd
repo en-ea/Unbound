@@ -26,6 +26,8 @@ var _roll: Control
 var _corner: HBoxContainer
 var _feed: Control
 var _title: Control
+var _buffs: HBoxContainer
+var _buff_tick := 0.0
 var _hearts: Control
 var _map: Control
 var _hint: Label
@@ -85,6 +87,12 @@ func _ready() -> void:
 	player.knocked_out.connect(_knocked_out)
 	player.got_up.connect(_got_up)
 
+	_buffs = HBoxContainer.new()
+	_buffs.position = MARGIN + Vector2(0, 96)
+	_buffs.add_theme_constant_override("separation", 8)
+	add_child(_buffs)
+	Food.changed.connect(_show_buffs)
+
 	_feed = Control.new()
 	_feed.set_script(PICKUP_FEED)
 	add_child(_feed)
@@ -143,7 +151,22 @@ func _ready() -> void:
 		show_title()
 
 
+## Running food buffs as small coloured tags with the seconds left.
+func _show_buffs() -> void:
+	for c in _buffs.get_children():
+		c.queue_free()
+	for b: String in Food.active():
+		var tag := UIStyle.label(_buffs, "%s %ds" % [Food.BUFFS[b]["name"], ceili(Food.left(b))], 17)
+		tag.add_theme_color_override("font_color", Food.BUFFS[b]["color"])
+		tag.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+		tag.add_theme_constant_override("outline_size", 6)
+
+
 func _process(delta: float) -> void:
+	_buff_tick -= delta
+	if _buff_tick <= 0.0 and _buffs.get_child_count() > 0:
+		_buff_tick = 1.0
+		_show_buffs()
 	_worst = maxf(_worst, delta)
 	_timer += delta
 	if _timer < 1.0:
@@ -229,6 +252,11 @@ func found_tool(slot: String, tool: Dictionary) -> void:
 
 func open_crafting() -> void:
 	_modal(CRAFTING_PANEL)
+
+
+## A campfire, the trader or a project board: the shop panel with those settings.
+func open_station(props: Dictionary) -> void:
+	_modal(preload("res://scripts/ui/shop_panel.gd"), props)
 
 
 func open_bag() -> void:

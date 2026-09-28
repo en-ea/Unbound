@@ -59,6 +59,16 @@ func _ready() -> void:
 			_start_at = Vector2(float(v[0]), float(v[1]))
 		elif arg.begins_with("--zoom="):
 			get_node("../CameraRig").set_distance.call_deferred(float(arg.trim_prefix("--zoom=")))
+		elif arg.begins_with("--open="):                  # --open=cook / trade / project:smithy
+			var bits := arg.trim_prefix("--open=").split(":")
+			var props := {"mode": bits[0]}
+			if bits.size() > 1:
+				props["project"] = bits[1]
+			get_node("../HUD").open_station.call_deferred(props)
+		elif arg == "--rich":                             # coins and a pile of materials for testing
+			Money.earn(500)
+			for item: String in ["raw_meat", "mushroom", "apple", "flower", "wood", "glowcap", "stone", "pinewood", "iron", "stew", "roast_meat"]:
+				Inventory.add(item, 25)
 		elif arg == "--picker":
 			get_node("../HUD").open_look_picker.call_deferred()
 		elif arg.begins_with("--pickertab="):              # e.g. hair:braid,marks:freckles,extra:glasses

@@ -130,6 +130,39 @@ def fang():
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials(COLORS, roughness=0.7)
 os.makedirs(OUT, exist_ok=True)
+def meat(color, bone=True):
+    rnd = random.Random(8)
+    b = Builder(["Item"])
+    clump(b, V((0.02, 0, 0)), 0.11, 1, rnd, color, "Item", 0.6)
+    if bone:
+        tube_faces(b, [V((-0.2, 0, 0)), V((-0.06, 0, 0))], [(0.022, 0.022)] * 2, (0.95, 0.92, 0.84), seg=5)
+        clump(b, V((-0.21, 0, 0)), 0.035, 1, rnd, (0.95, 0.92, 0.84), "Item", 0.9)
+    return b
+
+
+def skewer():
+    rnd = random.Random(9)
+    b = Builder(["Item"])
+    tube_faces(b, [V((-0.2, 0, 0)), V((0.2, 0, 0))], [(0.008, 0.008)] * 2, (0.6, 0.45, 0.28), seg=4, ref=V((0, 0, 1)))
+    for k, x in enumerate((-0.1, 0.0, 0.1)):
+        clump(b, V((x, 0, 0.01)), 0.05, 1, rnd, (0.72, 0.42, 0.22) if k != 1 else (0.9, 0.8, 0.6), "Item", 0.8)
+    return b
+
+
+def bowl(soup):
+    b = Builder(["Item"])
+    tube_faces(b, [V((0, 0, -0.07)), V((0, 0, -0.04)), V((0, 0, 0.05))], [(0.07, 0.07), (0.12, 0.12), (0.15, 0.15)], (0.62, 0.42, 0.26), seg=10)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, 0, 0.04)), (0.13, 0.13, 0.02), 10, 2)), "Item", soup)
+    return b
+
+
+def tart():
+    b = Builder(["Item"])
+    tube_faces(b, [V((0, 0, -0.03)), V((0, 0, 0.02))], [(0.14, 0.14), (0.15, 0.15)], (0.9, 0.7, 0.42), seg=10)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, 0, 0.025)), (0.12, 0.12, 0.02), 10, 2)), "Item", (0.85, 0.25, 0.2))
+    return b
+
+
 export("wood", log(), OUT)
 export("stone", stone(), OUT)
 export("apple", apple(), OUT)
@@ -147,3 +180,8 @@ export("iron", ore_chunk((0.8, 0.84, 0.92), 6), OUT)
 export("fang", fang(), OUT)
 export("pinewood", log((0.36, 0.24, 0.17), (0.93, 0.78, 0.5)), OUT)
 export("shadow_pelt", hide((0.2, 0.19, 0.3)), OUT)
+export("raw_meat", meat((0.86, 0.42, 0.42)), OUT)
+export("roast_meat", meat((0.62, 0.34, 0.18)), OUT)
+export("skewer", skewer(), OUT)
+export("stew", bowl((0.6, 0.36, 0.2)), OUT)
+export("apple_tart", tart(), OUT)

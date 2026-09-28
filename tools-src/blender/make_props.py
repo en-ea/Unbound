@@ -220,8 +220,99 @@ def rabbit():
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials({"Prop": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
+def campfire():
+    """A ring of stones round crossed logs with glowing embers, and a pot hanging from a tripod."""
+    b = Builder(["Prop", "Glow"])
+    for k in range(9):
+        a = k * math.tau / 9
+        clump(b, V((math.cos(a) * 0.62, math.sin(a) * 0.62, 0.08)), 0.16, 1, rnd, rnd.choice(STONE), "Prop", 0.7)
+    for a in (0.3, 1.35, 2.4):
+        d = V((math.cos(a), math.sin(a), 0)) * 0.45
+        soft(b, lambda d=d: rk.tube(b.bm, [-d + V((0, 0, 0.08)), d + V((0, 0, 0.2))], [(0.07, 0.07)] * 2, ref=V((0, 0, 1)), seg=6), rnd.choice(WOOD), 0.02)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, 0, 0.1)), (0.3, 0.3, 0.1), 8, 3)), "Glow", (1.0, 0.45, 0.12))
+    for a in (0.5, 2.6, 4.7):                        # tripod
+        foot = V((math.cos(a) * 0.9, math.sin(a) * 0.9, 0))
+        soft(b, lambda foot=foot: rk.tube(b.bm, [foot, V((0, 0, 1.5))], [(0.035, 0.035)] * 2, seg=5), WB_DARK, 0.01)
+    soft(b, lambda: rk.tube(b.bm, [V((0, 0, 1.5)), V((0, 0, 0.95))], [(0.01, 0.01)] * 2, seg=4), IRON_D, 0.003)
+    soft(b, lambda: rk.tube(b.bm, [V((0, 0, 0.62)), V((0, 0, 0.7)), V((0, 0, 0.9)), V((0, 0, 0.96))],
+                            [(0.12, 0.12), (0.22, 0.22), (0.22, 0.22), (0.2, 0.2)], seg=10), IRON_D, 0.02)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, 0, 0.94)), (0.18, 0.18, 0.02), 8, 2)), "Prop", (0.72, 0.5, 0.26))
+    # A log to sit on.
+    soft(b, lambda: rk.tube(b.bm, [V((-0.7, -1.3, 0.18)), V((0.7, -1.3, 0.18))], [(0.18, 0.18)] * 2, ref=V((0, 0, 1)), seg=7), WOOD[1], 0.03)
+    return b
+
+
+def site_board():
+    """A notice board on two posts with a pinned plan (the village project board)."""
+    b = Builder(["Prop", "Glow"])
+    for x in (-0.55, 0.55):
+        soft(b, cube(b, V((x, 0, 0.8)), (0.12, 0.12, 1.6)), WB_DARK, 0.02)
+    soft(b, cube(b, V((0, 0, 1.15)), (1.3, 0.08, 0.8)), WOOD[0], 0.03)
+    soft(b, cube(b, V((0, 0.05, 1.5)), (1.5, 0.3, 0.08)), WB_DARK, 0.02)
+    soft(b, cube(b, V((-0.2, -0.06, 1.15)), (0.55, 0.02, 0.5)), (0.95, 0.9, 0.78), 0.005)
+    soft(b, cube(b, V((0.35, -0.06, 1.05)), (0.3, 0.02, 0.35)), (0.92, 0.84, 0.66), 0.005)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((-0.2, -0.08, 1.35)), (0.03, 0.02, 0.03), 5, 3)), "Glow", (1.0, 0.4, 0.3))
+    return b
+
+
+def scaffold():
+    """Posts, planks and a stack of timber: a building on its way."""
+    b = Builder(["Prop"])
+    for x in (-2.0, 2.0):
+        for y in (-1.6, 1.6):
+            soft(b, cube(b, V((x, y, 1.3)), (0.14, 0.14, 2.6)), WB_DARK, 0.02)
+    for z in (1.0, 2.2):
+        for y in (-1.6, 1.6):
+            soft(b, cube(b, V((0, y, z)), (4.2, 0.1, 0.16)), WOOD[0], 0.02)
+        for x in (-2.0, 2.0):
+            soft(b, cube(b, V((x, 0, z)), (0.1, 3.4, 0.16)), WOOD[2], 0.02)
+    soft(b, cube(b, V((0, -1.75, 1.05)), (3.8, 0.5, 0.06)), WOOD[1], 0.02)
+    for i in range(4):
+        soft(b, cube(b, V((1.2, 2.4, 0.1 + i * 0.16)), (1.8, 0.5, 0.14), Euler((0, 0, 0.05 * i))), WOOD[i % 3], 0.02)
+    for k in range(5):
+        clump(b, V((-1.4 + k * 0.3, 2.3, 0.12)), 0.16, 1, rnd, rnd.choice(STONE), "Prop", 0.7)
+    return b
+
+
+def smithy():
+    """An open-fronted smithy: a stone forge with glowing coals and a tall chimney, a slate roof on
+    timber posts, an anvil on a stump, a quench barrel and tools on the wall. Faces -Y."""
+    b = Builder(["Prop", "Glow"])
+    soft(b, cube(b, V((0, 0.2, 0.1)), (4.6, 3.6, 0.2)), RUIN_DARK, 0.05)
+    # Forge at the back left: stone block, coals, chimney.
+    soft(b, cube(b, V((-1.2, 1.2, 0.6)), (1.6, 1.1, 1.0)), STONE[1], 0.06)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((-1.2, 1.05, 1.12)), (0.55, 0.35, 0.08), 8, 3)), "Glow", (1.0, 0.42, 0.1))
+    soft(b, cube(b, V((-1.2, 1.45, 2.2)), (1.0, 0.6, 2.2)), STONE[3], 0.05)
+    soft(b, cube(b, V((-1.2, 1.45, 4.1)), (0.7, 0.45, 1.6)), STONE[0], 0.05)
+    soft(b, cube(b, V((-1.2, 1.45, 4.95)), (0.85, 0.6, 0.12)), RUIN_DARK, 0.02)
+    # Posts and a sloped slate roof.
+    for x in (-2.1, 2.1):
+        for y in (-1.4, 1.7):
+            soft(b, cube(b, V((x, y, 1.5)), (0.2, 0.2, 2.8 + (0.4 if y > 0 else 0))), WB_DARK, 0.03)
+    for k in range(5):
+        y = -1.8 + k * 0.8
+        z = 2.95 + k * 0.18
+        soft(b, cube(b, V((0, y, z)), (5.0, 0.95, 0.12), Euler((-0.22, 0, 0))), (0.36, 0.4, 0.5) if k % 2 else (0.42, 0.46, 0.56), 0.02)
+    # Anvil on a stump, quench barrel, hanging tools.
+    soft(b, lambda: rk.tube(b.bm, [V((0.6, -0.4, 0.2)), V((0.6, -0.4, 0.75))], [(0.32, 0.32), (0.3, 0.3)], seg=8), WB_WOOD, 0.03)
+    soft(b, cube(b, V((0.6, -0.4, 0.88)), (0.26, 0.55, 0.24)), IRON_D, 0.03)
+    soft(b, cube(b, V((0.6, -0.4, 1.05)), (0.38, 0.8, 0.14)), IRON_D, 0.03)
+    soft(b, lambda: rk.tube(b.bm, [V((1.6, 0.9, 0.2)), V((1.6, 0.9, 1.0))], [(0.35, 0.35), (0.38, 0.38)], seg=10), WB_WOOD, 0.03)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((1.6, 0.9, 0.98)), (0.32, 0.32, 0.02), 8, 2)), "Prop", (0.3, 0.45, 0.55))
+    soft(b, cube(b, V((0.8, 1.72, 1.9)), (1.6, 0.08, 1.0)), WOOD[1], 0.02)
+    for x in (0.3, 0.8, 1.3):
+        soft(b, cube(b, V((x, 1.64, 1.9)), (0.06, 0.04, 0.6)), IRON_D, 0.01)
+    # A warm lantern at the front post.
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((2.1, -1.55, 2.3)), (0.12, 0.12, 0.16), 6, 4)), "Glow", (1.0, 0.76, 0.4))
+    return b
+
+
 export("chest_base", chest_base(), OUT)
 export("chest_lid", chest_lid(), OUT)
 export("ruin_arch", ruin(), OUT)
 export("rabbit", rabbit(), OUT)
 export("workbench", workbench(), OUT)
+export("campfire", campfire(), OUT)
+export("site_board", site_board(), OUT)
+export("scaffold", scaffold(), OUT)
+export("smithy", smithy(), OUT)

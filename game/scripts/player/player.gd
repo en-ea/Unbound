@@ -58,6 +58,7 @@ func act() -> void:
 
 
 func _ready() -> void:
+	add_to_group("player")
 	_ready_drops()
 
 
@@ -118,9 +119,19 @@ func can_be_targeted() -> bool:
 	return _down <= 0.0 and _safe <= 0.0 and _roll <= 0.0
 
 
+## The action: eat a food from the Bag (hearts back, and maybe a buff).
+func eat(item: String) -> void:
+	var hearts := Food.eat(item)
+	if hearts > 0 and _down <= 0.0:
+		health = mini(health + hearts, MAX_HEALTH)
+		health_changed.emit(health, MAX_HEALTH)
+
+
 func take_damage(amount: int) -> void:
 	if _roll > 0.0 or _down > 0.0 or _safe > 0.0:
 		return
+	if Food.has("sturdy"):
+		amount = maxi(amount - 1, 1)
 	health = maxi(health - amount, 0)
 	_safe = INVULNERABLE
 	_since_hit = 0.0
@@ -172,7 +183,7 @@ func _physics_process(delta: float) -> void:
 	var strength := move.length()
 	var target_speed := 0.0
 	if strength > 0.1:
-		target_speed = RUN_SPEED if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
+		target_speed = RUN_SPEED * (1.2 if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
 	# The camera never rotates, so screen up is world -Z.
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))

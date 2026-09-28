@@ -65,13 +65,14 @@ The big shape of the game. DESIGN.md has the look and feel; PLAN.md has the buil
 
 ## Build order (owner's pick)
 Must do, in this order:
-1. **Region travel + the forest.**
-2. **Food and cooking.**
-3. **Money, the trader, the first village project.**
+1. **Region travel + the forest.** Done.
+2. **Food and cooking.** Done (campfires, 4 dishes, buffs).
+3. **Money, the trader, the first village project.** Done (coins, trader, Smithy unlocks Steel).
 4. **Class tree + first abilities** (with the story start: ordinary day, shrine wakes, class unlocks) and two
    weapon slots. Classes and weapons are separate (Outriders style): any class can use any weapon; they can
    complement each other, never lock you in.
 5. **Forest boss, full rarities, relics, and the first armour.**
 6. **Balance pass** (all numbers in one file).
 7. **Your home base** (free placement).
+Also: make each region about twice as big, with gates at natural crossings (bridge, pass, cave).
 Kept in mind for later: more weapons, more regions (highlands, caves), special companion, fishing, then the 2nd land.

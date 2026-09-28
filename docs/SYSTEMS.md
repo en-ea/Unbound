@@ -36,6 +36,19 @@ functions; visual scripts listen to signals. Keep it that way (co-op later).
 kills (boar 25, wolf 20). Perks: gathering speed +1.5% and extra-drop chance +1% per level, sword
 damage +1 per 10 combat levels. The HUD shows a small bar on gains and a message on level-up.
 
+## Food, money and village projects
+- `state/food.gd` (autoload `Food`): `FOODS` (hearts healed, buff, seconds), `BUFFS` (strong, swift, nimble,
+  sturdy), campfire `RECIPES`; actions `cook()` and `eat()`. Buffs are read by Gear.damage, player speed and
+  damage taken, and gatherer pace. Eat from the Bag (Eat button); the HUD shows running buffs.
+- `state/money.gd` (autoload `Money`): coins (`earn`, `spend`), the trader (`sell`, `buy`, `stock()` rotates
+  every 15 min from `STOCK_POOL`). Sell prices are `value` in `Items.DEFS`.
+- `state/projects.gd` (autoload `Projects`): `DEFS` (name, region, spot, coins and item cost, what it unlocks);
+  `fund()`. The spot shows scaffolding and a board until funded (`world/project_site.gd`). The Smithy unlocks
+  Steel tools (recipes with `"needs": "smithy"` in `gear.gd`).
+- One screen for all three: `ui/shop_panel.gd` (mode cook / trade / project), opened by `world/station.gd`
+  (any interactable spot) through `hud.open_station()`. Campfires: `world/campfire.gd`, one per region.
+- Dev: `--rich` (coins and materials), `--open=cook|trade|project:smithy`.
+
 ## Regions and travel
 - `game/scripts/core/region.gd` (autoload `Region`): the current region, its display name (`NAMES`) and its
   gates (`GATES`: trigger spot, the region it leads to, where you arrive). `travel()` saves, fades, and

@@ -18,7 +18,8 @@ const REGIONS := {
 			Vector2(4, -10), Vector2(-8, -20), Vector2(-20, -26), Vector2(-26, -30)],
 		"clearings": [Vector3(-5.5, 11.5, 4.2), Vector3(10.5, 13.0, 4.6), Vector3(5.4, 16.0, 1.5),
 			Vector3(-9.0, 23.0, 4.4), Vector3(14.0, 3.0, 4.0), Vector3(-13.0, 2.0, 5.0),
-			Vector3(9.0, 22.0, 5.0), Vector3(-6.0, 31.0, 5.0), Vector3(-1.0, 7.0, 3.0)],
+			Vector3(9.0, 22.0, 5.0), Vector3(-6.0, 31.0, 5.0), Vector3(-1.0, 7.0, 3.0),
+			Vector3(-17.0, 13.5, 5.5), Vector3(-3.5, 27.0, 2.6)],
 		"keep_clear": [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5)],
 	},
 	"forest": {
@@ -26,7 +27,7 @@ const REGIONS := {
 		"spawn": Vector2(-1.0, -50.0), "rough": 4.6, "seed": 21,
 		"path": [Vector2(0, -75), Vector2(-3, -52), Vector2(5, -36), Vector2(0, -20), Vector2(-9, -6),
 			Vector2(-4, 8), Vector2(6, 18), Vector2(12, 25), Vector2(18, 30)],
-		"clearings": [Vector3(-1.0, -48.0, 4.0)],
+		"clearings": [Vector3(0.0, -47.0, 5.0)],
 		"keep_clear": [Vector3(34, -18, 4.0), Vector3(-36, 30, 1.5), Vector3(-40, -40, 1.5)],
 	},
 }

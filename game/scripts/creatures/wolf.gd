@@ -175,6 +175,8 @@ func _die() -> void:
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.5))
 	var items: Array[String] = ["shadow_pelt"] if shadow else ["pelt"]
+	if randf() < 0.5:
+		items.append("raw_meat")
 	if randf() < (0.6 if shadow else 0.3):
 		items.append("fang")
 	for item in items:

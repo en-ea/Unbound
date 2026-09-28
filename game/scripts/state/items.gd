@@ -1,27 +1,32 @@
 class_name Items
 extends RefCounted
-## Every item in the game: display name, colour and rarity. Models: tools-src/blender/make_items.py.
+## Every item in the game: display name, colour, rarity and value (coins the trader pays). Models: tools-src/blender/make_items.py.
 
 enum Rarity { COMMON, UNCOMMON, RARE }
 
 const DEFS := {
-	"wood": {"name": "Wood", "color": Color(0.62, 0.43, 0.26), "rarity": Rarity.COMMON},
-	"stone": {"name": "Stone", "color": Color(0.62, 0.62, 0.6), "rarity": Rarity.COMMON},
-	"apple": {"name": "Apple", "color": Color(0.85, 0.2, 0.15), "rarity": Rarity.COMMON},
-	"mushroom": {"name": "Mushroom", "color": Color(0.86, 0.52, 0.32), "rarity": Rarity.COMMON},
-	"flower": {"name": "Wildflower", "color": Color(0.9, 0.5, 0.75), "rarity": Rarity.COMMON},
-	"flint": {"name": "Flint", "color": Color(0.3, 0.3, 0.34), "rarity": Rarity.UNCOMMON},
-	"resin": {"name": "Amber Resin", "color": Color(1.0, 0.68, 0.2), "rarity": Rarity.RARE},
-	"glowcap": {"name": "Glowcap", "color": Color(0.45, 1.0, 0.75), "rarity": Rarity.RARE},
-	"shard": {"name": "Glimmer Shard", "color": Color(0.5, 0.85, 1.0), "rarity": Rarity.RARE},
-	"hide": {"name": "Boar Hide", "color": Color(0.42, 0.34, 0.38), "rarity": Rarity.COMMON},
-	"tusk": {"name": "Boar Tusk", "color": Color(0.93, 0.88, 0.74), "rarity": Rarity.UNCOMMON},
-	"copper": {"name": "Copper Ore", "color": Color(0.9, 0.55, 0.3), "rarity": Rarity.COMMON},
-	"iron": {"name": "Iron Ore", "color": Color(0.72, 0.76, 0.84), "rarity": Rarity.UNCOMMON},
-	"pelt": {"name": "Wolf Pelt", "color": Color(0.6, 0.64, 0.72), "rarity": Rarity.UNCOMMON},
-	"fang": {"name": "Wolf Fang", "color": Color(0.97, 0.95, 0.88), "rarity": Rarity.RARE},
-	"pinewood": {"name": "Pinewood", "color": Color(0.5, 0.33, 0.22), "rarity": Rarity.UNCOMMON},
-	"shadow_pelt": {"name": "Shadow Pelt", "color": Color(0.36, 0.32, 0.55), "rarity": Rarity.RARE},
+	"wood": {"name": "Wood", "color": Color(0.62, 0.43, 0.26), "rarity": Rarity.COMMON, "value": 1},
+	"stone": {"name": "Stone", "color": Color(0.62, 0.62, 0.6), "rarity": Rarity.COMMON, "value": 1},
+	"apple": {"name": "Apple", "color": Color(0.85, 0.2, 0.15), "rarity": Rarity.COMMON, "value": 2},
+	"mushroom": {"name": "Mushroom", "color": Color(0.86, 0.52, 0.32), "rarity": Rarity.COMMON, "value": 2},
+	"flower": {"name": "Wildflower", "color": Color(0.9, 0.5, 0.75), "rarity": Rarity.COMMON, "value": 1},
+	"flint": {"name": "Flint", "color": Color(0.3, 0.3, 0.34), "rarity": Rarity.UNCOMMON, "value": 3},
+	"resin": {"name": "Amber Resin", "color": Color(1.0, 0.68, 0.2), "rarity": Rarity.RARE, "value": 8},
+	"glowcap": {"name": "Glowcap", "color": Color(0.45, 1.0, 0.75), "rarity": Rarity.RARE, "value": 10},
+	"shard": {"name": "Glimmer Shard", "color": Color(0.5, 0.85, 1.0), "rarity": Rarity.RARE, "value": 12},
+	"hide": {"name": "Boar Hide", "color": Color(0.42, 0.34, 0.38), "rarity": Rarity.COMMON, "value": 4},
+	"tusk": {"name": "Boar Tusk", "color": Color(0.93, 0.88, 0.74), "rarity": Rarity.UNCOMMON, "value": 8},
+	"copper": {"name": "Copper Ore", "color": Color(0.9, 0.55, 0.3), "rarity": Rarity.COMMON, "value": 3},
+	"iron": {"name": "Iron Ore", "color": Color(0.72, 0.76, 0.84), "rarity": Rarity.UNCOMMON, "value": 5},
+	"pelt": {"name": "Wolf Pelt", "color": Color(0.6, 0.64, 0.72), "rarity": Rarity.UNCOMMON, "value": 6},
+	"fang": {"name": "Wolf Fang", "color": Color(0.97, 0.95, 0.88), "rarity": Rarity.RARE, "value": 12},
+	"pinewood": {"name": "Pinewood", "color": Color(0.5, 0.33, 0.22), "rarity": Rarity.UNCOMMON, "value": 3},
+	"shadow_pelt": {"name": "Shadow Pelt", "color": Color(0.36, 0.32, 0.55), "rarity": Rarity.RARE, "value": 25},
+	"raw_meat": {"name": "Raw Meat", "color": Color(0.86, 0.42, 0.42), "rarity": Rarity.COMMON, "value": 3},
+	"roast_meat": {"name": "Roast Meat", "color": Color(0.62, 0.34, 0.18), "rarity": Rarity.COMMON, "value": 6},
+	"skewer": {"name": "Mushroom Skewer", "color": Color(0.72, 0.42, 0.22), "rarity": Rarity.COMMON, "value": 6},
+	"apple_tart": {"name": "Apple Tart", "color": Color(0.85, 0.25, 0.2), "rarity": Rarity.UNCOMMON, "value": 8},
+	"stew": {"name": "Forest Stew", "color": Color(0.6, 0.36, 0.2), "rarity": Rarity.UNCOMMON, "value": 15},
 }
 
 const MODELS := "res://assets/items/%s.glb"      # tools-src/blender/make_items.py
@@ -42,6 +47,10 @@ static func name_of(id: String) -> String:
 
 static func color_of(id: String) -> Color:
 	return DEFS[id]["color"]
+
+
+static func value_of(id: String) -> int:
+	return DEFS[id].get("value", 1)
 
 
 static func rarity_of(id: String) -> int:

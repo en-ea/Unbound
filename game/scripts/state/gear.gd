@@ -15,6 +15,7 @@ const TIERS := [
 	{"name": "Stone", "color": Color(0.33, 0.33, 0.32), "power": 3, "damage": 3, "speed": 1.0},
 	{"name": "Copper", "color": Color(0.9, 0.52, 0.3), "power": 4, "damage": 4, "speed": 1.08},
 	{"name": "Iron", "color": Color(0.82, 0.86, 0.92), "power": 6, "damage": 5, "speed": 1.16},
+	{"name": "Steel", "color": Color(0.55, 0.72, 0.95), "power": 8, "damage": 7, "speed": 1.24},
 ]
 ## Bonuses found tools can roll: Swift swings 15% faster, Mighty hits 1 harder, Lucky gives a
 ## 20% chance of an extra drop. Rare tools have two. [adjective, noun] for the name.
@@ -35,6 +36,10 @@ const RECIPES := [
 	{"slot": "axe", "tier": 3, "cost": {"wood": 10, "iron": 12, "resin": 2}},
 	{"slot": "pickaxe", "tier": 3, "cost": {"wood": 10, "iron": 14, "resin": 2}},
 	{"slot": "sword", "tier": 3, "cost": {"wood": 8, "iron": 16, "pelt": 4, "fang": 2}},
+	# Steel: only once the village smithy is built (see Projects).
+	{"slot": "axe", "tier": 4, "needs": "smithy", "cost": {"pinewood": 10, "iron": 16, "shard": 2}},
+	{"slot": "pickaxe", "tier": 4, "needs": "smithy", "cost": {"pinewood": 10, "iron": 18, "shard": 2}},
+	{"slot": "sword", "tier": 4, "needs": "smithy", "cost": {"pinewood": 8, "iron": 20, "shadow_pelt": 2, "fang": 2}},
 ]
 ## Bags: how many different kinds of item you can carry. The first is what you start with.
 const BAGS := [
@@ -73,7 +78,7 @@ func power(slot: String) -> int:
 func damage() -> int:
 	var t := current("sword")
 	var base: int = 1 if t.is_empty() else TIERS[t["tier"]]["damage"] + (1 if "mighty" in t["bonuses"] else 0)
-	return base + Skills.damage_bonus()
+	return base + Skills.damage_bonus() + (1 if Food.has("strong") else 0)
 
 
 func speed(slot: String) -> float:
@@ -135,6 +140,9 @@ func _spend(cost: Dictionary) -> void:
 func craftable_tiers(slot: String) -> Array[int]:
 	var out: Array[int] = []
 	for t in mini(unlocked[slot] + 1, TIERS.size() - 1) + 1:
+		var needs: String = recipe_for(slot, t).get("needs", "")
+		if needs != "" and not Projects.is_built(needs):
+			continue
 		if not owned[slot].any(func(o: Dictionary) -> bool: return o["tier"] == t):
 			out.append(t)
 	return out

@@ -15,8 +15,8 @@ const HOUSES := [
 const SAILS := preload("res://assets/buildings/windmill_sails.glb")
 const SAILS_AT := Vector3(0, 5.75, 2.75)       # the hub on the windmill's front, from make_buildings.py
 const MERCHANT_AT := Vector2(5.4, 16.0)
-const GREETINGS := ["Fine goods today, traveller!", "Wood, stone, hides... I buy it all. Soon.",
-	"Mind the boars past the hill.", "Come back when my stall is built!"]
+const GREETINGS := ["Fine goods today, traveller!", "Wood, stone, hides... I buy it all.",
+	"Mind the boars past the hill.", "Fresh stock every little while!", "Shadow pelts? I pay well for those."]
 
 @export var player: Node3D
 
@@ -56,6 +56,10 @@ func build(shape: WorldShape) -> void:
 		body.add_child(col)
 		house.add_child(body)
 	_add_merchant(shape)
+	var trade := Node3D.new()
+	trade.set_script(preload("res://scripts/world/station.gd"))
+	add_child(trade)
+	trade.setup(Vector3(MERCHANT_AT.x, shape.height_at(MERCHANT_AT.x, MERCHANT_AT.y), MERCHANT_AT.y), "Trade", {"mode": "trade"})
 
 
 func _add_merchant(shape: WorldShape) -> void:

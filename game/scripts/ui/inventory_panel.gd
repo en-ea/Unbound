@@ -38,6 +38,10 @@ func _ready() -> void:
 	column.add_child(header)
 	var title := UIStyle.label(header, "Bag", 28)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var coins := UIStyle.label(header, "%d coins" % Money.coins, 22)
+	coins.add_theme_color_override("font_color", Color(1.0, 0.82, 0.35))
+	coins.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	coins.custom_minimum_size.x = 150
 	UIStyle.button(header, "Close", Vector2(120, 46), 20).pressed.connect(_close)
 	_gear = VBoxContainer.new()
 	_gear.add_theme_constant_override("separation", 6)
@@ -189,6 +193,10 @@ func _card(item: String) -> Control:
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var count := UIStyle.label(v, "× %d" % Inventory.count(item), 20)
 	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if Food.is_food(item):                  # food: an Eat button, and what it does
+		card.tooltip_text = Food.describe(item)
+		var eat := UIStyle.button(v, "Eat", Vector2(0, 40), 18)
+		eat.pressed.connect(func() -> void: get_tree().call_group("player", "eat", item))
 	return card
 
 

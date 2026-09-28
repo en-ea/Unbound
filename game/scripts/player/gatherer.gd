@@ -75,7 +75,7 @@ func act() -> void:
 	var tool: String = info["tool"]
 	var swing: Dictionary = SWINGS[tool]
 	_skill = Skills.FOR_TOOL.get(tool, "")
-	var pace := Gear.speed(tool) * Skills.speed_bonus(_skill) if tool != "" else 1.0
+	var pace := Gear.speed(tool) * Skills.speed_bonus(_skill) * (1.25 if Food.has("nimble") else 1.0) if tool != "" else 1.0
 	_power = Gear.power(tool) if tool != "" else 2      # bare hands pick flowers, open chests
 	_luck = Gear.luck(tool) + Skills.luck_bonus(_skill) if tool != "" else 0.0
 	var shown := tool
