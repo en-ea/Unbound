@@ -58,6 +58,15 @@ func buy(choice: String) -> bool:
 	return true
 
 
+## The action: move into another of the houses (free; what you built in the yard stays).
+func change_house(choice: String) -> bool:
+	if not owned() or not HOUSES.has(choice) or choice == house:
+		return false
+	house = choice
+	changed.emit()
+	return true
+
+
 func inside(x: float, z: float) -> bool:
 	return absf(x - PLOT_CENTER.x) <= PLOT_HALF.x and absf(z - (PLOT_CENTER.y + 2.0)) <= PLOT_HALF.y
 
@@ -68,6 +77,8 @@ func fits(id: String, x: float, z: float) -> bool:
 		return false
 	for p: Dictionary in pieces:
 		var gap: float = PIECES[id][2] + PIECES[p["id"]][2]
+		if id in ["fence", "lantern_post"] and p["id"] in ["fence", "lantern_post"]:
+			gap = 0.9          # fences and posts may touch end to end
 		if Vector2(x, z).distance_to(Vector2(p["x"], p["z"])) < gap * 0.9:
 			return false
 	return true

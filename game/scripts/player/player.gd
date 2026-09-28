@@ -7,8 +7,8 @@ const RUN_THRESHOLD := 0.75
 const ACCEL := 12.0
 const TURN_SPEED := 12.0
 const GRAVITY := 22.0
-const ROLL_SPEED := 8.5        # at the start; it eases down to about half by the end
-const ROLL_TIME := 0.55
+const ROLL_SPEED := 7.6        # at the start; it eases down a little by the end (about 4 m in all)
+const ROLL_TIME := 0.7
 const ROLL_COOLDOWN := 0.25    # a short breath between rolls, so it can't be spammed
 
 signal verb_changed(verb: String)       # what the action button does right now
@@ -223,7 +223,7 @@ func _special_move(delta: float) -> void:
 			_roll_dir = _roll_dir.slerp(Vector3(m.x, 0, m.y).normalized(), clampf(3.0 * delta, 0.0, 1.0)).normalized()
 			visual.rotation.y = atan2(_roll_dir.x, _roll_dir.z)
 		var t := 1.0 - _roll / ROLL_TIME       # 0 at the start of the roll, 1 at the end
-		flat = _roll_dir * ROLL_SPEED * lerpf(1.1, 0.45, t * t)
+		flat = _roll_dir * ROLL_SPEED * lerpf(1.0, 0.6, t * t)
 	else:
 		_stun -= delta
 		flat = _knock

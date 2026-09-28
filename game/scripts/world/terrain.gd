@@ -91,7 +91,7 @@ func build(shape: WorldShape) -> void:
 ## per pixel, so their edges stay crisp.
 ## Bakes soft shade under trees, rocks and bushes into a small ground texture.
 func bake_shade(spots: Array[Vector4]) -> void:
-	const RES := 320
+	const RES := 512                 # ~2 px per metre over the whole ground (sharper shade under trees)
 	var px := RES / (WorldShape.HALF_SIZE * 2.0)     # pixels per metre
 	var data := PackedByteArray()
 	data.resize(RES * RES)

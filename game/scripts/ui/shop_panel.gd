@@ -143,11 +143,14 @@ func _refresh() -> void:
 					_sell_row(item)
 		"home":
 			if Home.owned():
-				_note.text = "Your %s. Build fences, lanterns, benches, flower beds, a campfire, a workbench and more in the yard." % Home.HOUSES[Home.house][0]
-				_offer("", "Build in the yard", "Walk around to move what you're placing.", {}, 0, "Start building", func() -> bool:
+				_note.text = "Your %s. Build in the yard, or move into another house (free; the yard stays)." % Home.HOUSES[Home.house][0]
+				_offer("", "Build in the yard", "Fences, lanterns, benches, flower beds, a campfire, a workbench and more.", {}, 0, "Start building", func() -> bool:
 					_close()
 					build_home.emit()
 					return false)
+				for h: String in Home.HOUSES:
+					if h != Home.house:
+						_offer("", Home.HOUSES[h][0], "", {}, 0, "Move in", Home.change_house.bind(h).unbind(0))
 			else:
 				var miss := Home.missing()
 				_note.text = "A plot of your own, with a house you choose. " + ("Ready to buy!" if miss.is_empty() else "Still needed: " + "; ".join(miss) + ".")

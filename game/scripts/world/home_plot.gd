@@ -1,11 +1,13 @@
 extends Node3D
-## Your home plot in the meadow (state: Home). Before you buy it: corner stakes and a "For sale"
-## board. After: the house you chose and everything you've built in the yard. The board opens the
-## home screen (buy, or start building). A built campfire cooks and a built workbench crafts.
+## Your home plot in the meadow (state: Home). Before you buy it: corner stakes and a "For sale" sign
+## (it opens the buying screen). After: the house you chose and everything you've built in the yard;
+## your front door opens the home screen (build, or move into another house). A built campfire cooks
+## and a built workbench crafts.
 
 const TREASURE := preload("res://scripts/world/treasure.gd")
 const STATION := preload("res://scripts/world/station.gd")
 const BOARD := preload("res://assets/props/site_board.glb")
+
 
 var _shape: WorldShape
 var _stuff: Node3D
@@ -13,19 +15,6 @@ var _stuff: Node3D
 
 func build(shape: WorldShape) -> void:
 	_shape = shape
-	var c := Home.PLOT_CENTER
-	var board := Node3D.new()
-	board.set_script(STATION)
-	add_child(board)
-	board.setup(_at(c.x + 7.5, c.y + 9.0), "Home", {"mode": "home"}, BOARD, Vector3(1.4, 1.6, 0.3))
-	var sign := Label3D.new()
-	sign.text = "Your home"
-	sign.font_size = 44
-	sign.outline_size = 12
-	sign.pixel_size = 0.008
-	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sign.position = Vector3(0, 2.3, 0)
-	board.add_child(sign)
 	_stuff = Node3D.new()
 	add_child(_stuff)
 	Home.changed.connect(_rebuild)
@@ -37,6 +26,11 @@ func _rebuild() -> void:
 		n.queue_free()
 	var c := Home.PLOT_CENTER
 	if not Home.owned():
+		var sale := Node3D.new()                        # a "For sale" sign at the front of the plot
+		sale.set_script(STATION)
+		_stuff.add_child(sale)
+		sale.setup(_at(c.x + 6.0, c.y + 8.5), "Look", {"mode": "home"}, BOARD, Vector3(1.4, 1.6, 0.3))
+		sale.add_child(SignLabel.make("For sale"))
 		for sx in [-1, 1]:                              # corner stakes with a little flag
 			for sz in [-1, 1]:
 				var stake := MeshInstance3D.new()
@@ -55,6 +49,11 @@ func _rebuild() -> void:
 	house.add_to_group("map_building")
 	house.set_meta("map_size", Vector2(6, 5))
 	_collide(house, Vector3(0, 2, 0), Vector3(5.5, 4, 4.5))
+	var door := Node3D.new()                            # walk up to your front door for the home menu
+	door.set_script(STATION)
+	_stuff.add_child(door)
+	door.setup(_at(c.x, c.y - 3.6), "Home", {"mode": "home"})
+	door.reach = 2.2
 	for p: Dictionary in Home.pieces:
 		var info: Array = Home.PIECES[p["id"]]
 		var at := _at(p["x"], p["z"])

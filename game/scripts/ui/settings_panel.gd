@@ -73,19 +73,21 @@ func _code_page() -> void:
 	var shown := UIStyle.label(_rows, _typed if _typed != "" else "_", 30)
 	shown.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_msg = UIStyle.label(_rows, "", 18, true)
-	var keys := GridContainer.new()
-	keys.columns = 9
-	keys.add_theme_constant_override("h_separation", 6)
-	keys.add_theme_constant_override("v_separation", 6)
-	_rows.add_child(keys)
-	for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
-		UIStyle.button(keys, letter, Vector2(54, 50), 22).pressed.connect(func() -> void:
-			if _typed.length() < 16:
-				_typed += letter
-			shown.text = _typed)
-	UIStyle.button(keys, "⌫", Vector2(54, 50), 22).pressed.connect(func() -> void:
-		_typed = _typed.left(-1)
-		shown.text = _typed if _typed != "" else "_")
+	for line: String in ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM<"]:    # a phone-style keyboard
+		var keys := HBoxContainer.new()
+		keys.alignment = BoxContainer.ALIGNMENT_CENTER
+		keys.add_theme_constant_override("separation", 5)
+		_rows.add_child(keys)
+		for letter in line:
+			if letter == "<":
+				UIStyle.button(keys, "⌫", Vector2(76, 50), 22).pressed.connect(func() -> void:
+					_typed = _typed.left(-1)
+					shown.text = _typed if _typed != "" else "_")
+				continue
+			UIStyle.button(keys, letter, Vector2(48, 50), 21).pressed.connect(func() -> void:
+				if _typed.length() < 16:
+					_typed += letter
+				shown.text = _typed)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	_rows.add_child(row)

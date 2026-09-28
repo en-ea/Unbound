@@ -24,13 +24,7 @@ func build(shape: WorldShape, id: String) -> void:
 	board.set_script(STATION)
 	add_child(board)
 	board.setup(global_position + Vector3(0.5, 0, 3.0), "Look", {"mode": "project", "project": id}, BOARD, Vector3(1.4, 1.6, 0.3))
-	var sign := Label3D.new()
-	sign.text = Projects.DEFS[id]["name"]
-	sign.font_size = 44
-	sign.outline_size = 12
-	sign.pixel_size = 0.008
-	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sign.position = Vector3(0, 2.3, 0)
+	var sign := SignLabel.make(Projects.DEFS[id]["name"])
 	board.add_child(sign)
 	_show(false)
 	Projects.built.connect(func(b: String) -> void:

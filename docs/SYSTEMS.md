@@ -58,13 +58,8 @@ targets at the top. Other scripts alias its constants (`Gear.TIERS := Balance.TI
 `state/home.gd` (autoload `Home`): owned house, pieces built in the yard, `missing()` (needs the Smithy,
 a skill total and coins, see Balance.HOME), `buy()`, `place()`, `remove()`. `world/home_plot.gd` shows the
 plot (meadow, west of the village); `ui/build_mode.gd` is the building bar (preview in front of you on a
-half-metre grid). Add a buildable: `Home.PIECES` + its cost in `Balance.HOME_PIECES`. Dev: `--home`.
-
-## Ground (grass and flowers)
-`scatter.gd` `_plant_at` / `_forest_plant_at` place plants by design, not evenly: a grassy verge along
-the path, flower drifts of mostly one colour (`_drift_colour`), long-grass patches, clean lawn between,
-ferns and mushrooms at the foot of trees; in the forest fern beds and sunny glades. `_cluster` plants a
-small group (only the first is pickable).
+half-metre grid, or Snap: fences join, 1 m grid, square turns; `_hook`). Your front door opens the home
+screen (build, or move into another house). Add a buildable: `Home.PIECES` + its cost in `Balance.HOME_PIECES`. Dev: `--home`.
 
 ## Places
 `world/places.gd`: named placeholder spots per region (watchtower, farmstead, camp, hollow, cave...),
