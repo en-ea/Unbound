@@ -1,8 +1,8 @@
 class_name Wolf
 extends CharacterBody3D
 ## The wolf: roams with its pack. When it spots the player it growls, then circles at a distance;
-## it stops and crouches (the warning: it glows and a short lane shows where it will dart; the aim
-## locks just before), darts in for a bite, and backs off to circle again. Only one
+## it stops and crouches glowing red-hot (the warning), locks its aim with a glint and a "ting",
+## darts in for a bite, and backs off to circle again. Only one
 ## wolf lunges at a time. Quick but fragile: three hits. Drops a pelt and sometimes a fang.
 
 const WALK_SPEED := 1.6
@@ -16,8 +16,7 @@ const MAX_HEALTH := 6          # the real value comes from Balance (set in _read
 
 const GRAVITY := 20.0
 const WINDUP := 0.6            # seconds of warning before a lunge
-const AIM_LOCK := 0.65         # after this part of the wind-up it stops turning
-const LANE := 4.2
+const AIM_LOCK := 0.5          # after this part of the wind-up it stops turning (and glints)
 const SOUNDS := {
 	"growl": preload("res://assets/sounds/wolf_growl.wav"),
 	"yelp": preload("res://assets/sounds/wolf_yelp.wav"),
@@ -46,9 +45,9 @@ var _circle_time := 0.0
 var _side := 1.0                    # circling direction
 var _lunge_dir := Vector3.FORWARD
 var _bit := false
+var _hurt_time := 0.3         # longer after a heavy blow
 var _push := Vector3.ZERO
 var _audio: AudioStreamPlayer3D
-var _tell: AttackTell
 @onready var visual: WolfVisual = $Visual
 
 
@@ -57,8 +56,6 @@ func _ready() -> void:
 	_audio = AudioStreamPlayer3D.new()
 	_audio.unit_size = 8.0
 	add_child(_audio)
-	_tell = AttackTell.new()
-	add_child(_tell)
 	_goal = global_position
 	_side = 1.0 if randf() < 0.5 else -1.0
 	var stats: Dictionary = Balance.SHADOW_WOLF if shadow else Balance.WOLF
@@ -123,8 +120,9 @@ func _physics_process(delta: float) -> void:
 			if _t < WINDUP * AIM_LOCK:      # stops dead and crouches: the tell
 				face = toward
 				_lunge_dir = Vector3(sin(rotation.y), 0, cos(rotation.y))
+				if _t + delta >= WINDUP * AIM_LOCK:
+					visual.glint()
 			visual.tell = clampf(_t / WINDUP, 0.0, 1.0)
-			_tell.aim(global_position, _lunge_dir, LANE * _size(), 0.9 * _size(), visual.tell)
 			if lost:
 				_give_up()
 			elif _t > WINDUP:
@@ -147,7 +145,7 @@ func _physics_process(delta: float) -> void:
 				_side = -_side if randf() < 0.4 else _side
 				_enter(State.CIRCLE)
 		State.HURT:
-			if _t > 0.3:
+			if _t > _hurt_time:
 				_enter(State.RETREAT)
 		State.DEAD:
 			pass
@@ -175,6 +173,7 @@ func take_hit(from: Vector3, damage := 1, push := 1.0) -> void:
 	var away := global_position - from
 	away.y = 0.0
 	_push = away.normalized() * 5.0 * push
+	_hurt_time = 0.3 if push <= 1.0 else 1.0
 	_play("yelp", randf_range(0.95, 1.12))
 	if health <= 0:
 		_die()
@@ -233,7 +232,6 @@ func _enter(new_state: State) -> void:
 	state = new_state
 	_t = 0.0
 	if new_state != State.WINDUP:
-		_tell.stop()
 		visual.tell = 0.0
 	visual.crouch = new_state == State.WINDUP
 	if new_state == State.CIRCLE:

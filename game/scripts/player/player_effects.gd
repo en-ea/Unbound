@@ -38,9 +38,10 @@ func kick(surface: String, running: bool, left: bool) -> void:
 	var back := -Vector3(player.velocity.x, 0, player.velocity.z).normalized()
 	var side := back.cross(Vector3.UP) * (0.12 if left else -0.12)
 	p.global_position = player.global_position + back * 0.25 + side + Vector3(0, 0.08, 0)
-	p.amount = 6 if running else 3
+	var sprint: bool = player.sprinting
+	p.amount = 11 if sprint else (6 if running else 3)
 	p.color = GRASS_BITS if surface == "grass" else DUST
-	p.initial_velocity_max = 1.2 if running else 0.6
+	p.initial_velocity_max = 2.0 if sprint else (1.2 if running else 0.6)
 	p.direction = back + Vector3(0, 1.2, 0)
 	p.restart()
 

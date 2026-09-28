@@ -10,6 +10,7 @@ const TITLE_SCREEN := preload("res://scripts/ui/title_screen.gd")
 const MENU_PANEL := preload("res://scripts/ui/menu_panel.gd")
 const SETTINGS_PANEL := preload("res://scripts/ui/settings_panel.gd")
 const CRAFTING_PANEL := preload("res://scripts/ui/crafting_panel.gd")
+const HOLD_TO_SPRINT := 0.18     # Roll button: shorter than this is a roll, longer is a sprint
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
 ## Title camera: close on the character, who stands to the right of the title.
 const TITLE_VIEW := {"distance": 5.0, "pitch": -7.0, "offset": Vector3(-1.35, 0.25, 0.0)}
@@ -24,7 +25,6 @@ var _joystick: Control
 var _action: Control
 var _roll: Control
 var _heavy: Control
-var _stamina: Control
 var _corner: HBoxContainer
 var _feed: Control
 var _title: Control
@@ -63,10 +63,11 @@ func _ready() -> void:
 	_roll.font_size = 20
 	add_child(_roll)
 	_roll.set_verb("Roll")
-	_roll.pressed.connect(func() -> void:
-		Controls.sprint_button = true         # keep holding to sprint after the roll
-		player.roll())
-	_roll.released.connect(func() -> void: Controls.sprint_button = false)
+	_roll.sub = "hold: sprint"
+	# A tap rolls (on release); holding it sprints instead (see _process).
+	_roll.released.connect(func() -> void:
+		if _roll.held_for() < HOLD_TO_SPRINT:
+			player.roll())
 	_heavy = Control.new()
 	_heavy.set_script(ACTION_BUTTON)
 	_heavy.radius = 40.0
@@ -77,10 +78,8 @@ func _ready() -> void:
 	_heavy.visible = false
 	_heavy.pressed.connect(player.heavy)
 	player.fighter.target_changed.connect(func(_v: String) -> void: _show_heavy())
-	_stamina = Control.new()
-	_stamina.set_script(preload("res://scripts/ui/stamina_ring.gd"))
-	_stamina.player = player
-	add_child(_stamina)
+	player.stamina.refused.connect(func(cost: String) -> void:
+		(_heavy if cost == "heavy" else _roll).refuse())
 
 	_corner = HBoxContainer.new()
 	_corner.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -182,6 +181,7 @@ func _show_buffs() -> void:
 
 
 func _process(delta: float) -> void:
+	_update_roll_button()
 	_buff_tick -= delta
 	if _buff_tick <= 0.0 and _buffs.get_child_count() > 0:
 		_buff_tick = 1.0
@@ -363,11 +363,26 @@ func _set_play_ui(on: bool) -> void:
 	if not on:
 		Controls.sprint_button = false
 	_show_heavy()
-	_stamina.visible = on
 	_corner.visible = on
 	_feed.visible = on
 	_hearts.visible = on
 	_map.visible = on and Settings.show_map
+
+
+## Roll button: sprint while held, its rim shows stamina, it lights up while sprinting.
+func _update_roll_button() -> void:
+	Controls.sprint_button = _roll.visible and _roll.held_for() >= HOLD_TO_SPRINT
+	var sprinting: bool = player.sprinting
+	if sprinting != _roll.lit:
+		_roll.lit = sprinting
+		_roll.set_verb("Sprint" if sprinting else "Roll")
+	var st: Stamina = player.stamina
+	_roll.meter_color = Color(1.0, 0.45, 0.26) if st.winded else Color(0.62, 0.9, 0.38)
+	_roll.set_meter(st.value / st.max_value())
+	var dim := not st.can("heavy")
+	if dim != _heavy.dim:
+		_heavy.dim = dim
+		_heavy.queue_redraw()
 
 
 ## The Heavy button only shows in a fight (when the action button says Attack).

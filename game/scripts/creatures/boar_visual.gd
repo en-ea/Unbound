@@ -7,10 +7,12 @@ extends Node3D
 const PARTS := ["Body", "Head", "Leg_FL", "Leg_FR", "Leg_BL", "Leg_BR", "Tail", "Jaw"]
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const BAR_SHADER := preload("res://shaders/health_bar.gdshader")
+const GLINT_SHADER := preload("res://shaders/glint.gdshader")
+const GLINT_SOUND := preload("res://assets/sounds/tell_glint.wav")
 
 var speed := 0.0            # ground speed, set by Boar
 var mode := "walk"          # walk / alert / windup / stalk / charge / hurt / dead
-var tell := 0.0             # 0..1 through an attack's wind-up: glows and the "!" swells
+var tell := 0.0             # 0..1 through an attack's wind-up: a red-hot pulse
 ## Other creatures reuse this script (see wolf_visual.gd) with their own model and sizes.
 var model_scene: PackedScene = preload("res://assets/creatures/boar.glb")
 var paws := true            # paws the ground when alert
@@ -36,6 +38,11 @@ var _time := 0.0
 var _flash := 0.0
 var _flash_set := 0.0
 var _tell_set := 0.0
+var _eye_mesh: MeshInstance3D
+var _glint: MeshInstance3D
+var _glint_mat: ShaderMaterial
+var _glint_t := 1.0
+var _glint_audio: AudioStreamPlayer3D
 var _fall := 0.0
 
 
@@ -53,6 +60,7 @@ func _ready() -> void:
 			var src := mi.mesh.surface_get_material(s)
 			if src and src.resource_name == "Eye":
 				_eye_materials.append(mat)
+				_eye_mesh = mi
 	for name: String in PARTS:
 		var node := model.find_child(name, true, false) as Node3D
 		if node == null:
@@ -70,6 +78,7 @@ func _ready() -> void:
 	_alert_mark.pixel_size = 0.006
 	_alert_mark.position = Vector3(0, mark_height, 0)
 	add_child(_alert_mark)
+	_make_glint()
 	_dust = _make_dust()
 	add_child(_dust)
 	_bar = _make_bar()           # always drawn (see-through when hidden), so its shader is ready
@@ -79,6 +88,31 @@ func _ready() -> void:
 
 func flash() -> void:
 	_flash = 1.0
+
+
+## The last-moment warning: a bright star flares at its eyes with a "ting". Dodge now.
+func glint() -> void:
+	_glint_t = 0.0
+	_glint.visible = true
+	_glint_audio.play()
+
+
+func _make_glint() -> void:
+	_glint = MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * 1.3
+	_glint.mesh = quad
+	_glint_mat = ShaderMaterial.new()
+	_glint_mat.shader = GLINT_SHADER
+	_glint.material_override = _glint_mat
+	_glint.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_glint.visible = false
+	add_child(_glint)
+	_glint_audio = AudioStreamPlayer3D.new()
+	_glint_audio.stream = GLINT_SOUND
+	_glint_audio.unit_size = 10.0
+	_glint_audio.volume_db = -4.0
+	add_child(_glint_audio)
 
 
 ## Shows the health bar for a few seconds after a hit.
@@ -117,12 +151,16 @@ func _process(delta: float) -> void:
 		_eyes = eyes
 		for m in _eye_materials:
 			m.set_shader_parameter("glow", _eyes * 2.5)
-	var mark_a := move_toward(_alert_mark.modulate.a, 1.0 if mode in ["alert", "windup"] or tell > 0.0 else 0.0, delta * 6.0)
-	var mark_col := Color(1.0, 0.35, 0.25).lerp(Color(1.0, 0.86, 0.45), tell * (0.5 + 0.5 * sin(_time * 30.0)))
-	_alert_mark.modulate = Color(mark_col, mark_a)
+	if _glint.visible:
+		_glint_t += delta / 0.4
+		_glint.visible = _glint_t < 1.0
+		_glint_mat.set_shader_parameter("t", _glint_t)
+		if _eye_mesh:
+			_glint.global_position = _eye_mesh.global_transform * _eye_mesh.get_aabb().get_center()
+	var mark_a := move_toward(_alert_mark.modulate.a, 1.0 if mode == "alert" else 0.0, delta * 6.0)
+	_alert_mark.modulate.a = mark_a
 	_alert_mark.outline_modulate.a = mark_a
-	_alert_mark.scale = Vector3.ONE * (1.0 + tell * 0.6)
-	_alert_mark.position.y = mark_height + sin(_time * 10.0) * 0.05 + tell * 0.15
+	_alert_mark.position.y = mark_height + sin(_time * 10.0) * 0.05
 	_dust.emitting = mode == "charge" or mode == "windup"
 	_bar_time -= delta
 	_bar_alpha = move_toward(_bar_alpha, 1.0 if _bar_time > 0.0 else 0.0, delta * 5.0)

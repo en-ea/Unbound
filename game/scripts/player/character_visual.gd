@@ -117,6 +117,16 @@ func flash() -> void:
 	_flash = 1.0
 
 
+## The sword heats up while a heavy blow winds up (0..1), and goes back to steel at 0.
+func charge_tool(amount: float) -> void:
+	var metal: StandardMaterial3D = _tool_metal.get("sword")
+	if metal == null:
+		return
+	metal.emission_enabled = amount > 0.0
+	metal.emission = Color(1.0, 0.72, 0.4)
+	metal.emission_energy_multiplier = amount * 2.2
+
+
 func show_tool(tool_name: String) -> void:
 	for t: String in _tools:
 		_tools[t].visible = t == tool_name

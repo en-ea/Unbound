@@ -9,7 +9,7 @@ extends Node
 ##   --showcase        line up one of every tree/bush model in front of the player
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
-##   --telltest        a boar frozen mid-warning in front of you, stamina part used (for screenshots)
+##   --telltest        a boar frozen mid-warning (glint), a heavy blow's shockwave, stamina part used (screenshots)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
 ##   --lineup          stand every outfit preset in a row in front of the camera
 ##   --title           keep the title screen (otherwise any dev argument skips it)
@@ -260,7 +260,16 @@ func _run_tell_test() -> void:
 	if _frames > 20 and player.stamina.value > 45.0:
 		player.stamina._spend(player.stamina.value - 45.0)
 	if boar.state == Boar.State.WINDUP:
-		boar._t = minf(boar._t, 0.55)       # hold the warning about two-thirds through
+		boar._t = minf(boar._t, 0.6)        # hold the warning just after the aim locks
+		boar.visual._glint.visible = true   # with its glint mid-flare
+		boar.visual._glint_t = 0.35
+	if _frames > 20:                        # and a heavy blow's shockwave, sword glowing
+		var f: Node = player.get_node("Fighter")
+		f._shock.global_position = player.global_position + Vector3(0, 0.08, 1.1)
+		f._shock.visible = true
+		f._shock_t = 0.3
+		player.visual.show_tool("sword")
+		player.visual.charge_tool(1.0)
 
 
 func _build_lineup() -> void:

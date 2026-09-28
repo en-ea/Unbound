@@ -17,6 +17,9 @@ const HIT_SOUNDS := "res://assets/kenney_impact/impactPunch_heavy_%03d.ogg"
 ## Heavy attack: animation, play speed, and when in it the blow lands (seconds, at speed 1).
 const HEAVY_SWORD := {"anim": "Sword_Attack", "speed": 1.0, "impact": 0.4, "busy": 1.0}
 const HEAVY_FIST := {"anim": "Punch_Cross", "speed": 0.75, "impact": 0.22, "busy": 0.6}
+const HEAVY_REACH := 2.8       # a heavy blow hits every enemy this close in front of you
+const SHOCK_SHADER := preload("res://shaders/shockwave.gdshader")
+const THUD := preload("res://assets/sounds/tree_thud.wav")
 
 @onready var player: CharacterBody3D = get_parent()
 @onready var visual: CharacterVisual = get_parent().get_node("Visual")
@@ -30,6 +33,11 @@ var _step := 0
 var _since := 99.0
 var _queued := false
 var _heavy := false
+var _heavy_wind := 0.0          # length of the heavy wind-up, for the sword's glow
+var _thud: AudioStreamPlayer3D
+var _shock: MeshInstance3D
+var _shock_mat: ShaderMaterial
+var _shock_t := 1.0
 var _audio: AudioStreamPlayer3D
 var _hits: Array[AudioStream] = []
 var _whoosh: AudioStream = preload("res://assets/sounds/swing.wav")
@@ -62,6 +70,21 @@ func _ready() -> void:
 	quad.material = mat
 	_sparks.mesh = quad
 	player.add_child.call_deferred(_sparks)
+	_thud = AudioStreamPlayer3D.new()
+	_thud.stream = THUD
+	_thud.unit_size = 8.0
+	player.add_child.call_deferred(_thud)
+	_shock = MeshInstance3D.new()
+	var disc := PlaneMesh.new()
+	disc.size = Vector2.ONE * 4.4
+	_shock.mesh = disc
+	_shock_mat = ShaderMaterial.new()
+	_shock_mat.shader = SHOCK_SHADER
+	_shock.material_override = _shock_mat
+	_shock.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_shock.top_level = true
+	_shock.visible = false
+	player.add_child.call_deferred(_shock)
 
 
 func is_busy() -> bool:
@@ -80,8 +103,14 @@ func _physics_process(delta: float) -> void:
 				visual.show_tool("")
 	if _impact >= 0.0:
 		_impact -= delta
+		if _heavy:
+			visual.charge_tool(clampf(1.0 - _impact / _heavy_wind, 0.0, 1.0))
 		if _impact < 0.0:
 			_land_hit()
+	if _shock.visible:
+		_shock_t += delta / 0.45
+		_shock.visible = _shock_t < 1.0
+		_shock_mat.set_shader_parameter("t", _shock_t)
 	target = _nearest_enemy(BUTTON_REACH)
 	var new_verb := "Attack" if target or _since < STAY_ARMED else ""
 	if new_verb != verb:
@@ -126,6 +155,7 @@ func heavy() -> void:
 	visual.play_action(h["anim"], speed)
 	_busy = h["busy"] / speed
 	_impact = h["impact"] / speed
+	_heavy_wind = _impact
 	_heavy = true
 	_queued = false
 	_swing_target = target
@@ -138,6 +168,7 @@ func heavy() -> void:
 ## Stops a swing (a roll cancels it).
 func cancel() -> void:
 	_heavy = false
+	visual.charge_tool(0.0)
 	_busy = 0.0
 	_impact = -1.0
 	_queued = false
@@ -158,24 +189,61 @@ func step_velocity() -> Vector3:
 func _land_hit() -> void:
 	var heavy := _heavy
 	_heavy = false
+	if heavy:
+		visual.charge_tool(0.0)
+		_land_heavy()
+		return
 	var t := _swing_target if is_instance_valid(_swing_target) else _nearest_enemy(REACH)
 	if t == null or not is_instance_valid(t) or not t.is_alive():
 		return
-	if t.global_position.distance_to(player.global_position) > REACH + (1.2 if heavy else 0.8):
+	if t.global_position.distance_to(player.global_position) > REACH + 0.8:
 		return
-	var damage := Gear.damage()
-	if heavy:
-		damage = ceili(damage * Balance.HEAVY_DAMAGE)
-	t.take_hit(player.global_position, damage, Balance.HEAVY_PUSH if heavy else 1.0)
-	Skills.add("combat", Balance.XP_PER_SWORD_HIT * (2 if heavy else 1))
+	t.take_hit(player.global_position, Gear.damage())
+	Skills.add("combat", Balance.XP_PER_SWORD_HIT)
 	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
-	_sparks.amount = 24 if heavy else 12
+	_sparks.amount = 12
 	_sparks.restart()
-	visual.hit_stop(0.11 if heavy else 0.06)
-	get_tree().call_group("camera_rig", "shake", 0.12 if heavy else 0.06)
+	visual.hit_stop(0.06)
+	get_tree().call_group("camera_rig", "shake", 0.06)
 	_audio.stream = _hits.pick_random()
-	_audio.pitch_scale = randf_range(0.72, 0.8) if heavy else randf_range(0.9, 1.05)
+	_audio.pitch_scale = randf_range(0.9, 1.05)
 	_audio.play()
+
+
+## A heavy blow lands: every enemy close in front is hit hard and knocked back; the ground
+## shakes (shockwave, dust, a deep thud) and the whole world freezes for a split second.
+func _land_heavy() -> void:
+	var facing := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
+	var hit_any := false
+	var damage := ceili(Gear.damage() * Balance.HEAVY_DAMAGE)
+	for e in get_tree().get_nodes_in_group("enemy"):
+		var to: Vector3 = (e as Node3D).global_position - player.global_position
+		to.y = 0.0
+		if not e.is_alive() or to.length() > HEAVY_REACH or (to.length() > 0.8 and to.normalized().dot(facing) < -0.1):
+			continue
+		e.take_hit(player.global_position, damage, Balance.HEAVY_PUSH)
+		hit_any = true
+		_sparks.global_position = (e as Node3D).global_position + Vector3(0, 0.8, 0)
+	var ground := player.global_position + facing * 1.1
+	_shock.global_position = ground + Vector3(0, 0.2, 0)
+	_shock_t = 0.0
+	_shock.visible = true
+	_shock_mat.set_shader_parameter("t", 0.0)
+	player.get_node("Effects").burst(true)
+	_thud.pitch_scale = randf_range(0.55, 0.62)
+	_thud.play()
+	get_tree().call_group("camera_rig", "shake", 0.2 if hit_any else 0.1)
+	if not hit_any:
+		return
+	Skills.add("combat", Balance.XP_PER_SWORD_HIT * 2)
+	_sparks.amount = 28
+	_sparks.restart()
+	_audio.stream = _hits.pick_random()
+	_audio.pitch_scale = randf_range(0.7, 0.78)
+	_audio.play()
+	# Hit-stop for everything: the world nearly stops for a moment, then carries on.
+	Engine.time_scale = 0.05
+	get_tree().create_timer(0.11, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
 
 
 func _nearest_enemy(reach: float) -> Node3D:

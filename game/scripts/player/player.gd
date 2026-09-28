@@ -213,7 +213,10 @@ func _physics_process(delta: float) -> void:
 	var strength := move.length()
 	var target_speed := 0.0
 	# Holding Roll after the roll keeps you sprinting while stamina lasts.
+	var was_sprinting := sprinting
 	sprinting = Controls.is_sprint_held() and strength >= RUN_THRESHOLD and not swinging and stamina.can("sprint")
+	if sprinting and not was_sprinting:
+		$Effects.burst(true)              # a kick of dust as you take off
 	if sprinting:
 		stamina.drain(delta)
 	if strength > 0.1:

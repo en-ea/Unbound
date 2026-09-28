@@ -4,7 +4,7 @@ extends Node
 ## takes a chunk. It refills after a short pause. Emptied, you are winded until it is partly back.
 
 signal changed(value: float, max_value: float, winded: bool)
-signal refused           # tried to roll or heavy-attack without enough
+signal refused(cost: String)     # tried to roll or heavy-attack without enough
 
 var value: float = Balance.STAMINA["max"]
 var winded := false
@@ -23,7 +23,7 @@ func can(cost: String) -> bool:
 ## The action: pay for a roll or a heavy attack. False (and nothing paid) when winded.
 func use(cost: String) -> bool:
 	if not can(cost):
-		refused.emit()
+		refused.emit(cost)
 		return false
 	_spend(Balance.STAMINA[cost])
 	return true
