@@ -127,6 +127,12 @@ func eat(item: String) -> void:
 		health_changed.emit(health, MAX_HEALTH)
 
 
+func heal_full() -> void:
+	if _down <= 0.0:
+		health = MAX_HEALTH
+		health_changed.emit(health, MAX_HEALTH)
+
+
 func take_damage(amount: int) -> void:
 	if _roll > 0.0 or _down > 0.0 or _safe > 0.0:
 		return

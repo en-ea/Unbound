@@ -65,6 +65,9 @@ func _ready() -> void:
 			if bits.size() > 1:
 				props["project"] = bits[1]
 			get_node("../HUD").open_station.call_deferred(props)
+		elif arg == "--cheats":                           # the settings test menu (code already entered)
+			var hud := get_node("../HUD")
+			hud._modal.call_deferred(hud.SETTINGS_PANEL, {"_page": "cheats"})
 		elif arg == "--rich":                             # coins and a pile of materials for testing
 			Money.earn(500)
 			for item: String in ["raw_meat", "mushroom", "apple", "flower", "wood", "glowcap", "stone", "pinewood", "iron", "stew", "roast_meat"]:

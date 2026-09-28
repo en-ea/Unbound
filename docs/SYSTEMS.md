@@ -84,6 +84,11 @@ All props use `shaders/foliage_solid.gdshader` (per-face colours stored in UVs b
 scripts; `lowpoly.py` / `rigkit.py`). Ground: `shaders/terrain.gdshader`. Light, fog and sky:
 `scripts/world/day_night.gd`.
 
+## Test menu (for the owner)
+Menu → Settings → Codes → "Paladin": buttons that give coins, items, food, Steel tools, the biggest bag,
+skill levels, build every village project, heal, or travel. In `ui/settings_panel.gd` (`_cheat_page`);
+add a button there whenever a new system needs quick testing. Dev: `--cheats` opens it.
+
 ## Testing without the phone
 Dev arguments (after `--`), see `game/scripts/dev/dev_args.gd`: `--gathertest`, `--fighttest`,
 `--lineup`, `--showcase`, `--shot=path.png`, `--at=x,z`, `--view=d,pitch`, `--time=0.5`.
