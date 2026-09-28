@@ -75,5 +75,7 @@ Must do, in this order:
 6. **Balance pass** (all numbers in one file). First pass done: `state/balance.gd`; tune by playing.
 7. **Your home base** (free placement). First version done: locked plot, 3 houses, yard building.
 Also: regions made ~2.7x bigger with rough placeholder places (done); gates at natural crossings (later).
+Village style (owner): stump houses for the forest; the Swoop lodge for the main village, with variations
+like the Arch cottage and the Hill house. The owner will bring AI reference images before more are built.
 Owner: story start and bosses wait until mobs and fighting are better and balanced (not too easy).
 Kept in mind for later: more weapons, more regions (highlands, caves), special companion, fishing, then the 2nd land.

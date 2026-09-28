@@ -7,6 +7,7 @@ const SOLID_FOLIAGE_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const CHUNK := 30.0
 const TREE_CELL := 5.0      # grid cell for fast "is there a tree near here" checks
 const EDGE := WorldShape.PLAY_HALF - 8.0     # past this, the woods close in around the region
+const FLOWERS := ["flower_1", "flower_2", "flower_3", "flower_4", "flower_5"]
 
 ## Per model: cast shadows, visibility range (0 = always), wind sway (metres), sway height.
 const KINDS := {
@@ -226,45 +227,95 @@ func _plant_at(p: Vector2) -> void:
 		_forest_plant_at(p, m, near_tree)
 		return
 	var r := _rng.randf()
-	if near_tree:
-		if r < 0.12:
+	if near_tree:                                  # at the foot of trees: ferns, tufts, mushrooms, bushes
+		if r < 0.14:
 			_place("fern_1", "small", p, _rng.randf_range(0.8, 1.2), 0.2)
-		elif r < 0.16:
+		elif r < 0.3:
+			_place(_pick(["grass_2", "grass_3"]), "small", p, _rng.randf_range(1.0, 1.4), 0.2)
+		elif r < 0.34:
 			_place(_pick(["mushroom_1", "mushroom_2"]), "small", p, _rng.randf_range(0.9, 1.2), 0.15, "mushroom")
-		elif r < 0.2:
+		elif r < 0.38:
 			_place(_pick(["bush_1", "bush_2", "bush_flower_1"]), "bush", p, _rng.randf_range(0.7, 1.1), 0.1)
 		return
-	# Sparse grass keeps the ground clean; it gathers a little more in lush patches.
-	if r < 0.1 + m * 0.18:
-		_place(_pick(["grass_1", "grass_2"]), "small", p, _rng.randf_range(0.9, 1.4), 0.2)
-	elif r < 0.13 + m * 0.2:
-		_place("grass_3", "small", p, _rng.randf_range(1.2, 1.8), 0.2)
-	elif m > 0.45 and r < 0.54 + m * 0.2:
-		_place(_pick(["flower_1", "flower_2", "flower_3", "flower_4", "flower_5"]), "small", p, _rng.randf_range(0.85, 1.15), 0.2, "flower")
-	elif r < 0.66:
-		pass                          # open ground
-	elif r < 0.665:
+	# Designed, not sprinkled: grassy verges along the path, flowers in drifts of one colour, tall
+	# grass in patches, and clean lawn in between (see the ground notes in docs/SYSTEMS.md).
+	var pd := _shape.path_distance(p)
+	var drift := _shape.meadow_noise(p.x * 0.55 + 130.0, p.y * 0.55 - 70.0)     # where flowers gather
+	var tall := _shape.meadow_noise(p.x * 0.7 - 55.0, p.y * 0.7 + 210.0)         # where grass grows long
+	if pd < 3.4:                                   # the path's verge: a band of tufts, a few flowers
+		if r < 0.7:
+			_cluster(_pick(["grass_1", "grass_2", "grass_3"]), p, 3, 0.8, 0.9, 1.5)
+		elif r < 0.8:
+			_cluster(FLOWERS[_drift_colour(p)], p, 2, 0.5, 0.8, 1.0, "flower")
+		return
+	if drift > 0.62:                               # a flower drift: mostly one colour, a few of a second
+		var edge := smoothstep(0.62, 0.72, drift)
+		if r < 0.35 + 0.55 * edge:
+			var colour := _drift_colour(p) if _rng.randf() < 0.85 else (_drift_colour(p) + 2) % FLOWERS.size()
+			_cluster(FLOWERS[colour], p, 2 + int(edge * 2.0), 0.7, 0.95, 1.35, "flower")
+		elif r < 0.5 + 0.45 * edge:
+			_cluster("grass_1", p, 2, 0.6, 0.8, 1.1)
+		return
+	if tall > 0.64:                                # a patch of long grass, thickest in the middle
+		if r < 0.35 + (tall - 0.64) * 3.0:
+			_cluster("grass_3", p, 3, 0.8, 1.3, 1.9)
+		elif r < 0.6:
+			_cluster("grass_2", p, 2, 0.6, 1.0, 1.4)
+		return
+	# Lawn: clean, with the odd tuft, a lone flower now and then, and a rare bush.
+	if r < 0.05:
+		_place(_pick(["grass_1", "grass_2"]), "small", p, _rng.randf_range(0.8, 1.2), 0.2)
+	elif r < 0.058:
+		_place(FLOWERS[_drift_colour(p)], "small", p, _rng.randf_range(0.8, 1.0), 0.2, "flower")
+	elif r < 0.063:
 		_place(_pick(["bush_1", "bush_2", "bush_flower_1"]), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
+
+
+## A small group of one plant around a spot (only the first can be picked, to keep the world light).
+func _cluster(model: String, p: Vector2, count: int, spread: float, s0: float, s1: float, gather := "") -> void:
+	for i in count:
+		var q := p + Vector2(_rng.randf_range(-spread, spread), _rng.randf_range(-spread, spread)) if i > 0 else p
+		_place(model, "small", q, _rng.randf_range(s0, s1), 0.2, gather if i == 0 else "")
+
+
+## Which flower colour a spot's drift has: big areas share one, so colours come in patches.
+func _drift_colour(p: Vector2) -> int:
+	return clampi(int(_shape.meadow_noise(p.x * 0.12 - 300.0, p.y * 0.12) * 1.999 * FLOWERS.size()) - FLOWERS.size() / 2, 0, FLOWERS.size() - 1)
 
 
 ## Forest floor: ferns and mushrooms under the trees (glowcaps show up more here), moss grass,
 ## a few bushes, and flowers only in the odd sunny gap.
 func _forest_plant_at(p: Vector2, m: float, near_tree: bool) -> void:
+	# Ferns grow in beds, mushrooms in rings under trees, flowers only in the odd sunny glade.
 	var r := _rng.randf()
+	var ferns := _shape.meadow_noise(p.x * 0.6 + 400.0, p.y * 0.6 - 90.0)
+	var glade := _shape.meadow_noise(p.x * 0.3 - 250.0, p.y * 0.3 + 40.0)
+	if _shape.path_distance(p) < 3.0:              # the path's edge: moss tufts and small ferns
+		if r < 0.55:
+			_cluster(_pick(["grass_1", "grass_2"]), p, 2, 0.6, 0.8, 1.2)
+		elif r < 0.68:
+			_place("fern_1", "small", p, _rng.randf_range(0.7, 1.0), 0.2)
+		return
 	if near_tree:
-		if r < 0.22:
-			_place("fern_1", "small", p, _rng.randf_range(0.9, 1.4), 0.2)
-		elif r < 0.28:
+		if r < 0.2 + ferns * 0.2:
+			_place("fern_1", "small", p, _rng.randf_range(0.9, 1.5), 0.2)
+		elif r < 0.3 + ferns * 0.2:
 			_place(_pick(["mushroom_1", "mushroom_2"]), "small", p, _rng.randf_range(0.9, 1.3), 0.15, "mushroom")
-		elif r < 0.33:
+		elif r < 0.36 + ferns * 0.2:
 			_place(_pick(["bush_1", "bush_2"]), "bush", p, _rng.randf_range(0.8, 1.2), 0.1)
 		return
-	if r < 0.14 + m * 0.12:
-		_place(_pick(["grass_1", "grass_2", "grass_3"]), "small", p, _rng.randf_range(0.9, 1.5), 0.2)
-	elif r < 0.2:
-		_place("fern_1", "small", p, _rng.randf_range(0.8, 1.2), 0.2)
-	elif m > 0.6 and r < 0.3:
-		_place(_pick(["flower_2", "flower_4"]), "small", p, _rng.randf_range(0.85, 1.1), 0.2, "flower")
+	if ferns > 0.6:                                # a fern bed
+		if r < 0.6:
+			_cluster("fern_1", p, 2, 0.7, 1.0, 1.6)
+		return
+	if glade > 0.66:                               # a sunny glade: long grass and one kind of flower
+		if r < 0.35:
+			_cluster("grass_3", p, 2, 0.7, 1.2, 1.7)
+		elif r < 0.6:
+			_cluster("flower_2" if glade > 0.72 else "flower_4", p, 3, 0.6, 0.85, 1.1, "flower")
+		return
+	if r < 0.07 + m * 0.05:                        # the rest: bare, mossy floor with a few tufts
+		_place(_pick(["grass_1", "grass_2"]), "small", p, _rng.randf_range(0.8, 1.2), 0.2)
 
 
 # --- helpers -------------------------------------------------------------------

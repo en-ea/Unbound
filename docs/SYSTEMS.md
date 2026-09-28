@@ -60,6 +60,12 @@ a skill total and coins, see Balance.HOME), `buy()`, `place()`, `remove()`. `wor
 plot (meadow, west of the village); `ui/build_mode.gd` is the building bar (preview in front of you on a
 half-metre grid). Add a buildable: `Home.PIECES` + its cost in `Balance.HOME_PIECES`. Dev: `--home`.
 
+## Ground (grass and flowers)
+`scatter.gd` `_plant_at` / `_forest_plant_at` place plants by design, not evenly: a grassy verge along
+the path, flower drifts of mostly one colour (`_drift_colour`), long-grass patches, clean lawn between,
+ferns and mushrooms at the foot of trees; in the forest fern beds and sunny glades. `_cluster` plants a
+small group (only the first is pickable).
+
 ## Places
 `world/places.gd`: named placeholder spots per region (watchtower, farmstead, camp, hollow, cave...),
 built from simple shapes; their ground is a clearing in `WorldShape.REGIONS`.

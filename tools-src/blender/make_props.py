@@ -354,6 +354,50 @@ def flower_bed():
     return b
 
 
+def gateway():
+    """The way out of a region: two tapered pillars of stacked stones with glowing lanterns, a timber
+    beam under a small shingled roof, a hanging signboard (the game writes the place's name on it),
+    low stone walls curving away on both sides, flower pots and ivy. Faces -Y."""
+    b = Builder(["Prop", "Glow"])
+    SHINGLE = [(0.36, 0.42, 0.52), (0.42, 0.48, 0.58), (0.32, 0.38, 0.47)]
+    for x in (-1.7, 1.7):
+        for i in range(6):                           # stacked, slightly offset stones
+            w = 0.62 - i * 0.04
+            soft(b, cube(b, V((x + rnd.uniform(-0.03, 0.03), 0, 0.22 + i * 0.44)), (w, w, 0.42), Euler((0, 0, rnd.uniform(-0.12, 0.12)))), rnd.choice(STONE), 0.06)
+        soft(b, cube(b, V((x, 0, 2.78)), (0.7, 0.7, 0.14)), RUIN_DARK, 0.04)
+        b.paint(b.new_faces(lambda x=x: rk.blob(b.bm, V((x, 0, 3.05)), (0.13, 0.13, 0.18), 6, 4)), "Glow", (1.0, 0.76, 0.4))
+        for k in range(4):                           # lantern cage
+            a = k * math.pi / 2 + math.pi / 4
+            soft(b, cube(b, V((x + math.cos(a) * 0.14, math.sin(a) * 0.14, 3.05)), (0.03, 0.03, 0.4)), IRON_D, 0.005)
+        soft(b, lambda x=x: rk.tube(b.bm, [V((x, 0, 3.25)), V((x, 0, 3.45))], [(0.2, 0.2), (0.02, 0.02)], seg=4), IRON_D, 0.01)
+    soft(b, cube(b, V((0, 0, 2.95)), (4.3, 0.3, 0.26)), WB_DARK, 0.04)            # the beam
+    for s_ in (-1, 1):                                # the little roof: two shingle slopes
+        for r in range(3):
+            y = s_ * (0.15 + r * 0.22)
+            soft(b, cube(b, V((0, y, 3.42 - r * 0.12)), (4.7, 0.3, 0.07), Euler((s_ * 0.5, 0, 0))), SHINGLE[r], 0.02)
+    soft(b, cube(b, V((0, 0, 3.55)), (4.8, 0.12, 0.1)), WB_DARK, 0.02)
+    for x in (-0.8, 0.8):                             # chains and the signboard
+        soft(b, cube(b, V((x, -0.02, 2.62)), (0.03, 0.03, 0.4)), IRON_D, 0.005)
+    soft(b, cube(b, V((0, -0.05, 2.25)), (2.2, 0.1, 0.5)), (0.66, 0.46, 0.28), 0.04)
+    soft(b, cube(b, V((0, -0.1, 2.25)), (2.0, 0.02, 0.38)), (0.8, 0.62, 0.4), 0.01)
+    for sx in (-1, 1):                                # low walls curving away, with flower pots
+        for k in range(5):
+            a = k * 0.28
+            p = V((sx * (2.4 + math.sin(a) * 1.2 + k * 0.55), math.cos(a) * 0.2 + k * 0.28, 0.3))
+            soft(b, cube(b, p, (0.62, 0.5, 0.6 - k * 0.07), Euler((0, 0, sx * a * 0.6))), rnd.choice(STONE), 0.05)
+        pot = V((sx * 2.3, -0.7, 0))
+        soft(b, lambda pot=pot: rk.tube(b.bm, [pot, pot + V((0, 0, 0.45))], [(0.2, 0.2), (0.26, 0.26)], seg=8), (0.72, 0.4, 0.28), 0.02)
+        for k in range(5):
+            clump(b, pot + V((rnd.uniform(-0.14, 0.14), rnd.uniform(-0.14, 0.14), 0.52)), 0.09, 1, rnd,
+                  rnd.choice([(0.95, 0.55, 0.72), (0.98, 0.85, 0.3), (0.6, 0.55, 0.95)]), "Prop", 0.8)
+    for x in (-1.7, 1.7):                             # ivy up one side of each pillar
+        for k in range(6):
+            clump(b, V((x + (0.3 if x < 0 else -0.3), -0.32, 0.4 + k * 0.42)), 0.12, 1, rnd, rnd.choice(MOSS), "Prop", 0.8)
+    for i in range(4):                                # paving stones through the gate
+        soft(b, cube(b, V((rnd.uniform(-0.3, 0.3), -1.2 + i * 0.9, 0.03)), (0.9, 0.6, 0.08), Euler((0, 0, rnd.uniform(-0.3, 0.3)))), rnd.choice(STONE), 0.04)
+    return b
+
+
 export("campfire", campfire(), OUT)
 export("site_board", site_board(), OUT)
 export("scaffold", scaffold(), OUT)
@@ -362,3 +406,4 @@ export("fence", fence(), OUT)
 export("lantern_post", lantern_post(), OUT)
 export("bench", bench(), OUT)
 export("flower_bed", flower_bed(), OUT)
+export("gateway", gateway(), OUT)
