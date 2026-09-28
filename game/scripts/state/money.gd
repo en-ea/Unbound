@@ -25,11 +25,9 @@ func load_data(value: Variant) -> void:
 
 
 # --- the trader ---------------------------------------------------------------------------------
-## What the trader might stock: [item, how many, price]. "tool" is a found tool with a bonus.
-const STOCK_POOL := [["flint", 3, 15], ["raw_meat", 2, 12], ["glowcap", 1, 30], ["resin", 1, 25],
-	["shard", 1, 40], ["stew", 1, 45], ["iron", 4, 30], ["copper", 5, 20], ["tool", 1, 120]]
-const STOCK_SIZE := 4
-const RESTOCK_EVERY := 900        # real seconds: new stock every 15 minutes
+const STOCK_POOL := Balance.STOCK_POOL
+const STOCK_SIZE := Balance.STOCK_SIZE
+const RESTOCK_EVERY := Balance.RESTOCK_EVERY
 
 var _stock: Array = []            # [{item, amount, price, tool: [slot, record], sold}]
 var _stock_block := -1

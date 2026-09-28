@@ -131,7 +131,7 @@ func _refresh() -> void:
 				_note.text = "Built! " + d["text"]
 			else:
 				_note.text = "Help the village build this. " + d["text"]
-				_offer("", d["name"], "", d["cost"], d["coins"], "Build",
+				_offer("", d["name"], "", Projects.cost(project), Projects.coins(project), "Build",
 					Projects.fund.bind(project).unbind(0))
 
 

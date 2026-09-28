@@ -135,9 +135,9 @@ func _cheat_page() -> void:
 		["Build all projects", func() -> void:
 			for id: String in Projects.DEFS:
 				if not Projects.is_built(id):
-					Money.earn(Projects.DEFS[id]["coins"])
-					for i: String in Projects.DEFS[id]["cost"]:
-						Inventory.add(i, Projects.DEFS[id]["cost"][i])
+					Money.earn(Projects.coins(id))
+					for i: String in Projects.cost(id):
+						Inventory.add(i, Projects.cost(id)[i])
 					Projects.fund(id)],
 		["Skills +5 levels", func() -> void:
 			for sk: String in Skills.SKILLS:

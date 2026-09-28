@@ -7,7 +7,7 @@ signal gained(skill: String, amount: int)
 signal leveled(skill: String, level: int)
 
 const SKILLS := {"woodcutting": "Woodcutting", "mining": "Mining", "combat": "Combat"}
-const MAX_LEVEL := 30
+const MAX_LEVEL := Balance.MAX_LEVEL
 ## Which skill a tool trains.
 const FOR_TOOL := {"axe": "woodcutting", "pickaxe": "mining", "sword": "combat"}
 
@@ -17,7 +17,7 @@ var xp := {"woodcutting": 0, "mining": 0, "combat": 0}
 ## Total experience needed to reach a level: level 2 after a few trees or fights, level 10 after
 ## a good while, 30 is a long-term goal.
 static func xp_for(lvl: int) -> int:
-	return int(40.0 * pow(lvl - 1, 1.8))
+	return int(Balance.XP_BASE * pow(lvl - 1, Balance.XP_POWER))
 
 
 func level(skill: String) -> int:
@@ -50,17 +50,17 @@ func add(skill: String, amount: int) -> void:
 
 ## Swings get 1.5% faster per level (gathering skills).
 func speed_bonus(skill: String) -> float:
-	return 1.0 + 0.015 * (level(skill) - 1)
+	return 1.0 + Balance.SPEED_PER_LEVEL * (level(skill) - 1)
 
 
 ## Chance of an extra drop: 1% per level (gathering skills).
 func luck_bonus(skill: String) -> float:
-	return 0.01 * (level(skill) - 1)
+	return Balance.LUCK_PER_LEVEL * (level(skill) - 1)
 
 
 ## Extra sword damage: +1 at combat level 10, +2 at 20, +3 at 30.
 func damage_bonus() -> int:
-	return level("combat") / 10
+	return level("combat") / Balance.LEVELS_PER_DAMAGE
 
 
 ## One line on what the next level brings, for the Bag.

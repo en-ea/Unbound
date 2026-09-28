@@ -15,9 +15,9 @@ signal health_changed(health: int, max_health: int)
 signal knocked_out
 signal got_up
 
-const MAX_HEALTH := 5
-const REGEN_DELAY := 6.0       # seconds without being hit before hearts come back
-const REGEN_EVERY := 4.0
+const MAX_HEALTH := Balance.HEARTS
+const REGEN_DELAY := Balance.REGEN_DELAY
+const REGEN_EVERY := Balance.REGEN_EVERY
 const DOWN_TIME := 3.2         # lying on the ground before getting back up at the start
 const INVULNERABLE := 1.2      # after a hit, enemies can't hurt you again for a moment
 
@@ -137,7 +137,7 @@ func take_damage(amount: int) -> void:
 	if _roll > 0.0 or _down > 0.0 or _safe > 0.0:
 		return
 	if Food.has("sturdy"):
-		amount = maxi(amount - 1, 1)
+		amount = maxi(amount - Balance.STURDY_BLOCK, 1)
 	health = maxi(health - amount, 0)
 	_safe = INVULNERABLE
 	_since_hit = 0.0
@@ -189,7 +189,7 @@ func _physics_process(delta: float) -> void:
 	var strength := move.length()
 	var target_speed := 0.0
 	if strength > 0.1:
-		target_speed = RUN_SPEED * (1.2 if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
+		target_speed = RUN_SPEED * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
 	# The camera never rotates, so screen up is world -Z.
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))

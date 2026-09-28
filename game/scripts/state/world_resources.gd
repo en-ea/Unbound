@@ -11,38 +11,11 @@ signal loaded                               # a save was loaded: visuals redraw 
 
 ## Per type: hits to deplete (a Worn tool takes 2 per swing, see Gear.TIERS), seconds to grow back, reach radius, tool, and drops.
 ## Drops: [item, min, max, chance].
-const TYPES := {
-	"tree": {"hits": 8, "respawn": 60.0, "radius": 0.6, "tool": "axe", "verb": "Chop",
-		"drops": [["wood", 2, 3, 1.0], ["resin", 1, 1, 0.08]]},
-	"apple_tree": {"hits": 8, "respawn": 60.0, "radius": 0.6, "tool": "axe", "verb": "Chop",
-		"drops": [["wood", 2, 2, 1.0], ["apple", 1, 3, 1.0], ["resin", 1, 1, 0.08]]},
-	# Forest pines: tougher wood that needs a Stone axe or better.
-	"pine": {"hits": 10, "respawn": 90.0, "radius": 0.6, "tool": "axe", "verb": "Chop", "min_tier": 1,
-		"wood_item": "pinewood", "drops": [["pinewood", 2, 3, 1.0], ["resin", 1, 1, 0.12]]},
-	"rock": {"hits": 10, "respawn": 90.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine",
-		"drops": [["stone", 2, 3, 1.0], ["flint", 1, 1, 0.15], ["shard", 1, 1, 0.04]]},
-	# Ore rocks need a better pickaxe (min_tier, see Gear.TIERS).
-	"copper_rock": {"hits": 12, "respawn": 120.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine", "min_tier": 1,
-		"drops": [["copper", 2, 3, 1.0], ["stone", 1, 2, 1.0]]},
-	"iron_rock": {"hits": 16, "respawn": 150.0, "radius": 1.0, "tool": "pickaxe", "verb": "Mine", "min_tier": 2,
-		"drops": [["iron", 2, 3, 1.0], ["stone", 1, 2, 1.0], ["shard", 1, 1, 0.08]]},
-	"mushroom": {"hits": 1, "respawn": 40.0, "radius": 0.3, "tool": "", "verb": "Pick",
-		"drops": [["mushroom", 1, 1, 1.0], ["glowcap", 1, 1, 0.06]]},
-	"flower": {"hits": 1, "respawn": 40.0, "radius": 0.3, "tool": "", "verb": "Pick",
-		"drops": [["flower", 1, 2, 1.0]]},
-	"chest": {"hits": 1, "respawn": 480.0, "radius": 0.5, "tool": "", "verb": "Open",
-		"drops": [["flint", 2, 4, 1.0], ["resin", 1, 2, 0.8], ["shard", 1, 2, 0.7], ["glowcap", 1, 1, 0.5], ["fang", 1, 1, 0.3]]},
-}
-
-## Trees come in sizes by how big they look (their scale). Same size = same work and wood,
-## whatever the kind of tree. Apple trees add their apples on top.
-const TREE_STAGES := [
-	{"up_to": 0.9, "name": "Young", "hits": 6, "wood": [1, 2], "resin": 0.04},
-	{"up_to": 1.15, "name": "Grown", "hits": 8, "wood": [2, 3], "resin": 0.08},
-	{"up_to": 99.0, "name": "Old", "hits": 12, "wood": [4, 5], "resin": 0.16},
-]
+## Per type: hits, seconds to grow back, reach, tool, drops... (numbers in Balance).
+const TYPES := Balance.RESOURCES
+const TREE_STAGES := Balance.TREE_STAGES
 const SAPLING_SIZE := 0.45       # a regrown tree starts at this fraction of its full size
-const GROW_TIME := 240.0         # seconds from sapling to full size
+const GROW_TIME := Balance.GROW_TIME
 
 const CELL := 8.0
 

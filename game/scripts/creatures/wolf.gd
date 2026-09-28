@@ -11,8 +11,8 @@ const CIRCLE_RADIUS := 3.8
 const SIGHT := 10.0
 const HOME_RADIUS := 8.0
 const LEASH := 22.0
-const MAX_HEALTH := 6          # sword damage is 2 (Worn) to 5 (Iron)
-const RESPAWN_TIME := 50.0
+const MAX_HEALTH := 6          # the real value comes from Balance (set in _ready)
+
 const GRAVITY := 20.0
 const SOUNDS := {
 	"growl": preload("res://assets/sounds/wolf_growl.wav"),
@@ -31,6 +31,7 @@ var player: Node3D
 var home := Vector3.ZERO
 var shadow := false                 # a shadow wolf: bigger, darker, tougher, rarer loot (set before adding)
 var max_health := MAX_HEALTH
+var _damage := 1
 var health := MAX_HEALTH
 var state := State.WANDER
 
@@ -53,9 +54,12 @@ func _ready() -> void:
 	add_child(_audio)
 	_goal = global_position
 	_side = 1.0 if randf() < 0.5 else -1.0
+	var stats: Dictionary = Balance.SHADOW_WOLF if shadow else Balance.WOLF
+	var tough: Dictionary = Balance.REGION_TOUGHNESS.get(Region.current, {"hp": 1.0, "damage": 0})
+	max_health = roundi(stats["hp"] * tough["hp"])
+	health = max_health
+	_damage = stats["damage"] + tough["damage"]
 	if shadow:
-		max_health = 16
-		health = max_health
 		visual.scale = Vector3.ONE * _size()
 		for m in visual._materials:          # dusky violet fur
 			m.set_shader_parameter("albedo", Color(0.42, 0.38, 0.62))
@@ -120,7 +124,7 @@ func _physics_process(delta: float) -> void:
 				_bit = true
 				_play("snap", randf_range(0.95, 1.1))
 				player.knockback(_lunge_dir * 5.0)
-				player.take_damage(2 if shadow else 1)
+				player.take_damage(_damage)
 				get_tree().call_group("camera_rig", "shake", 0.08)
 			if _t > 0.4 or (_t > 0.1 and is_on_wall()):
 				_enter(State.RETREAT)
@@ -168,14 +172,15 @@ func take_hit(from: Vector3, damage := 1) -> void:
 
 func _die() -> void:
 	_enter(State.DEAD)
-	Skills.add("combat", 30 if shadow else 10)
-	if randf() < (0.25 if shadow else 0.08):                       # now and then it was carrying a tool
+	var stats: Dictionary = Balance.SHADOW_WOLF if shadow else Balance.WOLF
+	Skills.add("combat", stats["xp"])
+	if randf() < stats["tool"]:                       # now and then it was carrying a tool
 		var found := Gear.roll_found()
 		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.5))
 	var items: Array[String] = ["shadow_pelt"] if shadow else ["pelt"]
-	if randf() < 0.5:
+	if randf() < Balance.MEAT_CHANCE["wolf"]:
 		items.append("raw_meat")
 	if randf() < (0.6 if shadow else 0.3):
 		items.append("fang")
@@ -189,7 +194,7 @@ func _die() -> void:
 	gone.tween_interval(2.5)
 	gone.tween_property(visual, "scale", Vector3.ONE * 0.01, 0.5)
 	gone.tween_callback(func() -> void: visible = false)
-	get_tree().create_timer(RESPAWN_TIME).timeout.connect(_respawn)
+	get_tree().create_timer(stats["respawn"]).timeout.connect(_respawn)
 
 
 func _respawn() -> void:

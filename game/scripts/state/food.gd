@@ -5,15 +5,8 @@ extends Node
 signal changed        # buffs started or ended
 signal ate(item: String)
 
-## heal: hearts back. buff: a short boost (see BUFFS), for secs.
-const FOODS := {
-	"apple": {"heal": 1},
-	"mushroom": {"heal": 1},
-	"roast_meat": {"heal": 2, "buff": "strong", "secs": 90.0},
-	"skewer": {"heal": 1, "buff": "swift", "secs": 90.0},
-	"apple_tart": {"heal": 2, "buff": "nimble", "secs": 120.0},
-	"stew": {"heal": 5, "buff": "sturdy", "secs": 120.0},
-}
+## heal: hearts back. buff: a short boost (see BUFFS), for secs. Numbers in Balance.
+const FOODS := Balance.FOODS
 const BUFFS := {
 	"strong": {"name": "Strong", "text": "Hits 1 harder", "color": Color(1.0, 0.55, 0.4)},
 	"swift": {"name": "Swift", "text": "Runs 20% faster", "color": Color(0.55, 0.9, 1.0)},
@@ -21,12 +14,7 @@ const BUFFS := {
 	"sturdy": {"name": "Sturdy", "text": "Takes 1 less damage", "color": Color(1.0, 0.85, 0.45)},
 }
 ## Campfire recipes, in the order shown.
-const RECIPES := [
-	{"out": "roast_meat", "cost": {"raw_meat": 1, "wood": 1}},
-	{"out": "skewer", "cost": {"mushroom": 3, "wood": 1}},
-	{"out": "apple_tart", "cost": {"apple": 2, "flower": 1, "wood": 1}},
-	{"out": "stew", "cost": {"raw_meat": 1, "mushroom": 2, "glowcap": 1, "wood": 1}},
-]
+const RECIPES := Balance.COOKING
 
 var _until := {}       # buff -> time (seconds since start) it ends
 

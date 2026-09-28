@@ -6,8 +6,7 @@ signal built(id: String)
 
 const DEFS := {
 	"smithy": {"name": "Smithy", "region": "meadow", "at": Vector2(-17.0, 12.0),
-		"text": "The smith can forge Steel tools at the workbench.",
-		"coins": 150, "cost": {"stone": 20, "pinewood": 12, "iron": 6}},
+		"text": "The smith can forge Steel tools at the workbench."},
 }
 
 var _built := {}
@@ -17,18 +16,26 @@ func is_built(id: String) -> bool:
 	return _built.has(id)
 
 
+func coins(id: String) -> int:
+	return Balance.PROJECTS[id]["coins"]
+
+
+func cost(id: String) -> Dictionary:
+	return Balance.PROJECTS[id]["cost"]
+
+
 func can_fund(id: String) -> bool:
-	return not is_built(id) and Money.coins >= DEFS[id]["coins"] and Gear.can_afford(DEFS[id]["cost"])
+	return not is_built(id) and Money.coins >= coins(id) and Gear.can_afford(cost(id))
 
 
 ## The action: pay for a project; it is built straight away.
 func fund(id: String) -> bool:
 	if not can_fund(id):
 		return false
-	Money.spend(DEFS[id]["coins"])
-	var cost: Dictionary = DEFS[id]["cost"]
-	for item: String in cost:
-		Inventory.remove(item, cost[item])
+	Money.spend(coins(id))
+	var c := cost(id)
+	for item: String in c:
+		Inventory.remove(item, c[item])
 	_built[id] = true
 	built.emit(id)
 	Gear.changed.emit()       # the workbench shows what it unlocked

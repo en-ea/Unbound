@@ -10,43 +10,15 @@ signal tool_dropped(slot: String, tool: Dictionary)
 const SLOTS := {"axe": "Axe", "pickaxe": "Pickaxe", "sword": "Sword"}
 ## power: hits taken off a tree or rock per swing; damage: sword damage (boar 10, wolf 6);
 ## speed: swing speed multiplier. Every tier is a clear step up. Fists: power 1, damage 1.
-const TIERS := [
-	{"name": "Worn", "color": Color(0.58, 0.5, 0.44), "power": 2, "damage": 2, "speed": 0.85},
-	{"name": "Stone", "color": Color(0.33, 0.33, 0.32), "power": 3, "damage": 3, "speed": 1.0},
-	{"name": "Copper", "color": Color(0.9, 0.52, 0.3), "power": 4, "damage": 4, "speed": 1.08},
-	{"name": "Iron", "color": Color(0.82, 0.86, 0.92), "power": 6, "damage": 5, "speed": 1.16},
-	{"name": "Steel", "color": Color(0.55, 0.72, 0.95), "power": 8, "damage": 7, "speed": 1.24},
-]
+const TIERS := Balance.TIERS
 ## Bonuses found tools can roll: Swift swings 15% faster, Mighty hits 1 harder, Lucky gives a
 ## 20% chance of an extra drop. Rare tools have two. [adjective, noun] for the name.
 const BONUSES := {"swift": ["Swift", "Haste"], "mighty": ["Mighty", "Might"], "lucky": ["Lucky", "Luck"]}
 ## What a tier unlocks for a tool, shown at the workbench.
 const PERKS := {"pickaxe": {1: "Mines copper ore", 2: "Mines iron ore"}}
-## What each tool costs at the workbench (a Worn one is cheap, if you ever drop yours).
-const RECIPES := [
-	{"slot": "axe", "tier": 0, "cost": {"wood": 3, "stone": 2}},
-	{"slot": "pickaxe", "tier": 0, "cost": {"wood": 3, "stone": 2}},
-	{"slot": "sword", "tier": 0, "cost": {"wood": 3, "stone": 2}},
-	{"slot": "axe", "tier": 1, "cost": {"wood": 6, "stone": 5, "flint": 2}},
-	{"slot": "pickaxe", "tier": 1, "cost": {"wood": 6, "stone": 6, "flint": 2}},
-	{"slot": "sword", "tier": 1, "cost": {"wood": 5, "stone": 8, "flint": 3}},
-	{"slot": "axe", "tier": 2, "cost": {"wood": 8, "copper": 10, "hide": 2}},
-	{"slot": "pickaxe", "tier": 2, "cost": {"wood": 8, "copper": 12, "hide": 2}},
-	{"slot": "sword", "tier": 2, "cost": {"wood": 6, "copper": 14, "hide": 3}},
-	{"slot": "axe", "tier": 3, "cost": {"wood": 10, "iron": 12, "resin": 2}},
-	{"slot": "pickaxe", "tier": 3, "cost": {"wood": 10, "iron": 14, "resin": 2}},
-	{"slot": "sword", "tier": 3, "cost": {"wood": 8, "iron": 16, "pelt": 4, "fang": 2}},
-	# Steel: only once the village smithy is built (see Projects).
-	{"slot": "axe", "tier": 4, "needs": "smithy", "cost": {"pinewood": 10, "iron": 16, "shard": 2}},
-	{"slot": "pickaxe", "tier": 4, "needs": "smithy", "cost": {"pinewood": 10, "iron": 18, "shard": 2}},
-	{"slot": "sword", "tier": 4, "needs": "smithy", "cost": {"pinewood": 8, "iron": 20, "shadow_pelt": 2, "fang": 2}},
-]
-## Bags: how many different kinds of item you can carry. The first is what you start with.
-const BAGS := [
-	{"name": "Pouch", "slots": 12},
-	{"name": "Leather Bag", "slots": 16, "cost": {"hide": 8, "wood": 6, "flint": 4}},
-	{"name": "Traveller's Pack", "slots": 22, "cost": {"pelt": 6, "hide": 6, "resin": 3, "fang": 1}},
-]
+## What each tool costs at the workbench, and the bags (numbers in Balance).
+const RECIPES := Balance.TOOL_RECIPES
+const BAGS := Balance.BAGS
 
 var owned := {"axe": [_tool(0)], "pickaxe": [_tool(0)], "sword": [_tool(0)]}
 var equipped := {"axe": 0, "pickaxe": 0, "sword": 0}      # index into owned[slot], -1 = fists
@@ -78,7 +50,7 @@ func power(slot: String) -> int:
 func damage() -> int:
 	var t := current("sword")
 	var base: int = 1 if t.is_empty() else TIERS[t["tier"]]["damage"] + (1 if "mighty" in t["bonuses"] else 0)
-	return base + Skills.damage_bonus() + (1 if Food.has("strong") else 0)
+	return base + Skills.damage_bonus() + (Balance.STRONG_DAMAGE if Food.has("strong") else 0)
 
 
 func speed(slot: String) -> float:
@@ -203,8 +175,8 @@ func drop_tool(slot: String) -> void:
 ## better; uncommon (one bonus) or rare (two). Returns [slot, tool].
 func roll_found() -> Array:
 	var slot: String = SLOTS.keys().pick_random()
-	var t := clampi(unlocked[slot] + (1 if randf() < 0.15 else -randi_range(0, 1)), 0, TIERS.size() - 1)
-	var rare := randf() < 0.25
+	var t := clampi(unlocked[slot] + (1 if randf() < Balance.FOUND_TIER_UP else -randi_range(0, 1)), 0, TIERS.size() - 1)
+	var rare := randf() < Balance.FOUND_RARE
 	var pool := BONUSES.keys()
 	pool.shuffle()
 	return [slot, _tool(t, 2 if rare else 1, pool.slice(0, 2 if rare else 1))]

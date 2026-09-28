@@ -8,8 +8,8 @@ const WALK_SPEED := 1.3
 const CHARGE_SPEED := 7.5
 const SIGHT := 8.5
 const HOME_RADIUS := 9.0
-const MAX_HEALTH := 10         # sword damage is 2 (Worn) to 5 (Iron)
-const RESPAWN_TIME := 40.0
+const MAX_HEALTH := 10         # the real value comes from Balance.BOAR (set in _ready)
+
 const GRAVITY := 20.0
 const LEASH := 20.0            # chases no further than this from home, then gives up
 const REGEN_EVERY := 3.0       # heals 1 while calm
@@ -25,6 +25,8 @@ enum State { WANDER, ALERT, CHARGE, RECOVER, HURT, DEAD }
 
 var player: Node3D
 var home := Vector3.ZERO
+var max_health := MAX_HEALTH
+var _damage := 1
 var health := MAX_HEALTH
 var state := State.WANDER
 
@@ -44,6 +46,10 @@ func _ready() -> void:
 	_audio.unit_size = 8.0
 	add_child(_audio)
 	_goal = global_position
+	var tough: Dictionary = Balance.REGION_TOUGHNESS.get(Region.current, {"hp": 1.0, "damage": 0})
+	max_health = roundi(Balance.BOAR["hp"] * tough["hp"])
+	health = max_health
+	_damage = Balance.BOAR["damage"] + tough["damage"]
 
 
 func is_alive() -> bool:
@@ -60,7 +66,7 @@ func _physics_process(delta: float) -> void:
 		State.WANDER:
 			var to_goal := _goal - global_position
 			to_goal.y = 0.0
-			if health < MAX_HEALTH:
+			if health < max_health:
 				_regen += delta
 				if _regen >= REGEN_EVERY:
 					_regen = 0.0
@@ -89,7 +95,7 @@ func _physics_process(delta: float) -> void:
 			want = _charge_dir * CHARGE_SPEED
 			if dist < 1.3 and not player.is_rolling():
 				player.knockback(_charge_dir * 9.0)
-				player.take_damage(1)
+				player.take_damage(_damage)
 				get_tree().call_group("camera_rig", "shake", 0.12)
 				_enter(State.RECOVER)
 			elif _t > 1.5 or (_t > 0.2 and is_on_wall()):
@@ -120,7 +126,7 @@ func take_hit(from: Vector3, damage := 1) -> void:
 		return
 	health -= damage
 	visual.flash()
-	visual.show_health(float(health) / MAX_HEALTH, MAX_HEALTH / 2)
+	visual.show_health(float(health) / max_health, max_health / 2)
 	var away := global_position - from
 	away.y = 0.0
 	_push = away.normalized() * 4.0
@@ -133,8 +139,8 @@ func take_hit(from: Vector3, damage := 1) -> void:
 
 func _die() -> void:
 	_enter(State.DEAD)
-	Skills.add("combat", 12)
-	if randf() < 0.06:                       # now and then it was carrying a tool
+	Skills.add("combat", Balance.BOAR["xp"])
+	if randf() < Balance.BOAR["tool"]:                       # now and then it was carrying a tool
 		var found := Gear.roll_found()
 		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
@@ -149,11 +155,13 @@ func _die() -> void:
 	gone.tween_interval(2.5)
 	gone.tween_property(visual, "scale", Vector3.ONE * 0.01, 0.5)
 	gone.tween_callback(func() -> void: visible = false)
-	get_tree().create_timer(RESPAWN_TIME).timeout.connect(_respawn)
+	get_tree().create_timer(Balance.BOAR["respawn"]).timeout.connect(_respawn)
 
 
 func _loot() -> Array[String]:
-	var items: Array[String] = ["hide", "raw_meat"]
+	var items: Array[String] = ["hide"]
+	if randf() < Balance.MEAT_CHANCE["boar"]:
+		items.append("raw_meat")
 	if randf() < 0.5:
 		items.append("hide")
 	if randf() < 0.3:
@@ -167,7 +175,7 @@ func _home_distance() -> float:
 
 func _respawn() -> void:
 	global_position = home + Vector3(0, 0.5, 0)
-	health = MAX_HEALTH
+	health = max_health
 	collision_layer = 1
 	visual.reset()
 	visible = true

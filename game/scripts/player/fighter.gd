@@ -134,7 +134,7 @@ func _land_hit() -> void:
 	if t.global_position.distance_to(player.global_position) > REACH + 0.8:
 		return
 	t.take_hit(player.global_position, Gear.damage())
-	Skills.add("combat", 1)
+	Skills.add("combat", Balance.XP_PER_SWORD_HIT)
 	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
 	_sparks.restart()
 	visual.hit_stop(0.06)

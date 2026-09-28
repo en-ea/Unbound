@@ -67,8 +67,9 @@ func _on_opened(id: int, drops: Array) -> void:
 	t.tween_property(c["lid"], "rotation:x", LID_OPEN, 0.45)
 	_play("open", 1.7)
 	get_tree().create_timer(0.25).timeout.connect(func() -> void: _play("rare", 1.0))
-	var found := Gear.roll_found()          # every chest holds a tool with a bonus
-	TOOL_DROP.spawn(self, found[0], found[1], at, player)
+	if randf() < Balance.CHEST_TOOL:          # often a chest holds a tool with a bonus
+		var found := Gear.roll_found()
+		TOOL_DROP.spawn(self, found[0], found[1], at, player)
 	for i in drops.size():
 		var drop := Node3D.new()
 		drop.set_script(DROP)
