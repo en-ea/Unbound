@@ -49,6 +49,21 @@ damage +1 per 10 combat levels. The HUD shows a small bar on gains and a message
   (any interactable spot) through `hud.open_station()`. Campfires: `world/campfire.gd`, one per region.
 - Dev: `--rich` (coins and materials), `--open=cook|trade|project:smithy`.
 
+## Balance
+Every gameplay number (enemy health/damage/XP, hearts and regen, tool tiers and recipes, bags, resources,
+food, prices, trader stock, project and home costs, skill curve) lives in `state/balance.gd` with the
+targets at the top. Other scripts alias its constants (`Gear.TIERS := Balance.TIERS` and so on).
+
+## Home base
+`state/home.gd` (autoload `Home`): owned house, pieces built in the yard, `missing()` (needs the Smithy,
+a skill total and coins, see Balance.HOME), `buy()`, `place()`, `remove()`. `world/home_plot.gd` shows the
+plot (meadow, west of the village); `ui/build_mode.gd` is the building bar (preview in front of you on a
+half-metre grid). Add a buildable: `Home.PIECES` + its cost in `Balance.HOME_PIECES`. Dev: `--home`.
+
+## Places
+`world/places.gd`: named placeholder spots per region (watchtower, farmstead, camp, hollow, cave...),
+built from simple shapes; their ground is a clearing in `WorldShape.REGIONS`.
+
 ## Regions and travel
 - `game/scripts/core/region.gd` (autoload `Region`): the current region, its display name (`NAMES`) and its
   gates (`GATES`: trigger spot, the region it leads to, where you arrive). `travel()` saves, fades, and

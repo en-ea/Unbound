@@ -5,6 +5,7 @@ extends Control
 ## what it does, the cost as item pictures (have / need) and coins, and a button.
 
 signal closed
+signal build_home
 
 const INVENTORY := preload("res://scripts/ui/inventory_panel.gd")
 const CRAFTING := preload("res://scripts/ui/crafting_panel.gd")
@@ -45,7 +46,7 @@ func _ready() -> void:
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 16)
 	column.add_child(header)
-	var title := UIStyle.label(header, {"cook": "Campfire", "trade": "Trader", "project": "Village project"}[mode], 30)
+	var title := UIStyle.label(header, {"cook": "Campfire", "trade": "Trader", "project": "Village project", "home": "Your home"}[mode], 30)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_coins = UIStyle.label(header, "", 24)
 	_coins.add_theme_color_override("font_color", COIN)
@@ -125,6 +126,19 @@ func _refresh() -> void:
 				_note.text = "Tap Sell for one, or Sell all."
 				for item: String in Inventory.items():
 					_sell_card(item)
+		"home":
+			if Home.owned():
+				_note.text = "Your %s. Build fences, lanterns, benches, flower beds, a campfire, a workbench and more in the yard." % Home.HOUSES[Home.house][0]
+				_offer("", "Build in the yard", "Walk around to move what you're placing.", {}, 0, "Start building", func() -> bool:
+					_close()
+					build_home.emit()
+					return false)
+			else:
+				var miss := Home.missing()
+				_note.text = "A plot of your own, with a house you choose. " + ("Ready to buy!" if miss.is_empty() else "Still needed: " + "; ".join(miss) + ".")
+				for h: String in Home.HOUSES:
+					_offer("", Home.HOUSES[h][0], "", {}, Balance.HOME["coins"], "Buy" if miss.is_empty() else "Not yet",
+						Home.buy.bind(h).unbind(0), false, [], not miss.is_empty())
 		"project":
 			var d: Dictionary = Projects.DEFS[project]
 			if Projects.is_built(project):
@@ -136,7 +150,7 @@ func _refresh() -> void:
 
 
 ## A card with a picture, a name, some text, a cost and a button that runs `action`.
-func _offer(item: String, title: String, text: String, cost: Dictionary, coins: int, verb: String, action: Callable, done := false, tool: Array = []) -> void:
+func _offer(item: String, title: String, text: String, cost: Dictionary, coins: int, verb: String, action: Callable, done := false, tool: Array = [], locked := false) -> void:
 	var v := _card()
 	if item != "":
 		v.add_child(INVENTORY.item_icon(item, 64))
@@ -161,8 +175,8 @@ func _offer(item: String, title: String, text: String, cost: Dictionary, coins: 
 	if coins > 0:
 		var cl := UIStyle.label(costs, "%d coins" % coins, 19)
 		cl.add_theme_color_override("font_color", COIN if Money.coins >= coins else Color(1.0, 0.58, 0.52))
-	var can := not done and Money.coins >= coins and Gear.can_afford(cost)
-	var b := UIStyle.button(v, verb if can or done else "Need more", Vector2(0, 50), 20)
+	var can := not done and not locked and Money.coins >= coins and Gear.can_afford(cost)
+	var b := UIStyle.button(v, verb if can or done or locked else "Need more", Vector2(0, 50), 20)
 	if done:
 		b.text = "Sold out"
 	b.disabled = not can

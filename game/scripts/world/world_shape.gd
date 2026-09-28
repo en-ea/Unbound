@@ -20,7 +20,8 @@ const REGIONS := {
 			Vector3(-9.0, 23.0, 4.4), Vector3(14.0, 3.0, 4.0), Vector3(-13.0, 2.0, 5.0),
 			Vector3(9.0, 22.0, 5.0), Vector3(-6.0, 31.0, 5.0), Vector3(-1.0, 7.0, 3.0),
 			Vector3(-17.0, 13.5, 5.5), Vector3(-3.5, 27.0, 2.6),
-			Vector3(-76, -62, 8.0), Vector3(72, 44, 11.0), Vector3(-70, 58, 7.0)],     # the places (places.gd)
+			Vector3(-76, -62, 8.0), Vector3(72, 44, 11.0), Vector3(-70, 58, 7.0),     # the places (places.gd)
+			Vector3(-40, 36, 9.0), Vector3(-40, 41, 9.0)],                          # your home plot (Home)
 		"keep_clear": [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5)],
 	},
 	"forest": {

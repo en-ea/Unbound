@@ -68,6 +68,13 @@ func _ready() -> void:
 		elif arg.begins_with("--cheats"):                 # the settings test menu; --cheats=code shows the code page
 			var hud := get_node("../HUD")
 			hud._modal.call_deferred(hud.SETTINGS_PANEL, {"_page": "code" if arg.ends_with("=code") else "cheats"})
+		elif arg == "--home":                             # own the home, a few pieces built, build mode on
+			Home.house = "lodge"
+			Home.pieces = [{"id": "campfire", "x": -44.0, "z": 42.0, "turn": 0.0}, {"id": "bench", "x": -44.0, "z": 44.5, "turn": 0.0},
+				{"id": "flower_bed", "x": -36.0, "z": 37.0, "turn": 0.0}, {"id": "lantern_post", "x": -33.5, "z": 41.0, "turn": 0.0},
+				{"id": "fence", "x": -47.0, "z": 45.0, "turn": 0.0}, {"id": "fence", "x": -45.0, "z": 45.0, "turn": 0.0}]
+			Home.changed.emit()
+			get_node("../HUD").start_build_mode.call_deferred()
 		elif arg == "--rich":                             # coins and a pile of materials for testing
 			Money.earn(500)
 			for item: String in ["raw_meat", "mushroom", "apple", "flower", "wood", "glowcap", "stone", "pinewood", "iron", "stew", "roast_meat"]:

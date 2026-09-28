@@ -136,3 +136,14 @@ const RESTOCK_EVERY := 900
 const PROJECTS := {"smithy": {"coins": 250, "cost": {"stone": 25, "pinewood": 15, "iron": 8}}}
 ## Buying a home: coins, and you must have got this far first.
 const HOME := {"coins": 1200, "needs_project": "smithy", "needs_skill_total": 25}
+## What you can build on your plot, and what each costs.
+const HOME_PIECES := {
+	"fence": {"wood": 3},
+	"lantern_post": {"wood": 3, "resin": 1},
+	"bench": {"wood": 6},
+	"flower_bed": {"wood": 4, "flower": 4},
+	"campfire": {"wood": 6, "stone": 6},
+	"workbench": {"wood": 12, "stone": 8},
+	"tree": {"wood": 2, "apple": 1},
+	"rock": {"stone": 5},
+}

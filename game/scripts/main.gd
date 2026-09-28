@@ -43,6 +43,11 @@ func _ready() -> void:
 			site.set_script(preload("res://scripts/world/project_site.gd"))
 			add_child(site)
 			site.build(shape, id)
+	if meadow:
+		var plot := Node3D.new()
+		plot.set_script(preload("res://scripts/world/home_plot.gd"))
+		add_child(plot)
+		plot.build(shape)
 	var places := Node3D.new()
 	places.set_script(preload("res://scripts/world/places.gd"))
 	places.player = player

@@ -312,7 +312,53 @@ export("chest_lid", chest_lid(), OUT)
 export("ruin_arch", ruin(), OUT)
 export("rabbit", rabbit(), OUT)
 export("workbench", workbench(), OUT)
+def fence():
+    """A 2 m run of rustic fence: two posts and two rails."""
+    b = Builder(["Prop"])
+    for x in (-0.95, 0.95):
+        soft(b, cube(b, V((x, 0, 0.5)), (0.14, 0.14, 1.0)), WB_DARK, 0.02)
+    for z in (0.4, 0.8):
+        soft(b, cube(b, V((0, 0, z)), (2.0, 0.08, 0.1)), rnd.choice(WOOD), 0.015)
+    return b
+
+
+def lantern_post():
+    b = Builder(["Prop", "Glow"])
+    soft(b, cube(b, V((0, 0, 1.1)), (0.14, 0.14, 2.2)), WB_DARK, 0.02)
+    soft(b, cube(b, V((0.25, 0, 2.1)), (0.55, 0.08, 0.08)), WB_DARK, 0.01)
+    soft(b, lambda: rk.tube(b.bm, [V((0.45, 0, 2.05)), V((0.45, 0, 1.9))], [(0.01, 0.01)] * 2, seg=4), IRON_D, 0.002)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.45, 0, 1.78)), (0.11, 0.11, 0.15), 6, 4)), "Glow", (1.0, 0.76, 0.4))
+    soft(b, cube(b, V((0.45, 0, 1.95)), (0.2, 0.2, 0.05)), IRON_D, 0.01)
+    return b
+
+
+def bench():
+    b = Builder(["Prop"])
+    soft(b, cube(b, V((0, 0, 0.45)), (1.6, 0.45, 0.08)), WOOD[0], 0.02)
+    soft(b, cube(b, V((0, 0.2, 0.8)), (1.6, 0.06, 0.3)), WOOD[2], 0.02)
+    for x in (-0.65, 0.65):
+        soft(b, cube(b, V((x, 0, 0.22)), (0.1, 0.4, 0.44)), WB_DARK, 0.02)
+        soft(b, cube(b, V((x, 0.2, 0.6)), (0.08, 0.06, 0.5)), WB_DARK, 0.01)
+    return b
+
+
+def flower_bed():
+    b = Builder(["Prop"])
+    soft(b, cube(b, V((0, 0, 0.15)), (1.8, 0.8, 0.3)), WB_WOOD, 0.03)
+    soft(b, cube(b, V((0, 0, 0.29)), (1.6, 0.6, 0.04)), (0.36, 0.26, 0.18), 0.01)
+    for k in range(9):
+        x = -0.65 + (k % 5) * 0.32
+        y = -0.15 if k < 5 else 0.15
+        clump(b, V((x + (0.16 if k >= 5 else 0), y, 0.42)), 0.09, 1, rnd,
+              rnd.choice([(0.95, 0.55, 0.72), (0.98, 0.85, 0.3), (0.6, 0.55, 0.95), (1.0, 0.95, 0.9)]), "Prop", 0.8)
+    return b
+
+
 export("campfire", campfire(), OUT)
 export("site_board", site_board(), OUT)
 export("scaffold", scaffold(), OUT)
 export("smithy", smithy(), OUT)
+export("fence", fence(), OUT)
+export("lantern_post", lantern_post(), OUT)
+export("bench", bench(), OUT)
+export("flower_bed", flower_bed(), OUT)

@@ -143,6 +143,17 @@ func _cheat_page() -> void:
 			for sk: String in Skills.SKILLS:
 				var target := mini(Skills.level(sk) + 5, Skills.MAX_LEVEL)
 				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])],
+		["Unlock home (all needs)", func() -> void:
+			for id: String in Projects.DEFS:
+				if not Projects.is_built(id):
+					Money.earn(Projects.coins(id))
+					for i: String in Projects.cost(id):
+						Inventory.add(i, Projects.cost(id)[i])
+					Projects.fund(id)
+			for sk: String in Skills.SKILLS:
+				var target := mini(Skills.level(sk) + 9, Skills.MAX_LEVEL)
+				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])
+			Money.earn(Balance.HOME["coins"])],
 		["Full hearts", func() -> void: get_tree().call_group("player", "heal_full")],
 		["Go to other area", func() -> void:
 			var gate: Dictionary = Region.GATES[Region.current][0]

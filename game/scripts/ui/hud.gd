@@ -256,7 +256,25 @@ func open_crafting() -> void:
 
 ## A campfire, the trader or a project board: the shop panel with those settings.
 func open_station(props: Dictionary) -> void:
-	_modal(preload("res://scripts/ui/shop_panel.gd"), props)
+	if props.get("mode", "") == "craft":
+		open_crafting()
+		return
+	var panel := _modal(preload("res://scripts/ui/shop_panel.gd"), props)
+	panel.build_home.connect(start_build_mode)
+
+
+## Building in your yard: joystick stays, the build bar replaces the other buttons.
+func start_build_mode() -> void:
+	_set_play_ui(true)
+	_action.visible = false
+	_roll.visible = false
+	_corner.visible = false
+	Controls.locked = false
+	var ui := Control.new()
+	ui.set_script(preload("res://scripts/ui/build_mode.gd"))
+	ui.player = player
+	add_child(ui)
+	ui.closed.connect(func() -> void: _set_play_ui(true))
 
 
 func open_bag() -> void:
