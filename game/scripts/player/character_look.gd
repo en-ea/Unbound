@@ -11,20 +11,26 @@ const PARTS := {
 	"brows": ["soft", "arched", "raised", "stern", "thick"],
 	"mouth": ["smile", "grin", "open", "flat", "smirk"],
 	"cheeks": ["none", "blush"],
-	"marks": ["none", "freckles", "scar", "warpaint", "stripe"],
+	"marks": ["none", "freckles", "scar", "warpaint", "tribal", "dots", "rune", "kohl", "moon", "mole"],
 	"extra": ["none", "glasses", "eyepatch", "earrings"],
-	"hair": ["short", "messy", "swept", "long", "ponytail", "braid", "bun", "mohawk", "none"],
+	"hair": ["short", "messy", "swept", "curly", "long", "ponytail", "pigtails", "braid", "bun", "topknot", "mohawk", "none"],
 	"beard": ["none", "stubble", "short", "full", "braided", "goatee", "mustache", "chinstrap"],
-	"head": ["none", "hat", "band", "bandana", "circlet"],
-	"top": ["tunic", "jacket", "coat"],
-	"chest": ["none", "strap", "vest"],
-	"shoulders": ["none", "pads", "plates"],
-	"back": ["none", "scarf", "backpack", "cape"],
+	"head": ["none", "hat", "hood", "helm", "cap", "straw", "crown", "band", "bandana", "circlet"],
+	"top": ["tunic", "jacket", "coat", "robe", "armor", "jerkin"],
+	"waist": ["none", "kilt", "apron", "tabard"],
+	"chest": ["none", "strap", "vest", "sash", "bandolier"],
+	"shoulders": ["none", "pads", "plates", "fur", "pauldron"],
+	"back": ["none", "scarf", "backpack", "cape", "quiver", "shield"],
 	"feet": ["boots", "shoes", "wraps"],
 }
 const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "cheeks": "Cheeks", "marks": "Markings", "extra": "Extras", "hair": "Hair",
-	"beard": "Beard", "head": "Headwear", "top": "Top", "chest": "Chest", "shoulders": "Shoulders", "back": "Back",
+	"beard": "Beard", "head": "Headwear", "top": "Top", "waist": "Waist", "chest": "Chest", "shoulders": "Shoulders", "back": "Back",
 	"feet": "Feet"}
+## Nicer names for some choices in the picker (the rest are just capitalised).
+const CHOICE_NAMES := {"armor": "Armour", "jerkin": "Jerkin", "straw": "Straw hat", "crown": "Flower crown",
+	"cap": "Feathered cap", "pauldron": "Pauldron", "fur": "Fur mantle", "bandolier": "Potions", "kohl": "Eyeliner",
+	"moon": "Moon mark", "mole": "Beauty mark", "rune": "Rune", "tribal": "Tribal", "plates": "Steel plates", "pads": "Leather pads",
+	"strap": "Satchel", "none": "None"}
 ## Body shape ranges (the picker's sliders): height and build scale the whole character.
 const HEIGHT_RANGE := Vector2(0.9, 1.1)
 const BUILD_RANGE := Vector2(0.88, 1.14)
@@ -32,44 +38,61 @@ const BUILD_RANGE := Vector2(0.88, 1.14)
 const EARTHY: Array[Color] = [
 	Color(0.42, 0.48, 0.32), Color(0.85, 0.64, 0.25), Color(0.52, 0.2, 0.22), Color(0.26, 0.32, 0.46),
 	Color(0.3, 0.29, 0.3), Color(0.66, 0.36, 0.2), Color(0.22, 0.42, 0.44), Color(0.8, 0.74, 0.6),
+	Color(0.36, 0.24, 0.46), Color(0.62, 0.14, 0.16), Color(0.16, 0.2, 0.34), Color(0.2, 0.34, 0.22),
+	Color(0.18, 0.18, 0.2), Color(0.9, 0.86, 0.74), Color(0.44, 0.6, 0.78), Color(0.8, 0.46, 0.5),
 ]
 ## Colour slots (material names in hero.glb) and the palette each picks from.
 const PALETTES := {
 	"Skin": [Color(1.0, 0.86, 0.76), Color(0.98, 0.8, 0.66), Color(0.93, 0.72, 0.56), Color(0.8, 0.58, 0.42), Color(0.62, 0.42, 0.3), Color(0.45, 0.3, 0.22), Color(0.34, 0.22, 0.17)],
 	"Hair": [Color(0.24, 0.15, 0.1), Color(0.1, 0.08, 0.08), Color(0.85, 0.62, 0.3), Color(0.96, 0.84, 0.58), Color(0.62, 0.26, 0.14), Color(0.74, 0.18, 0.16),
-		Color(0.88, 0.88, 0.86), Color(0.54, 0.58, 0.66), Color(0.38, 0.28, 0.2), Color(0.3, 0.24, 0.48), Color(0.2, 0.44, 0.46)],
+		Color(0.88, 0.88, 0.86), Color(0.54, 0.58, 0.66), Color(0.38, 0.28, 0.2), Color(0.3, 0.24, 0.48), Color(0.2, 0.44, 0.46),
+		Color(0.9, 0.55, 0.65), Color(0.3, 0.45, 0.8)],
 	"Main": EARTHY,
-	"Second": [Color(0.3, 0.29, 0.3), Color(0.3, 0.22, 0.16), Color(0.24, 0.28, 0.38), Color(0.32, 0.36, 0.26), Color(0.48, 0.47, 0.45), Color(0.6, 0.5, 0.36)],
+	"Second": [Color(0.3, 0.29, 0.3), Color(0.3, 0.22, 0.16), Color(0.24, 0.28, 0.38), Color(0.32, 0.36, 0.26), Color(0.48, 0.47, 0.45), Color(0.6, 0.5, 0.36),
+		Color(0.14, 0.14, 0.16), Color(0.82, 0.76, 0.62), Color(0.42, 0.3, 0.2), Color(0.16, 0.2, 0.34)],
 	"Cloth": [Color(0.85, 0.8, 0.68), Color(0.93, 0.92, 0.88), Color(0.62, 0.63, 0.64), Color(0.62, 0.72, 0.82), Color(0.74, 0.6, 0.42), Color(0.72, 0.42, 0.28)],
-	"Accent": [Color(0.72, 0.25, 0.2), Color(0.85, 0.64, 0.25), Color(0.42, 0.48, 0.32), Color(0.22, 0.42, 0.44), Color(0.52, 0.2, 0.22), Color(0.8, 0.74, 0.6), Color(0.26, 0.32, 0.46), Color(0.86, 0.46, 0.2)],
-	"Leather": [Color(0.5, 0.33, 0.2), Color(0.3, 0.2, 0.14), Color(0.66, 0.5, 0.32), Color(0.22, 0.22, 0.24)],
-	"Marks": [Color(0.36, 0.22, 0.16), Color(0.72, 0.18, 0.16), Color(0.16, 0.16, 0.2), Color(0.92, 0.92, 0.9), Color(0.24, 0.42, 0.72), Color(0.9, 0.7, 0.3)],
+	"Accent": [Color(0.72, 0.25, 0.2), Color(0.85, 0.64, 0.25), Color(0.42, 0.48, 0.32), Color(0.22, 0.42, 0.44), Color(0.52, 0.2, 0.22), Color(0.8, 0.74, 0.6), Color(0.26, 0.32, 0.46), Color(0.86, 0.46, 0.2),
+		Color(0.44, 0.28, 0.58), Color(0.2, 0.58, 0.62), Color(0.92, 0.74, 0.3), Color(0.66, 0.12, 0.14), Color(0.16, 0.2, 0.36), Color(0.92, 0.9, 0.86), Color(0.14, 0.14, 0.16), Color(0.86, 0.5, 0.56)],
+	"Leather": [Color(0.5, 0.33, 0.2), Color(0.3, 0.2, 0.14), Color(0.66, 0.5, 0.32), Color(0.22, 0.22, 0.24), Color(0.6, 0.32, 0.18)],
+	"Marks": [Color(0.36, 0.22, 0.16), Color(0.72, 0.18, 0.16), Color(0.16, 0.16, 0.2), Color(0.92, 0.92, 0.9), Color(0.24, 0.42, 0.72), Color(0.9, 0.7, 0.3),
+		Color(0.3, 0.66, 0.46), Color(0.58, 0.34, 0.78)],
 }
 const COLOR_LABELS := {"Skin": "Skin", "Hair": "Hair", "Main": "Top", "Second": "Trousers", "Cloth": "Shirt",
-	"Accent": "Scarf, hat, cape", "Leather": "Leather", "Marks": "Markings"}
+	"Accent": "Hood, cape, trim", "Leather": "Leather", "Marks": "Markings"}
 
-## Ready-made outfits (from the owner's reference sheets); pick one, then tweak.
+## Ready-made outfits: each its own silhouette. Pick one, then change anything.
 const OUTFITS := {
-	"Wanderer": {"parts": {"hair": "short", "beard": "none", "head": "none", "feet": "boots", "top": "tunic", "chest": "strap", "shoulders": "none", "back": "scarf"},
+	"Wanderer": {"parts": {"hair": "short", "beard": "none", "head": "none", "top": "tunic", "waist": "none", "chest": "strap", "shoulders": "none", "back": "scarf", "feet": "boots"},
 		"colors": {"Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0}},
-	"Explorer": {"parts": {"hair": "long", "beard": "none", "head": "hat", "feet": "boots", "top": "tunic", "chest": "vest", "shoulders": "none", "back": "backpack"},
+	"Explorer": {"parts": {"hair": "long", "beard": "none", "head": "hat", "top": "tunic", "waist": "none", "chest": "vest", "shoulders": "none", "back": "backpack", "feet": "boots"},
 		"colors": {"Main": 0, "Second": 3, "Cloth": 5, "Accent": 7, "Leather": 0}},
-	"Fighter": {"parts": {"hair": "ponytail", "beard": "none", "head": "band", "feet": "wraps", "top": "jacket", "chest": "strap", "shoulders": "plates", "back": "scarf"},
-		"colors": {"Main": 4, "Second": 1, "Cloth": 4, "Accent": 0, "Leather": 1}},
-	"Merchant": {"parts": {"hair": "short", "beard": "short", "head": "hat", "feet": "shoes", "top": "coat", "chest": "strap", "shoulders": "none", "back": "scarf"},
+	"Merchant": {"parts": {"hair": "short", "beard": "short", "head": "hat", "top": "coat", "waist": "none", "chest": "strap", "shoulders": "none", "back": "scarf", "feet": "shoes"},
 		"colors": {"Main": 2, "Second": 1, "Cloth": 0, "Accent": 4, "Leather": 2}},
-	# Hero looks: someone on the way to becoming one of the great guardians.
-	"Guardian": {"parts": {"hair": "short", "beard": "stubble", "head": "circlet", "feet": "boots", "top": "jacket", "chest": "strap", "shoulders": "plates", "back": "cape"},
-		"colors": {"Main": 3, "Second": 0, "Cloth": 1, "Accent": 6, "Leather": 1}},
-	"Ranger": {"parts": {"hair": "long", "beard": "none", "head": "bandana", "feet": "wraps", "top": "tunic", "chest": "vest", "shoulders": "pads", "back": "scarf"},
-		"colors": {"Main": 0, "Second": 3, "Cloth": 4, "Accent": 3, "Leather": 0}},
-	"Fisher": {"parts": {"hair": "long", "beard": "braided", "head": "bandana", "feet": "boots", "top": "coat", "chest": "none", "shoulders": "none", "back": "backpack"},
-		"colors": {"Main": 1, "Second": 0, "Cloth": 5, "Accent": 1, "Leather": 1}},
+	"Knight": {"parts": {"hair": "short", "beard": "stubble", "head": "helm", "top": "armor", "waist": "tabard", "chest": "none", "shoulders": "plates", "back": "shield", "feet": "boots"},
+		"colors": {"Main": 10, "Second": 6, "Cloth": 1, "Accent": 11, "Leather": 1}},
+	"Ranger": {"parts": {"hair": "long", "beard": "none", "head": "hood", "top": "tunic", "waist": "none", "chest": "strap", "shoulders": "pads", "back": "quiver", "feet": "wraps"},
+		"colors": {"Main": 11, "Second": 1, "Cloth": 4, "Accent": 2, "Leather": 0}},
+	"Mage": {"parts": {"hair": "long", "beard": "none", "head": "circlet", "top": "robe", "waist": "none", "chest": "none", "shoulders": "none", "back": "cape", "feet": "shoes", "marks": "rune"},
+		"colors": {"Main": 8, "Second": 6, "Cloth": 1, "Accent": 10, "Leather": 1, "Marks": 5}},
+	"Smith": {"parts": {"hair": "short", "beard": "full", "head": "bandana", "top": "jerkin", "waist": "apron", "chest": "none", "shoulders": "none", "back": "none", "feet": "boots"},
+		"colors": {"Main": 5, "Second": 1, "Cloth": 4, "Accent": 0, "Leather": 1}},
+	"Northlander": {"parts": {"hair": "braid", "beard": "braided", "head": "band", "top": "jerkin", "waist": "kilt", "chest": "strap", "shoulders": "fur", "back": "none", "feet": "wraps", "marks": "warpaint"},
+		"colors": {"Main": 12, "Second": 1, "Cloth": 0, "Accent": 6, "Leather": 1, "Marks": 4}},
+	"Fisher": {"parts": {"hair": "messy", "beard": "stubble", "head": "straw", "top": "tunic", "waist": "none", "chest": "strap", "shoulders": "none", "back": "backpack", "feet": "wraps"},
+		"colors": {"Main": 14, "Second": 7, "Cloth": 0, "Accent": 0, "Leather": 2}},
+	"Bard": {"parts": {"hair": "swept", "beard": "goatee", "head": "cap", "top": "jacket", "waist": "none", "chest": "sash", "shoulders": "none", "back": "cape", "feet": "shoes"},
+		"colors": {"Main": 9, "Second": 6, "Cloth": 1, "Accent": 10, "Leather": 1}},
+	"Alchemist": {"parts": {"hair": "bun", "beard": "none", "head": "none", "top": "robe", "waist": "none", "chest": "bandolier", "shoulders": "none", "back": "backpack", "feet": "shoes", "extra": "glasses"},
+		"colors": {"Main": 6, "Second": 6, "Cloth": 0, "Accent": 1, "Leather": 0}},
+	"Druid": {"parts": {"hair": "curly", "beard": "none", "head": "crown", "top": "robe", "waist": "none", "chest": "none", "shoulders": "fur", "back": "none", "feet": "wraps", "marks": "dots"},
+		"colors": {"Main": 11, "Second": 1, "Cloth": 4, "Accent": 1, "Leather": 0, "Marks": 3}},
+	"Guardian": {"parts": {"hair": "topknot", "beard": "none", "head": "circlet", "top": "armor", "waist": "kilt", "chest": "none", "shoulders": "pauldron", "back": "cape", "feet": "boots"},
+		"colors": {"Main": 13, "Second": 9, "Cloth": 1, "Accent": 6, "Leather": 1}},
 }
 
 var outfit := "Wanderer"
 var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "cheeks": "none", "marks": "none", "extra": "none", "hair": "short", "beard": "none",
-	"head": "none", "top": "tunic", "chest": "strap", "shoulders": "none", "back": "scarf", "feet": "boots"}
+	"head": "none", "top": "tunic", "waist": "none", "chest": "strap", "shoulders": "none", "back": "scarf", "feet": "boots"}
 var colors := {"Skin": 2, "Hair": 0, "Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0, "Marks": 0}   # palette indices
 var height := 1.0
 var build := 1.0
@@ -77,6 +100,16 @@ var build := 1.0
 
 func color(slot: String) -> Color:
 	return PALETTES[slot][clampi(colors.get(slot, 0), 0, PALETTES[slot].size() - 1)]
+
+
+## The picker's name for a choice.
+static func choice_name(choice: String) -> String:
+	return CHOICE_NAMES.get(choice, choice.capitalize())
+
+
+func set_part(slot: String, choice: String) -> void:
+	if PARTS.has(slot) and PARTS[slot].has(choice):
+		parts[slot] = choice
 
 
 func cycle_part(slot: String, step: int) -> void:
@@ -91,7 +124,15 @@ func set_color(slot: String, index: int) -> void:
 ## Applies a ready-made outfit (keeps the face, skin and hair colour).
 func cycle_outfit(step: int) -> void:
 	var names := OUTFITS.keys()
-	outfit = names[posmod(names.find(outfit) + step, names.size())]
+	set_outfit(names[posmod(names.find(outfit) + step, names.size())])
+
+
+func set_outfit(name: String) -> void:
+	var old: Dictionary = OUTFITS.get(outfit, {"parts": {}})["parts"]
+	for slot in ["marks", "extra"]:      # face bits the last outfit added go with it
+		if old.has(slot) and parts[slot] == old[slot]:
+			parts[slot] = "none"
+	outfit = name
 	var o: Dictionary = OUTFITS[outfit]
 	for slot: String in o["parts"]:
 		parts[slot] = o["parts"][slot]
@@ -104,7 +145,7 @@ func randomize_look(rng: RandomNumberGenerator) -> void:
 		parts[slot] = PARTS[slot][rng.randi() % PARTS[slot].size()]
 	for slot in PALETTES:
 		colors[slot] = rng.randi() % PALETTES[slot].size()
-	for slot in ["marks", "extra"]:               # keep extras occasional
+	for slot in ["marks", "extra", "waist", "shoulders"]:      # keep extras occasional
 		if rng.randf() < 0.6:
 			parts[slot] = "none"
 	height = snappedf(rng.randf_range(0.95, 1.05), 0.01)

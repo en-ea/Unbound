@@ -11,7 +11,8 @@ extends Node
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
 ##   --telltest        a boar frozen mid-warning (glint), a heavy blow's shockwave, stamina part used (screenshots)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
-##   --lineup          stand every outfit preset in a row in front of the camera
+##   --lineup[=N]      stand 7 outfit presets (from the Nth) in a row in front of the camera
+##   --outfit=Mage     wear a ready-made outfit
 ##   --title           keep the title screen (otherwise any dev argument skips it)
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 ##   --craft / --bag   open the workbench / Bag screen with a few items to show
@@ -29,6 +30,7 @@ var _lineup := false
 var _gather_test := false
 var _fight_test := false
 var _tell_test := false
+var _lineup_from := 0
 var _gather_offset := Vector3(0, 0.3, -1.3)
 
 
@@ -116,7 +118,13 @@ func _ready() -> void:
 			_gather_offset = Vector3(float(v[0]), 0.3, float(v[1]))
 		elif arg == "--gathertest":
 			_gather_test = true
-		elif arg == "--lineup":
+		elif arg.begins_with("--outfit="):              # --outfit=Mage: wear a ready-made outfit
+			var pv: CharacterVisual = get_node("../Player/Visual")
+			pv.hero_look.set_outfit(arg.trim_prefix("--outfit="))
+			pv.apply_hero_look.call_deferred()
+		elif arg.begins_with("--lineup"):                # --lineup, or --lineup=7 to start at the 8th outfit
+			if arg.begins_with("--lineup="):
+				_lineup_from = int(arg.trim_prefix("--lineup="))
 			_lineup = true
 		elif arg == "--showcase":
 			_showcase = true
@@ -275,12 +283,11 @@ func _run_tell_test() -> void:
 func _build_lineup() -> void:
 	var player := get_node("../Player") as Node3D
 	player.visible = false
-	var names := CharacterLook.OUTFITS.keys()
+	var names := CharacterLook.OUTFITS.keys().slice(_lineup_from, _lineup_from + 7)
 	for i in names.size():
 		var v := CharacterVisual.new()
 		v.hero_look = CharacterLook.new()
-		v.hero_look.outfit = names[names.size() - 1]
-		v.hero_look.cycle_outfit(i + 1)
-		v.hero_look.parts["eyes"] = ["calm", "happy", "fierce", "bright", "sleepy"][i]
+		v.hero_look.set_outfit(names[i])
+		v.hero_look.parts["eyes"] = ["calm", "happy", "fierce", "bright", "sleepy"][i % 5]
 		add_child(v)
-		v.global_position = player.global_position + Vector3((i - 2) * 1.1, 0, 0)
+		v.global_position = player.global_position + Vector3((i - (names.size() - 1) / 2.0) * 1.1, 0, 0)

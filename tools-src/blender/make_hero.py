@@ -33,6 +33,10 @@ COLORS = {  # defaults (sRGB); the game overrides the slot colours
     "Shine": (1.0, 1.0, 1.0), "Blush": (0.93, 0.6, 0.54), "Main": (0.42, 0.48, 0.32),
     "Second": (0.3, 0.29, 0.3), "Cloth": (0.85, 0.8, 0.68), "Accent": (0.72, 0.25, 0.2),
     "Leather": (0.5, 0.33, 0.2), "Metal": (0.72, 0.7, 0.66), "Marks": (0.36, 0.22, 0.16),
+    # Fixed colours (not recoloured by the game):
+    "Gold": (0.95, 0.74, 0.3), "Leaf": (0.36, 0.58, 0.28), "Petal": (0.97, 0.78, 0.84), "Bloom": (0.98, 0.9, 0.5),
+    "Straw": (0.9, 0.77, 0.46), "Fur": (0.5, 0.4, 0.3), "Feather": (0.95, 0.94, 0.9), "Potion": (0.35, 0.82, 0.72),
+    "Potion2": (0.9, 0.36, 0.42), "Wood": (0.55, 0.38, 0.24),
 }
 
 HC = V((0.0, -0.01, 1.72))      # head centre
@@ -258,6 +262,43 @@ def hair_swept(bm):
     back_locks(bm, -38)
 
 
+def hair_curly(bm):
+    """A mop of round curls all over the head."""
+    cap(bm, Z + 0.06, Z - 0.02, Z - 0.1)
+    for yaw in range(0, 360, 30):
+        for pitch in (5, 30, 55):
+            if pitch < 20 and (yaw < 50 or yaw > 310):
+                continue                                 # keep the face clear
+            c, n = around(yaw + (15 if pitch == 30 else 0), pitch, 0.03)
+            rk.blob(bm, c, (0.04, 0.04, 0.036), 6, 4)
+    c, _ = around(0, 80, 0.035)
+    rk.blob(bm, c, (0.05, 0.05, 0.04), 6, 4)
+    for x in (-0.06, 0.0, 0.06):                         # curls over the brow
+        c, _ = on_head(x, Z + 0.1, 0.03)
+        rk.blob(bm, c, (0.035, 0.03, 0.03), 6, 4)
+
+
+def hair_topknot(bm):
+    """Swept back tight, tied in a knot on the crown with a short tail."""
+    cap(bm, Z + 0.085, Z - 0.01, Z - 0.08, lift=0.012)
+    k = V((0, 0.03, Z + 0.175))
+    rk.tube(bm, [k + V((0, 0, -0.03)), k + V((0, 0, 0.01))], [(0.03, 0.03)] * 2, seg=6)
+    rk.blob(bm, k + V((0, 0, 0.04)), (0.05, 0.05, 0.045), 7, 5)
+    rk.tube(bm, [k + V((0, 0.03, 0.06)), k + V((0, 0.09, 0.03)), k + V((0, 0.12, -0.05))], [(0.035, 0.03), (0.03, 0.025), (0.004, 0.004)], ref=V((1, 0, 0)), seg=5)
+    side_locks(bm, -5, 0.035)
+
+
+def hair_pigtails(bm):
+    """A fringe and two bunches tied low at either side."""
+    cap(bm, Z + 0.07, Z - 0.01, Z - 0.08)
+    fringe(bm, (-0.075, -0.025, 0.025, 0.075), Z + 0.1, Z + 0.045, width=0.05)
+    for s in (1, -1):
+        root = V((s * 0.125, 0.06, Z - 0.02))
+        rk.blob(bm, root, (0.03, 0.03, 0.03), 6, 4)
+        rk.tube(bm, [root + V((s * 0.01, 0.01, -0.01)), root + V((s * 0.06, 0.03, -0.12)), root + V((s * 0.05, 0.03, -0.26))],
+                [(0.05, 0.045), (0.055, 0.05), (0.006, 0.006)], ref=V((1, 0, 0)), seg=6)
+
+
 def hair_weights(p):
     if p.z > Z - 0.1:
         return {"Head": 1.0}
@@ -478,6 +519,324 @@ def circlet_gem(bm):
     rk.tube(bm, [p - n * 0.01, p + n * 0.012], [(0.018, 0.024), (0.008, 0.012)], ref=V((1, 0, 0)), seg=4)
 
 
+def robe(bm):
+    """A long robe to mid-calf, closed at the front, flaring a little at the hem."""
+    rings = [(0.3, 0.27, 0.23), (0.55, 0.245, 0.2), (0.78, 0.225, 0.18), (0.9, 0.2, 0.158)] + SHIRT[:-1]
+    pts, radii = shell(rings, 0.022)
+    rk.tube(bm, pts, radii, seg=12, caps=False)
+    delete_faces(bm, lambda c: c.y < -0.05 and c.z > 1.36 and abs(c.x) < 0.06)     # a small V at the neck
+
+
+def robe_trim(bm):
+    """A band down the front and round the hem, and a collar."""
+    rk.tube(bm, [V((0, -0.2, 0.34)), V((0, -0.2, 0.62)), V((0, -0.19, 0.9)), V((0, -0.18, 1.1)), V((0, -0.175, 1.3))],
+            [(0.05, 0.012)] * 5, ref=V((1, 0, 0)), seg=4)
+    rk.tube(bm, [V((0, 0.018, 0.3)), V((0, 0.018, 0.36))], [(0.3, 0.26), (0.294, 0.253)], seg=12, caps=False)
+    rk.tube(bm, rk.ring_path(V((0, 0.02, 1.5)), 0.14, 0.12, 10), [(0.035, 0.025)] * 10, ref=V((0, 0, 1)), seg=4, closed=True)
+
+
+def robe_cuffs(bm, s):
+    """Wide bell sleeves over the forearm."""
+    rk.tube(bm, [V((s * 0.44, 0.066, 1.441)), V((s * 0.56, 0.066, 1.441)), V((s * 0.62, 0.066, 1.44))],
+            [(0.085, 0.085), (0.11, 0.11), (0.125, 0.125)], ref=V((0, 0, 1)), seg=8, caps=False)
+
+
+def rope_belt(bm):
+    rk.tube(bm, rk.ring_path(V((0, 0.018, 1.0)), 0.225, 0.183, 12), [(0.022, 0.022)] * 12, ref=V((0, 0, 1)), seg=5, closed=True)
+    knot = V((0.09, -0.19, 0.99))
+    rk.blob(bm, knot, (0.03, 0.022, 0.028), 6, 4)
+    for dx in (-0.015, 0.02):
+        rk.tube(bm, [knot, knot + V((dx, -0.02, -0.12)), knot + V((dx * 1.5, -0.02, -0.26))], [(0.014, 0.014)] * 3, seg=4)
+        rk.blob(bm, knot + V((dx * 1.5, -0.02, -0.28)), (0.02, 0.02, 0.03), 5, 3)
+
+
+def armor(bm):
+    """A breastplate over the chest and back, with a raised ridge down the front."""
+    rings = [(1.02, 0.225, 0.18), (1.14, 0.215, 0.172), (1.28, 0.235, 0.182), (1.42, 0.23, 0.17), (1.5, 0.16, 0.13)]
+    pts = [V((0, 0.018, z)) for z, rx, ry in rings]
+    rk.tube(bm, pts, [(rx, ry) for z, rx, ry in rings], seg=10, caps=False)
+    delete_faces(bm, lambda c: abs(c.x) > 0.19 and c.z > 1.36)          # arm holes
+    rk.tube(bm, [V((0, -0.17, 1.05)), V((0, -0.19, 1.28)), V((0, -0.175, 1.44))], [(0.018, 0.012)] * 3, ref=V((1, 0, 0)), seg=4)
+
+
+def armor_gorget(bm):
+    rk.tube(bm, [V((0, 0.02, 1.48)), V((0, 0.02, 1.56))], [(0.155, 0.135), (0.11, 0.1)], seg=10)
+
+
+def armor_skirt(bm):
+    """A quilted skirt below the breastplate."""
+    rings = [(0.66, 0.245, 0.2), (0.8, 0.232, 0.188), (0.96, 0.214, 0.172), (1.04, 0.212, 0.17)]
+    pts, radii = shell(rings, 0.004)
+    rk.tube(bm, pts, radii, seg=12, caps=False)
+    for z in (0.74, 0.86):                              # quilting lines
+        rk.tube(bm, [V((0, 0.018, z)), V((0, 0.018, z + 0.014))], [(0.244 - (z - 0.66) * 0.1, 0.2 - (z - 0.66) * 0.09)] * 2, seg=12, caps=False)
+
+
+def armor_rivets(bm):
+    for z in (1.08, 1.22, 1.36):
+        for s in (1, -1):
+            rk.blob(bm, V((s * 0.1, -0.2 + (z - 1.08) * 0.02, z)), (0.012, 0.01, 0.012), 4, 3)
+
+
+def tassets(bm):
+    """Leather strips hanging from the belt over the skirt."""
+    for a in (-0.9, -0.3, 0.3, 0.9, 2.5, 3.1, 3.7):
+        c, sn = math.sin(a), -math.cos(a)
+        top = V((c * 0.235, 0.018 + sn * 0.19, 0.96))
+        bot = V((c * 0.26, 0.018 + sn * 0.215, 0.74))
+        out = V((c, sn, 0))
+        rk.tube(bm, [top, bot], [(0.055, 0.012), (0.06, 0.012)], ref=out.cross(V((0, 0, 1))).normalized(), seg=4)
+
+
+def jerkin(bm):
+    """A sleeveless jerkin (bare arms), laced at the front, with a fur trim at the shoulders."""
+    rings = [(0.82, 0.22, 0.175), (0.92, 0.205, 0.162)] + SHIRT[1:-1]
+    pts, radii = shell(rings, 0.02)
+    rk.tube(bm, pts, radii, seg=10, caps=False)
+    delete_faces(bm, lambda c: abs(c.x) > 0.17 and c.z > 1.33)            # arm holes
+    delete_faces(bm, lambda c: c.y < -0.05 and c.z > 1.32 and abs(c.x) < 0.06)
+
+
+def jerkin_laces(bm):
+    for z in (1.12, 1.2, 1.28):
+        rk.tube(bm, [V((-0.04, -0.2, z)), V((0.04, -0.2, z + 0.04))], [(0.006, 0.006)] * 2, seg=4)
+        rk.tube(bm, [V((0.04, -0.2, z)), V((-0.04, -0.2, z + 0.04))], [(0.006, 0.006)] * 2, seg=4)
+
+
+def bare_arm(bm, s):
+    rk.tube(bm, [V((s * x, 0.066, 1.441)) for x in (0.15, 0.3, 0.46, 0.6)], [(0.07, 0.07), (0.062, 0.062), (0.056, 0.056), (0.054, 0.054)],
+            ref=V((0, 0, 1)), seg=6)
+
+
+def fur_trim(bm):
+    """A shaggy fur collar round the jerkin's neck and shoulders."""
+    import random
+    r = random.Random(7)
+    for k in range(16):
+        a = (k + r.uniform(-0.3, 0.3)) / 16 * math.tau
+        out = V((math.sin(a), -math.cos(a), 0))
+        base = V((math.sin(a) * 0.19, 0.02 - math.cos(a) * 0.155, 1.48 + r.uniform(-0.01, 0.01)))
+        lock(bm, base, base + out * r.uniform(0.03, 0.05) + V((0, 0, -r.uniform(0.05, 0.08))), out, r.uniform(0.04, 0.05), 0.025, 0.008)
+
+
+def kilt(bm):
+    """A pleated kilt from the belt to the knee."""
+    n = 16
+    top, bot = [], []
+    for k in range(n):
+        a = k * math.tau / n
+        r = 1.0 + (0.08 if k % 2 else 0.0)                 # pleats
+        top.append(V((math.cos(a) * 0.222, 0.018 + math.sin(a) * 0.18, 0.99)))
+        bot.append(V((math.cos(a) * 0.27 * r, 0.018 + math.sin(a) * 0.225 * r, 0.6)))
+    tv = [bm.verts.new(p) for p in top]
+    bv = [bm.verts.new(p) for p in bot]
+    for k in range(n):
+        k2 = (k + 1) % n
+        bm.faces.new((tv[k], tv[k2], bv[k2], bv[k]))
+    bmesh.ops.solidify(bm, geom=bm.faces[:], thickness=0.012)
+
+
+def kilt_band(bm):
+    rk.tube(bm, [V((0, 0.018, 0.64)), V((0, 0.018, 0.68))], [(0.265, 0.22), (0.258, 0.214)], seg=16, caps=False)
+
+
+def apron(bm):
+    """A heavy leather apron from the chest to the knee."""
+    rk.tube(bm, [V((0, -0.2, 1.34)), V((0, -0.215, 1.12)), V((0, -0.235, 0.9)), V((0, -0.245, 0.66))],
+            [(0.13, 0.012), (0.17, 0.012), (0.2, 0.012), (0.21, 0.012)], ref=V((1, 0, 0)), seg=4)
+    for s in (1, -1):
+        rk.tube(bm, [V((s * 0.12, -0.19, 1.34)), V((s * 0.09, -0.12, 1.52)), V((0, 0.08, 1.56)), V((-s * 0.02, 0.12, 1.5))], [(0.012, 0.006)] * 4, seg=4)
+    rk.tube(bm, [V((0.06, -0.25, 0.92)), V((0.06, -0.26, 1.02))], [(0.06, 0.012)] * 2, ref=V((1, 0, 0)), seg=4)   # a pocket
+
+
+def tabard(bm):
+    """Cloth panels hanging from the belt, front and back."""
+    for y, sign in ((-0.2, -1), (0.23, 1)):
+        rk.tube(bm, [V((0, y, 1.0)), V((0, y + sign * 0.03, 0.82)), V((0, y + sign * 0.05, 0.58))],
+                [(0.11, 0.01), (0.115, 0.01), (0.12, 0.01)], ref=V((1, 0, 0)), seg=4)
+
+
+def tabard_emblem(bm):
+    c = V((0, -0.238, 0.82))
+    rk.tube(bm, [c + V((0, 0, -0.07)), c, c + V((0, 0, 0.07))], [(0.002, 0.01), (0.06, 0.01), (0.002, 0.01)], ref=V((1, 0, 0)), seg=4)
+    rk.tube(bm, [V((0, -0.24, 0.6)), V((0, -0.245, 0.64))], [(0.12, 0.012)] * 2, ref=V((1, 0, 0)), seg=4)
+
+
+def sash(bm):
+    """A wide cloth sash from the left shoulder to the right hip, knotted there."""
+    pts = [V((0.16, -0.1, 1.46)), V((0.06, -0.19, 1.3)), V((-0.08, -0.2, 1.12)), V((-0.2, -0.13, 0.98))]
+    rk.tube(bm, pts, [(0.055, 0.012)] * 4, ref=V((1, 0, 1)), seg=4)
+    back = [V((0.16, 0.16, 1.46)), V((0.05, 0.2, 1.28)), V((-0.08, 0.19, 1.1)), V((-0.2, 0.13, 0.98))]
+    rk.tube(bm, back, [(0.055, 0.012)] * 4, ref=V((1, 0, 1)), seg=4)
+    k = V((-0.22, -0.08, 0.96))
+    rk.blob(bm, k, (0.04, 0.035, 0.04), 6, 4)
+    for dx in (0.0, 0.03):
+        rk.tube(bm, [k, k + V((-0.02 + dx, -0.02, -0.1)), k + V((-0.03 + dx, -0.02, -0.19))], [(0.022, 0.008), (0.02, 0.007), (0.004, 0.004)], ref=V((1, 0, 0)), seg=4)
+
+
+def bandolier(bm):
+    pts = [V((-0.16, -0.12, 1.46)), V((-0.05, -0.2, 1.3)), V((0.08, -0.2, 1.12)), V((0.2, -0.12, 0.98))]
+    rk.tube(bm, pts, [(0.03, 0.012)] * 4, ref=V((1, 0, 1)), seg=4)
+    back = [V((-0.16, 0.16, 1.46)), V((-0.05, 0.2, 1.28)), V((0.08, 0.19, 1.1)), V((0.2, 0.13, 0.98))]
+    rk.tube(bm, back, [(0.03, 0.012)] * 4, ref=V((1, 0, 1)), seg=4)
+
+
+VIALS = [V((-0.09, -0.215, 1.34)), V((-0.015, -0.225, 1.24)), V((0.055, -0.222, 1.15))]
+
+
+def vials(bm, which):
+    for i, c in enumerate(VIALS):
+        if i % 2 != which:
+            continue
+        rk.blob(bm, c, (0.024, 0.02, 0.03), 6, 4)
+        rk.tube(bm, [c + V((0, 0, 0.025)), c + V((0, 0, 0.05))], [(0.009, 0.009)] * 2, seg=5)
+
+
+def vial_corks(bm):
+    for c in VIALS:
+        rk.tube(bm, [c + V((0, 0, 0.048)), c + V((0, 0, 0.062))], [(0.011, 0.011)] * 2, seg=5)
+
+
+def fur_mantle(bm):
+    """A shaggy fur mantle over the shoulders and round the neck: tufts of different sizes pointing
+    down and out, in three loose rings."""
+    import random
+    r = random.Random(4)
+    for ring, (rx, ry, z) in enumerate(((0.17, 0.15, 1.52), (0.21, 0.18, 1.47), (0.245, 0.205, 1.41))):
+        n = 14 + ring * 3
+        for k in range(n):
+            a = (k + r.uniform(-0.3, 0.3)) / n * math.tau
+            out = V((math.sin(a), -math.cos(a), 0))
+            base = V((math.sin(a) * rx, 0.02 - math.cos(a) * ry, z + r.uniform(-0.015, 0.015)))
+            tip = base + out * r.uniform(0.04, 0.07) + V((0, 0, -r.uniform(0.07, 0.12)))
+            lock(bm, base, tip, out, r.uniform(0.045, 0.06), 0.03, 0.01)
+
+
+def pauldron(bm):
+    """A big layered pauldron on the left shoulder."""
+    for i in range(3):
+        c = V((0.2 + i * 0.03, 0.04, 1.49 - i * 0.05))
+        rk.blob(bm, c, (0.14 - i * 0.02, 0.13 - i * 0.015, 0.08), 8, 6, keep=lambda p, c=c: p.z > c.z - 0.03)
+
+
+def pauldron_strap(bm):
+    pts = [V((0.16, -0.14, 1.44)), V((0.0, -0.2, 1.3)), V((-0.16, -0.16, 1.22)), V((-0.2, 0.0, 1.2)), V((-0.16, 0.17, 1.24)), V((0.0, 0.2, 1.3)), V((0.16, 0.16, 1.44))]
+    rk.tube(bm, pts, [(0.022, 0.008)] * 7, ref=V((0, 0, 1)), seg=4)
+
+
+def quiver(bm):
+    a, b = V((0.14, 0.2, 0.95)), V((-0.08, 0.22, 1.45))
+    rk.tube(bm, [a, (a + b) / 2, b], [(0.06, 0.06), (0.065, 0.065), (0.068, 0.068)], seg=8)
+    for s in (1, -1):
+        rk.tube(bm, [V((s * 0.11, 0.14, 1.42)), V((s * 0.12, -0.08, 1.45)), V((s * 0.13, -0.16, 1.26)), V((s * 0.12, -0.15, 1.05))], [(0.018, 0.008)] * 4, seg=4)
+
+
+def quiver_arrows(bm):
+    d = (V((-0.08, 0.22, 1.45)) - V((0.14, 0.2, 0.95))).normalized()
+    for i, off in enumerate((V((0.02, 0, 0)), V((-0.02, 0.01, 0.01)), V((0.0, -0.015, 0.02)), V((0.01, 0.02, -0.01)))):
+        base = V((-0.08, 0.22, 1.45)) + off
+        rk.tube(bm, [base, base + d * 0.12], [(0.006, 0.006)] * 2, seg=4)
+
+
+def quiver_fletch(bm):
+    d = (V((-0.08, 0.22, 1.45)) - V((0.14, 0.2, 0.95))).normalized()
+    for off in (V((0.02, 0, 0)), V((-0.02, 0.01, 0.01)), V((0.0, -0.015, 0.02)), V((0.01, 0.02, -0.01))):
+        base = V((-0.08, 0.22, 1.45)) + off + d * 0.09
+        rk.tube(bm, [base, base + d * 0.07], [(0.022, 0.004), (0.004, 0.002)], ref=V((1, 0, 0)), seg=4)
+
+
+SHIELD_C = V((0, 0.25, 1.18))
+
+
+def shield(bm):
+    rk.tube(bm, [SHIELD_C + V((0, -0.02, 0)), SHIELD_C + V((0, 0.02, 0))], [(0.26, 0.26), (0.25, 0.25)], ref=V((1, 0, 0)), seg=14)
+
+
+def shield_rim(bm):
+    ring = [SHIELD_C + V((math.cos(a) * 0.262, 0.026, math.sin(a) * 0.262)) for a in (k * math.tau / 14 for k in range(14))]
+    rk.tube(bm, ring, [(0.022, 0.022)] * 14, ref=V((0, 1, 0)), seg=4, closed=True)
+    rk.blob(bm, SHIELD_C + V((0, 0.04, 0)), (0.07, 0.04, 0.07), 8, 5)
+
+
+def shield_band(bm):
+    """A painted cross band on the shield."""
+    rk.tube(bm, [SHIELD_C + V((0, 0.024, -0.25)), SHIELD_C + V((0, 0.024, 0.25))], [(0.05, 0.004)] * 2, ref=V((1, 0, 0)), seg=4)
+    rk.tube(bm, [SHIELD_C + V((-0.25, 0.025, 0)), SHIELD_C + V((0.25, 0.025, 0))], [(0.05, 0.004)] * 2, ref=V((0, 0, 1)), seg=4)
+
+
+def hood(bm):
+    """A hood up over the head (face open), with a point at the back and a cowl on the shoulders."""
+    def keep(p):
+        face = p.y < HC.y - 0.03 and abs(p.x) < 0.115 and Z - 0.12 < p.z < Z + 0.095
+        return not face and p.z > Z - 0.14
+    rk.blob(bm, HC + V((0, 0.012, 0.012)), (HR.x + 0.045, HR.y + 0.05, HR.z + 0.045), 14, 10, keep=keep)
+    rk.tube(bm, [HC + V((0, HR.y + 0.03, 0.08)), HC + V((0, HR.y + 0.1, 0.02)), HC + V((0, HR.y + 0.15, -0.07))],
+            [(0.07, 0.05), (0.04, 0.03), (0.005, 0.005)], ref=V((1, 0, 0)), seg=5)
+    rk.tube(bm, [V((0, 0.02, 1.58)), V((0, 0.02, 1.52)), V((0, 0.02, 1.45))], [(0.14, 0.13), (0.2, 0.17), (0.23, 0.19)], seg=12, caps=False)
+
+
+def helm(bm):
+    """A round steel helm with a nose guard and a rim."""
+    rk.blob(bm, HC + V((0, 0.005, 0.02)), (HR.x + 0.035, HR.y + 0.035, HR.z + 0.035), 12, 8, keep=lambda p: p.z > Z + 0.03)
+    rk.tube(bm, [V((0, 0.005, Z + 0.025)), V((0, 0.005, Z + 0.055))], [(HR.x + 0.045, HR.y + 0.045)] * 2, seg=12, caps=False)
+    top, n = on_head(0, Z + 0.05, 0.04)
+    rk.tube(bm, [top, on_head(0, Z - 0.035, 0.03)[0]], [(0.016, 0.01), (0.012, 0.008)], ref=V((1, 0, 0)), seg=4)
+
+
+def helm_crest(bm):
+    """A plume along the top of the helm."""
+    for i in range(7):
+        t = i / 6
+        a = math.radians(-40 + t * 170)
+        base = V((0, HC.y + math.sin(a) * (HR.y + 0.03), Z + 0.02 + math.cos(a) * (HR.z + 0.04)))
+        out = V((0, math.sin(a), math.cos(a)))
+        lock(bm, base, base + out * 0.07 + V((0, 0.04, 0)), V((1, 0, 0)), 0.02, 0.03, 0.004)
+
+
+def soft_cap(bm):
+    """A soft cap worn tilted, with a feather."""
+    rk.blob(bm, HC + V((0.02, 0.005, 0.1)), (HR.x + 0.045, HR.y + 0.04, 0.07), 12, 6, keep=lambda p: p.z > Z + 0.075)
+    rk.tube(bm, [V((0, 0.0, Z + 0.07)), V((0, 0.0, Z + 0.1))], [(HR.x + 0.025, HR.y + 0.025)] * 2, seg=12, caps=False)
+
+
+def cap_feather(bm):
+    base = V((-0.13, 0.03, Z + 0.12))
+    rk.tube(bm, [base, base + V((-0.05, 0.08, 0.09)), base + V((-0.04, 0.2, 0.15))], [(0.012, 0.03), (0.016, 0.04), (0.003, 0.006)], ref=V((1, 0, 0)), seg=4)
+
+
+def crown_leaves(bm):
+    for k in range(14):
+        a = k * math.tau / 14
+        c = V((math.sin(a) * (HR.x + 0.02), HC.y - math.cos(a) * (HR.y + 0.02), Z + 0.07 + 0.01 * math.sin(a * 3)))
+        rk.blob(bm, c, (0.03, 0.03, 0.016), 5, 3)
+    rk.tube(bm, [V((0, 0.0, Z + 0.065)), V((0, 0.0, Z + 0.075))], [(HR.x + 0.018, HR.y + 0.02)] * 2, seg=12, caps=False)
+
+
+def crown_flowers(bm, which):
+    for k in range(6):
+        if k % 2 != which:
+            continue
+        a = (k - 0.5) * math.tau / 7 - 0.9
+        c = V((math.sin(a) * (HR.x + 0.03), HC.y - math.cos(a) * (HR.y + 0.03), Z + 0.085))
+        for j in range(5):
+            b = j * math.tau / 5
+            rk.blob(bm, c + V((math.cos(b) * 0.014, 0, math.sin(b) * 0.014)) + V((0, -0.008 * math.cos(a), 0)), (0.012, 0.008, 0.012), 4, 3)
+
+
+def straw_hat(bm):
+    """A wide conical straw hat."""
+    rk.tube(bm, [V((0, 0.0, Z + 0.06)), V((0, 0.0, Z + 0.1)), V((0, 0.0, Z + 0.22)), V((0, 0.0, Z + 0.27))],
+            [(0.36, 0.35), (0.3, 0.29), (0.1, 0.1), (0.01, 0.01)], seg=14)
+    for r, z in ((0.33, 0.074), (0.24, 0.13), (0.16, 0.18)):                # woven rings
+        rk.tube(bm, [V((0, 0.0, Z + z)), V((0, 0.0, Z + z + 0.008))], [(r + 0.006, r + 0.006)] * 2, seg=14, caps=False)
+
+
+def straw_band(bm):
+    rk.tube(bm, [V((0, 0.0, Z + 0.1)), V((0, 0.0, Z + 0.12))], [(0.3, 0.29), (0.28, 0.27)], seg=14, caps=False)
+    for s in (1, -1):
+        rk.tube(bm, [V((s * 0.12, -0.02, Z + 0.07)), V((s * 0.1, -0.06, Z - 0.1)), V((0, -0.14, Z - 0.17))], [(0.006, 0.006)] * 3, seg=4)
+
+
 def shoulder(bm, s, size):
     rk.blob(bm, V((s * 0.2, 0.05, 1.46)), size, 8, 6, keep=lambda p: p.z > 1.42)
 
@@ -558,7 +917,18 @@ def build(arm):
                             decal_strip(bm, [(0.058, EYE_Z - 0.066), (0.076, EYE_Z - 0.05)], 0.008, DECAL + 0.003)],   # a cheek scar with a stitch
         "warpaint": lambda bm: [decal_strip(bm, [(s * 0.03, EYE_Z - 0.03 - k * 0.022), (s * 0.085, EYE_Z - 0.045 - k * 0.022)], 0.013, DECAL + 0.002)
                                 for s in (1, -1) for k in (0, 1)],
-        "stripe": lambda bm: decal_strip(bm, [(-0.05, BROW_Z + 0.04), (-0.05, EYE_Z - 0.06)], 0.02, DECAL + 0.001),
+        "tribal": lambda bm: [decal_strip(bm, [(s * 0.045, EYE_Z - 0.03), (s * 0.08, EYE_Z - 0.04), (s * 0.1, EYE_Z - 0.065), (s * 0.085, EYE_Z - 0.085),
+                                               (s * 0.065, EYE_Z - 0.075), (s * 0.07, EYE_Z - 0.06)], 0.009, DECAL + 0.002) for s in (1, -1)]
+                  + [decal_strip(bm, [(-0.02, BROW_Z + 0.03), (0.0, BROW_Z + 0.05), (0.02, BROW_Z + 0.03)], 0.009, DECAL + 0.002)],
+        "dots": lambda bm: [decal_ellipse(bm, s * (0.035 + k * 0.017), EYE_Z - 0.04 - k * 0.004, 0.006, 0.006, 6, DECAL + 0.002)
+                            for s in (1, -1) for k in range(3)] + [decal_ellipse(bm, 0, BROW_Z + 0.035, 0.008, 0.008, 6, DECAL + 0.002)],
+        "rune": lambda bm: [decal_strip(bm, [(0.0, BROW_Z + 0.075), (0.0, BROW_Z + 0.02)], 0.008, DECAL + 0.002),
+                            decal_strip(bm, [(-0.022, BROW_Z + 0.06), (0.0, BROW_Z + 0.045), (0.022, BROW_Z + 0.06)], 0.007, DECAL + 0.002),
+                            decal_strip(bm, [(-0.016, BROW_Z + 0.028), (0.0, BROW_Z + 0.036), (0.016, BROW_Z + 0.028)], 0.006, DECAL + 0.002)],
+        "kohl": lambda bm: [decal_strip(bm, [(s * 0.034, EYE_Z + 0.012), (s * 0.058, EYE_Z + 0.02), (s * 0.08, EYE_Z + 0.012), (s * 0.094, EYE_Z + 0.022)], 0.007, DECAL + 0.003)
+                            for s in (1, -1)],
+        "moon": lambda bm: decal_strip(bm, [(0.02, BROW_Z + 0.07), (-0.004, BROW_Z + 0.064), (-0.018, BROW_Z + 0.048), (-0.01, BROW_Z + 0.03), (0.012, BROW_Z + 0.024)], 0.01, DECAL + 0.002),
+        "mole": lambda bm: decal_ellipse(bm, -0.052, MOUTH_Z + 0.02, 0.006, 0.006, 6, DECAL + 0.002),
     }
     for name, fn in marks.items():
         part(f"H_marks_{name}", "Marks", headw, fn, **decal)
@@ -594,7 +964,7 @@ def build(arm):
     # --- hair and beards --------------------------------------------------------------------
     for style, fn in (("short", hair_short), ("messy", hair_messy_base), ("long", hair_long),
                       ("ponytail", hair_ponytail), ("bun", hair_bun), ("braid", hair_braid), ("mohawk", hair_mohawk),
-                      ("swept", hair_swept)):
+                      ("swept", hair_swept), ("curly", hair_curly), ("topknot", hair_topknot), ("pigtails", hair_pigtails)):
         part(f"H_hair_{style}", "Hair", hair_weights, fn, **flat)
     part("H_hair_messy_top", "Hair", headw, hair_messy_top, **flat)
     # Under a hat or bandana: the same style with everything above the brim taken away,
@@ -606,7 +976,7 @@ def build(arm):
         return build_it
     for style, fn in (("short", hair_short), ("messy", hair_messy_base), ("long", hair_long),
                       ("ponytail", hair_ponytail), ("bun", hair_bun), ("braid", hair_braid), ("mohawk", hair_mohawk),
-                      ("swept", hair_swept)):
+                      ("swept", hair_swept), ("curly", hair_curly), ("topknot", hair_topknot), ("pigtails", hair_pigtails)):
         part(f"H_hair_{style}_hat", "Hair", hair_weights, under_hat(fn), **flat)
     for style, fn in (("short", beard_short), ("full", beard_full), ("goatee", beard_goatee), ("mustache", beard_mustache),
                       ("stubble", beard_stubble), ("chinstrap", beard_chinstrap), ("braided", beard_braided)):
@@ -618,6 +988,31 @@ def build(arm):
     part("H_top_tunic", "Main", torso_weights, tunic, **flat)
     part("H_top_jacket", "Main", torso_weights, jacket, **flat)
     part("H_top_coat", "Main", torso_weights, coat, **flat)
+    part("H_top_robe", "Main", torso_weights, robe, **flat)
+    part("H_top_robe_trim", "Accent", torso_weights, robe_trim, **flat)
+    part("H_top_robe_belt", "Cloth", torso_weights, rope_belt, **flat)
+    part("H_top_armor", "Metal", torso_weights, armor, **flat)
+    part("H_top_armor_gorget", "Metal", rk.weights_by_distance(["spine_03", "neck_01"]), armor_gorget, **flat)
+    part("H_top_armor_skirt", "Main", torso_weights, armor_skirt, **flat)
+    part("H_top_armor_rivets", "Gold", torso_weights, armor_rivets, **flat)
+    part("H_top_armor_tassets", "Leather", torso_weights, tassets, **flat)
+    part("H_top_jerkin", "Main", torso_weights, jerkin, **flat)
+    part("H_top_jerkin_laces", "Leather", torso_weights, jerkin_laces, **flat)
+    part("H_top_jerkin_fur", "Fur", rk.weights_by_distance(["spine_03", "clavicle_l", "clavicle_r", "neck_01"]), fur_trim, **flat)
+    for s, side in ((1, "l"), (-1, "r")):
+        arm_w = rk.weights_by_distance([f"clavicle_{side}", f"upperarm_{side}", f"lowerarm_{side}"], top=2)
+        part(f"H_top_robe_cuff_{side}", "Main", rk.weights_by_distance([f"lowerarm_{side}"], top=1), lambda bm, s=s: robe_cuffs(bm, s), **flat)
+        part(f"H_top_jerkin_arm_{side}", "Skin", arm_w, lambda bm, s=s: bare_arm(bm, s), smooth=False)
+    part("H_waist_kilt", "Accent", lambda p: skirt_weights(p), kilt, **flat)
+    part("H_waist_kilt_band", "Second", lambda p: skirt_weights(p), kilt_band, **flat)
+    part("H_waist_apron", "Leather", torso_weights, apron, **flat)
+    part("H_waist_tabard", "Accent", lambda p: skirt_weights(p), tabard, **flat)
+    part("H_waist_tabard_emblem", "Gold", lambda p: skirt_weights(p), tabard_emblem, **flat)
+    part("H_chest_sash", "Accent", torso_weights, sash, **flat)
+    part("H_chest_bandolier", "Leather", torso_weights, bandolier, **flat)
+    part("H_chest_bandolier_vials", "Potion", torso_weights, lambda bm: vials(bm, 0), **flat)
+    part("H_chest_bandolier_vials2", "Potion2", torso_weights, lambda bm: vials(bm, 1), **flat)
+    part("H_chest_bandolier_corks", "Wood", torso_weights, vial_corks, **flat)
     part("H_chest_strap", "Leather", torso_weights, strap, **flat)
     part("H_chest_vest", "Leather", torso_weights, vest, **flat)
     for s, side in ((1, "l"), (-1, "r")):
@@ -626,6 +1021,16 @@ def build(arm):
         part(f"H_shoulders_plates_{side}", "Metal", w, lambda bm, s=s: shoulder(bm, s, (0.13, 0.12, 0.085)), **flat)
     neck_w = rk.weights_by_distance(["spine_03", "neck_01", "spine_02"])
     part("H_back_scarf", "Accent", neck_w, scarf, **flat)
+    part("H_shoulders_fur", "Fur", rk.weights_by_distance(["spine_03", "clavicle_l", "clavicle_r", "neck_01"]), fur_mantle, **flat)
+    part("H_shoulders_pauldron", "Metal", rk.weights_by_distance(["clavicle_l", "upperarm_l"], top=2), pauldron, **flat)
+    part("H_shoulders_pauldron_strap", "Leather", torso_weights, pauldron_strap, **flat)
+    back_w2 = rk.weights_by_distance(["spine_02", "spine_03"], top=2)
+    part("H_back_quiver", "Leather", back_w2, quiver, **flat)
+    part("H_back_quiver_arrows", "Wood", back_w2, quiver_arrows, **flat)
+    part("H_back_quiver_fletch", "Feather", back_w2, quiver_fletch, **flat)
+    part("H_back_shield", "Accent", back_w2, shield, **flat)
+    part("H_back_shield_rim", "Metal", back_w2, shield_rim, **flat)
+    part("H_back_shield_band", "Second", back_w2, shield_band, **flat)
     part("H_back_cape", "Accent", rk.weights_by_distance(["spine_03", "spine_02", "spine_01", "pelvis"], top=2), cape, **flat)
     back_w = rk.weights_by_distance(["spine_02", "spine_03"], top=2)
     part("H_back_backpack", "Leather", back_w, backpack, **flat)
@@ -636,6 +1041,16 @@ def build(arm):
     part("H_head_bandana", "Accent", headw, bandana, **flat)
     part("H_head_circlet", "Metal", headw, circlet, **flat)
     part("H_head_circlet_gem", "Accent", headw, circlet_gem, **flat)
+    part("H_head_hood", "Accent", rk.weights_by_distance(["Head", "neck_01", "spine_03"], top=2), hood, **flat)
+    part("H_head_helm", "Metal", headw, helm, **flat)
+    part("H_head_helm_crest", "Accent", headw, helm_crest, **flat)
+    part("H_head_cap", "Accent", headw, soft_cap, **flat)
+    part("H_head_cap_feather", "Feather", headw, cap_feather, **flat)
+    part("H_head_crown", "Leaf", headw, crown_leaves, **flat)
+    part("H_head_crown_petals", "Petal", headw, lambda bm: crown_flowers(bm, 0), **flat)
+    part("H_head_crown_blooms", "Bloom", headw, lambda bm: crown_flowers(bm, 1), **flat)
+    part("H_head_straw", "Straw", headw, straw_hat, **flat)
+    part("H_head_straw_band", "Accent", headw, straw_band, **flat)
     return parts
 
 

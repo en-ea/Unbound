@@ -1,16 +1,19 @@
 extends Control
-## The character screen. Tabs for Face, Hair, Body, Outfit and Colours; the camera moves in on the
+## The character screen. Tabs for Face, Hair, Body, Outfit, Gear and Colours; each part is a row of
+## choices you tap (the picked one glows gold). The camera moves in on the
 ## face for Face and Hair and pulls back to the whole body for the rest. Drag anywhere left of the
 ## panel to turn your character; a soft ring of light sits under them. Every change shows at once
 ## and is saved when you close.
 
 signal closed
 
-const TABS := ["face", "hair", "body", "outfit", "colours"]
-const TAB_NAMES := {"face": "Face", "hair": "Hair", "body": "Body", "outfit": "Outfit", "colours": "Colours"}
-const SLOTS := {"face": ["eyes", "brows", "mouth", "cheeks", "marks", "extra"], "hair": ["hair", "beard"],
-	"outfit": ["head", "top", "chest", "shoulders", "back", "feet"]}
-const SWATCHES := {"hair": ["Hair"], "face": ["Marks"], "body": ["Skin"], "colours": ["Main", "Second", "Cloth", "Accent", "Leather"]}
+const TABS := ["face", "hair", "body", "outfit", "gear", "colours"]
+const TAB_NAMES := {"face": "Face", "hair": "Hair", "body": "Body", "outfit": "Outfit", "gear": "Gear", "colours": "Colours"}
+const SLOTS := {"face": ["marks", "eyes", "brows", "mouth", "cheeks", "extra"], "hair": ["hair", "beard"],
+	"outfit": ["top", "waist", "feet"], "gear": ["head", "back", "shoulders", "chest"]}
+const SWATCHES := {"hair": ["Hair"], "face": ["Marks"], "body": ["Skin"], "outfit": ["Main", "Second"], "gear": ["Accent", "Leather"],
+	"colours": ["Main", "Second", "Cloth", "Accent", "Leather"]}
+const CHIP_GOLD := Color(0.95, 0.76, 0.38)
 const CLOSE_VIEW := [2.4, -6.0, Vector3(0.6, 0.6, 0.0)]      # distance, pitch, offset
 const FULL_VIEW := [5.2, -14.0, Vector3(1.7, 0.2, 0.0)]
 const PANEL_W := 540.0
@@ -65,7 +68,7 @@ func _build() -> void:
 	tabs.add_theme_constant_override("separation", 6)
 	column.add_child(tabs)
 	for tab: String in TABS:
-		var b := UIStyle.button(tabs, TAB_NAMES[tab], Vector2(98, 44), 18)
+		var b := UIStyle.button(tabs, TAB_NAMES[tab], Vector2(78, 44), 16)
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.pressed.connect(_show_tab.bind(tab))
 		_tab_buttons[tab] = b
@@ -94,6 +97,7 @@ func _build() -> void:
 func _show_tab(tab: String) -> void:
 	_tab = tab
 	_zoomed = tab in ["face", "hair"]
+	_flash_slot = ""
 	_refresh()
 	_frame_camera()
 
@@ -113,8 +117,11 @@ func _refresh() -> void:
 		_tab_buttons[tab].modulate = Color(1.0, 0.9, 0.66) if tab == _tab else Color(1, 1, 1, 0.55)
 	var look := _visual.hero_look
 	if _tab == "outfit":
-		_rows.add_child(_option_row("Outfit", look.outfit, 0, 0, _cycle_outfit, "outfit"))
-		_hint("Ready-made looks: pick one, then change any part.")
+		_chips("Ready-made outfits", CharacterLook.OUTFITS.keys(), look.outfit, func(o: String) -> void:
+			look.set_outfit(o)
+			_flash_slot = "outfit"
+			_changed(), "outfit")
+		_hint("Pick one, then change any part here or in Gear.")
 	if _tab == "body":
 		_slider_row("Height", look.height, CharacterLook.HEIGHT_RANGE, func(v: float) -> void:
 			look.height = v
@@ -123,9 +130,10 @@ func _refresh() -> void:
 			look.build = v
 			_visual.apply_hero_look())
 	for slot: String in SLOTS.get(_tab, []):
-		var choices: Array = CharacterLook.PARTS[slot]
-		var i := choices.find(look.parts[slot])
-		_rows.add_child(_option_row(CharacterLook.PART_LABELS[slot], String(look.parts[slot]).capitalize(), i + 1, choices.size(), _cycle.bind(slot), slot))
+		_chips(CharacterLook.PART_LABELS[slot], CharacterLook.PARTS[slot], look.parts[slot], func(c: String) -> void:
+			look.set_part(slot, c)
+			_flash_slot = slot
+			_changed(), slot)
 	for slot: String in SWATCHES.get(_tab, []):
 		_swatch_row(slot)
 
@@ -135,37 +143,36 @@ func _hint(text: String) -> void:
 	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 
-## "Label   ‹  Value (2 / 6)  ›"; the value that just changed flashes gold.
-func _option_row(label: String, value: String, index: int, count: int, on_step: Callable, slot: String) -> Control:
-	var card := PanelContainer.new()
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(1, 1, 1, 0.05)
-	box.set_corner_radius_all(14)
-	box.set_content_margin_all(6)
-	card.add_theme_stylebox_override("panel", box)
-	card.mouse_filter = Control.MOUSE_FILTER_PASS
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	card.add_child(row)
-	var name_label := UIStyle.label(row, label, 19, true)
-	name_label.custom_minimum_size.x = 118
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	UIStyle.button(row, "‹", Vector2(52, 46), 24).pressed.connect(on_step.bind(-1))
-	var mid := VBoxContainer.new()
-	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mid.alignment = BoxContainer.ALIGNMENT_CENTER
-	mid.add_theme_constant_override("separation", -2)
-	row.add_child(mid)
-	var v := UIStyle.label(mid, value, 21)
-	v.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if count > 0:
-		var n := UIStyle.label(mid, "%d / %d" % [index, count], 12, true)
-		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if slot == _flash_slot:
-		v.modulate = Color(1.0, 0.8, 0.4)
-		v.create_tween().tween_property(v, "modulate", Color.WHITE, 0.5)
-	UIStyle.button(row, "›", Vector2(52, 46), 24).pressed.connect(on_step.bind(1))
-	return card
+## A heading and a flow of choices to tap; the picked one is gold (and pops when it just changed).
+func _chips(title: String, choices: Array, current: String, on_pick: Callable, slot: String) -> void:
+	var head := UIStyle.label(_rows, title, 18, true)
+	head.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7, 0.85))
+	var flow := HFlowContainer.new()
+	flow.add_theme_constant_override("h_separation", 6)
+	flow.add_theme_constant_override("v_separation", 6)
+	_rows.add_child(flow)
+	for choice: String in choices:
+		var label := choice if slot == "outfit" else CharacterLook.choice_name(choice)
+		var b := UIStyle.button(flow, label, Vector2(0, 44), 17)
+		b.custom_minimum_size.x = maxf(86.0, b.get_theme_font("font").get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x + 30.0)
+		if choice == current:
+			var box := StyleBoxFlat.new()
+			box.bg_color = Color(CHIP_GOLD, 0.92)
+			box.set_corner_radius_all(16)
+			box.border_color = Color(1, 0.95, 0.8)
+			box.set_border_width_all(2)
+			for state in ["normal", "hover", "pressed"]:
+				b.add_theme_stylebox_override(state, box)
+			for c in ["font_color", "font_hover_color", "font_pressed_color"]:
+				b.add_theme_color_override(c, Color(0.16, 0.11, 0.06))
+			if slot == _flash_slot:
+				b.pivot_offset = b.custom_minimum_size / 2.0
+				b.scale = Vector2.ONE * 1.12
+				b.create_tween().tween_property(b, "scale", Vector2.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		b.pressed.connect(on_pick.bind(choice))
+	var gap := Control.new()
+	gap.custom_minimum_size.y = 4
+	_rows.add_child(gap)
 
 
 func _slider_row(label: String, value: float, range_v: Vector2, on_change: Callable) -> void:
@@ -219,18 +226,6 @@ func _swatch_row(slot: String) -> void:
 	var palette: Array = CharacterLook.PALETTES[slot]
 	for i in palette.size():
 		UIStyle.swatch(flow, palette[i], look.colors.get(slot, 0) == i, 38.0).pressed.connect(_pick_color.bind(slot, i))
-
-
-func _cycle_outfit(step: int) -> void:
-	_visual.hero_look.cycle_outfit(step)
-	_flash_slot = "outfit"
-	_changed()
-
-
-func _cycle(step: int, slot: String) -> void:
-	_visual.hero_look.cycle_part(slot, step)
-	_flash_slot = slot
-	_changed()
 
 
 func _pick_color(slot: String, index: int) -> void:

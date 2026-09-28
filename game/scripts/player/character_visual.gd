@@ -31,6 +31,8 @@ const TOOL_GRIP := {
 	"sword": Vector3(0.0, 90.0, 0.0),
 }
 const TOOL_OFFSET := Vector3(0.0, 0.07, 0.0)       # from the wrist into the palm
+## Headwear that covers the top of the head: hair switches to its cut-down "_hat" version.
+const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw"]
 
 var hero_look := CharacterLook.load_saved()
 var is_player_look := true      # the player takes height/build from the look; NPCs set their own scale
@@ -139,13 +141,15 @@ func apply_hero_look() -> void:
 	if is_player_look:
 		scale = Vector3(hero_look.build, hero_look.height, hero_look.build)
 	var p := hero_look.parts
-	var covered: bool = p["head"] in ["hat", "bandana"]
+	var covered: bool = p["head"] in COVERING
 	for mi in _parts:
 		var n := String(mi.name)
-		if n.begins_with("H_base_"):
+		if n == "H_base_Main":          # the sleeves: a jerkin leaves the arms bare
+			mi.visible = p["top"] != "jerkin"
+		elif n.begins_with("H_base_"):
 			mi.visible = true
 		elif n == "H_ears":
-			mi.visible = true
+			mi.visible = not p["head"] in ["hood", "helm"]
 		elif n.begins_with("H_hair_"):
 			# Under a hat or bandana the "_hat" cut of the style shows (nothing pokes through);
 			# otherwise the full style (with the messy style's spiky "_top" locks).

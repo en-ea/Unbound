@@ -100,8 +100,12 @@ state machine and `take_hit()` / `is_alive()` / group `"enemy"` (`boar.gd`, with
 `scripts/creatures/enemies.gd`. The player's `fighter.gd` finds anything in group `"enemy"`.
 
 ## Add a character look or outfit
-Parts and colour slots: `tools-src/blender/make_hero.py` (mesh names `H_<slot>_<choice>`).
-Choices, palettes and outfit presets: `game/scripts/player/character_look.gd`.
+Parts and colour slots: `tools-src/blender/make_hero.py` (mesh names `H_<slot>_<choice>[_extra]`; choice names
+have no underscores; extra pieces can use fixed colours like Gold, Leaf, Fur, Straw). Choices, picker names
+(`CHOICE_NAMES`), palettes and the ready-made outfits: `game/scripts/player/character_look.gd`. Headwear that
+covers the head is listed in `CharacterVisual.COVERING` (hair switches to its `_hat` cut). The picker
+(`ui/look_picker.gd`) shows each slot as tap-to-pick chips; tabs list their slots in `SLOTS`.
+Dev: `--lineup[=N]` (7 outfits from the Nth), `--outfit=Mage`.
 
 ## Add a building or NPC
 Models: `tools-src/blender/make_buildings.py`. Placement, clearings and NPCs:
