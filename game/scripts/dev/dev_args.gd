@@ -17,6 +17,7 @@ extends Node
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 ##   --craft / --bag   open the workbench / Bag screen with a few items to show
 ##   --lab             go straight to the build lab
+##   --kernel-bench    (studio branch) world-kernel conformance and timings, saved to user://studio-kernel.txt, then quit
 
 @export var day_night: Node
 
@@ -133,6 +134,8 @@ func _ready() -> void:
 			get_node("../CameraRig").set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01)
 		elif arg == "--touchtest":
 			_touch_test = true
+		elif arg == "--kernel-bench":                   # studio branch: the world kernel's conformance and timings, then quit
+			load("res://scripts/studio/kernel/bench.gd").on_device(get_tree())
 	if _shot_path == "" and not _touch_test and not _gather_test and not _fight_test:
 		set_process(false)
 

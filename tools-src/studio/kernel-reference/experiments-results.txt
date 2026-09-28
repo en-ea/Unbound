@@ -1,0 +1,29 @@
+Integer reference - S1 experiments re-run. Node v24.16.0, 2026-09-28T23:32:02.036Z
+
+1. 500 years of history, 20 seeds
+   median 12.4 ms (max 17.6 ms); settlements ever 29, alive at 500 25; events 4601
+   same seed twice: 6326576b / 6326576b (identical)
+
+2. Population over time, seed 1000 (total, alive settlements)
+   yr 0: 270 in 12 | yr 100: 2154 in 23 | yr 200: 8898 in 24 | yr 300: 8247 in 24 | yr 400: 9147 in 24
+
+3. Warn one village of the flood that hit it; what a player would notice by year 500
+   noticeable change: median 21% of settlements (S1 float prototype: 21%); per trial: 4 10 25 14 31 29 14 24 26 10 7 18 30 21 15 39 33 8 7 25
+   resume from a checkpoint equals a full re-run: yes, every trial
+
+4. Time-storm enclaves: a share of the largest old village folded into its past at year 500; 25 years watched
+gap | share | trials | past raids present | present raids past | any fighting | past taught others | origin smaller (median)
+ 40 |   30% |     20 |                 0% |                55% |          55% |                30% | 21%
+ 40 |   60% |     20 |                20% |                10% |          30% |                20% | 25%
+150 |   30% |     20 |                 0% |                60% |          60% |                30% | 21%
+150 |   60% |     20 |                25% |                30% |          55% |                20% | 27%
+300 |   30% |     20 |                 0% |                55% |          55% |                25% | 22%
+300 |   60% |     20 |                20% |                10% |          25% |                20% | 20%
+
+One storm, from the chronicle (seed 16838, 150 years back, 60% of the village):
+   yr 500  a time storm folds 333 of Holtorfen's people into year 350; 305 people of that age stand in their place and call themselves Old Holtorfen
+   yr 501  Holuldun sends 25 grain to Holtorfen
+   yr 516  Isulnor sends 31 grain to Holtorfen
+   yr 518  Venkelash sends 35 grain to Old Holtorfen
+   yr 524  Old Holtorfen raids Holtorfen for 58 grain; 18 fall
+   ... year 525: Holtorfen: town of 334, knows fire, farming, pottery, charcoal, copper, the mill, bread, iron, writing, boats, medicine | Old Holtorfen: town of 422, knows fire, farming, pottery, charcoal, copper, the mill, bread, iron, writing, boats, medicine
