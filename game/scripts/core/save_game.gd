@@ -76,7 +76,10 @@ func save_game() -> void:
 func _read() -> Dictionary:
 	var fallback := {}
 	for path in SafeFile.candidates(_path):      # the save, or what a crash mid-save left behind
-		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		var parser := JSON.new()
+		if parser.parse(FileAccess.get_file_as_string(path)) != OK:
+			continue
+		var data: Variant = parser.data
 		if data is Dictionary and data.get("version", 0) == VERSION:
 			var village: Variant = data.get("village", {})
 			if not village is Dictionary or (not village.is_empty() and not VillageSession.Save.valid(village)):

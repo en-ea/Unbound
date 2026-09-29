@@ -61,8 +61,12 @@ export function trial(V, s) {
   if (V.runtime && !V.runtime.resolving) {
     const judge = V.authority !== cs.accused ? V.authority : V.priest;
     const st = makeTrialStaging(V, cs, judge, 'witnesses', 'pending', -1);
-    const deadline = st.phases.find(p => p.name === 'verdict').from;
+    let deadline = st.phases.find(p => p.name === 'verdict').from;
     st.beats = st.beats.filter(b => b.at < deadline || b.do === 'leave');
+    const extension=Math.max(0,st.start+180-deadline);
+    for(const beat of st.beats) if(beat.at>=deadline) beat.at+=extension;
+    for(const phase of st.phases) { if(phase.from>=deadline) phase.from+=extension; if(phase.to>=deadline) phase.to+=extension; }
+    st.end+=extension; deadline+=extension; // ninety real seconds to investigate and return
     st.outcome = 'pending'; st.verdict = 'pending';
     V.runtime.hearings.push({ staging: st.id, s: { ...s }, victim: cs.accused, deadline });
     return;
@@ -140,6 +144,12 @@ export function trial(V, s) {
   const hold = C.PUBLIC[act].lethal && C.ACTS[c.act].severity >= 8;
   while (!hold && C.PUBLIC[act].lethal && !lethalAllowed(V) && idx > 0) { act = list[--idx]; vetoed = true; }
   if (!hold && C.PUBLIC[act].lethal && !lethalAllowed(V)) { act = "exile"; vetoed = true; }
+  // Repeated punishments invite a petition for clemency. A merciful elder can actually lower
+  // a non-grave sentence; an already minimal fine and a grave offence cannot be relabelled.
+  const weary = (V.stats.outcomes.carried_out ?? 0) * 100 > V.cases.length * 35;
+  if (!confessed && !vetoed && !hold && idx > 0 && C.ACTS[c.act].severity < 8 && weary && (elder?.values.mercy ?? 0) >= 25 && opinion(V, V.authority, cs.accused) > -40) {
+    act = list[--idx]; vetoed = true;
+  }
   const vEv = logEvent(V, "verdict", V.authority, cs.accused, { case: cs.id, verdict, via, act, vetoed, asked: vetoed ? asked : "" }, causes,
     vetoed ? "the elder, weary of blood, names a lesser sentence" : `the elder naming the sentence: ${act.replaceAll("_", " ")}`);
   if (vetoed) earn(V, V.authority, "merciful");

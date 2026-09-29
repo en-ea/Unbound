@@ -69,6 +69,14 @@ func _process(_delta: float) -> void:
 			_close()
 		else:
 			var st := Runtime.staging(v, _event)
+			for actor in _stage._actors:
+				if actor == _stage._victim and e.outcome == "died":
+					continue # the committed fall remains visible briefly
+				if not v.people[actor.id].alive or not v.people[actor.id].present:
+					actor.gone = true
+					actor.pending.clear()
+					if actor.body != null:
+						_stage._hide(actor, true)
 			_stage.external_minute = float(now - int(st.day) * 1440) + float(v.runtime.fraction)
 			if int(e.revision) != _revision:
 				_revision = int(e.revision)

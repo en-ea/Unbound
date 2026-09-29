@@ -155,6 +155,9 @@ static func advance(v: S.Village, target: int) -> void:
 					if sid >= 0:
 						v.storms[sid].kernel = transition
 		discover_traces(v)
+		for e: Dictionary in r.events:
+			if not terminal(e) and not valid_participants(v, e):
+				cancel(v, e, "participant unavailable")
 	r.now = target
 	for e: Dictionary in r.events:
 		if terminal(e):
@@ -180,6 +183,7 @@ static func resolve(v: S.Village, e: Dictionary) -> void:
 		e.outcome = realized.get("verdict", "dismissed")
 		e.phase = "resolved"; e.revision += 1
 		v.runtime.hearings = v.runtime.hearings.filter(func(a: Dictionary) -> bool: return int(a.staging) != int(e.id))
+		Village.plan_day(v)
 		return
 	if e.type == "rite":
 		v.runtime.resolving = true
@@ -191,6 +195,8 @@ static func resolve(v: S.Village, e: Dictionary) -> void:
 	p.locked = false
 	e.phase = "resolved"; e.revision += 1
 	e.outcome = ("released" if p.present else "exiled") if p.alive else "died"
+	p.locked_at = -1
+	Village.plan_day(v)
 
 static func cancel(v: S.Village, e: Dictionary, reason: String) -> void:
 	v.pending = v.pending.filter(func(a: S.PublicAct) -> bool: return a.staging != int(e.id))
@@ -232,6 +238,9 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 	var e := event_by_id(v, int(request.get("event_id", -1)))
 	if e.is_empty() or terminal(e) or r.now < e.from or r.now >= e.deadline:
 		return fail("window closed")
+	if not valid_participants(v, e):
+		cancel(v, e, "participant unavailable")
+		return fail("participant unavailable")
 	var p := v.people[int(e.victim)]
 	var verb: String = request.get("verb", "")
 	var distance := float(context.get("distance_dm", INF))

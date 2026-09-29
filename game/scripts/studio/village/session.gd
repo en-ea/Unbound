@@ -43,6 +43,15 @@ func attach(scene: Node) -> void:
 		var probe: Node = load("res://scripts/studio/village/rescue_probe.gd").new()
 		probe.name = "RescueProbe"
 		add_child(probe)
+	for arg in OS.get_cmdline_user_args():
+		if arg == "--village-checks" and not has_node("ChecksProbe"):
+			var checks: Node = load("res://scripts/studio/village/checks_probe.gd").new()
+			checks.name = "ChecksProbe"
+			add_child(checks)
+		if arg.begins_with("--village-measure=") and not has_node("MeasureProbe"):
+			var measure: Node = load("res://scripts/studio/village/measure_probe.gd").new()
+			measure.name = "MeasureProbe"
+			add_child(measure)
 
 func _process(delta: float) -> void:
 	if not active or village == null or background or Controls.locked or SaveGame.paused:

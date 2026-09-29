@@ -77,6 +77,7 @@ export function advance(V, target) {
       }
     }
     discoverTraces(V);
+    for(const e of r.events) if(!terminal(e)&&!validParticipants(V,e)) cancel(V,e,'participant unavailable');
   }
   r.now = target;
   for (const e of r.events) {
@@ -108,6 +109,7 @@ function resolve(V, e) {
     e.outcome = realized?.verdict ?? 'dismissed';
     e.phase = 'resolved'; e.revision++;
     V.runtime.hearings = V.runtime.hearings.filter(a => a.staging !== e.id);
+    planDay(V);
     return;
   }
   if (e.type === 'rite') {
@@ -117,6 +119,7 @@ function resolve(V, e) {
   p.locked = false;
   e.phase = 'resolved'; e.revision++;
   e.outcome = p.alive ? (p.present ? 'released' : 'exiled') : 'died';
+  p.lockedAt=undefined; planDay(V);
 }
 export function cancel(V, e, reason) {
   V.pending = V.pending.filter(a => a.staging !== e.id);
@@ -134,6 +137,7 @@ export function act(V, request, context = {}) {
   if (request.village_id !== r.village || request.player_id !== 'player:local' || request.logical_time !== r.now) return fail('stale context');
   const e = eventById(V, request.event_id);
   if (!e || terminal(e) || r.now < e.from || r.now >= e.deadline) return fail('window closed');
+  if(!validParticipants(V,e)) { cancel(V,e,'participant unavailable'); return fail('participant unavailable'); }
   const p = V.people[e.victim];
   if (!p?.alive || !p.present || context.distance_dm > (request.verb === 'shield' ? 100 : 25) || context.distance_dm < 0 || !Number.isFinite(context.distance_dm)) return fail('out of reach');
   const verb = request.verb, params = request.parameters ?? {};

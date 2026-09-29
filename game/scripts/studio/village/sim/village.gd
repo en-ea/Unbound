@@ -594,9 +594,10 @@ static func arrivals(V: S.Village) -> void:
 # (the well and the square offer company, the shrine comfort, home family), weighted by needs and traits,
 # picked at random among the top three (never always the best: crowds must not move in lockstep).
 static func plan_day(V: S.Village) -> void:
-	var dk := R.key(R.key(V.base, P_PLAN), V.day)
-	var holy := V.day % 7 == 0
-	var market := V.day % 7 == 3
+	var plan_date := int(V.runtime.now) / DAY if not V.runtime.is_empty() else V.day
+	var dk := R.key(R.key(V.base, P_PLAN), plan_date)
+	var holy := plan_date % 7 == 0
+	var market := plan_date % 7 == 3
 	var households := V.households
 	for p in V.people:
 		if not p.alive or not p.present:

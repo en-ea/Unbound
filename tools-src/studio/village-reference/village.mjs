@@ -360,8 +360,9 @@ function arrivals(V) {
 // (the well and the square offer company, the shrine comfort, home family), weighted by needs and traits,
 // picked at random among the top three (never always the best: crowds must not move in lockstep).
 export function planDay(V) {
-  const dk = key(key(V.base, P.PLAN), V.day);
-  const holy = V.day % 7 === 0, market = V.day % 7 === 3;
+  const planDay = V.runtime ? Math.floor(V.runtime.now / DAY) : V.day;
+  const dk = key(key(V.base, P.PLAN), planDay);
+  const holy = planDay % 7 === 0, market = planDay % 7 === 3;
   for (const p of V.people) {
     p.plan = [];
     if (!p.alive || !p.present) continue;

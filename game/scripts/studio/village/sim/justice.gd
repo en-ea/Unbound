@@ -113,6 +113,17 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 				deadline = phase.from
 				break
 		pending_stage.beats = pending_stage.beats.filter(func(beat: Dictionary) -> bool: return int(beat.at) < deadline or beat["do"] == "leave")
+		var extension := maxi(0, int(pending_stage.start) + 180 - deadline)
+		for beat: Dictionary in pending_stage.beats:
+			if int(beat.at) >= deadline:
+				beat.at += extension
+		for phase: Dictionary in pending_stage.phases:
+			if int(phase.from) >= deadline:
+				phase.from += extension
+			if int(phase.to) >= deadline:
+				phase.to += extension
+		pending_stage.end += extension
+		deadline += extension # ninety real seconds to listen, walk to a trace and return
 		pending_stage.outcome = "pending"; pending_stage.verdict = "pending"
 		V.runtime.hearings.append({"staging": pending_stage.id, "s": s.copy(), "victim": cs.accused, "deadline": deadline})
 		return
@@ -202,6 +213,10 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 		vetoed = true
 	if not hold and C.PUBLIC[act]["lethal"] and not Director.lethal_allowed(V):
 		act = "exile"; vetoed = true
+	# Repeated punishments invite real clemency, never relabelling an unchanged minimal sentence.
+	var weary := int(V.stats.outcomes.get("carried_out", 0)) * 100 > V.cases.size() * 35
+	if not confessed and not vetoed and not hold and idx > 0 and int(C.ACTS[c.act].severity) < 8 and weary and V.authority >= 0 and V.people[V.authority].values[C.V_MERCY] >= 25 and Village.opinion(V, V.authority, cs.accused) > -40:
+		idx -= 1; act = list[idx]; vetoed = true
 	var v_ev := E.log_event(V, "verdict", V.authority, cs.accused, {"case": cs.id, "verdict": verdict, "via": via, "act": act, "vetoed": vetoed, "asked": asked if vetoed else ""}, causes,
 		"the elder, weary of blood, names a lesser sentence" if vetoed else "the elder naming the sentence: %s" % act.replace("_", " "))
 	if vetoed:
