@@ -1,0 +1,24 @@
+ancestor crimes:assault            65
+ancestor crimes:hoarding           2
+ancestor crimes:murder             3
+ancestor crimes:poaching           9
+ancestor crimes:sacrifice          17
+ancestor crimes:sorcery            56
+ancestor crimes:theft              4
+ancestors accused                  88
+ancestors accusing                 24
+ancestors called witches           56
+ancestors punished:bonfire         10
+ancestors punished:exile           24
+ancestors punished:fine            8
+ancestors punished:hanging         1
+ancestors punished:mob             1
+ancestors punished:pillory         8
+ancestors                          97
+lost                               99
+rite:carried_out                   17
+rite:heart                         10
+rite:rescued                       5
+rite:seized                        22
+storms                             20
+PASS: 20 villages, determinism, no child offerings, recede, anchored exempt
