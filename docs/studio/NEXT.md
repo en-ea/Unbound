@@ -10,6 +10,10 @@ next_step: Enea replies (any of the ways below); the studio then plans the next 
 
 # What happens next
 
+## 29 Sep 2026 - current continuation route [chat/repo/design]
+
+Use [MASTER-GOALS.md](MASTER-GOALS.md) for the next Opus-led implementation cycle. Enea's later answers are already in [FROM-ENEA.md](FROM-ENEA.md), the focused village continuation is published through `535fd40`, and Hilmi's latest exchange broadens the next work to natural player agency while keeping village drama optional. The master separates existing code from missing features, gives related batches and an Opus/Sonnet execution brief, and records current-main drift. The earlier questions and weekly-rebase wording below are history; do not repeat answered questions or rewrite published history merely to follow that old schedule.
+
 ## What we would like from you, Enea
 
 1. **Answers to D1-D6** (`START-HERE.md`). One line each is fine, and "not sure yet" is an answer.

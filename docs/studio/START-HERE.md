@@ -10,6 +10,12 @@ next_step: Enea (and his agents) read this and reply (NEXT.md); then we plan the
 
 # The studio branch: start here
 
+## Master goals, 29 Sep 2026 [chat/repo/design]
+
+For the next implementation run, read [MASTER-GOALS.md](MASTER-GOALS.md). It reconciles Hilmi/Enea's latest conversation, the original Opus design chat, Enea's game plan and the delivered code into 23 goals with a proposed sequence of playable batches. It explicitly covers natural provocation and resident reactions, recognition/disguises, captivity and transport, groups/conflicts, three-land progression and the existing adventure. The future Opus lead selects a few related goal slices and uses at most two explicitly selected Sonnet helpers. The first proposed batch is a deliberate punch, an individual response and a locally informed witness, with persistent consequences. Read its current-state table before treating an older route proposal as implemented.
+
+[repo/chat] The focused continuation below was subsequently pushed with Hilmi's authorisation through `535fd40`. The new master document is a separate documentation milestone; see the latest Git state and publication record for its availability. Enea's `main` advanced to `1d6f4ed` during the master-document audit; it was inspected without merging. The older introduction and delivery report remain as historical records.
+
 ## Continuation delivery, 29 Sep 2026 [repo/run/chat]
 
 The focused village slice is now implemented in ordinary play. Start with [NIGHT-1.md](NIGHT-1.md), the [V1-V14 completion ledger](CONTINUATION.md) and the [rendered witness board](evidence/witness/CONTINUATION.md). These supersede the earlier uncompleted night handoff and any older statements below that native delivery replaces web: Enea's later answer makes **web the immediate target**, with native/crossplay later.
