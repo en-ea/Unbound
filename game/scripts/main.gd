@@ -46,6 +46,8 @@ func _ready() -> void:
 	if meadow:
 		var plot := Node3D.new()
 		plot.set_script(preload("res://scripts/world/home_plot.gd"))
+		plot.player = player
+		plot.day_night = $WorldEnvironment
 		add_child(plot)
 		plot.build(shape)
 	var places := Node3D.new()
@@ -61,6 +63,9 @@ func _ready() -> void:
 	var lab := Node3D.new()
 	lab.set_script(preload("res://scripts/dev/build_lab.gd"))
 	lab.player = player
+	lab.scatter = scatter
+	lab.visuals = $ResourceVisuals
+	lab.treasure = treasure
 	add_child(lab)
 	var critters := Node3D.new()
 	critters.set_script(preload("res://scripts/world/critters.gd"))

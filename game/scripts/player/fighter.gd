@@ -198,7 +198,9 @@ func _land_hit() -> void:
 		return
 	if t.global_position.distance_to(player.global_position) > REACH + 0.8:
 		return
-	t.take_hit(player.global_position, Gear.damage())
+	var hit := Gear.hit_damage()
+	t.take_hit(player.global_position, hit[0])
+	_after_hit(hit[1])
 	Skills.add("combat", Balance.XP_PER_SWORD_HIT)
 	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
 	_sparks.amount = 12
@@ -210,18 +212,29 @@ func _land_hit() -> void:
 	_audio.play()
 
 
+## Weapon bonuses after a hit lands: a critical shows, Vampiric may heal a heart.
+func _after_hit(crit: bool) -> void:
+	if crit:
+		get_tree().call_group("hud", "hint", "Critical!")
+	if randf() < Gear.lifesteal():
+		player.heal(1)
+
+
 ## A heavy blow lands: every enemy close in front is hit hard and knocked back; the ground
 ## shakes (shockwave, dust, a deep thud) and the whole world freezes for a split second.
 func _land_heavy() -> void:
 	var facing := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
 	var hit_any := false
-	var damage := ceili(Gear.damage() * Balance.HEAVY_DAMAGE)
+	var hit := Gear.hit_damage(Balance.HEAVY_DAMAGE)
+	var damage: int = hit[0]
 	for e in get_tree().get_nodes_in_group("enemy"):
 		var to: Vector3 = (e as Node3D).global_position - player.global_position
 		to.y = 0.0
 		if not e.is_alive() or to.length() > HEAVY_REACH or (to.length() > 0.8 and to.normalized().dot(facing) < -0.1):
 			continue
 		e.take_hit(player.global_position, damage, Balance.HEAVY_PUSH)
+		if not hit_any:
+			_after_hit(hit[1])
 		hit_any = true
 		_sparks.global_position = (e as Node3D).global_position + Vector3(0, 0.8, 0)
 	var ground := player.global_position + facing * 1.1

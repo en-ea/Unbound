@@ -104,7 +104,8 @@ func _refresh() -> void:
 			_note.text = "Cook food here. Eat it from your Bag: it heals, and some food gives a short boost."
 			for r: Dictionary in Food.RECIPES:
 				var out: String = r["out"]
-				_offer(out, Items.name_of(out), Food.describe(out), r["cost"], 0, "Cook",
+				var title := Items.name_of(out) + (" × %d" % r["n"] if r.has("n") else "")
+				_offer(out, title, Food.describe(out), r["cost"], 0, "Roll" if out == "cigarette" else "Cook",
 					Food.cook.bind(r).unbind(0))
 		"trade":
 			var names := ["Buy", "Sell"]
@@ -173,7 +174,7 @@ func _offer(item: String, title: String, text: String, cost: Dictionary, coins: 
 	if item != "" and Items.DEFS.has(item) and Items.rarity_of(item) > 0:
 		edge = Items.RARITY_COLORS[Items.rarity_of(item)]
 	elif not tool.is_empty() and tool[1]["rarity"] > 0:
-		edge = Items.RARITY_COLORS[tool[1]["rarity"]]
+		edge = Loot.rarity_color(tool[1]["rarity"])
 	var v := _card(edge)
 	if item != "":
 		v.add_child(INVENTORY.item_icon(item, 64))

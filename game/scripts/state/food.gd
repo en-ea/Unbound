@@ -25,6 +25,8 @@ func is_food(item: String) -> bool:
 
 ## What a food does, in a few words ("+2 hearts, Strong 1:30").
 func describe(item: String) -> String:
+	if not FOODS.has(item):
+		return Items.DESC.get(item, "")
 	var f: Dictionary = FOODS[item]
 	var text := "+%d heart%s" % [f["heal"], "" if f["heal"] == 1 else "s"]
 	if f.has("buff"):
@@ -38,7 +40,7 @@ func cook(recipe: Dictionary) -> bool:
 		return false
 	for item: String in recipe["cost"]:
 		Inventory.remove(item, recipe["cost"][item])
-	Inventory.add(recipe["out"])
+	Inventory.add(recipe["out"], recipe.get("n", 1))
 	return true
 
 

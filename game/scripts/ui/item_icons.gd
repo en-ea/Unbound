@@ -45,6 +45,9 @@ func _ready() -> void:
 	for slot: String in Gear.SLOTS:
 		for t in Gear.TIERS.size():
 			_queue.append("tool:%s:%d" % [slot, t])
+	for slot: String in Armor.SLOTS:
+		for t in Armor.TIERS.size():
+			_queue.append("tool:%s:%d" % [slot, t])
 	for item: String in Items.DEFS:
 		_queue.append(item)
 
@@ -70,7 +73,8 @@ func _process(_delta: float) -> void:
 		if _current.begins_with("tool:"):
 			var bits := _current.split(":")
 			_tool_mesh(mi, bits[1], int(bits[2]))
-			tilt = Vector3(0, 20, -42)         # a tool lies diagonally, head up and right
+			if not Armor.SLOTS.has(bits[1]):
+				tilt = Vector3(0, 20, -42)     # a tool lies diagonally, head up and right
 		else:
 			mi.mesh = Items.mesh(_current)
 		var box := mi.mesh.get_aabb()
@@ -91,15 +95,16 @@ func _process(_delta: float) -> void:
 			_current = ""
 
 
-## The tool's own model (plain materials), its metal head tinted for the tier.
+## The tool's (or armour piece's) own model, its metal tinted for the tier.
 func _tool_mesh(mi: MeshInstance3D, slot: String, tier: int) -> void:
-	var scene := (load("res://assets/items/%s.glb" % slot) as PackedScene).instantiate()
+	var armor := Armor.SLOTS.has(slot)
+	var scene := (load("res://assets/items/%s.glb" % (("armor_" + slot) if armor else slot)) as PackedScene).instantiate()
 	var src := scene.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
 	mi.mesh = src.mesh
 	for s in mi.mesh.get_surface_count():
 		var mat := mi.mesh.surface_get_material(s)
 		if mat and mat.resource_name == "Metal":
 			var tinted := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
-			tinted.albedo_color = Gear.TIERS[tier]["color"]
+			tinted.albedo_color = (Armor.TIERS if armor else Gear.TIERS)[tier]["color"]
 			mi.set_surface_override_material(s, tinted)
 	scene.free()

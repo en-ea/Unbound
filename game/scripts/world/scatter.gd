@@ -242,7 +242,8 @@ func _plant_at(p: Vector2) -> void:
 	elif m > 0.45 and r < 0.54 + m * 0.2:
 		_place(_pick(["flower_1", "flower_2", "flower_3", "flower_4", "flower_5"]), "small", p, _rng.randf_range(0.85, 1.15), 0.2, "flower")
 	elif r < 0.66:
-		pass                          # open ground
+		if r > 0.63:                # wild tobacco, now and then, in the open
+			_place("tobacco_1", "small", p, _rng.randf_range(0.9, 1.15), 0.08, "tobacco")
 	elif r < 0.665:
 		_place(_pick(["bush_1", "bush_2", "bush_flower_1"]), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
 
@@ -366,6 +367,33 @@ func _flush() -> void:
 		trees.append(t)
 	_pending_trees.clear()
 	_batches.clear()
+
+
+## One gatherable on its own (the build lab's test spawns): its own small MultiMesh and collider,
+## under `parent`. Returns the gatherable dict for ResourceVisuals.add_gatherable().
+func make_single(parent: Node3D, model: String, kind: String, at: Vector3, scale: float, gather: String) -> Dictionary:
+	var xf := Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3.ONE * scale), at)
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_custom_data = kind in ["tree", "bush"]
+	mm.mesh = _mesh_for(model, kind)
+	mm.instance_count = 1
+	mm.set_instance_transform(0, xf)
+	if mm.use_custom_data:
+		mm.set_instance_custom_data(0, _tint(at))
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	parent.add_child(mmi)
+	var body := StaticBody3D.new()
+	var col := CollisionShape3D.new()
+	var shape := CylinderShape3D.new()
+	shape.radius = KINDS[kind]["collide"] * scale
+	shape.height = 3.0
+	col.shape = shape
+	col.position = at + Vector3(0, 1.5, 0)
+	body.add_child(col)
+	parent.add_child(body)
+	return {"type": gather, "xf": xf, "multimesh": mm, "index": 0, "collider": col, "scale": scale}
 
 
 ## A small, stable colour variation per tree so a forest isn't one flat green.

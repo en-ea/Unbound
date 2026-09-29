@@ -25,7 +25,10 @@ var _joystick: Control
 var _action: Control
 var _roll: Control
 var _heavy: Control
+var _loot_card: Control
 var _corner: HBoxContainer
+var _furnish: Button               # only indoors, in your home
+var _indoors := false
 var _feed: Control
 var _title: Control
 var _buffs: HBoxContainer
@@ -87,6 +90,9 @@ func _ready() -> void:
 	_corner.position = Vector2(-MARGIN.x, MARGIN.y)
 	_corner.add_theme_constant_override("separation", 12)
 	add_child(_corner)
+	_furnish = UIStyle.button(_corner, "Furnish", Vector2(120, 60), 20)
+	_furnish.visible = false
+	_furnish.pressed.connect(start_build_mode.bind(true))
 	UIStyle.icon_button(_corner, "menuGrid").pressed.connect(open_bag)
 	UIStyle.icon_button(_corner, "gear").pressed.connect(open_menu)
 
@@ -261,11 +267,16 @@ func _on_skill_leveled(skill: String, level: int) -> void:
 	_fanfare.play()
 
 
-## A tool turned up in a chest or on an enemy.
+## Gear turned up in a chest or on an enemy: a card with its stats (see loot_card.gd). Rarer finds
+## play the fanfare higher.
 func found_tool(slot: String, tool: Dictionary) -> void:
-	var rarity: String = ["Common", "Uncommon", "Rare"][tool["rarity"]]
-	hint("New tool: %s (%s)" % [Gear.name_of(slot, tool), rarity])
-	_fanfare.pitch_scale = 0.9
+	if is_instance_valid(_loot_card):
+		_loot_card.queue_free()
+	_loot_card = PanelContainer.new()
+	_loot_card.set_script(preload("res://scripts/ui/loot_card.gd"))
+	add_child(_loot_card)
+	_loot_card.show_piece(slot, tool)
+	_fanfare.pitch_scale = 0.9 + 0.06 * tool["rarity"]
 	_fanfare.play()
 
 
@@ -278,12 +289,23 @@ func open_station(props: Dictionary) -> void:
 	if props.get("mode", "") == "craft":
 		open_crafting()
 		return
+	if props.get("mode", "") == "lab":       # the build lab's board (dev/lab_menu.gd)
+		_modal(preload("res://scripts/dev/lab_menu.gd"), {"lab": props["lab"]})
+		return
 	var panel := _modal(preload("res://scripts/ui/shop_panel.gd"), props)
 	panel.build_home.connect(start_build_mode)
 
 
-## Building in your yard: joystick stays, the build bar replaces the other buttons.
-func start_build_mode() -> void:
+## Inside your home or back outside (world/home_interior.gd): the Furnish button, no minimap.
+func set_indoors(on: bool) -> void:
+	_indoors = on
+	_furnish.visible = on
+	_map.visible = _action.visible and Settings.show_map and not on
+
+
+## Building in your yard, or furnishing your home (`room`): joystick stays, the build bar replaces
+## the other buttons.
+func start_build_mode(room := false) -> void:
 	_set_play_ui(true)
 	_action.visible = false
 	_roll.visible = false
@@ -293,6 +315,9 @@ func start_build_mode() -> void:
 	var ui := Control.new()
 	ui.set_script(preload("res://scripts/ui/build_mode.gd"))
 	ui.player = player
+	ui.room = room
+	if room:
+		ui.origin = get_tree().get_first_node_in_group("home_interior").global_position
 	add_child(ui)
 	ui.closed.connect(func() -> void: _set_play_ui(true))
 
@@ -366,7 +391,7 @@ func _set_play_ui(on: bool) -> void:
 	_corner.visible = on
 	_feed.visible = on
 	_hearts.visible = on
-	_map.visible = on and Settings.show_map
+	_map.visible = on and Settings.show_map and not _indoors
 
 
 ## Roll button: sprint while held, its rim shows stamina, it lights up while sprinting.
@@ -396,7 +421,7 @@ func _show_heavy() -> void:
 func _on_settings_changed() -> void:
 	_fps_label.visible = Settings.show_stats
 	if _map and _action.visible:
-		_map.visible = Settings.show_map
+		_map.visible = Settings.show_map and not _indoors
 
 
 func _add_vignette() -> void:

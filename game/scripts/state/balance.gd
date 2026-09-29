@@ -61,10 +61,54 @@ const BAGS := [
 	{"name": "Leather Bag", "slots": 16, "cost": {"hide": 8, "wood": 8, "flint": 4}},
 	{"name": "Traveller's Pack", "slots": 22, "cost": {"pelt": 8, "hide": 8, "resin": 3, "fang": 2}},
 ]
-## Found tools: how often chests have one, how often it's a tier up, how often it's rare.
+## Found gear: how often chests have a piece, and how often it's a tier above the best you've had.
 const CHEST_TOOL := 0.4
 const FOUND_TIER_UP := 0.15
-const FOUND_RARE := 0.25
+
+# --- loot: rarities, what rolls where, bonuses, armour -----------------------------------------
+## stat: multiplies the piece's main number (damage, power, defence); bonuses: how many it rolls.
+const RARITIES := [
+	{"name": "Common", "color": Color(0.86, 0.86, 0.82), "bonuses": 0, "stat": 1.0},
+	{"name": "Uncommon", "color": Color(0.46, 0.86, 0.4), "bonuses": 1, "stat": 1.05},
+	{"name": "Rare", "color": Color(0.36, 0.62, 1.0), "bonuses": 2, "stat": 1.1},
+	{"name": "Epic", "color": Color(0.72, 0.42, 0.98), "bonuses": 2, "stat": 1.18},
+	{"name": "Legendary", "color": Color(1.0, 0.64, 0.18), "bonuses": 3, "stat": 1.28},
+	{"name": "Mythic", "color": Color(1.0, 0.3, 0.46), "bonuses": 3, "stat": 1.4},
+]
+## Once a source drops gear, the odds (weights) of each rarity, Common to Mythic.
+const LOOT_ODDS := {
+	"enemy": [55, 30, 11, 3.2, 0.7, 0.1],
+	"elite": [20, 34, 28, 13, 4.2, 0.8],        # shadow wolves (later: champions)
+	"chest": [28, 34, 24, 10, 3.4, 0.6],
+	"trader": [0, 55, 33, 12, 0, 0],
+}
+## Which kind of gear a find is (weights): weapon, gathering tool, armour.
+const LOOT_KINDS := {"weapon": 40, "tool": 25, "armor": 35}
+## Bonuses: which gear can roll them, the value range (low at Common, high at Mythic), and the text.
+## The numbers are plain stats, read by fighting, gathering and movement, whatever form those take.
+const BONUSES := {
+	"sharp": {"on": ["weapon"], "range": [6, 30], "text": "+%d%% damage", "adj": "Sharp", "noun": "Edges"},
+	"keen": {"on": ["weapon"], "range": [4, 20], "text": "%d%% critical hits", "adj": "Keen", "noun": "Precision"},
+	"vampiric": {"on": ["weapon"], "range": [3, 12], "text": "%d%% chance a hit heals", "adj": "Vampiric", "noun": "Hunger"},
+	"swift": {"on": ["weapon", "tool"], "range": [5, 22], "text": "+%d%% swing speed", "adj": "Swift", "noun": "Haste"},
+	"mighty": {"on": ["tool"], "range": [1, 3], "text": "+%d gathering power", "adj": "Mighty", "noun": "Might"},
+	"lucky": {"on": ["tool", "armor"], "range": [6, 25], "text": "+%d%% extra drops", "adj": "Lucky", "noun": "Luck"},
+	"sturdy": {"on": ["armor"], "range": [1, 4], "text": "+%d defence", "adj": "Sturdy", "noun": "Stone"},
+	"fleet": {"on": ["armor"], "range": [3, 12], "text": "+%d%% move speed", "adj": "Fleet", "noun": "Wind"},
+	"mending": {"on": ["armor"], "range": [10, 40], "text": "Hearts return %d%% faster", "adj": "Mending", "noun": "Life"},
+}
+## Armour: one tier list for helm, chest and boots; defence per piece is tier defence x the piece's share.
+const ARMOR_TIERS := [
+	{"name": "Padded", "defence": 1, "color": Color(0.72, 0.62, 0.46)},
+	{"name": "Hide", "defence": 2, "color": Color(0.5, 0.36, 0.26)},
+	{"name": "Copper", "defence": 3, "color": Color(0.9, 0.52, 0.3)},
+	{"name": "Iron", "defence": 4, "color": Color(0.82, 0.86, 0.92)},
+	{"name": "Steel", "defence": 6, "color": Color(0.55, 0.72, 0.95)},
+]
+const ARMOR_SHARE := {"helm": 1.0, "chest": 2.0, "boots": 1.0}
+## Defence turns into a chance that a hit costs no heart: defence / (defence + ARMOR_HALF).
+## (So 15 defence blocks 1 hit in 3.) Easy to swap for another rule if fighting changes.
+const ARMOR_HALF := 30.0
 
 # --- resources: hits, seconds to grow back, reach, tool, drops [item, min, max, chance] -------
 const RESOURCES := {
@@ -84,6 +128,8 @@ const RESOURCES := {
 		"drops": [["mushroom", 1, 1, 1.0], ["glowcap", 1, 1, 0.06]]},
 	"flower": {"hits": 1, "respawn": 60.0, "radius": 0.3, "tool": "", "verb": "Pick",
 		"drops": [["flower", 1, 2, 1.0]]},
+	"tobacco": {"hits": 1, "respawn": 90.0, "radius": 0.3, "tool": "", "verb": "Pick",
+		"drops": [["tobacco", 1, 2, 1.0]]},
 	"chest": {"hits": 1, "respawn": 600.0, "radius": 0.5, "tool": "", "verb": "Open",
 		"drops": [["flint", 2, 4, 1.0], ["resin", 1, 2, 0.8], ["shard", 1, 2, 0.7], ["glowcap", 1, 1, 0.5], ["fang", 1, 1, 0.3]]},
 }
@@ -119,7 +165,9 @@ const COOKING := [
 	{"out": "skewer", "cost": {"mushroom": 3, "wood": 1}},
 	{"out": "apple_tart", "cost": {"apple": 2, "flower": 1, "wood": 1}},
 	{"out": "stew", "cost": {"raw_meat": 1, "mushroom": 2, "glowcap": 1, "wood": 1}},
+	{"out": "cigarette", "n": 3, "cost": {"tobacco": 2, "wood": 1}},
 ]
+const SMOKE_SECS := 24.0          # one cigarette, start to stub
 const STRONG_DAMAGE := 1          # extra sword damage
 const SWIFT_SPEED := 1.2          # run speed multiplier
 const NIMBLE_SPEED := 1.25        # gathering speed multiplier
@@ -131,11 +179,11 @@ const MEAT_CHANCE := {"boar": 1.0, "wolf": 0.5}
 const VALUES := {
 	"wood": 1, "stone": 1, "apple": 2, "mushroom": 2, "flower": 1, "flint": 3, "resin": 8, "glowcap": 10,
 	"shard": 12, "hide": 4, "tusk": 8, "copper": 3, "iron": 5, "pelt": 6, "fang": 12, "pinewood": 3,
-	"shadow_pelt": 25, "raw_meat": 3, "roast_meat": 6, "skewer": 6, "apple_tart": 8, "stew": 15,
+	"shadow_pelt": 25, "tobacco": 2, "cigarette": 3, "raw_meat": 3, "roast_meat": 6, "skewer": 6, "apple_tart": 8, "stew": 15,
 }
 ## What the trader may stock: [item, amount, price]. "tool" = a found tool with a bonus.
 const STOCK_POOL := [["flint", 3, 18], ["raw_meat", 2, 15], ["glowcap", 1, 40], ["resin", 1, 30],
-	["shard", 1, 50], ["stew", 1, 55], ["iron", 4, 40], ["copper", 5, 25], ["tool", 1, 150]]
+	["shard", 1, 50], ["stew", 1, 55], ["iron", 4, 40], ["copper", 5, 25], ["cigarette", 5, 20], ["tool", 1, 150]]
 const STOCK_SIZE := 4
 const RESTOCK_EVERY := 900
 
@@ -153,4 +201,20 @@ const HOME_PIECES := {
 	"workbench": {"wood": 12, "stone": 8},
 	"tree": {"wood": 2, "apple": 1},
 	"rock": {"stone": 5},
+}
+## Furniture for inside your home, and what each costs (a new home comes with a few pieces).
+const HOME_FURNITURE := {
+	"bed": {"wood": 12, "pelt": 2},
+	"table": {"wood": 8},
+	"chair": {"wood": 4},
+	"stool": {"wood": 2},
+	"armchair": {"wood": 6, "pelt": 3},
+	"bookshelf": {"wood": 10, "pinewood": 2},
+	"wardrobe": {"pinewood": 8, "wood": 4},
+	"dresser": {"pinewood": 6, "stone": 3},
+	"trunk": {"wood": 6, "copper": 2},
+	"plant": {"flower": 3, "stone": 2},
+	"lamp": {"wood": 3, "resin": 1},
+	"rug_round": {"hide": 3, "flower": 2},
+	"rug_long": {"pelt": 2, "hide": 2},
 }

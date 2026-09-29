@@ -1,4 +1,5 @@
-"""Builds the gathering tools (axe, pickaxe) as faceted low-poly models.
+"""Builds the gathering tools (axe, pickaxe), the sword, and simple armour pieces (helm, chestplate,
+boots: drop and icon placeholders until the owner's designs) as faceted low-poly models.
 The handle runs along +Z from the grip (origin) so the game can put it straight in the hand.
 Exported to game/assets/items/<name>.glb.
 
@@ -54,6 +55,39 @@ def sword_blade(bm):
             ref=V((1, 0, 0)), seg=4)
 
 
+def helm_shell(bm):
+    rk.blob(bm, V((0, 0, 0.12)), (0.15, 0.16, 0.15), 10, 7, keep=lambda p: p.z > 0.1)
+    rk.tube(bm, [V((0, 0, 0.1)), V((0, 0, 0.13))], [(0.165, 0.175)] * 2, seg=10)
+    rk.tube(bm, [V((0, -0.17, 0.2)), V((0, -0.18, 0.06))], [(0.018, 0.012), (0.014, 0.01)], ref=V((1, 0, 0)), seg=4)
+
+
+def helm_crest(bm):
+    rk.tube(bm, [V((0, -0.08, 0.28)), V((0, 0.02, 0.31)), V((0, 0.13, 0.26))], [(0.018, 0.03)] * 3, ref=V((1, 0, 0)), seg=4)
+
+
+def chest_plate(bm):
+    rk.tube(bm, [V((0, 0, 0.0)), V((0, 0, 0.14)), V((0, 0, 0.28)), V((0, 0, 0.34))], [(0.15, 0.1), (0.16, 0.105), (0.17, 0.1), (0.1, 0.07)], seg=10)
+    rk.tube(bm, [V((0, -0.1, 0.03)), V((0, -0.112, 0.2)), V((0, -0.1, 0.32))], [(0.012, 0.008)] * 3, ref=V((1, 0, 0)), seg=4)
+
+
+def chest_straps(bm):
+    for s in (1, -1):
+        rk.blob(bm, V((s * 0.17, 0, 0.3)), (0.07, 0.08, 0.05), 6, 4)
+    rk.tube(bm, [V((0, 0, -0.01)), V((0, 0, 0.03))], [(0.155, 0.105)] * 2, seg=10)
+
+
+def boot_pair(bm):
+    for s in (1, -1):
+        x = s * 0.08
+        rk.tube(bm, [V((x, 0.03, 0.26)), V((x, 0.03, 0.08)), V((x, 0.0, 0.03)), V((x, -0.1, 0.02)), V((x, -0.15, 0.02))],
+                [(0.055, 0.055), (0.055, 0.058), (0.055, 0.06), (0.05, 0.035), (0.04, 0.028)], ref=V((1, 0, 0)), seg=6)
+
+
+def boot_cuffs(bm):
+    for s in (1, -1):
+        rk.tube(bm, [V((s * 0.08, 0.03, 0.2)), V((s * 0.08, 0.03, 0.28))], [(0.065, 0.065)] * 2, seg=6)
+
+
 def build(name, parts):
     objs = []
     for mat, fn in parts:
@@ -81,3 +115,6 @@ os.makedirs(OUT, exist_ok=True)
 build("axe", [("Handle", handle), ("Wrap", wrap), ("Metal", axe_head)])
 build("pickaxe", [("Handle", handle), ("Wrap", wrap), ("Metal", pick_head)])
 build("sword", [("Wrap", sword_grip), ("Handle", sword_guard), ("Metal", sword_blade)])
+build("armor_helm", [("Metal", helm_shell), ("Wrap", helm_crest)])
+build("armor_chest", [("Metal", chest_plate), ("Wrap", chest_straps)])
+build("armor_boots", [("Wrap", boot_pair), ("Metal", boot_cuffs)])

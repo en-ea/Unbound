@@ -123,7 +123,7 @@ func _cheat_page() -> void:
 		["Food ×5", func() -> void:
 			for i: String in ["roast_meat", "skewer", "apple_tart", "stew"]:
 				Inventory.add(i, 5)
-			for i: String in ["raw_meat", "mushroom", "apple", "flower", "glowcap"]:
+			for i: String in ["raw_meat", "mushroom", "apple", "flower", "glowcap", "tobacco", "cigarette"]:
 				Inventory.add(i, 10)],
 		["Every item ×10", func() -> void:
 			for i: String in Items.DEFS:
@@ -134,6 +134,16 @@ func _cheat_page() -> void:
 		["Steel tools", func() -> void:
 			for slot: String in Gear.SLOTS:
 				Gear.give(slot, Gear._tool(Gear.TIERS.size() - 1))],
+		["Random gear ×6", func() -> void:
+			for i in 6:
+				var found := Gear.roll_found("elite")
+				Gear.take(found[0], found[1])],
+		["One of each rarity", func() -> void:           # swords, Common to Mythic
+			for r in Loot.MYTHIC + 1:
+				Gear.take("sword", Gear._tool(3, r, Loot.roll_bonuses("weapon", r)))],
+		["Armour set (Epic)", func() -> void:
+			for slot: String in Armor.SLOTS:
+				Armor.give(slot, Armor.piece(3, Loot.EPIC, Loot.roll_bonuses("armor", Loot.EPIC)))],
 		["Build all projects", func() -> void:
 			for id: String in Projects.DEFS:
 				if not Projects.is_built(id):
@@ -145,6 +155,10 @@ func _cheat_page() -> void:
 			for id: String in Projects.DEFS:
 				Projects.unbuild(id)],
 		["Undo home + yard", func() -> void: Home.reset()],
+		["One of each furniture", func() -> void:        # put away, so placing them is free
+			for id: String in Home.FURNITURE:
+				Home.stored[id] = Home.stored.get(id, 0) + 1
+			Home.furniture_changed.emit()],
 		["Skills +5 levels", func() -> void:
 			for sk: String in Skills.SKILLS:
 				var target := mini(Skills.level(sk) + 5, Skills.MAX_LEVEL)

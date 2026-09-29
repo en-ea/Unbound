@@ -17,6 +17,8 @@ extends Node
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 ##   --craft / --bag   open the workbench / Bag screen with a few items to show
 ##   --lab             go straight to the build lab
+##   --house=hill      own a home (outside, standing wherever --at puts you)
+##   --inside[=hill]   own a home (lodge, or the house named) and start inside it; --furnish opens the furnish bar
 ##   --kernel-bench    (studio branch) world-kernel conformance and timings, saved to user://studio-kernel.txt, then quit
 ##   --kernel-thread   (studio branch) the game's frame times with and without the kernel running on a worker thread
 ##   --studio=name     (studio branch) run a studio spike on the device (scripts/studio/<name>.gd), then quit
@@ -37,6 +39,7 @@ var _gather_test := false
 var _fight_test := false
 var _tell_test := false
 var _lineup_from := 0
+var _lineup_marks := false
 var _gather_offset := Vector3(0, 0.3, -1.3)
 
 
@@ -52,17 +55,46 @@ func _ready() -> void:
 			_shot_path = arg.trim_prefix("--shot=")
 		elif arg.begins_with("--shotframe="):
 			_shot_frame = int(arg.trim_prefix("--shotframe="))
-		elif arg.begins_with("--lab"):                    # --lab, or --lab=x,z to stand at a spot in it
+		elif arg == "--lab" or arg.begins_with("--lab="):  # --lab, or --lab=x,z to stand at a spot in it
 			var spot := Vector2(0.0, 7.5)
 			if arg.begins_with("--lab="):
 				var v := arg.trim_prefix("--lab=").split(",")
 				spot = Vector2(float(v[0]), float(v[1]))
 			get_tree().call_group.call_deferred("build_lab", "enter", spot)
+			if "--labtest" in OS.get_cmdline_user_args():      # spawn one of everything, then clear it (prints counts)
+				get_tree().create_timer(1.0).timeout.connect(func() -> void:
+					var lab := get_tree().get_first_node_in_group("build_lab")
+					var before := WorldResources.node_count()
+					for k in ["boar", "wolf", "shadow", "tree", "pine", "apple", "rock", "copper", "iron", "chest", "gear", "sword"]:
+						lab.spawn(k)
+					print("LABTEST nodes ", before, " -> ", WorldResources.node_count(), " spawned children ", lab._spawns.get_child_count())
+					get_tree().create_timer(1.0).timeout.connect(func() -> void:
+						lab.clear_spawns()
+						print("LABTEST after clear ", WorldResources.node_count())))
+			if "--labmenu" in OS.get_cmdline_user_args():      # and open the lab menu
+				get_tree().create_timer(0.5).timeout.connect(func() -> void:
+					get_node("../HUD").open_station({"mode": "lab", "lab": get_tree().get_first_node_in_group("build_lab")}))
 		elif arg == "--craft" or arg == "--bag":      # open a screen (with some items to show)
 			for item in ["wood", "stone", "flint", "copper", "hide", "apple", "resin"]:
 				Inventory.add(item, 5)
 			var hud := get_node("../HUD")
 			(hud.open_crafting if arg == "--craft" else hud.open_bag).call_deferred()
+		elif arg == "--lootcard":                      # show the found-gear card for a Legendary sword
+			var sword := Gear._tool(3, Loot.LEGENDARY, Loot.roll_bonuses("weapon", Loot.LEGENDARY))
+			get_tree().create_timer(1.0).timeout.connect(func() -> void:
+				Gear.take("sword", sword)
+				get_tree().call_group("hud", "found_tool", "sword", sword))
+		elif arg == "--loot":                          # a sword of every rarity, an Epic armour set, and --bag opens on Gear
+			for r in Loot.MYTHIC + 1:
+				Gear.take("sword", Gear._tool(3, r, Loot.roll_bonuses("weapon", r)))
+			for slot: String in Armor.SLOTS:
+				Armor.give(slot, Armor.piece(3, Loot.EPIC, Loot.roll_bonuses("armor", Loot.EPIC)))
+			get_tree().create_timer(0.5).timeout.connect(func() -> void:
+				for panel in get_tree().root.find_children("*", "Control", true, false):
+					if panel.get("_filter") != null and panel.has_method("_refresh_gear_grid"):
+						panel._filter = "gear"
+						panel._selected = "gear:sword:0"
+						panel._refresh())
 		elif arg.begins_with("--time="):
 			day_night.time_of_day = float(arg.trim_prefix("--time="))
 		elif arg.begins_with("--walk="):
@@ -87,6 +119,18 @@ func _ready() -> void:
 		elif arg.begins_with("--bagpick="):               # the Bag with an item selected
 			var hud := get_node("../HUD")
 			hud._modal.call_deferred(hud.INVENTORY_PANEL, {"_selected": arg.trim_prefix("--bagpick=")})
+		elif arg.begins_with("--house="):
+			Home.house = arg.trim_prefix("--house=")
+			Home.furniture = Home.STARTER.duplicate(true)
+			Home.changed.emit()
+		elif arg.begins_with("--inside"):                 # own a home and start inside it
+			Home.house = arg.trim_prefix("--inside=") if arg.begins_with("--inside=") else "lodge"
+			Home.furniture = Home.STARTER.duplicate(true)
+			Home.changed.emit()
+			Home.furniture_changed.emit()
+			get_tree().call_group.call_deferred("home_interior", "enter", true)
+			if "--furnish" in OS.get_cmdline_user_args():
+				get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").start_build_mode(true))
 		elif arg == "--home":                             # own the home, a few pieces built, build mode on
 			Home.house = "lodge"
 			Home.pieces = [{"id": "campfire", "x": -44.0, "z": 42.0, "turn": 0.0}, {"id": "bench", "x": -44.0, "z": 44.5, "turn": 0.0},
@@ -96,8 +140,12 @@ func _ready() -> void:
 			get_node("../HUD").start_build_mode.call_deferred()
 		elif arg == "--rich":                             # coins and a pile of materials for testing
 			Money.earn(500)
-			for item: String in ["raw_meat", "mushroom", "apple", "flower", "wood", "glowcap", "stone", "pinewood", "iron", "stew", "roast_meat"]:
+			for item: String in ["raw_meat", "mushroom", "apple", "flower", "wood", "glowcap", "stone", "pinewood", "iron", "stew", "roast_meat", "tobacco", "cigarette"]:
 				Inventory.add(item, 25)
+		elif arg == "--smoke":                            # some cigarettes, and light one
+			Inventory.add("cigarette", 5)
+			Inventory.add("tobacco", 6)
+			get_tree().create_timer(1.0).timeout.connect(func() -> void: get_tree().call_group("player", "smoke"))
 		elif arg == "--picker":
 			get_node("../HUD").open_look_picker.call_deferred()
 		elif arg.begins_with("--pickertab="):              # e.g. hair:braid,marks:freckles,extra:glasses
@@ -129,7 +177,9 @@ func _ready() -> void:
 			pv.hero_look.set_outfit(arg.trim_prefix("--outfit="))
 			pv.apply_hero_look.call_deferred()
 		elif arg.begins_with("--lineup"):                # --lineup, or --lineup=7 to start at the 8th outfit
-			if arg.begins_with("--lineup="):
+			if arg == "--lineup=marks":                    # one character per marking, faces close
+				_lineup_marks = true
+			elif arg.begins_with("--lineup="):
 				_lineup_from = int(arg.trim_prefix("--lineup="))
 			_lineup = true
 		elif arg == "--showcase":
@@ -311,10 +361,22 @@ func _build_lineup() -> void:
 	var player := get_node("../Player") as Node3D
 	player.visible = false
 	var names := CharacterLook.OUTFITS.keys().slice(_lineup_from, _lineup_from + 7)
+	var marks: Array = CharacterLook.PARTS["marks"].slice(1)
+	if _lineup_marks:
+		names = []
+		for m: String in marks:
+			names.append("Wanderer")
 	for i in names.size():
 		var v := CharacterVisual.new()
 		v.hero_look = CharacterLook.new()
 		v.hero_look.set_outfit(names[i])
 		v.hero_look.parts["eyes"] = ["calm", "happy", "fierce", "bright", "sleepy"][i % 5]
+		if _lineup_marks:
+			v.hero_look.parts["marks"] = marks[i]
+			v.hero_look.parts["eyes"] = "calm"
+			v.hero_look.colors["Marks"] = 1
 		add_child(v)
-		v.global_position = player.global_position + Vector3((i - (names.size() - 1) / 2.0) * 1.1, 0, 0)
+		var gap := 0.5 if _lineup_marks else 1.1
+		v.global_position = player.global_position + Vector3((i - (names.size() - 1) / 2.0) * gap, 0, 0)
+	if _lineup_marks:
+		get_node("../CameraRig").set_view(3.6, -3.0, Vector3(0, 1.1, 0), 0.01)

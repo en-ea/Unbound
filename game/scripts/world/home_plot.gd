@@ -1,14 +1,19 @@
 extends Node3D
 ## Your home plot in the meadow (state: Home). Before you buy it: corner stakes and a "For sale" sign
 ## (it opens the buying screen). After: the house you chose and everything you've built in the yard;
-## your front door opens the home screen (build, or move into another house). A built campfire cooks
-## and a built workbench crafts.
+## walk into your front door (or press Enter) to go inside (world/home_interior.gd); the mailbox by
+## the path opens the home screen (build in the yard, or move into another house). A built campfire
+## cooks and a built workbench crafts.
 
 const TREASURE := preload("res://scripts/world/treasure.gd")
 const STATION := preload("res://scripts/world/station.gd")
+const USE_SPOT := preload("res://scripts/world/use_spot.gd")
 const BOARD := preload("res://assets/props/site_board.glb")
+const MAILBOX := preload("res://assets/interior/mailbox.glb")
 
-
+var player: CharacterBody3D
+var day_night: Node
+var interior: Node3D              # the room inside (world/home_interior.gd)
 var _shape: WorldShape
 var _stuff: Node3D
 
@@ -17,6 +22,11 @@ func build(shape: WorldShape) -> void:
 	_shape = shape
 	_stuff = Node3D.new()
 	add_child(_stuff)
+	interior = Node3D.new()
+	interior.set_script(preload("res://scripts/world/home_interior.gd"))
+	interior.player = player
+	interior.day_night = day_night
+	add_child(interior)
 	Home.changed.connect(_rebuild)
 	_rebuild()
 
@@ -49,11 +59,17 @@ func _rebuild() -> void:
 	house.add_to_group("map_building")
 	house.set_meta("map_size", Vector2(6, 5))
 	_collide(house, Vector3(0, 2, 0), Vector3(5.5, 4, 4.5))
-	var door := Node3D.new()                            # walk up to your front door for the home menu
-	door.set_script(STATION)
+	var door := Node3D.new()                            # your front door: press Enter, or just walk in
+	door.set_script(USE_SPOT)
 	_stuff.add_child(door)
-	door.setup(_at(c.x, c.y - 3.6), "Home", {"mode": "home"})
-	door.reach = 2.2
+	door.setup(_at(c.x, c.y - 3.6), "Enter", interior.enter, 2.0)
+	interior.door_in = _at(c.x, c.y - 4.3)
+	interior.door_out = _at(c.x, c.y - 2.7)
+	var mail := Node3D.new()                            # the mailbox by the path: the home screen
+	mail.set_script(STATION)
+	_stuff.add_child(mail)
+	mail.setup(_at(c.x + 2.6, c.y - 2.4), "Home", {"mode": "home"}, MAILBOX, Vector3(0.4, 1.4, 0.5))
+	mail.reach = 1.7
 	for p: Dictionary in Home.pieces:
 		var info: Array = Home.PIECES[p["id"]]
 		var at := _at(p["x"], p["z"])

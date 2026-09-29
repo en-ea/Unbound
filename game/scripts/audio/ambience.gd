@@ -47,12 +47,13 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var night: float = day_night.night
-	_day.volume_db = linear_to_db(lerpf(0.55, 0.12, night) + 0.0001)
-	_night.volume_db = linear_to_db(lerpf(0.0, 0.5, night) + 0.0001)
+	var muffle := 0.3 if day_night.indoors else 1.0         # indoors you hear the outside faintly
+	_day.volume_db = linear_to_db(lerpf(0.55, 0.12, night) * muffle + 0.0001)
+	_night.volume_db = linear_to_db(lerpf(0.0, 0.5, night) * muffle + 0.0001)
 	_bird_timer -= delta
 	if _bird_timer <= 0.0:
 		_bird_timer = randf_range(2.5, 7.0)
-		if night < 0.3:
+		if night < 0.3 and not day_night.indoors:
 			var around := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(6.0, 16.0)
 			_bird_player.global_position = listener_target.global_position + around + Vector3(0, 5, 0)
 			_bird_player.stream = _birds.pick_random()
@@ -62,7 +63,7 @@ func _process(delta: float) -> void:
 	_owl_timer -= delta
 	if _owl_timer <= 0.0:
 		_owl_timer = randf_range(15.0, 35.0)
-		if night > 0.6:
+		if night > 0.6 and not day_night.indoors:
 			var far := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * 20.0
 			_bird_player.global_position = listener_target.global_position + far + Vector3(0, 6, 0)
 			_bird_player.stream = _owl

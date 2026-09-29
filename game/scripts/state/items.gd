@@ -26,6 +26,8 @@ const DEFS := {
 	"roast_meat": {"name": "Roast Meat", "color": Color(0.62, 0.34, 0.18), "rarity": Rarity.COMMON},
 	"skewer": {"name": "Mushroom Skewer", "color": Color(0.72, 0.42, 0.22), "rarity": Rarity.COMMON},
 	"apple_tart": {"name": "Apple Tart", "color": Color(0.85, 0.25, 0.2), "rarity": Rarity.UNCOMMON},
+	"tobacco": {"name": "Wild Tobacco", "color": Color(0.5, 0.66, 0.26), "rarity": Rarity.COMMON},
+	"cigarette": {"name": "Cigarette", "color": Color(0.96, 0.92, 0.82), "rarity": Rarity.COMMON},
 	"stew": {"name": "Forest Stew", "color": Color(0.6, 0.36, 0.2), "rarity": Rarity.UNCOMMON},
 }
 
@@ -38,7 +40,9 @@ const DESC := {
 	"resin": "Rare. Iron tools and lanterns.", "glowcap": "Rare glowing mushroom for stew.",
 	"shard": "Rare crystal for Steel tools.", "hide": "Boar hide for bags and Copper tools.",
 	"tusk": "A boar's tusk. The trader likes it.", "pelt": "Wolf pelt for packs and Iron swords.",
-	"fang": "A wolf fang for the best swords.", "shadow_pelt": "From shadow wolves. Steel swords.",
+	"fang": "A wolf fang for the best swords.",
+	"tobacco": "Wild leaves. Roll them into cigarettes at a campfire.",
+	"cigarette": "Take a smoke, nice and slow. Just for the look of it.", "shadow_pelt": "From shadow wolves. Steel swords.",
 }
 ## Loot: things you win from enemies and rare finds (the rest are materials or food).
 const LOOT := ["hide", "tusk", "pelt", "fang", "shadow_pelt", "shard", "glowcap", "resin"]
@@ -49,10 +53,11 @@ const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 
 static var _meshes := {}
 
+## Materials use the same rarity colours as gear (Balance.RARITIES); common is a faint white.
 const RARITY_COLORS := {
 	Rarity.COMMON: Color(1, 1, 1, 0.25),
-	Rarity.UNCOMMON: Color(0.55, 0.9, 0.5),
-	Rarity.RARE: Color(1.0, 0.78, 0.3),
+	Rarity.UNCOMMON: Color(0.46, 0.86, 0.4),
+	Rarity.RARE: Color(0.36, 0.62, 1.0),
 }
 
 
@@ -66,7 +71,7 @@ static func color_of(id: String) -> Color:
 
 ## "food", "loot" or "material".
 static func kind_of(id: String) -> String:
-	if Balance.FOODS.has(id) or id == "raw_meat":
+	if Balance.FOODS.has(id) or id == "raw_meat" or id == "cigarette":
 		return "food"
 	return "loot" if id in LOOT else "material"
 

@@ -1,7 +1,7 @@
 extends Node3D
-## A tool lying in the world: dropped from the Bag, or found in a chest or on an enemy. It shows
-## the tool's model in its tier colour, turning slowly in a beam of its rarity colour, and you
-## pick it up by walking over it. One you dropped yourself waits until you've stepped away.
+## A piece of gear lying in the world (a tool, the weapon or armour): dropped from the Bag, or found
+## in a chest or on an enemy. It shows the model in its tier colour, turning slowly in a beam of its
+## rarity colour, and you pick it up by walking over it. One you dropped yourself waits until you've stepped away.
 
 const DROP := preload("res://scripts/world/drop.gd")
 const GRAVITY := 14.0
@@ -28,20 +28,25 @@ func launch(tool_slot: String, t: Dictionary, from: Vector3, velocity: Vector3, 
 	_player = player
 	_found = found
 	global_position = from
-	_model = (load("res://assets/items/%s.glb" % slot) as PackedScene).instantiate()
+	var armor := Armor.SLOTS.has(slot)
+	_model = (load("res://assets/items/%s.glb" % (("armor_" + slot) if armor else slot)) as PackedScene).instantiate()
+	var tint: Color = (Armor.TIERS if armor else Gear.TIERS)[t["tier"]]["color"]
 	for mi: MeshInstance3D in _model.find_children("*", "MeshInstance3D", true, false):
 		for s in mi.mesh.get_surface_count():
 			var mat := mi.mesh.surface_get_material(s)
 			if mat and mat.resource_name == "Metal":
 				var tinted := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
-				tinted.albedo_color = Gear.TIERS[t["tier"]]["color"]
+				tinted.albedo_color = tint
 				mi.set_surface_override_material(s, tinted)
 	_model.scale = Vector3.ONE * 1.3
-	_model.rotation_degrees = Vector3(0, 0, -60)
+	_model.rotation_degrees = Vector3(0, 0, 0 if armor else -60)
 	add_child(_model)
 	add_child(DROP.make_shadow())
-	var c: Color = Items.RARITY_COLORS[t["rarity"]] if t["rarity"] > 0 else Color(1.0, 0.95, 0.85)
-	add_child(DROP.make_beam_color(c, 0.9 if t["rarity"] == 2 else 0.6))
+	# The rarer, the taller and brighter the beam.
+	var r: int = t["rarity"]
+	var beam := DROP.make_beam_color(Loot.rarity_color(r) if r > 0 else Color(1.0, 0.95, 0.85), 0.5 + 0.12 * r)
+	beam.scale.y = 1.0 + 0.2 * r
+	add_child(beam)
 
 
 func _process(delta: float) -> void:
@@ -65,7 +70,7 @@ func _process(delta: float) -> void:
 
 
 func _pick_up() -> void:
-	Gear.give(slot, tool)
+	Gear.take(slot, tool)
 	if _found:
 		get_tree().call_group("hud", "found_tool", slot, tool)
 	else:

@@ -50,13 +50,14 @@ func save_game() -> void:
 		"version": VERSION,
 		"inventory": Inventory.to_data(),
 		"gear": Gear.to_data(),
+		"armor": Armor.to_data(),
 		"skills": Skills.to_data(),
 		"coins": Money.coins,
 		"projects": Projects.to_data(),
 		"home": Home.to_data(),
 		"region": Region.current,
 		"regions": _regions,
-		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y},
+		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y, "indoors": _indoors()},
 		"time_of_day": _day_night.time_of_day,
 	}
 	var file := FileAccess.open(PATH, FileAccess.WRITE)
@@ -86,6 +87,7 @@ func load_game() -> void:
 		return
 	Inventory.load_data(data.get("inventory", {}))
 	Gear.load_data(data.get("gear", {}))
+	Armor.load_data(data.get("armor", {}))
 	Skills.load_data(data.get("skills", {}))
 	Money.load_data(data.get("coins", 0))
 	Projects.load_data(data.get("projects", []))
@@ -100,10 +102,17 @@ func load_game() -> void:
 	var pos: Array = pl.get("pos", [])
 	if Region.arrive != Vector2.INF or data.get("region", "meadow") != Region.current:
 		pass                     # just came through a gate: main places the player there
-	elif pos.size() == 3:
+	elif pos.size() == 3 and pl.get("indoors", false) and Home.owned():
+		get_tree().call_group("home_interior", "resume", Vector3(pos[0], pos[1] + 0.1, pos[2]), float(pl.get("facing", 0.0)))
+	elif pos.size() == 3 and pos[1] > -100.0:
 		_player.global_position = Vector3(pos[0], pos[1] + 0.1, pos[2])
 		_player.visual.rotation.y = pl.get("facing", 0.0)
 	_day_night.time_of_day = data.get("time_of_day", _day_night.time_of_day)
+
+
+func _indoors() -> bool:
+	var room := get_tree().get_first_node_in_group("home_interior")
+	return room != null and room.active
 
 
 ## Wipes the save and restarts the world from scratch.
@@ -114,6 +123,7 @@ func start_over() -> void:
 	Region.current = "meadow"
 	Inventory.load_data({})
 	Gear.load_data({})
+	Armor.load_data({})
 	Skills.load_data({})
 	Money.load_data(0)
 	Projects.load_data([])

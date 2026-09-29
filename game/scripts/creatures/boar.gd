@@ -157,7 +157,7 @@ func _die() -> void:
 	_enter(State.DEAD)
 	Skills.add("combat", Balance.BOAR["xp"])
 	if randf() < Balance.BOAR["tool"]:                       # now and then it was carrying a tool
-		var found := Gear.roll_found()
+		var found := Gear.roll_found("enemy")
 		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.2))

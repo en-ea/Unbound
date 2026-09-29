@@ -30,6 +30,20 @@ functions; visual scripts listen to signals. Keep it that way (co-op later).
 - Bags: `Gear.BAGS` (12 / 16 / 22 kinds of item); `Inventory.has_room()`; a full bag leaves new
   kinds of item on the ground (`drop.gd`).
 
+## Loot, rarities and armour
+- `state/loot.gd` (`Loot`, static): six rarities (Common..Mythic, `Balance.RARITIES`: colour, stat multiplier,
+  bonus count), rolls by source (`Balance.LOOT_ODDS`: enemy, elite, chest, trader), bonuses with values
+  (`Balance.BONUSES`: which gear, value range, text), names (Mythic pieces get their own).
+- A piece is `{tier, rarity, bonuses: {id: value}, seed}`. Tools and the sword live in `Gear`; armour in
+  `state/armor.gd` (autoload `Armor`: helm/chest/boots, `defence()`, `block_chance()`, `bonus_total()`).
+  `Gear.roll_found(source)` rolls any kind; `Gear.take(slot, piece)` routes it. Bonus effects are plain numbers
+  read in few places: `Gear.damage/hit_damage/speed/luck/lifesteal`, `player.take_damage` (block), player speed
+  (Fleet), heart regen (Mending). Swap these hooks if fighting changes; the data stays.
+- Worn armour shows on the player (`CharacterVisual.wear_gear`, `_worn_parts`: helm, armour top, boots; Metal
+  takes the tier colour). Placeholder looks until armour designs arrive. Drop/icon models: `make_tools.py`.
+- UI: `ui/gear_view.gd` (cards, detail with compare, "On you" rows), the Bag's Gear tab, `ui/loot_card.gd`.
+  Test menu: Random gear, One of each rarity, Armour set. Dev: `--loot` (with `--bag`), `--lootcard`.
+
 ## Skills (M4)
 `game/scripts/state/skills.gd` (autoload `Skills`): woodcutting, mining, combat. XP from
 `gatherer.gd` (2 per hit, plus the node's hits when it's finished), `fighter.gd` (3 per hit) and
@@ -58,8 +72,22 @@ targets at the top. Other scripts alias its constants (`Gear.TIERS := Balance.TI
 `state/home.gd` (autoload `Home`): owned house, pieces built in the yard, `missing()` (needs the Smithy,
 a skill total and coins, see Balance.HOME), `buy()`, `place()`, `remove()`. `world/home_plot.gd` shows the
 plot (meadow, west of the village); `ui/build_mode.gd` is the building bar (preview in front of you on a
-half-metre grid, or Snap: fences join, 1 m grid, square turns; `_hook`). Your front door opens the home
+half-metre grid, or Snap: fences join, 1 m grid, square turns; `_hook`). The mailbox by the path opens the home
 screen (build, or move into another house). Add a buildable: `Home.PIECES` + its cost in `Balance.HOME_PIECES`. Dev: `--home`.
+
+## Inside your home
+`world/home_interior.gd`: one room far off the map (`AT`), built from `assets/interior/room_<house>.glb`
+(`tools-src/blender/make_interior.py`: floor, cut-away walls, hearth, windows as a separate "Windows" object,
+shelves; furniture `furn_<id>.glb`; the mailbox). Walk into the front door (or Enter) / out through the doorway
+(or Leave on the mat), with `Region.fade_through()`. Indoors: `DayNight.set_indoors()` (softer sun, warmer ambient),
+camera `enter_room()` / `leave_room()` (closer, steeper, stays on the room), no fog, quieter ambience, wooden steps,
+HUD `set_indoors()` (Furnish button, no minimap). The hearth cooks; a bed "Rest" sleeps to morning and heals.
+Furniture state: `Home.FURNITURE` (name, model, footprint, "wall"/"rug"/"", action), `Home.furniture`, `Home.stored`
+(put away = free to place again), `furnish()`, `put_away()`, `room_fits()` (rects; rugs only mind rugs;
+`ROOM_BUILT_IN`, `ROOM_DOORWAY`), `STARTER` (a new home's pieces). Costs: `Balance.HOME_FURNITURE`.
+Furnish bar = `ui/build_mode.gd` with `room = true` (0.5 m grid, wall pieces back onto the nearest wall).
+Saved indoors → you wake up inside. Add furniture: a model in make_interior.py + `Home.FURNITURE` + its cost.
+Dev: `--inside[=hill]`, `--furnish`, `--house=lantern`. Test menu: "One of each furniture".
 
 ## Places
 `world/places.gd`: named placeholder spots per region (watchtower, farmstead, camp, hollow, cave...),
@@ -120,6 +148,12 @@ scripts; `lowpoly.py` / `rigkit.py`). Ground: `shaders/terrain.gdshader`. Light,
 Menu → Settings → Codes → "Paladin": buttons that give coins, items, food, Steel tools, the biggest bag,
 skill levels, build every village project (or undo them all), give the home back (`Home.reset()`), heal, or travel. In `ui/settings_panel.gd` (`_cheat_page`);
 add a button there whenever a new system needs quick testing. Dev: `--cheats` opens it.
+
+## Build lab (testing in the game)
+`dev/build_lab.gd`: a walled floor far below the world with one building on a showcase pad; the Lab board opens
+`dev/lab_menu.gd` (switch building, spawn enemies/trees/rocks/ores/chests/loot in front of you, clear). Spawns are
+removed on leaving (`WorldResources.truncate`, `ResourceVisuals.forget`, `treasure.remove_chest`), so they never
+reach a save. Add a building: `BUILDINGS`; add a spawnable: `GATHERABLES` or `spawn()`. Dev: `--lab`, `--labmenu`, `--labtest`.
 
 ## Testing without the phone
 Dev arguments (after `--`), see `game/scripts/dev/dev_args.gd`: `--gathertest`, `--fighttest`,

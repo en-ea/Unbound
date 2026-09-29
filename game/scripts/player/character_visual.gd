@@ -36,6 +36,8 @@ const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw"]
 
 var hero_look := CharacterLook.load_saved()
 var is_player_look := true      # the player takes height/build from the look; NPCs set their own scale
+var wear_gear := false          # show the player's worn armour over the look (off in the look picker)
+var _metal_tint := Color(0, 0, 0, 0)
 
 var _anim: AnimationPlayer
 var _skeleton: Skeleton3D
@@ -46,6 +48,10 @@ var _tool_metal := {}        # name -> the material of its head, tinted by tier
 var _parts: Array[MeshInstance3D] = []
 var _slot_materials := {}    # colour slot -> ShaderMaterial shared by the hero's meshes
 var _flash := 0.0
+var _lean: SkeletonModifier3D          # straightens the torso while running (lean_fix.gd)
+var _lean_target := 0.0
+## Degrees the torso is straightened for each motion (the jog leans ~27°, the sprint ~40°).
+const LEAN_FIX := {"Jog_Fwd": 20.0, "Sprint": 32.0}   # leaves the jog at ~16° and the sprint at ~21°
 
 
 func _ready() -> void:
@@ -61,6 +67,9 @@ func _ready() -> void:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	_add_extra_animations()
 	_make_tools()
+	_lean = SkeletonModifier3D.new()
+	_lean.set_script(preload("res://scripts/player/lean_fix.gd"))
+	_skeleton.add_child(_lean)
 	play_motion(0.0)
 
 
@@ -69,6 +78,9 @@ func _process(delta: float) -> void:
 		_action_left -= delta
 		if _action_left <= 0.0:
 			_current = ""      # let play_motion pick idle/walk/run again
+	var target: float = LEAN_FIX.get(_current, 0.0)
+	if _lean.amount != target:
+		_lean.amount = move_toward(_lean.amount, target, delta * 60.0)
 	if _flash > 0.0:
 		_flash = maxf(_flash - delta * 5.0, 0.0)
 		for m: ShaderMaterial in _slot_materials.values():
@@ -140,7 +152,7 @@ func show_tool(tool_name: String) -> void:
 func apply_hero_look() -> void:
 	if is_player_look:
 		scale = Vector3(hero_look.build, hero_look.height, hero_look.build)
-	var p := hero_look.parts
+	var p := _worn_parts()
 	var covered: bool = p["head"] in COVERING
 	for mi in _parts:
 		var n := String(mi.name)
@@ -148,8 +160,9 @@ func apply_hero_look() -> void:
 			mi.visible = p["top"] != "jerkin"
 		elif n.begins_with("H_base_"):
 			mi.visible = true
-		elif n == "H_ears":
-			mi.visible = not p["head"] in ["hood", "helm"]
+		elif n.begins_with("H_ears"):          # round (plain H_ears), pointed or long; hidden under a hood or helm
+			var ears := String(p.get("ears", "round"))
+			mi.visible = not p["head"] in ["hood", "helm"] and n == ("H_ears" if ears == "round" else "H_ears_" + ears)
 		elif n.begins_with("H_hair_"):
 			# Under a hat or bandana the "_hat" cut of the style shows (nothing pokes through);
 			# otherwise the full style (with the messy style's spiky "_top" locks).
@@ -167,6 +180,28 @@ func apply_hero_look() -> void:
 				mi.set_surface_override_material(s, _slot_material(src))
 
 
+## The look's parts, with worn armour on top when `wear_gear` is on: a helm (unless hidden), the
+## chestplate as the armour top, boots. Metal takes the colour of the armour's tier.
+## (Placeholder looks until each armour set gets its own model.)
+func _worn_parts() -> Dictionary:
+	var p := hero_look.parts.duplicate()
+	_metal_tint = Color(0, 0, 0, 0)
+	if not wear_gear:
+		return p
+	var chest := Armor.current("chest")
+	var helm := Armor.current("helm")
+	if not helm.is_empty() and Armor.show_helm:
+		p["head"] = "helm"
+	if not chest.is_empty():
+		p["top"] = "armor"
+	if not Armor.current("boots").is_empty():
+		p["feet"] = "boots"
+	var shown := chest if not chest.is_empty() else helm
+	if not shown.is_empty():
+		_metal_tint = Armor.TIERS[shown["tier"]]["color"]
+	return p
+
+
 ## One shared material per colour slot, using the world's faceted shader: the slot's colour times
 ## each face's small shade variation (stored in the model's UVs). Hit flashes use it too.
 func _slot_material(src: Material) -> ShaderMaterial:
@@ -179,6 +214,8 @@ func _slot_material(src: Material) -> ShaderMaterial:
 	var mat: ShaderMaterial = _slot_materials[slot]
 	if CharacterLook.PALETTES.has(slot):
 		mat.set_shader_parameter("albedo", hero_look.color(slot))
+	elif slot == "Metal" and _metal_tint.a > 0.0:
+		mat.set_shader_parameter("albedo", _metal_tint)
 	elif src is StandardMaterial3D:
 		mat.set_shader_parameter("albedo", (src as StandardMaterial3D).albedo_color)
 	return mat
@@ -194,6 +231,18 @@ func _attach_hero() -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		_parts.append(mi)
 	scene.free()
+
+
+## A spot on the head bone for small props (a cigarette). Made once.
+func head_attachment() -> BoneAttachment3D:
+	var found := _skeleton.get_node_or_null("HeadProps") as BoneAttachment3D
+	if found:
+		return found
+	var head := BoneAttachment3D.new()
+	head.name = "HeadProps"
+	head.bone_name = "Head"
+	_skeleton.add_child(head)
+	return head
 
 
 func _make_tools() -> void:
