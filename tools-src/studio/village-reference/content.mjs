@@ -107,7 +107,7 @@ export const SEE_NIGHT = 60; // 6 m by night
 
 // Names. Given names per age and sex; lineage names per age. Ancestors (tribal) get older-sounding names.
 export const GIVEN = [
-  [["Ash", "Brakka", "Dunn", "Orm", "Harl", "Tuk", "Grom", "Vesk", "Kell", "Rud", "Bor", "Skarn", "Holt", "Ulf", "Garr", "Tarn"],
+  [["Asgar", "Brakka", "Dunn", "Orm", "Harl", "Tuk", "Grom", "Vesk", "Kell", "Rud", "Bor", "Skarn", "Holt", "Ulf", "Garr", "Tarn"],
    ["Ysa", "Morra", "Tessa", "Hild", "Anka", "Wren", "Sif", "Brynn", "Oda", "Leth", "Runa", "Kesh", "Aud", "Dagny", "Faer", "Isk"]],
   [["Aldric", "Tobin", "Garrow", "Hob", "Bram", "Oswin", "Wat", "Colm", "Edric", "Piers", "Rolf", "Ansel",
     "Godric", "Hugh", "Simkin", "Dunstan", "Jory", "Merric", "Osric", "Rafe", "Tam", "Wystan", "Cuthbert", "Alder"],
