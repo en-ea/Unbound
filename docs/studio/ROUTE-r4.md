@@ -132,26 +132,46 @@ The crowd's mood escalates the same act. At a pillory, the crowd starts with rot
 - **Night rituals of a secret cult.**
 - **Omens,** read through the age's beliefs (a two-headed calf, a red moon, a storm front), which raise the crowd's fear and pick a scapegoat.
 
-**Boundaries.** These were **proposed by the studio** in route r3 section 5, as decision D2. Hilmi and Enea have not decided them.
+**Content rules** (decided 29 Sep for the **private build**, played by Hilmi, Enea and people close to them). A **store build**, if the game is ever published, is more restrictive. They replace the studio's earlier proposal (route r3's D2), which is kept in route r3 as the record.
 
-*Correction, 29 Sep:* an earlier version of this section said Hilmi and Enea had set them. They had not.
+Hilmi `[chat]`:
+- "sexual violence is very wrong";
+- "kids should not be specifically targeted ofcourse but if a cannibal is on the loose, I do not see why a kid can't also be targeted, same goes for mobs";
+- "low polly visual damage and limb dismemberment would be cool but medival torture methods is a bit too much";
+- "trading and owning people is wrong";
+- "this would be specifically for me, him and anyone close. if we was to publish then there can be a more retrictive version".
 
-| Boundary | Kind | In practice |
+| Rule | Private build | Store build |
 |---|---|---|
-| No sexual violence | **The studio's own line; it holds regardless** | Never designed, shown or implied. Affairs, courtship and scandal (r3's "intimacy" misbehaviour) stay |
-| No children as victims | **The studio's own line; it holds regardless** | Villages have children: families, growth, heirs. They are never accused, punished, sacrificed or eaten, and can't be harmed by players or mobs; they hide or flee when violence starts (as in Skyrim). Famine cannibalism uses only the adult dead. Sacrifices are adults or animals |
-| No torture detail | A recommendation; the owners can overturn it | Branding, stocks and the ordeal happen, briefly. There are no drawn-out torture scenes and no torture minigames. Interrogation works through evidence and leverage |
-| Slavery is never a mechanic | A recommendation; the owners can overturn it | Captives, hostages, ransom and prisoners exist. Owning, trading or working people as property does not |
-| Death is staged, never gory | A staging rule (it keeps a store release possible) | Shown by silhouettes at a distance, the crowd's reaction, then aftermath props: the gallows, the charred stake, bones, the cooking pit. No close-up killing, no dismemberment |
-| Singled-out groups are always fictional | A store rule | The persecuted are the game's own peoples (the Tethered, storm people, cults), never a real religion, ethnicity or nation |
+| Sexual violence | **Never** (Hilmi and the studio agree) | Never |
+| Owning or trading people | **Never** (Hilmi and the studio agree). Captives, hostages, ransom and prisoners exist | Never |
+| Children | **Never specifically targeted**: no law punishes a child, no public act is aimed at one, and players can't attack them. They can be among the victims of in-world threats, like anyone caught nearby: a cannibal on the loose, a raid, a mob. **No dismemberment or visible wounds on children** (the studio's line) | Fully protected: they hide and can't be harmed |
+| Damage | **Low-poly visual damage and limb dismemberment**, in combat and in public acts | Off, or reduced to stylised knock-downs |
+| Torture | **No medieval torture methods.** Brief punishments stay: branding, stocks, the pillory, the ordeal | The same |
+| Deaths | Happen live in the world, in low-poly, with no camera cuts | Framed less graphically |
+| Persecuted groups | Always fictional peoples (the Tethered, storm people, cults) | Always fictional: a store rule `[web]` |
 
-**Why the last two matter** `[web]`:
+**How it's built** `[design]`:
+- **One content tier per world, fixed when the world is created.** It is part of the kernel's world settings, so every phone in a session simulates the same outcomes. A child who can be a cannibal's victim in one tier can't be in the other, and that changes the history.
+- **The store tier is a build setting,** so a published build can't be switched back.
+
+**Why a store build must differ** `[web]`:
 - Apple's App Store guideline 1.1.2 bars "realistic portrayals of people or animals being killed, maimed, tortured or abused, or content that encourages violence".
 - The same guideline says game enemies "cannot solely target a specific race, culture, real government, corporation or any other real entity".
 - Store screenshots must suit a 4+ rating even for a mature game (guideline 2.3.8).
-- The stylised low-poly look plus staging keeps a future store release open.
 
-**Age rating:** this content means PEGI 16 to 18 if the game is ever published on a store. For private sideloaded play, no rating applies; it's the owners' call.
+**Age rating:** a store build means PEGI 16 to 18. The private build is sideloaded, so no rating applies.
+
+**Public acts unfold live, with rescue windows.** Nothing is a cutscene. Each act runs in phases in the world, and each phase is a chance to intervene. The victim is always held somewhere you can reach.
+
+| Act | Phases and time (game time) | Where the victim is | Ways to save them |
+|---|---|---|---|
+| Pillory | Locked in at morning; pelting all day; escalates with the crowd's anger | In the square | Calm the crowd, shield them, pick the lock at night |
+| Hanging | Accusation; held in the lock-up; the gallows built (about a day); led out; the drop | Lock-up, then the cart, then the platform | Break them out, bribe the gaoler, bring evidence to the elder, trial by combat, ambush the cart, cut the rope |
+| Bonfire burning | Accused; wood gathered (hours); the stake raised at noon; lit at dusk | Bound at the stake from noon | Everything above, plus fighting through the crowd before the torch; or swap in an effigy if the crowd is calm enough |
+| Stoning | The ring forms; the first stone; seconds to minutes | In the ring | The hardest to stop: step in, or scatter the crowd |
+| Sacrifice | A night vigil; a procession at dawn; the stone | The vigil hut, then the procession | Steal them from the vigil, or break the procession |
+| Exile | Sentenced; walks out at dawn | The road out | Follow them: they may join you, or become an outlaw |
 
 **In the slice** (section 4), two chains show the ages clashing:
 1. **Theft → pillory, with pelting that can escalate → hanging or exile.** It includes trial by combat as the player's lever.
@@ -225,6 +245,7 @@ The summary's designs are:
 - **Build it networked from the start** (section 3.9): inputs go to the authority, and results come back.
 - **Feed the black market from the villages' own smugglers.** That illicit economy is the source of rare spells.
 - **Disguise uses Enea's outfit system** (13 ready-made outfits): regional sets grant faction clearance.
+- **Low-poly damage and dismemberment** (Hilmi, private build). Technically, a severed limb's bone is scaled to zero, a capped limb mesh is spawned as a physics body, and cuts and wounds are decals. It is a combat-layer feature (Enea's), and is sent as an event when networked. Children are excluded.
 
 ### 3.8 Camera
 
@@ -381,7 +402,8 @@ Hilmi's domain runs on Cloudflare `[chat]`, so matchmaking, rooms and log storag
 | 29 Sep | Multiplayer left until after the slice, with the capacity kept in mind; players are never on the same Wi-Fi | Hilmi `[chat]`: "we would never be under the same wifi though and multiplayer needs to have the capacity kept in mind but left until later" |
 | 29 Sep | Hilmi's domain runs on Cloudflare: a candidate home for rooms, matchmaking and world logs | Hilmi `[chat]` |
 | 29 Sep | Enea may read Hilmi's own words in the branch documents | Hilmi `[chat]`: "let him see them" |
-| 29 Sep | Bonfire burning, pillories, cannibalism and rock throwing added; **standing permission for inventive content of this kind** (section 3.2a lists the boundaries: two are the studio's own lines, the rest are the owners' call) | Hilmi `[chat]`: "you don't need my permission for these sort of inventive things" |
+| 29 Sep | Bonfire burning, pillories, cannibalism and rock throwing added; **standing permission for inventive content of this kind** | Hilmi `[chat]`: "you don't need my permission for these sort of inventive things" |
+| 29 Sep | Content rules for the private build (section 3.2a): no sexual violence; no owning or trading people; children never specifically targeted but can be victims of in-world threats; low-poly damage and dismemberment; no medieval torture methods; a stricter store build if ever published | Hilmi `[chat]` (quoted in section 3.2a) |
 
 ---
 
