@@ -57,6 +57,11 @@ func _ready() -> void:
 				Inventory.add(item, 5)
 			var hud := get_node("../HUD")
 			(hud.open_crafting if arg == "--craft" else hud.open_bag).call_deferred()
+		elif arg == "--lootcard":                      # show the found-gear card for a Legendary sword
+			var sword := Gear._tool(3, Loot.LEGENDARY, Loot.roll_bonuses("weapon", Loot.LEGENDARY))
+			get_tree().create_timer(1.0).timeout.connect(func() -> void:
+				Gear.take("sword", sword)
+				get_tree().call_group("hud", "found_tool", "sword", sword))
 		elif arg == "--loot":                          # a sword of every rarity, an Epic armour set, and --bag opens on Gear
 			for r in Loot.MYTHIC + 1:
 				Gear.take("sword", Gear._tool(3, r, Loot.roll_bonuses("weapon", r)))

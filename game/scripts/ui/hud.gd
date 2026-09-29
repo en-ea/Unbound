@@ -25,6 +25,7 @@ var _joystick: Control
 var _action: Control
 var _roll: Control
 var _heavy: Control
+var _loot_card: Control
 var _corner: HBoxContainer
 var _feed: Control
 var _title: Control
@@ -261,10 +262,16 @@ func _on_skill_leveled(skill: String, level: int) -> void:
 	_fanfare.play()
 
 
-## Gear turned up in a chest or on an enemy.
+## Gear turned up in a chest or on an enemy: a card with its stats (see loot_card.gd). Rarer finds
+## play the fanfare higher.
 func found_tool(slot: String, tool: Dictionary) -> void:
-	hint("Found: %s (%s)" % [Gear.name_of(slot, tool), Loot.rarity_name(tool["rarity"])])
-	_fanfare.pitch_scale = 0.9
+	if is_instance_valid(_loot_card):
+		_loot_card.queue_free()
+	_loot_card = PanelContainer.new()
+	_loot_card.set_script(preload("res://scripts/ui/loot_card.gd"))
+	add_child(_loot_card)
+	_loot_card.show_piece(slot, tool)
+	_fanfare.pitch_scale = 0.9 + 0.06 * tool["rarity"]
 	_fanfare.play()
 
 

@@ -30,6 +30,20 @@ functions; visual scripts listen to signals. Keep it that way (co-op later).
 - Bags: `Gear.BAGS` (12 / 16 / 22 kinds of item); `Inventory.has_room()`; a full bag leaves new
   kinds of item on the ground (`drop.gd`).
 
+## Loot, rarities and armour
+- `state/loot.gd` (`Loot`, static): six rarities (Common..Mythic, `Balance.RARITIES`: colour, stat multiplier,
+  bonus count), rolls by source (`Balance.LOOT_ODDS`: enemy, elite, chest, trader), bonuses with values
+  (`Balance.BONUSES`: which gear, value range, text), names (Mythic pieces get their own).
+- A piece is `{tier, rarity, bonuses: {id: value}, seed}`. Tools and the sword live in `Gear`; armour in
+  `state/armor.gd` (autoload `Armor`: helm/chest/boots, `defence()`, `block_chance()`, `bonus_total()`).
+  `Gear.roll_found(source)` rolls any kind; `Gear.take(slot, piece)` routes it. Bonus effects are plain numbers
+  read in few places: `Gear.damage/hit_damage/speed/luck/lifesteal`, `player.take_damage` (block), player speed
+  (Fleet), heart regen (Mending). Swap these hooks if fighting changes; the data stays.
+- Worn armour shows on the player (`CharacterVisual.wear_gear`, `_worn_parts`: helm, armour top, boots; Metal
+  takes the tier colour). Placeholder looks until armour designs arrive. Drop/icon models: `make_tools.py`.
+- UI: `ui/gear_view.gd` (cards, detail with compare, "On you" rows), the Bag's Gear tab, `ui/loot_card.gd`.
+  Test menu: Random gear, One of each rarity, Armour set. Dev: `--loot` (with `--bag`), `--lootcard`.
+
 ## Skills (M4)
 `game/scripts/state/skills.gd` (autoload `Skills`): woodcutting, mining, combat. XP from
 `gatherer.gd` (2 per hit, plus the node's hits when it's finished), `fighter.gd` (3 per hit) and
