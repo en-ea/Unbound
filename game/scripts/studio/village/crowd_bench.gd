@@ -4,13 +4,24 @@ extends Node
 ## rings around the player; every frame is timed (raw timestamps) after a settling pause.
 ## Run with a camera framing, e.g. on a phone: --studio=village/crowd_bench --frame=fight --at=2,24
 ## Result: log lines "STUDIO ..." and user://studio-village-crowd_bench.txt, then quits.
+## --crowd-body: the villagers are VillagerBodies (one merged mesh each) instead of CharacterVisuals;
+## the NEAR_FULL nearest the camera get detail tier 0 (full-rate animation, shadows), the rest tier 1
+## (animation stepped at ~10 Hz, no shadows), re-sorted every RETIER seconds. --crowd-near=N changes how
+## many are near (--crowd-near=99: every body at tier 0, to measure the merge alone).
+## --crowd-uncapped: lift the game's 30 fps cap and vsync, so a fast PC shows its real frame cost.
 
 const COUNTS: Array[int] = [0, 10, 20, 30, 45, 60]
+const VillagerBody := preload("res://scripts/studio/village/villager_body.gd")
+const NEAR_FULL := 12    # --crowd-body: this many nearest the camera animate at full rate and cast shadows
+const RETIER := 1.0      # seconds between re-sorting who is near
 ## Variants that split the cost: --crowd-noshadow (villagers cast no shadows),
 ## --crowd-noanim (animation frozen, so no skeleton updates), --crowd-short (0, 30, 45 only).
 var _counts: Array[int] = COUNTS
 var _no_shadow := false
 var _no_anim := false
+var _bodies := false
+var _near_full := NEAR_FULL
+var _retier_t := 0.0
 const SETTLE := 4.0      # seconds after spawning before measuring (shaders, animations settle)
 const MEASURE := 8.0     # seconds measured per crowd size
 
@@ -36,9 +47,18 @@ func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	_no_shadow = args.has("--crowd-noshadow")
 	_no_anim = args.has("--crowd-noanim")
+	_bodies = args.has("--crowd-body")
+	for arg in args:
+		if arg.begins_with("--crowd-near="):
+			_near_full = int(arg.trim_prefix("--crowd-near="))
+	if args.has("--crowd-uncapped"):
+		Engine.max_fps = 0
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	if args.has("--crowd-short"):
 		_counts = [0, 30, 45]
-	_lines.append("device: %s; %s; Godot %s; shadows %s, animation %s" % [OS.get_model_name(), RenderingServer.get_current_rendering_method(), Engine.get_version_info()["string"], "off" if _no_shadow else "on", "frozen" if _no_anim else "on"])
+	_lines.append("device: %s; %s; Godot %s; %s; shadows %s, animation %s; fps cap %s" % [OS.get_model_name(), RenderingServer.get_current_rendering_method(), Engine.get_version_info()["string"],
+		"VillagerBody (nearest %d full, rest ~10 Hz without shadows)" % _near_full if _bodies else "CharacterVisual",
+		"off" if _no_shadow else "on", "frozen" if _no_anim else "on", Engine.max_fps if Engine.max_fps > 0 else "none"])
 
 
 func _process(delta: float) -> void:
@@ -53,6 +73,11 @@ func _process(delta: float) -> void:
 		_next_phase()
 		return
 	_walk(delta)
+	if _bodies:
+		_retier_t -= delta
+		if _retier_t <= 0.0:
+			_retier_t = RETIER
+			_retier()
 	if _t < SETTLE:
 		return
 	if _t < SETTLE + MEASURE:
@@ -79,10 +104,9 @@ func _next_phase() -> void:
 	var outfits: Array = CharacterLook.OUTFITS.keys()
 	while _crowd.size() < _counts[_phase]:
 		var i := _crowd.size()
-		var v := CharacterVisual.new()
-		v.hero_look = CharacterLook.new()
-		v.hero_look.set_outfit(outfits[i % outfits.size()])
-		v.is_player_look = false
+		var look := CharacterLook.new()
+		look.set_outfit(outfits[i % outfits.size()])
+		var v := _villager(look)
 		add_child(v)
 		if _no_shadow:
 			for mi: MeshInstance3D in v.find_children("*", "MeshInstance3D", true, false):
@@ -93,6 +117,35 @@ func _next_phase() -> void:
 		_crowd.append(v)
 		_angle.append(i * 2.399)                 # golden-angle spread
 		_radius.append(3.0 + (i % 6) * 1.6)      # rings from 3 m to 11 m around the player
+	_retier_t = 0.0                              # sort the new crowd on the next frame
+
+
+func _villager(look: CharacterLook) -> Node3D:
+	if _bodies:
+		var b := VillagerBody.new()
+		b.hero_look = look
+		b.is_player_look = false
+		return b
+	var v := CharacterVisual.new()
+	v.hero_look = look
+	v.is_player_look = false
+	return v
+
+
+## --crowd-body: the villagers nearest the camera at detail 0 (NEAR_FULL of them), the rest at 1.
+func _retier() -> void:
+	var eye := get_viewport().get_camera_3d().global_position
+	var order: Array[int] = []
+	for i in _crowd.size():
+		order.append(i)
+	order.sort_custom(func(a: int, b: int) -> bool:
+		return _crowd[a].global_position.distance_squared_to(eye) < _crowd[b].global_position.distance_squared_to(eye))
+	for rank in order.size():
+		var v := _crowd[order[rank]]
+		v.set_detail(0 if rank < _near_full else 1)
+		if _no_shadow:
+			for mi: MeshInstance3D in v.find_children("*", "MeshInstance3D", true, false):
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
 func _walk(delta: float) -> void:
