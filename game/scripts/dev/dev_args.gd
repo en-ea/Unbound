@@ -21,6 +21,7 @@ extends Node
 ##   --kernel-thread   (studio branch) the game's frame times with and without the kernel running on a worker thread
 ##   --frame=explore   (studio branch) a camera framing: explore, fight, build (today's), vantage
 ##   --fog=60,400      (studio branch) fog begin and end in metres
+##   --turntable[=90]  (studio branch) spin the camera a full turn twice (deg/s), record frame times, quit
 
 @export var day_night: Node
 
@@ -145,6 +146,12 @@ func _ready() -> void:
 			var rig := get_node("../CameraRig")
 			var frame := arg.trim_prefix("--frame=")
 			(func() -> void: load("res://scripts/studio/camera/framings.gd").apply(rig, frame)).call_deferred()
+		elif arg.begins_with("--turntable"):             # studio branch: spin the camera twice, record frame times, quit
+			var probe: Node = load("res://scripts/studio/camera/turntable_probe.gd").new()
+			probe.rig = get_node("../CameraRig")
+			if arg.begins_with("--turntable="):
+				probe.speed = float(arg.trim_prefix("--turntable="))
+			add_child(probe)
 		elif arg.begins_with("--fog="):                   # studio branch: fog begin,end in metres (horizon tests)
 			var v := arg.trim_prefix("--fog=").split(",")
 			(func() -> void:

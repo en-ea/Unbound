@@ -28,7 +28,7 @@ Pick whichever is easiest:
 | Step | What | Needs you? |
 |---|---|---|
 | 1 | **The world kernel inside Godot:** the prototype ported to typed GDScript, timed on phones, with the same world on every phone. **Done 29 Sep** (`KERNEL-S2.md`) | No |
-| 2 | **A look board:** your game rendered in the proposed camera framings, and with the Compatibility vs Mobile renderer (the Mobile renderer runs on Metal on the iPhone, but needs your lighting retuned) | Yes: you pick |
+| 2 | **A look board:** your game rendered in the proposed camera framings, and with the Compatibility vs Mobile renderer (the Mobile renderer runs on Metal on the iPhone, but needs your lighting retuned). **Look board 1 is ready** (`LOOKBOARD-1.md`, four picks in section 4) | Yes: you pick |
 | 3 | **Three small phone fixes**, each offered as its own small pull request for you to merge or not: (a) HUD placed from the phone's safe area; (b) one swipe can't exit the game mid-fight; (c) saves written safely, so a crash mid-save can't wipe progress | Yes: you merge or not |
 | 4 | **Automatic builds:** an Android app and an iPhone app built on GitHub for every change on this branch, only if you agree to a small build workflow here | Yes |
 | 5 | **The deep village, headless:** about 30 people with values, rumours, three kinds of misbehaviour and a storyteller that paces events, tested by running thousands of simulated years before anything reaches a phone | After D1 |

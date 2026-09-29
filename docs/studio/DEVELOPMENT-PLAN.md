@@ -159,3 +159,17 @@ The lead spot-checked the report's repo claims against Enea's code, and they hol
 | i7 | **Identity and sync:** the sideloaded bundle ID differs from any later TestFlight build, so saves and Nakama accounts must not depend on it. Use a linkable account, and prefer a Nakama relay over LAN multicast (not available on a free account) | W6 (stage D) |
 
 **Still unknown** (report section 8): whether remote refresh really holds across a 7-day window in the UK; whether the ad-hoc-signed memory entitlement survives AltStore; Foundation Models in a free-signed build and under Game Mode. The first iOS spike measures these.
+
+## 8. Progress (29 Sep)
+
+- **W2-1 done** `[run]` (`KERNEL-S2.md`). The kernel is in GDScript (`game/scripts/studio/kernel/`):
+  - it matches an integers-only JavaScript reference at all 420 checkpoints, on the PC and on the S10;
+  - 500 years takes 367 ms median on the S10 (decision line: 2 s);
+  - run non-stop on a worker thread during play, it left the game at 30 fps.
+  - **Decision:** stay in GDScript for W3. The trigger for C++ (GDExtension) is a village-year above ~50 ms on the S10's worker thread.
+- **W4-1 done** `[run]` (`LOOKBOARD-1.md`): 4 framings x 2 renderers x day and dusk, plus the fog pushed out.
+  - On the S10 every framing holds 30 fps standing still (EXPLORE: 629 draw calls).
+  - Turning the camera stutters on early launches (up to 235 ms) and is clean once the shader cache has filled. The fix is shader warm-up at the first load.
+  - The Mobile renderer can't be judged until the lighting gets a pass for it.
+  - The autosave costs 17-22 ms on the main thread on the S10, every 15 s.
+- **Device lab:** `lab_args` bakes dev arguments into an APK; `lab_wake` catches a locked phone (Android pauses the game, and a run silently does nothing).

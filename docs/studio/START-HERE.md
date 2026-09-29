@@ -59,11 +59,13 @@ Hi Enea, and Enea's agents. This branch comes from Hilmi's studio: Hilmi, and Cl
 | `docs/studio/evidence/` | Screenshots and readings: the camera frames, and the S10 runs (web vs native) |
 | `docs/studio/KERNEL-S2.md` | **Step 1 done (29 Sep):** the world kernel inside your game, in GDScript. It gives the same world on the PC and the Galaxy S10, 500 years takes 0.37 s on the S10, and it held 30 fps running on its own thread during play |
 | `game/scripts/studio/kernel/` | The world kernel (GDScript): no nodes, no engine calls, safe on a worker thread. `run.gd` checks it headless |
-| `game/scripts/studio/camera/framings.gd` | The proposed camera framings as presets, for look boards |
+| `docs/studio/LOOKBOARD-1.md` | **Step 2, for you to pick from (29 Sep):** your game in the proposed framings, both renderers, day and dusk, with what each costs on the S10. Four picks for you in section 4 |
+| `game/scripts/studio/camera/` | The framings as presets, and `turntable_probe.gd` (spins the camera and times every frame) |
 | `tools-src/studio/kernel-reference/` | The kernel's spec in JavaScript (integers only) and the expected hashes the GDScript kernel must reproduce |
 | `tools-src/studio/kernel-prototype/` | The first world-simulation prototype (JavaScript, floats; kept as the record). `node run.mjs` and `node enclave.mjs` |
 | `tools-src/studio/device-lab/` | Builds, signs, installs and measures the game on a USB-connected Android phone; bakes dev arguments into a debug APK |
-| `game/scripts/dev/dev_args.gd` | Four dev arguments added, all marked "studio branch", debug builds only: `--kernel-bench`, `--kernel-thread`, `--frame=`, `--fog=` |
+| `tools-src/studio/lookboard/` | Renders a shot list windowed and makes the contact sheet (`capture.sh`, `sheet.gd`, `unbound-shots.txt`) |
+| `game/scripts/dev/dev_args.gd` | Five dev arguments added, all marked "studio branch", debug builds only: `--kernel-bench`, `--kernel-thread`, `--frame=`, `--fog=`, `--turntable` |
 | `game/export_presets.cfg` | One addition: an "Android" export preset (debug, arm64, test package `com.unboundstudio.unbound.dev`) |
 | `CLAUDE.md` | One added line pointing agents here |
 

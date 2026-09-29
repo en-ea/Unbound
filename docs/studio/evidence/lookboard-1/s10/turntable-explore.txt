@@ -1,0 +1,5 @@
+device: SM-G973F; gl_compatibility; turning 90 deg/s; draws 628, triangles 149k (at the end)
+lap 1 (first sight): 112 frames, median 33.3 ms, 95th 38.1 ms, worst 234.8 ms, over 50 ms: 3
+lap 2 (seen before): 115 frames, median 33.4 ms, 95th 39.5 ms, worst 152.1 ms, over 50 ms: 2
+worst frame per 45-degree sector, lap 1: 154 38 235 38 38 39 138 39
+worst frame per 45-degree sector, lap 2: 36 38 37 40 35 36 152 45

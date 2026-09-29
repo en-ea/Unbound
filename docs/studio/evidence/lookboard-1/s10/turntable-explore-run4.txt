@@ -1,0 +1,7 @@
+device: SM-G973F; gl_compatibility; turning 90 deg/s; draws 628, triangles 149k (at the end)
+lap 1 (first sight): 120 frames, median 33.6 ms, 95th 37.0 ms, worst 40.3 ms, over 50 ms: 0
+lap 2 (seen before): 121 frames, median 33.4 ms, 95th 37.5 ms, worst 39.9 ms, over 50 ms: 0
+worst frame per 45-degree sector, lap 1: 35 37 36 39 35 40 37 38
+worst frame per 45-degree sector, lap 2: 38 38 37 40 36 38 36 38
+frames over 50 ms: none
+SaveGame.save_game() timed alone, 3 calls: 21.7, 18.7, 17.1 ms
