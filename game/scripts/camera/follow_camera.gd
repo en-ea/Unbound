@@ -9,6 +9,11 @@ extends Node3D
 @export var look_ahead := 0.35     # seconds of movement to look ahead, so you see where you're going
 @export var max_look_ahead := 2.5
 
+## Indoors: a closer, steeper view that stays mostly on the room and follows you a little.
+const ROOM_DISTANCE := 15.0
+const ROOM_PITCH := -52.0
+const ROOM_PULL := 0.3
+
 @onready var camera: Camera3D = $Camera3D
 
 var _offset := Vector3.ZERO          # shifts the view (the look picker puts you left of centre)
@@ -16,6 +21,8 @@ var _default_view := Vector2.ZERO    # (distance, pitch) to return to
 var _shake := 0.0
 var _view_tween: Tween
 var _base_distance := 18.0
+var _outdoor_pitch := -45.0
+var _room := Vector3.INF             # indoors: the room's centre
 
 
 func _ready() -> void:
@@ -24,6 +31,7 @@ func _ready() -> void:
 	camera.far = 220.0
 	camera.near = 0.3
 	_base_distance = distance
+	_outdoor_pitch = pitch_degrees
 	_default_view = Vector2(distance * Settings.zoom, pitch_degrees)
 	set_distance(_default_view.x)
 	Settings.changed.connect(_on_settings_changed)
@@ -41,13 +49,33 @@ func set_view(d: float, pitch: float, offset: Vector3, time := 0.6) -> void:
 
 ## The camera zoom setting changed: move to the new distance (only in normal play).
 func _on_settings_changed() -> void:
-	var d := _base_distance * Settings.zoom
+	var d := (_base_distance if _room == Vector3.INF else ROOM_DISTANCE) * Settings.zoom
 	if is_equal_approx(d, _default_view.x):
 		return
 	var in_play := _offset == Vector3.ZERO and is_equal_approx(distance, _default_view.x)
 	_default_view.x = d
 	if in_play:
 		reset_view(0.4)
+
+
+## Going indoors: the room view, centred on `center` (the room's middle).
+func enter_room(center: Vector3) -> void:
+	_room = center
+	_jump_to(Vector2(ROOM_DISTANCE * Settings.zoom, ROOM_PITCH))
+
+
+func leave_room() -> void:
+	_room = Vector3.INF
+	_jump_to(Vector2(_base_distance * Settings.zoom, _outdoor_pitch))
+
+
+func _jump_to(view: Vector2) -> void:
+	if _view_tween:
+		_view_tween.kill()
+	_default_view = view
+	_offset = Vector3.ZERO
+	_apply_view(view)
+	snap()
 
 
 func reset_view(time := 0.6) -> void:
@@ -85,6 +113,8 @@ func _process(delta: float) -> void:
 
 
 func _focus() -> Vector3:
+	if _room != Vector3.INF and _offset == Vector3.ZERO:
+		return _room.lerp(target.global_position, ROOM_PULL) + Vector3(0, 0.6, 0)
 	var ahead := Vector3.ZERO
 	if target is CharacterBody3D:
 		var v: Vector3 = (target as CharacterBody3D).velocity

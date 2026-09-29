@@ -37,6 +37,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	emitting = day_night.night > 0.3
+	emitting = day_night.night > 0.3 and not day_night.indoors
+	visible = not day_night.indoors
 	if follow:
 		global_position = follow.global_position + Vector3(0, 1.0, 0)

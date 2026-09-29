@@ -155,6 +155,10 @@ func _cheat_page() -> void:
 			for id: String in Projects.DEFS:
 				Projects.unbuild(id)],
 		["Undo home + yard", func() -> void: Home.reset()],
+		["One of each furniture", func() -> void:        # put away, so placing them is free
+			for id: String in Home.FURNITURE:
+				Home.stored[id] = Home.stored.get(id, 0) + 1
+			Home.furniture_changed.emit()],
 		["Skills +5 levels", func() -> void:
 			for sk: String in Skills.SKILLS:
 				var target := mini(Skills.level(sk) + 5, Skills.MAX_LEVEL)

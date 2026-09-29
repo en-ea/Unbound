@@ -67,20 +67,22 @@ func _physics_process(delta: float) -> void:
 func _step(speed: float) -> void:
 	var pos := player.global_position
 	var surface := "grass"
-	if pos.y < WorldShape.WATER_Y - 0.05:
+	if pos.y < -100.0:                      # indoors or the build lab: a wooden or stone floor
+		surface = "floor"
+	elif pos.y < WorldShape.WATER_Y - 0.05:
 		surface = "water"
 	elif shape and shape.path_distance(Vector2(pos.x, pos.z)) < 1.8:
 		surface = "dirt"
 	var running := speed > 3.0
 	_left = not _left
-	stream = _sounds[surface].pick_random()
-	pitch_scale = randf_range(0.94, 1.06) * (1.03 if _left else 0.97)
-	volume_db = -5.0 if running else -10.0
+	stream = _sounds["dirt" if surface == "floor" else surface].pick_random()
+	pitch_scale = randf_range(0.94, 1.06) * (1.03 if _left else 0.97) * (0.72 if surface == "floor" else 1.0)
+	volume_db = (-5.0 if running else -10.0) - (4.0 if surface == "floor" else 0.0)
 	play()
 	if surface == "grass":
 		_layer.stream = _sounds["kenney"].pick_random()
 		_layer.pitch_scale = randf_range(0.95, 1.05)
 		_layer.volume_db = -16.0 if running else -21.0
 		_layer.play()
-	if surface != "water":
+	if surface in ["grass", "dirt"]:
 		get_parent().get_node("Effects").kick(surface, running, _left)

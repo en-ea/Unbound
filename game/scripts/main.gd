@@ -46,6 +46,8 @@ func _ready() -> void:
 	if meadow:
 		var plot := Node3D.new()
 		plot.set_script(preload("res://scripts/world/home_plot.gd"))
+		plot.player = player
+		plot.day_night = $WorldEnvironment
 		add_child(plot)
 		plot.build(shape)
 	var places := Node3D.new()

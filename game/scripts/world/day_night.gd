@@ -10,6 +10,8 @@ extends WorldEnvironment
 
 ## 0 in daylight, 1 at full night. Read by the fireflies.
 var night := 0.0
+## Inside a house: softer sunlight and a warmer, dimmer ambient (the room's own lights do the rest).
+var indoors := false
 
 const UPDATE_EVERY := 0.2
 
@@ -70,6 +72,11 @@ func _process(delta: float) -> void:
 		_apply()
 
 
+func set_indoors(on: bool) -> void:
+	indoors = on
+	_apply()
+
+
 ## Jumps the clock forward (dev button).
 func skip(fraction: float) -> void:
 	time_of_day = fposmod(time_of_day + fraction, 1.0)
@@ -102,6 +109,11 @@ func _apply() -> void:
 	_sky_mat.ground_bottom_color = horizon.darkened(0.5)
 	env.ambient_light_color = _sample_c(AMBIENT, t)
 	env.ambient_light_energy = _sample_f(AMBIENT_ENERGY, t)
+	if indoors:
+		sun.light_energy = sun_e * 0.45
+		moon.light_energy = 0.15 * night
+		env.ambient_light_color = env.ambient_light_color.lerp(Color(0.92, 0.84, 0.74), lerpf(0.5, 0.35, night))
+		env.ambient_light_energy *= lerpf(1.15, 0.9, night)
 	env.fog_light_color = horizon.lerp(env.ambient_light_color, 0.35)
 	if terrain and terrain.get("material"):
 		terrain.material.set_shader_parameter("cloud_strength", 0.12 * clampf(sun_e, 0.0, 1.0))

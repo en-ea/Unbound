@@ -198,3 +198,19 @@ const HOME_PIECES := {
 	"tree": {"wood": 2, "apple": 1},
 	"rock": {"stone": 5},
 }
+## Furniture for inside your home, and what each costs (a new home comes with a few pieces).
+const HOME_FURNITURE := {
+	"bed": {"wood": 12, "pelt": 2},
+	"table": {"wood": 8},
+	"chair": {"wood": 4},
+	"stool": {"wood": 2},
+	"armchair": {"wood": 6, "pelt": 3},
+	"bookshelf": {"wood": 10, "pinewood": 2},
+	"wardrobe": {"pinewood": 8, "wood": 4},
+	"dresser": {"pinewood": 6, "stone": 3},
+	"trunk": {"wood": 6, "copper": 2},
+	"plant": {"flower": 3, "stone": 2},
+	"lamp": {"wood": 3, "resin": 1},
+	"rug_round": {"hide": 3, "flower": 2},
+	"rug_long": {"pelt": 2, "hide": 2},
+}

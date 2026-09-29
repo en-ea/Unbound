@@ -17,6 +17,8 @@ extends Node
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 ##   --craft / --bag   open the workbench / Bag screen with a few items to show
 ##   --lab             go straight to the build lab
+##   --house=hill      own a home (outside, standing wherever --at puts you)
+##   --inside[=hill]   own a home (lodge, or the house named) and start inside it; --furnish opens the furnish bar
 
 @export var day_night: Node
 
@@ -111,6 +113,18 @@ func _ready() -> void:
 		elif arg.begins_with("--bagpick="):               # the Bag with an item selected
 			var hud := get_node("../HUD")
 			hud._modal.call_deferred(hud.INVENTORY_PANEL, {"_selected": arg.trim_prefix("--bagpick=")})
+		elif arg.begins_with("--house="):
+			Home.house = arg.trim_prefix("--house=")
+			Home.furniture = Home.STARTER.duplicate(true)
+			Home.changed.emit()
+		elif arg.begins_with("--inside"):                 # own a home and start inside it
+			Home.house = arg.trim_prefix("--inside=") if arg.begins_with("--inside=") else "lodge"
+			Home.furniture = Home.STARTER.duplicate(true)
+			Home.changed.emit()
+			Home.furniture_changed.emit()
+			get_tree().call_group.call_deferred("home_interior", "enter", true)
+			if "--furnish" in OS.get_cmdline_user_args():
+				get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").start_build_mode(true))
 		elif arg == "--home":                             # own the home, a few pieces built, build mode on
 			Home.house = "lodge"
 			Home.pieces = [{"id": "campfire", "x": -44.0, "z": 42.0, "turn": 0.0}, {"id": "bench", "x": -44.0, "z": 44.5, "turn": 0.0},

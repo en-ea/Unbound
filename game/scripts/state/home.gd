@@ -1,8 +1,10 @@
 extends Node
 ## Your home (game state): whether you own your plot, which house you chose, and what you have built
-## on it. Change it only through buy(), place() and remove(). The plot is world/home_plot.gd.
+## on it, and the furniture inside. Change it only through the action functions (buy, place, remove,
+## furnish, put_away). The plot is world/home_plot.gd; the room inside is world/home_interior.gd.
 
 signal changed
+signal furniture_changed
 
 ## House choices: [name, model].
 const HOUSES := {
@@ -21,11 +23,45 @@ const PIECES := {
 	"tree": ["Apple tree", "res://assets/nature/tree_apple_1.glb", 1.0, ""],
 	"rock": ["Boulder", "res://assets/nature/rock_2.glb", 1.0, ""],
 }
+## Furniture for inside: [name, model, footprint (width, depth) in metres, how it sits ("wall": backs
+## onto a wall when Snap is on, "rug": things stand on it, "": anywhere), action button ("rest", "")].
+const FURNITURE := {
+	"bed": ["Bed", "res://assets/interior/furn_bed.glb", Vector2(1.3, 2.2), "wall", "rest"],
+	"table": ["Table", "res://assets/interior/furn_table.glb", Vector2(1.6, 0.92), "", ""],
+	"chair": ["Chair", "res://assets/interior/furn_chair.glb", Vector2(0.5, 0.5), "", ""],
+	"stool": ["Stool", "res://assets/interior/furn_stool.glb", Vector2(0.42, 0.42), "", ""],
+	"armchair": ["Armchair", "res://assets/interior/furn_armchair.glb", Vector2(0.92, 0.86), "", ""],
+	"bookshelf": ["Bookshelf", "res://assets/interior/furn_bookshelf.glb", Vector2(1.2, 0.42), "wall", ""],
+	"wardrobe": ["Wardrobe", "res://assets/interior/furn_wardrobe.glb", Vector2(1.2, 0.66), "wall", ""],
+	"dresser": ["Dresser", "res://assets/interior/furn_dresser.glb", Vector2(1.45, 0.54), "wall", ""],
+	"trunk": ["Trunk", "res://assets/interior/furn_trunk.glb", Vector2(0.92, 0.58), "", ""],
+	"plant": ["Potted plant", "res://assets/interior/furn_plant.glb", Vector2(0.56, 0.56), "", ""],
+	"lamp": ["Lamp", "res://assets/interior/furn_lamp.glb", Vector2(0.42, 0.42), "", ""],
+	"rug_round": ["Round rug", "res://assets/interior/furn_rug_round.glb", Vector2(2.4, 2.4), "rug", ""],
+	"rug_long": ["Long rug", "res://assets/interior/furn_rug_long.glb", Vector2(2.4, 1.6), "rug", ""],
+}
+## The room: its floor runs from -ROOM_HALF to +ROOM_HALF (x right, z towards the front door).
+const ROOM_HALF := Vector2(4.8, 3.8)
+## Built into the room, nothing can go there: the hearth and firewood, the herb shelf, the broom,
+## and the way in from the door. (Match tools-src/blender/make_interior.py.)
+const ROOM_BUILT_IN := [Rect2(-4.8, -3.8, 3.65, 1.2), Rect2(-4.8, -1.3, 0.45, 1.8), Rect2(-4.8, 2.3, 0.45, 0.6)]
+const ROOM_DOORWAY := Rect2(-0.8, 2.6, 1.6, 1.2)
+## What a new home comes with (you can move it, put it away, or place it again for free).
+const STARTER := [
+	{"id": "bed", "x": 3.85, "z": -2.7, "turn": 0.0}, {"id": "trunk", "x": 3.85, "z": -1.05, "turn": 0.0},
+	{"id": "rug_round", "x": 0.4, "z": 0.2, "turn": 0.0}, {"id": "table", "x": 0.4, "z": 0.1, "turn": 0.0},
+	{"id": "chair", "x": -0.1, "z": -0.66, "turn": 0.0}, {"id": "chair", "x": 0.9, "z": -0.66, "turn": 0.0},
+	{"id": "armchair", "x": -2.5, "z": -1.55, "turn": PI}, {"id": "lamp", "x": -3.7, "z": -1.9, "turn": 0.0},
+	{"id": "plant", "x": 4.35, "z": 3.3, "turn": 0.0}, {"id": "dresser", "x": 4.5, "z": 1.1, "turn": -PI / 2.0},
+]
+
 const PLOT_CENTER := Vector2(-40.0, 38.0)      # meadow; flattened in WorldShape.REGIONS
 const PLOT_HALF := Vector2(9.0, 6.0)           # the buildable yard in front of the house
 
 var house := ""                   # "" = not bought yet
 var pieces: Array = []            # [{id, x, z, turn}]
+var furniture: Array = []         # [{id, x, z, turn}] in room metres (see ROOM_HALF)
+var stored := {}                  # id -> how many you've put away (placing them again is free)
 
 
 func owned() -> bool:
@@ -54,7 +90,9 @@ func buy(choice: String) -> bool:
 		return false
 	Money.spend(Balance.HOME["coins"])
 	house = choice
+	furniture = STARTER.duplicate(true)
 	changed.emit()
+	furniture_changed.emit()
 	return true
 
 
@@ -71,7 +109,10 @@ func change_house(choice: String) -> bool:
 func reset() -> void:
 	house = ""
 	pieces = []
+	furniture = []
+	stored = {}
 	changed.emit()
+	furniture_changed.emit()
 
 
 func inside(x: float, z: float) -> bool:
@@ -126,16 +167,107 @@ func nearest(x: float, z: float) -> int:
 	return best
 
 
+# --- furniture ----------------------------------------------------------------------------
+
+## A piece's footprint on the floor at a spot and turn (turned pieces swap width and depth).
+func footprint(id: String, x: float, z: float, turn: float) -> Rect2:
+	var size: Vector2 = FURNITURE[id][2]
+	var quarter := posmod(roundi(turn / (PI / 2.0)), 2) == 1
+	if absf(fposmod(turn, PI / 2.0) - PI / 4.0) < 0.3:          # at 45 degrees: the square round it
+		size = Vector2.ONE * maxf(size.x, size.y) * 0.85
+	elif quarter:
+		size = Vector2(size.y, size.x)
+	return Rect2(x - size.x / 2.0, z - size.y / 2.0, size.x, size.y)
+
+
+## Whether a piece fits: on the floor, clear of the hearth and doorway, and not on another piece
+## (rugs only mind other rugs; everything else stands on rugs). `skip` ignores one placed piece.
+func room_fits(id: String, x: float, z: float, turn: float, skip := -1) -> bool:
+	var r := footprint(id, x, z, turn).grow(-0.02)
+	if absf(r.position.x) > ROOM_HALF.x or r.end.x > ROOM_HALF.x or r.position.y < -ROOM_HALF.y or r.end.y > ROOM_HALF.y:
+		return false
+	var rug: bool = FURNITURE[id][3] == "rug"
+	if not rug and r.intersects(ROOM_DOORWAY):
+		return false
+	for b: Rect2 in ROOM_BUILT_IN:
+		if r.intersects(b):
+			return false
+	for i in furniture.size():
+		var f: Dictionary = furniture[i]
+		if i == skip or (FURNITURE[f["id"]][3] == "rug") != rug:
+			continue
+		if r.intersects(footprint(f["id"], f["x"], f["z"], f["turn"])):
+			return false
+	return true
+
+
+func can_furnish(id: String) -> bool:
+	return stored.get(id, 0) > 0 or Gear.can_afford(Balance.HOME_FURNITURE[id])
+
+
+## The action: place a piece of furniture (one you put away is free, otherwise it costs materials).
+func furnish(id: String, x: float, z: float, turn: float) -> bool:
+	if not owned() or not FURNITURE.has(id) or not room_fits(id, x, z, turn) or not can_furnish(id):
+		return false
+	if stored.get(id, 0) > 0:
+		stored[id] -= 1
+		if stored[id] == 0:
+			stored.erase(id)
+	else:
+		var cost: Dictionary = Balance.HOME_FURNITURE[id]
+		for item: String in cost:
+			Inventory.remove(item, cost[item])
+	furniture.append({"id": id, "x": x, "z": z, "turn": turn})
+	furniture_changed.emit()
+	return true
+
+
+## The action: put a piece away (it waits in storage, free to place again).
+func put_away(index: int) -> void:
+	if index < 0 or index >= furniture.size():
+		return
+	var id: String = furniture[index]["id"]
+	stored[id] = stored.get(id, 0) + 1
+	furniture.remove_at(index)
+	furniture_changed.emit()
+
+
+## The piece nearest a spot (within 1.6 m; a rug only when nothing stands nearer), or -1.
+func furniture_near(x: float, z: float) -> int:
+	var best := -1
+	var best_d := 1.6
+	for i in furniture.size():
+		var f: Dictionary = furniture[i]
+		var d := Vector2(x, z).distance_to(Vector2(f["x"], f["z"])) + (1.0 if FURNITURE[f["id"]][3] == "rug" else 0.0)
+		if d < best_d:
+			best_d = d
+			best = i
+	return best
+
+
 func to_data() -> Dictionary:
-	return {"house": house, "pieces": pieces}
+	return {"house": house, "pieces": pieces, "furniture": furniture, "stored": stored}
 
 
 func load_data(data: Variant) -> void:
 	house = ""
 	pieces = []
+	furniture = []
+	stored = {}
 	if data is Dictionary:
 		house = String(data.get("house", "")) if HOUSES.has(String(data.get("house", ""))) else ""
 		for p: Variant in data.get("pieces", []):
 			if p is Dictionary and PIECES.has(String(p.get("id", ""))):
 				pieces.append({"id": String(p["id"]), "x": float(p["x"]), "z": float(p["z"]), "turn": float(p.get("turn", 0.0))})
+		if house != "" and not data.has("furniture"):         # a home bought before it had an inside
+			furniture = STARTER.duplicate(true)
+		for f: Variant in data.get("furniture", []):
+			if f is Dictionary and FURNITURE.has(String(f.get("id", ""))):
+				furniture.append({"id": String(f["id"]), "x": float(f["x"]), "z": float(f["z"]), "turn": float(f.get("turn", 0.0))})
+		var st: Variant = data.get("stored", {})
+		if st is Dictionary:
+			for id: String in st:
+				if FURNITURE.has(id) and int(st[id]) > 0:
+					stored[id] = int(st[id])
 	changed.emit()
+	furniture_changed.emit()

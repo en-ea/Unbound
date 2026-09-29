@@ -58,6 +58,25 @@ func travel(to: String, arrive_at: Vector2) -> void:
 	get_tree().reload_current_scene()
 
 
+## A short fade to black and back, running `middle` while the screen is dark (going in or out of
+## a house). Returns false if a trip is already under way.
+func fade_through(middle: Callable) -> bool:
+	if _busy:
+		return false
+	_busy = true
+	Controls.locked = true
+	var t := create_tween()
+	t.tween_property(_fade, "color:a", 1.0, 0.28)
+	await t.finished
+	middle.call()
+	await get_tree().process_frame
+	Controls.locked = false
+	_busy = false
+	var back := create_tween()
+	back.tween_property(_fade, "color:a", 0.0, 0.42)
+	return true
+
+
 ## Called by main once the region is built: fade in and show its name.
 func arrived(show_name: bool) -> void:
 	_busy = false
