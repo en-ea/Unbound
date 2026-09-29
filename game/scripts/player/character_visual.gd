@@ -48,6 +48,10 @@ var _tool_metal := {}        # name -> the material of its head, tinted by tier
 var _parts: Array[MeshInstance3D] = []
 var _slot_materials := {}    # colour slot -> ShaderMaterial shared by the hero's meshes
 var _flash := 0.0
+var _lean: SkeletonModifier3D          # straightens the torso while running (lean_fix.gd)
+var _lean_target := 0.0
+## Degrees the torso is straightened for each motion (the jog leans ~27°, the sprint ~40°).
+const LEAN_FIX := {"Jog_Fwd": 20.0, "Sprint": 32.0}   # leaves the jog at ~16° and the sprint at ~21°
 
 
 func _ready() -> void:
@@ -63,6 +67,9 @@ func _ready() -> void:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	_add_extra_animations()
 	_make_tools()
+	_lean = SkeletonModifier3D.new()
+	_lean.set_script(preload("res://scripts/player/lean_fix.gd"))
+	_skeleton.add_child(_lean)
 	play_motion(0.0)
 
 
@@ -71,6 +78,9 @@ func _process(delta: float) -> void:
 		_action_left -= delta
 		if _action_left <= 0.0:
 			_current = ""      # let play_motion pick idle/walk/run again
+	var target: float = LEAN_FIX.get(_current, 0.0)
+	if _lean.amount != target:
+		_lean.amount = move_toward(_lean.amount, target, delta * 60.0)
 	if _flash > 0.0:
 		_flash = maxf(_flash - delta * 5.0, 0.0)
 		for m: ShaderMaterial in _slot_materials.values():
