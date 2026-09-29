@@ -11,14 +11,17 @@ extends Node3D
 ## run looks the same at any speed; props lying on the ground are the one exception (they linger
 ## PROP_LINGER real seconds, for the eye).
 ## Per frame: one pass over the people and the props in flight; no allocations, no node lookups.
-## Bodies are made one per frame after play(), in the order they are needed (a CharacterVisual takes
-## ~90 ms to make on a PC: twelve at once froze the game for a second); one needed sooner is made at once.
+## Bodies are VillagerBody (villager_body.gd: CharacterVisual's character as one skinned mesh, one draw
+## call each), made one per frame after play(), in the order they are needed; one needed sooner is made
+## at once. Every DETAIL_EVERY seconds the NEAR_FULL bodies nearest the camera get full detail (full-rate
+## animation, shadows), the rest animate at ~10 Hz without shadows, and bodies well out of view are hidden.
 
 signal finished
 ## The player stepped in (kind "free" or "shield"), for the simulation to learn of later.
 signal player_intervened(kind: String, minute: int)
 
 const Sites := preload("res://scripts/studio/village/sites.gd")
+const Body := preload("res://scripts/studio/village/villager_body.gd")
 const Staging := preload("res://scripts/studio/village/staging.gd")
 const Houses := preload("res://scripts/world/village.gd")
 ## Where props come from: the one line to change when the real props (props.gd) arrive. A prop the real
@@ -33,6 +36,9 @@ const TURN_RATE := 7.0               # radians per stage second
 const BODY_RADIUS := 0.35            # how far bodies keep from walls
 const CORNER_PAD := 0.3              # detours pass this far outside a wall's corner
 const SKIP_STEP := 0.25              # stage seconds per step when skipping ahead
+const NEAR_FULL := 12                # bodies nearest the camera at full detail (VillagerBody tier 0)
+const DETAIL_EVERY := 0.25           # real seconds between detail passes
+const VIEW_MARGIN := 0.2             # a body this far (in screen widths) outside the view still counts as in it
 ## What a beat plays when it names no animation.
 const DEFAULT_ANIM := {"walk_to": "Walk", "leave": "Walk", "carry": "Walk_Carry", "stand": "Idle", "gesture": "Yes",
 	"react": "Hit_Chest", "throw": "OverhandThrow", "lock": "Crouch_Idle", "release": "Interact", "fall": "Death01"}
@@ -65,7 +71,7 @@ const JOLT_TIME := 0.25
 class Actor:
 	var id := 0
 	var person := {}
-	var body: Node3D                  # null until made (_embody)
+	var body: Body                    # null until made (_embody)
 	var door := Vector2.ZERO
 	var pos := Vector2.ZERO           # on the ground (x, z)
 	var y := 0.0
@@ -77,7 +83,6 @@ class Actor:
 	var face := Vector2.INF           # what to turn to on arrival
 	var rest_anim := "Idle"           # looped when not walking or busy ("" holds the last pose: a fall)
 	var playing := ""                 # the loop the body was last told to play, so it isn't restarted
-	var loop_left := INF              # stage seconds until a non-looping rest animation replays
 	var busy := 0.0                   # stage seconds left of a one-shot (throw, gesture, hit)
 	var locked := false
 	var going_home := false
@@ -87,7 +92,6 @@ class Actor:
 	var free_in := 0.0
 	var jolt := 0.0
 	var jolt_dir := Vector3.ZERO
-	var native_loop := false          # the body loops animations itself (play_loop)
 
 
 ## A thrown prop, from the hand to the head, then to the ground.
@@ -127,8 +131,6 @@ var _react_of := {}                   # throw beat index -> its react beat index
 var _on_impact := {}                  # react beat indices played by a prop landing, not by the clock
 var _shots: Array[Shot] = []          # in the hand or in the air
 var _lying: Array[Shot] = []          # on the ground, oldest first
-var _anims: AnimationPlayer           # the rig's player, to ask which animations loop by themselves
-var _looping := {}
 var _released := -1.0                 # stage clock when the victim was freed
 var _locked_at := -1.0                # stage clock when the victim was locked in
 var _fell_at := -1.0                  # stage clock when the victim's fall began
@@ -146,6 +148,8 @@ var _made_max_us := 0
 var _made_in_frame := 0
 var _latest := 0.0
 var _latest_beat := -1
+var _detail_in := 0.0                 # real seconds until the next detail pass
+var _by_near: Array[Actor] = []       # out-of-door actors, reused by the detail pass
 
 
 func _ready() -> void:
@@ -191,7 +195,6 @@ func clear() -> void:
 	_on_impact.clear()
 	_device = null
 	_victim = null
-	_anims = null                         # its body is going; the loop answers already found stay
 	_clock = 0.0
 	_next = 0
 	_released = -1.0
@@ -329,6 +332,10 @@ func _process(delta: float) -> void:
 	_made_in_frame = 0
 	_step(delta * _speed)
 	_age_lying(delta)
+	_detail_in -= delta
+	if _detail_in <= 0.0:
+		_detail_in = DETAIL_EVERY
+		_set_details()
 	var used := Time.get_ticks_usec() - t0 - _made_in_frame   # making a body is the body's cost, not the stage's
 	_cost_frames += 1
 	_cost_last = used
@@ -338,10 +345,10 @@ func _process(delta: float) -> void:
 		_cost_max_at = minute()
 
 
-## Every body is made here, so a cheaper body can replace CharacterVisual by changing this one function
-## (it needs CharacterVisual's play_action / animation_length / flash; play_loop is used when present).
-func _make_body(person: Dictionary) -> Node3D:
-	var body := CharacterVisual.new()
+## Every body is made here (a VillagerBody: play_action / animation_length / flash as CharacterVisual,
+## plus play_loop and set_detail). Its look comes from the person: the outfit, and hair and skin by id.
+func _make_body(person: Dictionary) -> Body:
+	var body := Body.new()
 	var look := CharacterLook.new()
 	var outfits: Array = CharacterLook.OUTFITS.keys()
 	look.set_outfit(outfits[posmod(int(person.get("outfit", 0)), outfits.size())])
@@ -389,14 +396,10 @@ func _embody(a: Actor) -> void:
 	a.body = _make_body(a.person)
 	add_child(a.body)
 	a.body.position = Vector3(a.pos.x, a.y, a.pos.y)
-	a.native_loop = a.body.has_method("play_loop")
 	a.inside = true
+	a.body.set_detail(1)
 	a.body.visible = false
 	a.body.process_mode = Node.PROCESS_MODE_DISABLED
-	if _anims == null and not a.native_loop:
-		var players := a.body.find_children("*", "AnimationPlayer", true, false)
-		if not players.is_empty():
-			_anims = players[0]
 	var took := Time.get_ticks_usec() - t0
 	_made += 1
 	_made_us += took
@@ -459,11 +462,6 @@ func _update(a: Actor, dt: float) -> void:
 			a.freeing = null
 	if not a.path.is_empty():
 		_walk(a, dt)
-	elif a.loop_left != INF and a.busy <= 0.0:
-		a.loop_left -= dt
-		if a.loop_left <= 0.0:               # a stance that doesn't loop by itself: again, from the top
-			a.playing = ""
-			_loop(a, a.rest_anim, 1.0, 0.0)
 	if a.yaw != a.yaw_goal:
 		var diff := angle_difference(a.yaw, a.yaw_goal)
 		var turn := TURN_RATE * dt
@@ -597,7 +595,6 @@ func _go(a: Actor, to: Vector2, anim: String, face: Vector2) -> void:
 	a.walk_anim = anim if GAITS.has(anim) else "Walk"
 	var gait: Array = GAITS[a.walk_anim]
 	a.pace = gait[0]
-	a.loop_left = INF
 	_loop(a, a.walk_anim, a.pace / float(gait[1]))
 
 
@@ -645,6 +642,8 @@ func _hide(a: Actor, hidden: bool) -> void:
 			return
 		_embody(a)                        # needed before its turn in the queue
 	a.inside = hidden
+	if not hidden:
+		a.body.set_detail(1)              # the next detail pass decides; a body hidden by it shows again
 	a.body.visible = not hidden
 	# A body at home costs nothing: its animation and scripts stop too.
 	a.body.process_mode = Node.PROCESS_MODE_DISABLED if hidden else Node.PROCESS_MODE_INHERIT
@@ -659,21 +658,13 @@ func _rest(a: Actor) -> void:
 		_loop(a, a.rest_anim, 1.0)
 
 
-## Loops an animation at `rate` x the stage speed; `start` < 0 starts each body at its own point in the
-## loop, so a crowd doesn't breathe in step.
-func _loop(a: Actor, anim: String, rate: float, start := -1.0) -> void:
+## Loops an animation at `rate` x the stage speed (VillagerBody.play_loop loops one-shots too), each
+## body starting at its own point in the loop, so a crowd doesn't breathe in step.
+func _loop(a: Actor, anim: String, rate: float) -> void:
 	if a.playing == anim:
 		return
 	a.playing = anim
-	if a.native_loop:
-		a.body.call("play_loop", anim)
-		a.loop_left = INF
-		return
-	var length: float = a.body.animation_length(anim)
-	if start < 0.0:
-		start = fposmod(a.id * 0.37, length)
-	a.body.play_action(anim, _speed * rate, start)
-	a.loop_left = INF if _loops(anim) else length - start
+	a.body.play_loop(anim, 0.2, _speed * rate, a.id * 0.37)
 
 
 ## One pass of an animation; the actor is busy until it ends (stage seconds = its length).
@@ -681,12 +672,6 @@ func _once(a: Actor, anim: String) -> void:
 	a.playing = ""
 	a.body.play_action(anim, _speed)
 	a.busy = a.body.animation_length(anim)
-
-
-func _loops(anim: String) -> bool:
-	if not _looping.has(anim):
-		_looping[anim] = _anims == null or _anims.get_animation(anim).loop_mode != Animation.LOOP_NONE
-	return _looping[anim]
 
 
 func _unlock(v: Actor) -> void:
@@ -819,6 +804,35 @@ func _age_lying(delta: float) -> void:
 		_lying.remove_at(0)
 	for s in _lying:
 		s.life -= delta
+
+
+## Detail by distance to the camera: the NEAR_FULL nearest bodies in view at full detail, the rest in
+## view stepped at ~10 Hz without shadows, bodies well out of view hidden (tier 2). No camera: all full.
+func _set_details() -> void:
+	var camera := get_viewport().get_camera_3d() if is_inside_tree() else null
+	_by_near.clear()
+	for a in _actors:
+		if a.body != null and not a.inside:
+			_by_near.append(a)
+	if camera == null:
+		for a in _by_near:
+			a.body.set_detail(0)
+		return
+	var eye := camera.global_position
+	var view := get_viewport().get_visible_rect().size
+	var margin := view.x * VIEW_MARGIN
+	var shown := 0
+	_by_near.sort_custom(func(p: Actor, q: Actor) -> bool:
+		return eye.distance_squared_to(p.body.position) < eye.distance_squared_to(q.body.position))
+	for a in _by_near:
+		var chest := a.body.position + Vector3(0.0, 1.0, 0.0)
+		var at := camera.unproject_position(chest)
+		var in_view := not camera.is_position_behind(chest) and at.x > -margin and at.x < view.x + margin 			and at.y > -margin and at.y < view.y + margin
+		if not in_view:
+			a.body.set_detail(2)
+		else:
+			a.body.set_detail(0 if shown < NEAR_FULL else 1)
+			shown += 1
 
 
 ## The walls bodies walk round: every house footprint (world/village.gd), the merchant's stall, and the

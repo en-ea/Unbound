@@ -172,15 +172,20 @@ func play_action(anim_name: String, speed := 1.0, start_at := 0.0) -> void:
 ## Loops any animation of the rig (UAL1 or UAL2, e.g. "Idle_FoldArms", "Idle_Talking") until the body
 ## moves (play_motion faster than a stroll), acts (play_action) or loops something else. Animations
 ## made as one-shots get a looping copy, made once and shared by every body.
-func play_loop(anim_name: String, blend := 0.2) -> void:
+## `speed` scales the loop's rate (the stage plays on its own clock: x8 fast-forward loops x8); asking
+## for the loop already playing only changes its rate. `start_at` > 0 starts that far into the loop (so
+## a crowd doesn't breathe in step).
+func play_loop(anim_name: String, blend := 0.2, speed := 1.0, start_at := 0.0) -> void:
 	var looped := _looping_name(anim_name)
 	_holding_loop = true
 	_action_left = 0.0
+	_anim.speed_scale = speed
 	if looped == _current:
 		return
 	_current = looped
-	_anim.speed_scale = 1.0
 	_anim.play(looped, blend)
+	if start_at > 0.0:
+		_anim.seek(fposmod(start_at, _anim.get_animation(looped).length), true)
 
 
 func animation_length(anim_name: String) -> float:

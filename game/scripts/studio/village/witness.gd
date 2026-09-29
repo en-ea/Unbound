@@ -5,7 +5,7 @@ extends Node
 ## (sim_stagings.gd STAGINGS), printing its title and story and the contract check (staging.validate).
 ##   godot --path game --resolution 1560x720 -- --studio=village/witness --frame=fight --time=0.45
 ##         [--witness-staging=N] [--witness-shots=DIR] [--witness-speed=8] [--witness-hide-player]
-##         [--witness-skip=MINUTES] [--witness-edge] [--witness-rescue=free|shield] [--at=x,z]
+##         [--witness-skip=MINUTES] [--witness-edge] [--witness-rescue=free|shield] [--witness-uncapped] [--at=x,z]
 ## --witness-skip jumps that many game minutes into the staging at once (stage.skip_to), to test it.
 ## --witness-edge adds what the demo lacks: a stance that doesn't loop by itself, a gesture, a fall.
 ## --witness-rescue plays a scripted player who steps in during a rescue phase (see _rescue_step):
@@ -50,12 +50,15 @@ var _fall_at := -1.0        # game minute the victim's fall beat is due
 var _intervened: Array[String] = []
 var _rescuer := {}          # the scripted player's plan (see _rescue_step)
 var _people := 0
-## Costs while (nearly) everyone is out, one sample every 4 frames (frames just after a shot, which pay
-## for saving it, are left out): draw calls, process time (ms) and the stage's own _process time (us).
+## Costs while (nearly) everyone is out, every frame (the second after a shot, which pays for saving it,
+## is left out): draw calls, frame time (ms; with --witness-uncapped the game's 30 fps cap and vsync are
+## lifted, so it shows the real cost) and the stage's own _process time (us).
 var _full_draws := PackedFloat32Array()
 var _full_ms := PackedFloat32Array()
 var _full_us := PackedFloat32Array()
-var _shot_frame := -100
+var _shot_t := -100.0
+var _out := 0
+var _uncapped := false
 
 
 static func on_device(tree: SceneTree) -> void:
@@ -77,6 +80,10 @@ func _ready() -> void:
 			_rescue = arg.trim_prefix("--witness-rescue=")
 		elif arg == "--witness-edge":
 			_edge = true
+		elif arg == "--witness-uncapped":
+			_uncapped = true
+			Engine.max_fps = 0
+			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 		elif arg == "--witness-hide-player":
 			_hide_player = true
 		elif arg.begins_with("--at="):
@@ -93,6 +100,10 @@ func _process(delta: float) -> void:
 			_begin()
 		return
 	_watch()
+	if _out >= _people - 2 and _t > _shot_t + 1.0:
+		_full_draws.append(RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME))
+		_full_ms.append(delta * 1000.0)
+		_full_us.append(_stage.last_cost_us())
 	if _rescue != "":
 		_rescue_step()
 	if _shots.is_empty() or _frame < 3:
@@ -324,7 +335,7 @@ func _rescue_step() -> void:
 
 
 func _shoot(shot_name: String) -> void:
-	_shot_frame = _frame
+	_shot_t = _t
 	var path := _dir.path_join("witness-%s.png" % shot_name)
 	var image := get_viewport().get_texture().get_image()
 	image.save_png(path)
@@ -338,8 +349,8 @@ func _shoot(shot_name: String) -> void:
 	var close := image.get_region(Rect2i(corner, size))
 	close.resize(size.x * 2, size.y * 2, Image.INTERPOLATE_BILINEAR)
 	close.save_png(_dir.path_join("witness-%s-close.png" % shot_name))
-	print("WITNESS shot %s at minute %.1f: %s; %d fps, %.1f ms process, %d draws, %dk triangles; probe %s" % [shot_name,
-		_stage.minute(), path, Engine.get_frames_per_second(), Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0,
+	print("WITNESS shot %s at minute %.1f: %s; %d fps, %d draws, %dk triangles; probe %s" % [shot_name,
+		_stage.minute(), path, Engine.get_frames_per_second(),
 		RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME),
 		RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME) / 1000,
 		_stage.probe()])
@@ -357,17 +368,14 @@ func _watch() -> void:
 			_in_house["%s@%d" % [id, int(p["minute"])]] = true
 	for pair: String in p["crowded"]:
 		_crowded[pair] = true
-	if int(p["out"]) >= _people - 2 and _frame > _shot_frame + 4:
-		_full_draws.append(RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME))
-		_full_ms.append(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
-		_full_us.append(_stage.last_cost_us())
+	_out = p["out"]
 
 
 func _finish() -> void:
 	print("WITNESS over the run: inside a house %s; standing on each other %s" % [_in_house.keys(), _crowded.keys()])
 	print("WITNESS stage cost and lateness: ", _stage.stats())
-	print("WITNESS with (nearly) all %d out, %d samples (median / mean): draws %s, process ms %s, stage _process us %s" % [_people,
-		_full_draws.size(), _middle(_full_draws), _middle(_full_ms), _middle(_full_us)])
+	print("WITNESS with (nearly) all %d out, %d frames (median / mean): draws %s, frame ms %s%s, stage _process us %s" % [_people,
+		_full_draws.size(), _middle(_full_draws), _middle(_full_ms), " uncapped" if _uncapped else " (30 fps cap)", _middle(_full_us)])
 	get_tree().quit()
 
 
