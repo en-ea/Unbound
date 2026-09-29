@@ -36,4 +36,4 @@ for (let s = 0; s < seeds; s++) {
   if (freed > freedBefore && R.stranger.standing >= 0 && R.stranger.enemies.length === 0) fails.push(`seed ${seed}: the stranger left no mark`);
 }
 console.log(`freed ${freed} (all ${saved} alive), shielded ${shielded}`);
-console.log(fails.length ? "FAIL\n" + fails.join("\n") : `PASS: ${seeds} villages; live mode = headless when nobody steps in; the freed live, the village remembers`);
+console.log(fails.length ? "FAIL\n" + fails.join("\n") : `PASS: ${seeds} villages; live villages deterministic; every freed person lives; the village remembers the stranger`);
