@@ -110,7 +110,7 @@ func run() -> void:
 				if child.get_script() != null and child.get_script().resource_path.ends_with("shop_panel.gd"):
 					var bought := false
 					for button in child.find_children("*", "Button", true, false):
-						if button.text == "Buy" and not button.disabled:
+						if button.text.begins_with("Buy  ·") and not button.disabled:
 							var coins_before := Money.coins
 							button.pressed.emit()
 							bought = Money.coins < coins_before
