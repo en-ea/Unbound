@@ -53,11 +53,20 @@ export function runScheduled(V) {
 const ORDER = ["unlock", "funeral", "trial", "public", "wedding", "festival", "rite"]; // (a "return" is not listed: it sorts first, index -1)
 
 // ---------- the trial ----------
-function trial(V, s) {
+export function trial(V, s) {
   const cs = V.cases[s.case];
   const c = V.crimes[cs.crime];
   const accused = V.people[cs.accused];
   if (!accused.alive || !accused.present) { c.closed = true; return; }
+  if (V.runtime && !V.runtime.resolving) {
+    const judge = V.authority !== cs.accused ? V.authority : V.priest;
+    const st = makeTrialStaging(V, cs, judge, 'witnesses', 'pending', -1);
+    const deadline = st.phases.find(p => p.name === 'verdict').from;
+    st.beats = st.beats.filter(b => b.at < deadline || b.do === 'leave');
+    st.outcome = 'pending'; st.verdict = 'pending';
+    V.runtime.hearings.push({ staging: st.id, s: { ...s }, victim: cs.accused, deadline });
+    return;
+  }
   const k = key(key(V.base, P.TRIAL), cs.id);
   V.stats.trials++;
   const guilty = cs.accused === c.culprit && !c.falseAccusation;
@@ -71,7 +80,9 @@ function trial(V, s) {
   const confessOdds = guilty
     ? (accused.traits[C.HONESTY] + accused.traits[C.PIETY]) * 1500 + pressure * 2000
     : (V.fear > 600 && accused.traits[C.BOLD] < 30 ? (100 - accused.traits[C.BOLD]) * 1200 : 0);
-  if (chance(key(k, 1), confessOdds)) {
+  if (V.runtime?.challenge) {
+    via = 'testimony'; verdict = 'acquitted';
+  } else if (chance(key(k, 1), confessOdds)) {
     confessed = true; via = "confession";
     causes.push(logEvent(V, "confession", cs.accused, V.authority, { case: cs.id, true: guilty }, [trialEv],
       `${nameOf(V, cs.accused)} on their knees before the elder`));
@@ -250,7 +261,7 @@ function publicAct(V, s) {
   // player is there): bold, loving kin try it sometimes
   if ((def.lethal || kind === "branding") && kind !== "mob") {
     for (const q of V.people) {
-      if (!q.alive || !q.present || !isKin(V, q.id, victim.id) || q.id === victim.id || ageOf(V, q) < 16) continue;
+    if (!q.alive || !q.present || !isKin(V, q.id, victim.id) || q.id === victim.id || ageOf(V, q) < 16) continue;
       const nerve = q.traits[C.BOLD] + q.traits[C.COMPASSION] - 85;
       if (nerve > 0 && chance(key(k, 700 + q.id), nerve * (closeKin(V, q.id, victim.id) ? 6000 : 2500))) {
         const ev = logEvent(V, "public_act", victim.id, q.id, { kind, outcome: "rescued", case: cs.id }, causes,

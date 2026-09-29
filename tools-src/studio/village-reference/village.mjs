@@ -366,6 +366,8 @@ export function planDay(V) {
     p.plan = [];
     if (!p.alive || !p.present) continue;
     const home = V.households[p.household].home;
+    const refuge = V.runtime?.residents[p.id];
+    if (refuge && refuge.refuge_until > V.runtime.now) { p.plan = [[0, DAY, refuge.destination]]; continue; }
     if (p.locked) { p.plan = [[0, DAY, p.lockedAt ?? "pillory"]]; continue; }
     const k = key(dk, p.id);
     const work = workPlace(V, p);

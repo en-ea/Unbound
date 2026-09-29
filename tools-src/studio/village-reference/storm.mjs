@@ -122,11 +122,25 @@ function riteToday(V, st) {
   const ev = logEvent(V, "rite", leader, victim, { rite: "seized", storm: st.id }, [st.event],
     `${nameOf(V, victim)} dragged towards the stake at dusk by strangers in furs, drums starting`);
   V.fear = clamp(V.fear + 150, 0, 1000);
-  V.schedule.push({ day: V.day + 1, kind: "rite", who: leader, other: victim, storm: st.id, causes: [ev] });
+  const planned = { day: V.day + 1, kind: "rite", who: leader, other: victim, storm: st.id, causes: [ev] };
+  if (V.runtime) { riteAct(V, planned); st.offered = true; }
+  else V.schedule.push(planned);
 }
 
 export function riteAct(V, s) {
   const L = V.people[s.who], q = V.people[s.other];
+  if (V.runtime && !V.runtime.resolving) {
+    if (!q.alive || !q.present || !L.alive || !L.present) return;
+    const st = V.storms[s.storm];
+    const worshippers = st.ancestors.filter(id => V.people[id].alive && V.people[id].present);
+    const staging = makeRiteStaging(V, L.id, q.id, worshippers, 'pending', -1, s.causes[0]);
+    staging.day = s.day;
+    // The night window and the restrained body begin together, before the dawn rite.
+    staging.start = -180;
+    staging.beats[0].at = -180;
+    V.runtime.rites.push({ staging: staging.id, s: { ...s }, victim: q.id, deadline: 360 });
+    return;
+  }
   q.locked = false;
   if (!q.alive || !q.present || !L.alive || !L.present) return;
   const k = key(key(key(V.base, P.STORM), V.day), 0x5ac + q.id);
