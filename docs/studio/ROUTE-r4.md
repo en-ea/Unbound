@@ -132,13 +132,26 @@ The crowd's mood escalates the same act. At a pillory, the crowd starts with rot
 - **Night rituals of a secret cult.**
 - **Omens,** read through the age's beliefs (a two-headed calf, a red moon, a storm front), which raise the crowd's fear and pick a scapegoat.
 
-**Boundaries that stay** (from r3 section 5, set by Hilmi and Enea; not changed by the standing permission):
-- no sexual violence;
-- no children as victims;
-- no torture detail;
-- slavery is never a mechanic.
+**Boundaries.** These were **proposed by the studio** in route r3 section 5, as decision D2. Hilmi and Enea have not decided them.
 
-Death is staged: silhouettes at a distance, the crowd's reaction, the aftermath. It is never gore. **Age rating:** this content means PEGI 16 to 18 if the game is ever published on a store. For private sideloaded play, it's the owners' call.
+*Correction, 29 Sep:* an earlier version of this section said Hilmi and Enea had set them. They had not.
+
+| Boundary | Kind | In practice |
+|---|---|---|
+| No sexual violence | **The studio's own line; it holds regardless** | Never designed, shown or implied. Affairs, courtship and scandal (r3's "intimacy" misbehaviour) stay |
+| No children as victims | **The studio's own line; it holds regardless** | Villages have children: families, growth, heirs. They are never accused, punished, sacrificed or eaten, and can't be harmed by players or mobs; they hide or flee when violence starts (as in Skyrim). Famine cannibalism uses only the adult dead. Sacrifices are adults or animals |
+| No torture detail | A recommendation; the owners can overturn it | Branding, stocks and the ordeal happen, briefly. There are no drawn-out torture scenes and no torture minigames. Interrogation works through evidence and leverage |
+| Slavery is never a mechanic | A recommendation; the owners can overturn it | Captives, hostages, ransom and prisoners exist. Owning, trading or working people as property does not |
+| Death is staged, never gory | A staging rule (it keeps a store release possible) | Shown by silhouettes at a distance, the crowd's reaction, then aftermath props: the gallows, the charred stake, bones, the cooking pit. No close-up killing, no dismemberment |
+| Singled-out groups are always fictional | A store rule | The persecuted are the game's own peoples (the Tethered, storm people, cults), never a real religion, ethnicity or nation |
+
+**Why the last two matter** `[web]`:
+- Apple's App Store guideline 1.1.2 bars "realistic portrayals of people or animals being killed, maimed, tortured or abused, or content that encourages violence".
+- The same guideline says game enemies "cannot solely target a specific race, culture, real government, corporation or any other real entity".
+- Store screenshots must suit a 4+ rating even for a mature game (guideline 2.3.8).
+- The stylised low-poly look plus staging keeps a future store release open.
+
+**Age rating:** this content means PEGI 16 to 18 if the game is ever published on a store. For private sideloaded play, no rating applies; it's the owners' call.
 
 **In the slice** (section 4), two chains show the ages clashing:
 1. **Theft → pillory, with pelting that can escalate → hanging or exile.** It includes trial by combat as the player's lever.
@@ -368,7 +381,7 @@ Hilmi's domain runs on Cloudflare `[chat]`, so matchmaking, rooms and log storag
 | 29 Sep | Multiplayer left until after the slice, with the capacity kept in mind; players are never on the same Wi-Fi | Hilmi `[chat]`: "we would never be under the same wifi though and multiplayer needs to have the capacity kept in mind but left until later" |
 | 29 Sep | Hilmi's domain runs on Cloudflare: a candidate home for rooms, matchmaking and world logs | Hilmi `[chat]` |
 | 29 Sep | Enea may read Hilmi's own words in the branch documents | Hilmi `[chat]`: "let him see them" |
-| 29 Sep | Bonfire burning, pillories, cannibalism and rock throwing added; **standing permission for inventive content of this kind** (the boundaries in section 3.2a stay) | Hilmi `[chat]`: "you don't need my permission for these sort of inventive things" |
+| 29 Sep | Bonfire burning, pillories, cannibalism and rock throwing added; **standing permission for inventive content of this kind** (section 3.2a lists the boundaries: two are the studio's own lines, the rest are the owners' call) | Hilmi `[chat]`: "you don't need my permission for these sort of inventive things" |
 
 ---
 
