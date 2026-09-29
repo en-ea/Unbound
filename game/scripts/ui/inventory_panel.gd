@@ -122,6 +122,9 @@ func _refresh_gear() -> void:
 			_refresh()))
 	var def := UIStyle.label(_gear, "Defence %d  ·  blocks %d%% of hits" % [Armor.defence(), roundi(Armor.block_chance() * 100.0)], 14, true)
 	def.visible = Armor.defence() > 0
+	if not Armor.current("helm").is_empty():
+		var helm := UIStyle.button(_gear, "Helm: shown" if Armor.show_helm else "Helm: hidden", Vector2(0, 40), 15)
+		helm.pressed.connect(func() -> void: Armor.set_show_helm(not Armor.show_helm))
 	# Skills: name, level and a bar each.
 	UIStyle.label(_gear, "SKILLS", 15, true)
 	var skills := VBoxContainer.new()

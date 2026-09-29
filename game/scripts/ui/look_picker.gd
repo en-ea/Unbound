@@ -177,8 +177,20 @@ func _row(title: String, choices: Array, current: String, on_pick: Callable, slo
 		var b := UIStyle.label(mid, blurb, 14, true)
 		b.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var dots := UIStyle.label(mid, "".join(choices.map(func(c: String) -> String: return "●" if c == current else "·")), 11, true)
-	dots.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var dots := HBoxContainer.new()             # drawn, not text: the web font has no dot symbols
+	dots.alignment = BoxContainer.ALIGNMENT_CENTER
+	dots.add_theme_constant_override("separation", 4)
+	mid.add_child(dots)
+	for c: String in choices:
+		var d := Panel.new()
+		var on := c == current
+		d.custom_minimum_size = Vector2.ONE * (7.0 if on else 5.0)
+		d.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var st := StyleBoxFlat.new()
+		st.bg_color = Color(1.0, 0.85, 0.5) if on else Color(1, 1, 1, 0.3)
+		st.set_corner_radius_all(4)
+		d.add_theme_stylebox_override("panel", st)
+		dots.add_child(d)
 	UIStyle.button(row, "›", Vector2(52, 52), 26).pressed.connect(step.bind(1))
 
 

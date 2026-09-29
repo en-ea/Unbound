@@ -1,5 +1,5 @@
 extends Control
-## Pickup feed: small pills under the FPS text ("● Wood  +3"). Repeat pickups of the same item
+## Pickup feed: small pills under the FPS text ("Wood  +3"). Repeat pickups of the same item
 ## merge into one pill and bump its count; pills fade out after a moment.
 
 const INVENTORY_PANEL := preload("res://scripts/ui/inventory_panel.gd")

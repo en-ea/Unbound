@@ -1,6 +1,6 @@
 extends PanelContainer
 ## The card that pops in at the top when you pick up found gear: its picture, name in its rarity
-## colour, rarity and main number (with ▲/▼ against what you have on), its bonuses, and whether you
+## colour, rarity and main number (with +/- against what you have on), its bonuses, and whether you
 ## put it on. Rarer finds glow brighter. One card at a time; it fades after a few seconds.
 
 const SHOW_FOR := 3.8
@@ -39,7 +39,7 @@ func show_piece(slot: String, piece: Dictionary) -> void:
 		var now := GearView.current(slot)
 		var diff := stat - (GearView.main_stat(slot, now) if not now.is_empty() else 0)
 		if diff != 0:
-			var arrow := UIStyle.label(line, ("▲%d" if diff > 0 else "▼%d") % absi(diff), 15)
+			var arrow := UIStyle.label(line, "%+d" % diff, 15)
 			arrow.add_theme_color_override("font_color", GearView.UP if diff > 0 else GearView.DOWN)
 	for text in Gear.bonus_lines(piece):
 		var b := UIStyle.label(info, text, 13)

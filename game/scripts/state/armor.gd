@@ -12,7 +12,7 @@ const TIERS := Balance.ARMOR_TIERS
 
 var owned := {"helm": [], "chest": [], "boots": []}
 var equipped := {"helm": -1, "chest": -1, "boots": -1}     # index into owned[slot], -1 = none
-var show_helm := true
+var show_helm := false            # off: your chosen headwear shows even with a helm on
 
 
 static func piece(tier: int, rarity := 0, bonuses := {}) -> Dictionary:
@@ -121,7 +121,7 @@ func set_show_helm(on: bool) -> void:
 
 
 func to_data() -> Dictionary:
-	return {"owned": owned, "equipped": equipped, "show_helm": show_helm}
+	return {"owned": owned, "equipped": equipped, "helm_shown": show_helm}
 
 
 func load_data(data: Variant) -> void:
@@ -137,5 +137,5 @@ func load_data(data: Variant) -> void:
 					p["seed"] = int(entry.get("seed", p["seed"]))
 					owned[slot].append(p)
 			equipped[slot] = clampi(int(data.get("equipped", {}).get(slot, -1)), -1, owned[slot].size() - 1)
-		show_helm = bool(data.get("show_helm", true))
+		show_helm = bool(data.get("helm_shown", false))
 	changed.emit()

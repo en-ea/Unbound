@@ -107,7 +107,7 @@ static func fill_detail(parent: Control, slot: String, index: int) -> void:
 		var now := current(slot)
 		var diff := stat - (main_stat(slot, now) if not now.is_empty() else (0 if is_armor(slot) else 1))
 		if diff != 0:
-			var arrow := UIStyle.label(line, ("▲%d" if diff > 0 else "▼%d") % absi(diff), 15)
+			var arrow := UIStyle.label(line, "%+d" % diff, 15)
 			arrow.add_theme_color_override("font_color", UP if diff > 0 else DOWN)
 	var lines := Gear.bonus_lines(p)
 	if not lines.is_empty():
@@ -159,7 +159,7 @@ static func worn_row(slot: String, on_pick: Callable) -> Button:
 	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	b.add_child(h)
 	if p.is_empty():
-		var none := UIStyle.label(h, "—", 16, true)
+		var none := UIStyle.label(h, "-", 16, true)
 		none.custom_minimum_size = Vector2(42, 42)
 		none.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		none.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
