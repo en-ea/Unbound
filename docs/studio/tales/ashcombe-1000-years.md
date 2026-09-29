@@ -70,7 +70,7 @@ That was the year the storm came down on the Thatcher house. When the air cleare
 
 ## Year 741: Nell Walks Out
 
-That season people saw crows on the church roof, and began to watch one another. Whispers started that Nell had cursed the village - charms of twisted straw found by a doorway. Ilse named Nell before the elder. Ilse, the elder, judged it too. They put Nell in the millpond. They floated. Guilty. The sentence was exile. Nell walked out of the south gate with one bundle and did not look back. Hob had never forgiven Ilse for what was done to Nell. Ilse was found dead at the loaf. They are remembered as Nell Who Walked Out.
+That season people saw crows on the church roof, and began to watch one another. Whispers started that Nell had cursed the village - charms of twisted straw found by a doorway. Ilse named Nell before the elder. Ilse, the elder, judged it too. They put Nell in the millpond. They floated. Guilty. The sentence was exile. Nell walked out of the south gate with one bundle and did not look back. Hob had never forgiven Ilse for what was done to Nell. Ilse was found dead at the loaf house. They are remembered as Nell Who Walked Out.
 
 ## Year 853: The Stones That Were Not Thrown
 

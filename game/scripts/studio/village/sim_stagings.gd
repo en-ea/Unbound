@@ -5523,7 +5523,7 @@ const STAGINGS := [
 		],
 		"seed": 16838,
 		"title": "The Hanging of Hugh",
-		"story": "One evening a fight at the loaf went too far: Hugh struck Simkin, and Simkin did not get up. Godric came to Edith: it was Hugh. Edith named Hugh before the elder. Tobin, the elder, heard it in the square. The sentence was the rope. They hanged Hugh at dawn from a gallows built by lantern light. They are remembered as Hugh the Hanged."
+		"story": "One evening a fight at the loaf house went too far: Hugh struck Simkin, and Simkin did not get up. Godric came to Edith: it was Hugh. Edith named Hugh before the elder. Tobin, the elder, heard it in the square. The sentence was the rope. They hanged Hugh at dawn from a gallows built by lantern light. They are remembered as Hugh the Hanged."
 	},
 	{
 		"id": 8,
