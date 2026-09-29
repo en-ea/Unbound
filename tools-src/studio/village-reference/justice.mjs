@@ -132,6 +132,7 @@ function trial(V, s) {
   const vEv = logEvent(V, "verdict", V.authority, cs.accused, { case: cs.id, verdict, via, act, vetoed, asked: vetoed ? asked : "" }, causes,
     vetoed ? "the elder, weary of blood, names a lesser sentence" : `the elder naming the sentence: ${act.replace("_", " ")}`);
   if (vetoed) earn(V, V.authority, "merciful");
+  if (C.PUBLIC[act].lethal && !hold) V.director.lethal++; // a death sentence takes the cycle's one death now (not two in a day)
   accused.offences++;
   // a kinsman may try a rescue the night before a killing (headless stand-in for the player's rescue window)
   V.schedule.push({ day: V.day + 1, kind: "public", act, case: cs.id, causes: [vEv], confessed, vetoed, hold, waited: 0 });

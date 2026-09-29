@@ -427,7 +427,7 @@ export function checkCases(V) {
     // the elder tries it, unless the village no longer listens to the elder and the crowd is hot
     const anger = idiv(V.fear, 2) + idiv(V.hardship, 3) + C.ACTS[c.act].severity * 90;
     const cap = authorityCapacity(V);
-    if (lethalAllowed(V) && cap < 420 && anger > cap + 250) scheduleMob(V, cs);
+    if (lethalAllowed(V) && cap < 420 && anger > cap + 250) { V.director.lethal++; scheduleMob(V, cs); } // (the mob takes the cycle's one death now)
     else scheduleTrial(V, cs);
   }
 }
