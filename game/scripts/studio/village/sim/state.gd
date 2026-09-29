@@ -65,6 +65,10 @@ class Person:
 	var eaten := false
 	var exiled_for := -1
 	var exiled_day := -1
+	# time storms (storm.gd): the storm an ancestor came with, the storm a villager is lost in (-1: none)
+	var ancestor := -1
+	var lost_to_storm := -1
+	var faded := false
 
 
 class Household:
@@ -111,6 +115,7 @@ class Crime:
 	var punish_event := -1
 	var wrongful_punishment := false
 	var exonerated := false
+	var reopen_day := -1   # set when a confession reopens it (-1: undefined, the cold-case clock runs from day)
 
 
 class Case:
@@ -149,14 +154,28 @@ class Sched:
 	var vetoed := false
 	var hold := false
 	var waited := 0
+	var storm := -1   # a rite's storm
 	var seq := 0   # (port) position in today's list, the sort's final tie-break
 
 	func copy() -> Sched:
 		var s := Sched.new()
 		s.day = day; s.kind = kind; s.case_id = case_id; s.who = who; s.other = other; s.name = name
 		s.act = act; s.causes = causes; s.minute = minute; s.confessed = confessed; s.vetoed = vetoed
-		s.hold = hold; s.waited = waited
+		s.hold = hold; s.waited = waited; s.storm = storm
 		return s
+
+
+## A time storm (storm.gd).
+class Storm:
+	var id := 0
+	var household := 0
+	var from := 0
+	var until := 0
+	var lost: Array[int] = []
+	var ancestors: Array[int] = []
+	var event := -1
+	var active := true
+	var offered := false
 
 
 class Director:
@@ -216,3 +235,8 @@ class Village:
 		"births": 0, "famines": 0, "omens": 0, "festivals": 0, "exonerations": 0, "mobs": 0}
 	var culture := {}
 	var omen_event := -1
+	# time storms (storm.gd): an anchored story village is exempt; storm_plan is the kernel's stand-in for tests,
+	# [day, household, days] triples
+	var storms: Array[Storm] = []
+	var storm_plan := PackedInt32Array()
+	var anchored := false

@@ -12,6 +12,7 @@ const E := preload("res://scripts/studio/village/sim/events.gd")
 const Village := preload("res://scripts/studio/village/sim/village.gd")
 const Crime := preload("res://scripts/studio/village/sim/crime.gd")
 const Director := preload("res://scripts/studio/village/sim/director.gd")
+const Storm := preload("res://scripts/studio/village/sim/storm.gd")
 
 
 static func authority_capacity(V: S.Village) -> int:
@@ -45,7 +46,7 @@ static func schedule_mob(V: S.Village, cs: S.Case) -> void:
 
 
 # ---------- today's scheduled events ----------
-const ORDER := ["unlock", "funeral", "trial", "public", "wedding", "festival"]
+const ORDER := ["unlock", "funeral", "trial", "public", "wedding", "festival", "rite"]  # (a "return" is not listed: it sorts first, index -1)
 
 
 static func run_scheduled(V: S.Village) -> void:
@@ -77,6 +78,8 @@ static func run_scheduled(V: S.Village) -> void:
 			V.people[s.who].locked = false
 		elif s.kind == "return":
 			come_home(V, s)
+		elif s.kind == "rite":
+			Storm.rite_act(V, s)
 
 
 ## ORDER.indexOf(kind) (-1 for an unlisted kind: a "return" sorts first), then (case ?? who ?? 0), then the
@@ -330,9 +333,10 @@ static func public_act(V: S.Village, s: S.Sched) -> void:
 		total_s += sympathy[id]
 	var turned := n > 0 and total_s * 10 > total_a * 11 and not (kind == "mob" and V.fear > 800)
 	# the cascade: each joins once enough others already throw (threshold from their own balance)
+	# (children watch, but never throw)
 	var wants: Array[int] = []
 	for id in attend:
-		if anger[id] > sympathy[id]:
+		if anger[id] > sympathy[id] and Village.age_of(V, V.people[id]) >= 14:
 			wants.append(id)
 	var thr := {}
 	for id in wants:
@@ -529,14 +533,14 @@ static func confess_guilt(V: S.Village, pid: int, deathbed: bool = false) -> voi
 			Crime.give_belief(V, hearer, cid, pid, 800, V.priest if V.priest >= 0 else hearer, 1, V.priest)
 			if c.household < 0 or not V.households[c.household].members.has(hearer):
 				c.household = V.people[hearer].household
-		c.case_open = false; c.closed = false; c.false_accusation = false; c.discovered = true
+		c.case_open = false; c.closed = false; c.false_accusation = false; c.discovered = true; c.reopen_day = V.day
 	p.secret.clear()
 
 
 # The wrongly exiled come home: thinner, older, owed something; the village makes amends.
 static func come_home(V: S.Village, s: S.Sched) -> void:
 	var p := V.people[s.who]
-	if not p.alive or p.present:
+	if not p.alive or p.present or p.faded:
 		return
 	p.present = true
 	var still: Array[int] = []

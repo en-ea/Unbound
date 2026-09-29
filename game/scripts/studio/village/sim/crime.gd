@@ -497,7 +497,7 @@ static func gossip(V: S.Village) -> void:
 static func mingle(V: S.Village, a: int, b: int, k: int) -> void:
 	var sp := V.people[a]
 	var ls := V.people[b]
-	var slight := sp.traits[C.TEMPER] * 60 + maxi(0, -Village.opinion(V, a, b)) * 450 - sp.traits[C.COMPASSION] * 20
+	var slight := sp.traits[C.TEMPER] * 60 + maxi(0, -Village.opinion(V, a, b)) * 450 - sp.traits[C.COMPASSION] * 20 + int(C.LANG_DISTANCE[sp.era][ls.era]) * 60
 	if slight > 0 and R.chance(k, slight * V.pace):
 		Village.set_opinion(V, b, a, Village.opinion(V, b, a) - 4 - R.idiv(ls.traits[C.TEMPER], 12))
 		return
@@ -510,7 +510,9 @@ static func tell(V: S.Village, a: int, b: int, k: int) -> void:
 	var ls := V.people[b]
 	if sp.beliefs.size() == 0:
 		return
-	if not R.chance(k, 250000 + sp.traits[C.SOCIABLE] * 5000):
+	# across the ages speech barely carries (a storm's forebears and the villagers): language distance
+	var lang := 100 - int(C.LANG_DISTANCE[sp.era][ls.era])
+	if not R.chance(k, R.idiv((250000 + sp.traits[C.SOCIABLE] * 5000) * lang, 100)):
 		return
 	# the speaker's strongest belief the listener has not heard (old news about settled cases is not told)
 	var best: S.Belief = null
@@ -562,6 +564,10 @@ static func tell(V: S.Village, a: int, b: int, k: int) -> void:
 static func check_cases(V: S.Village) -> void:
 	for c in V.crimes:
 		if c.closed or not c.discovered or c.case_open:
+			continue
+		# a cold case: two months with no one able to name anyone, and it is let go
+		if V.day - (c.reopen_day if c.reopen_day >= 0 else c.day) > 60:
+			c.closed = true
 			continue
 		# who may accuse: the wronged household (and the elder); for witchcraft, anyone
 		var accusers: Array[int] = []

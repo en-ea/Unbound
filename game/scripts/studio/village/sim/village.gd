@@ -15,6 +15,7 @@ const E := preload("res://scripts/studio/village/sim/events.gd")
 const Crime := preload("res://scripts/studio/village/sim/crime.gd")
 const Justice := preload("res://scripts/studio/village/sim/justice.gd")
 const Director := preload("res://scripts/studio/village/sim/director.gd")
+const Storm := preload("res://scripts/studio/village/sim/storm.gd")
 
 const YEAR := 60  # days in a village year: four seasons of 15
 const DAY := 1440  # minutes
@@ -62,7 +63,8 @@ const MEADOW := {
 }
 
 
-## opts: {"pace": int, "age": int, "tier": String, "layout": Dictionary, "name": String}
+## opts: {"pace": int, "age": int, "tier": String, "layout": Dictionary, "name": String, "anchored": bool,
+##   "stormPlan": [{"day": int, "household": int, "days": int}]}
 static func create_village(seed: int, opts: Dictionary = {}) -> S.Village:
 	var V := S.Village.new()
 	V.seed = seed & R.M32
@@ -75,6 +77,10 @@ static func create_village(seed: int, opts: Dictionary = {}) -> S.Village:
 	V.pace = opts.get("pace", 1)
 	V.tier = opts.get("tier", "private")
 	V.name = opts.get("name", "Wenbrook")
+	# time storms (storm.gd): an anchored story village is exempt; stormPlan is the kernel's stand-in for tests
+	for sp: Dictionary in opts.get("stormPlan", []):
+		V.storm_plan.append_array([sp["day"], sp["household"], sp["days"]])
+	V.anchored = opts.get("anchored", false)
 	make_places(V, opts.get("layout", MEADOW))
 	V.culture = (C.CULTURE[V.age] as Dictionary).duplicate()
 	# six founding lineages, one household each
@@ -326,6 +332,8 @@ static func step_day(V: S.Village) -> void:
 	plan_day(V)
 	Justice.run_scheduled(V)
 	Crime.crimes_today(V)
+	if V.storms.size() > 0 or V.storm_plan.size() > 0:
+		Storm.storm_day(V)
 	Crime.discover_crimes(V)
 	Crime.gossip(V)
 	Crime.check_cases(V)
@@ -426,7 +434,10 @@ static func life(V: S.Village) -> void:
 			continue
 		if R.chance(R.key(R.key(R.key(V.base, P_BIRTH), V.day), p.id), 9000):
 			var k := R.key(R.key(V.base, P_SEX), V.people.size())
-			add_person(V, p.household, R.pick(k, 2), 0, p.spouse, p.id)
+			var baby := add_person(V, p.household, R.pick(k, 2), 0, p.spouse, p.id, {"era": p.era} if p.ancestor >= 0 else {})
+			if p.ancestor >= 0:  # born in the storm, goes with it
+				V.people[baby].ancestor = p.ancestor
+				V.storms[p.ancestor].ancestors.append(baby)
 			V.stats["births"] += 1
 
 
