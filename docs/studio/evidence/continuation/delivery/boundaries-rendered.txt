@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 572.16 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3050 Laptop GPU
+
+PASS rescue integration: real input twice, immediate save/load, midnight, actual region reload and return
+PASS rescue integration: actual airborne prop, player health and outcome frozen by menu and background
+PASS rescue integration: active region departure and return before/after deadline; headless canonical consequence; no stale stage

@@ -6,7 +6,9 @@ const path = require("path");
 const os = require("os");
 
 const ROOT = path.join(__dirname, "..", "build", "web");
-const PORT = 8080;
+// Localhost is a secure browser context without installing a LAN certificate.
+const LOCAL = process.argv.includes("--local");
+const PORT = LOCAL ? 8087 : 8080;
 const TYPES = {
   ".html": "text/html", ".js": "text/javascript", ".wasm": "application/wasm",
   ".pck": "application/octet-stream", ".png": "image/png", ".json": "application/json",
@@ -16,9 +18,9 @@ const TYPES = {
 // Godot's web build needs a secure (https) page. A self-signed dev certificate
 // is enough: Safari warns once, then you tap through.
 const https = require("https");
-const opts = { pfx: fs.readFileSync(path.join(__dirname, "..", "tools", "dev-cert.pfx")), passphrase: "soongame" };
+const opts = LOCAL ? {} : { pfx: fs.readFileSync(path.join(__dirname, "..", "tools", "dev-cert.pfx")), passphrase: "soongame" };
 
-https.createServer(opts, (req, res) => {
+(LOCAL ? http : https).createServer(opts, (req, res) => {
   const url = decodeURIComponent(req.url.split("?")[0]);
   // Godot's offline service worker breaks on iPhone Safari. Serve a tiny one
   // that wipes its caches and removes itself, so the page loads normally.
@@ -46,7 +48,8 @@ self.addEventListener("activate", (e) => e.waitUntil((async () => {
     });
     res.end(data);
   });
-}).listen(PORT, "0.0.0.0", () => {
+}).listen(PORT, LOCAL ? "127.0.0.1" : "0.0.0.0", () => {
+  if (LOCAL) return console.log(`Local game preview: http://localhost:${PORT}/`);
   const ips = Object.values(os.networkInterfaces()).flat()
     .filter(i => i && i.family === "IPv4" && !i.internal).map(i => i.address);
   console.log("Game server running. On your iPhone (same Wi-Fi), open:");
