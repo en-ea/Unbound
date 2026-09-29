@@ -61,6 +61,11 @@ func apply() -> void:
 	Engine.max_fps = fps_cap
 	Engine.physics_ticks_per_second = fps_cap
 	get_viewport().scaling_3d_scale = render_scale
+	# Studio device gate: this Mali-G76 GLES driver exhausts native memory with 3D MSAA.
+	# The otherwise identical no-MSAA arrival stays near 190 MB native heap. Keep the
+	# renderer/bodies and other devices' AA settings; avoid the failing allocation path here.
+	if OS.get_name() == "Android" and RenderingServer.get_current_rendering_method() == "gl_compatibility" and RenderingServer.get_video_adapter_name().contains("Mali-G76"):
+		get_viewport().msaa_3d = Viewport.MSAA_DISABLED
 	AudioServer.set_bus_mute(0, not sound_on)
 	changed.emit()
 

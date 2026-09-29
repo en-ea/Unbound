@@ -1,7 +1,8 @@
 extends Node3D
 ## The stage (tier E of the living village): plays a staging (staging.gd) live in the meadow village.
 ## The simulation decides what happens; the stage only shows it. Each person comes out of their door
-## when their first beat is due, and the beats run in time order on the stage's own clock:
+## when their first beat is due. Live play follows the persisted village clock; standalone witness
+## demos use a private clock:
 ##
 ##   stage.play(staging, people, 8.0)    # x8 fast-forward; set_speed() changes it, skip_to(minute) jumps
 ##
@@ -534,7 +535,7 @@ func stats() -> Dictionary:
 		"latest_beat": str(_beats[_latest_beat]) if _latest_beat >= 0 else ""}
 
 
-## The last frame's stage _process time (microseconds, making bodies excluded).
+## The last frame's stage _process time, including body acquisition/construction (microseconds).
 func last_cost_us() -> int:
 	return _cost_last
 
