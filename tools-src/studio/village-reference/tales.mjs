@@ -36,11 +36,13 @@ export function extractTales(V, perCentury = 3) {
   const perC = new Map();
   const kindsIn = new Map();
   const kindUses = new Map(); // a kind already told is worth less the next time (the book needs range)
+  const themeOf = (t) => V.events[t.ids.find((id) => V.events[id].type === "crime") ?? t.root].data.act ?? "none";
+  const themeUses = new Map(); // so is a theme (another witch, another theft)
   const pool = [...tales];
   while (pool.length) {
     let bi = 0, bs = -1e9;
     for (let i = 0; i < pool.length; i++) {
-      const a = pool[i].score - 25 * (kindUses.get(kindOf(pool[i])) ?? 0);
+      const a = pool[i].score - 30 * (kindUses.get(kindOf(pool[i])) ?? 0) - 20 * (themeUses.get(themeOf(pool[i])) ?? 0);
       if (a > bs || (a === bs && pool[i].root < pool[bi].root)) { bs = a; bi = i; }
     }
     const t = pool.splice(bi, 1)[0];
@@ -57,6 +59,7 @@ export function extractTales(V, perCentury = 3) {
     kindsIn.set(ck, true);
     told.set(r.who, [...(told.get(r.who) ?? []), t.year]);
     kindUses.set(kind, (kindUses.get(kind) ?? 0) + 1);
+    themeUses.set(themeOf(t), (themeUses.get(themeOf(t)) ?? 0) + 1);
     out.push(t);
     perC.set(century, (perC.get(century) ?? 0) + 1);
     for (const id of t.ids) used.add(id);

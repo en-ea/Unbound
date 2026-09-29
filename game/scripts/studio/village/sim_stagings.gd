@@ -4,7 +4,7 @@ extends RefCounted
 
 const STAGINGS := [
 	{
-		"id": 126,
+		"id": 104,
 		"kind": "pillory",
 		"place": "pillory",
 		"start": 480,
@@ -30,45 +30,45 @@ const STAGINGS := [
 			}
 		],
 		"roles": {
-			"victim": 66,
+			"victim": 29,
 			"accuser": 8,
-			"authority": 25,
+			"authority": 12,
 			"crowd": [
+				7,
 				8,
-				20,
-				31,
+				10,
+				14,
+				16,
+				19,
+				21,
+				22,
+				33,
 				36,
+				37,
 				38,
+				39,
 				42,
-				43,
-				44,
+				47,
+				48,
+				49,
+				50,
 				51,
-				52,
-				53,
-				55,
-				56,
-				57,
-				58,
-				61,
-				62,
-				67,
-				68,
-				69
+				52
 			]
 		},
 		"beats": [
 			{
 				"at": 480,
-				"who": 25,
+				"who": 12,
 				"do": "walk_to",
 				"slot": -1,
-				"target": 66,
+				"target": 29,
 				"anim": "Walk_Formal",
 				"prop": ""
 			},
 			{
 				"at": 480,
-				"who": 66,
+				"who": 29,
 				"do": "walk_to",
 				"slot": -1,
 				"target": -1,
@@ -77,7 +77,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 485,
-				"who": 8,
+				"who": 7,
 				"do": "walk_to",
 				"slot": 0,
 				"target": -1,
@@ -86,7 +86,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 486,
-				"who": 20,
+				"who": 8,
 				"do": "walk_to",
 				"slot": 1,
 				"target": -1,
@@ -95,7 +95,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 487,
-				"who": 31,
+				"who": 10,
 				"do": "walk_to",
 				"slot": 2,
 				"target": -1,
@@ -104,7 +104,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 488,
-				"who": 36,
+				"who": 14,
 				"do": "walk_to",
 				"slot": 3,
 				"target": -1,
@@ -112,17 +112,8 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 488,
-				"who": 66,
-				"do": "lock",
-				"slot": -1,
-				"target": -1,
-				"anim": "Crouch_Idle",
-				"prop": ""
-			},
-			{
 				"at": 489,
-				"who": 38,
+				"who": 16,
 				"do": "walk_to",
 				"slot": 4,
 				"target": -1,
@@ -131,7 +122,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 490,
-				"who": 42,
+				"who": 19,
 				"do": "walk_to",
 				"slot": 5,
 				"target": -1,
@@ -139,8 +130,17 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
+				"at": 490,
+				"who": 29,
+				"do": "lock",
+				"slot": -1,
+				"target": -1,
+				"anim": "Crouch_Idle",
+				"prop": ""
+			},
+			{
 				"at": 491,
-				"who": 43,
+				"who": 21,
 				"do": "walk_to",
 				"slot": 6,
 				"target": -1,
@@ -149,7 +149,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 492,
-				"who": 8,
+				"who": 7,
 				"do": "stand",
 				"slot": 0,
 				"target": -1,
@@ -158,7 +158,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 492,
-				"who": 44,
+				"who": 22,
 				"do": "walk_to",
 				"slot": 7,
 				"target": -1,
@@ -167,7 +167,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 493,
-				"who": 51,
+				"who": 8,
+				"do": "stand",
+				"slot": 1,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 493,
+				"who": 33,
 				"do": "walk_to",
 				"slot": 8,
 				"target": -1,
@@ -176,7 +185,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 494,
-				"who": 52,
+				"who": 10,
+				"do": "stand",
+				"slot": 2,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 494,
+				"who": 36,
 				"do": "walk_to",
 				"slot": 9,
 				"target": -1,
@@ -185,16 +203,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 495,
-				"who": 36,
-				"do": "stand",
-				"slot": 3,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 495,
-				"who": 53,
+				"who": 37,
 				"do": "walk_to",
 				"slot": 10,
 				"target": -1,
@@ -203,7 +212,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 496,
-				"who": 38,
+				"who": 16,
 				"do": "stand",
 				"slot": 4,
 				"target": -1,
@@ -212,7 +221,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 496,
-				"who": 55,
+				"who": 38,
 				"do": "walk_to",
 				"slot": 11,
 				"target": -1,
@@ -221,16 +230,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 497,
-				"who": 20,
+				"who": 14,
 				"do": "stand",
-				"slot": 1,
+				"slot": 3,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_Talking",
 				"prop": ""
 			},
 			{
 				"at": 497,
-				"who": 42,
+				"who": 19,
 				"do": "stand",
 				"slot": 5,
 				"target": -1,
@@ -239,7 +248,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 497,
-				"who": 56,
+				"who": 39,
 				"do": "walk_to",
 				"slot": 12,
 				"target": -1,
@@ -248,16 +257,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 498,
-				"who": 31,
+				"who": 21,
 				"do": "stand",
-				"slot": 2,
+				"slot": 6,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
 				"at": 498,
-				"who": 57,
+				"who": 42,
 				"do": "walk_to",
 				"slot": 13,
 				"target": -1,
@@ -266,7 +275,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 499,
-				"who": 58,
+				"who": 47,
 				"do": "walk_to",
 				"slot": 14,
 				"target": -1,
@@ -275,16 +284,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 500,
-				"who": 53,
-				"do": "stand",
-				"slot": 10,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 500,
-				"who": 61,
+				"who": 48,
 				"do": "walk_to",
 				"slot": 15,
 				"target": -1,
@@ -293,25 +293,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 501,
-				"who": 52,
-				"do": "stand",
-				"slot": 9,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 55,
-				"do": "stand",
-				"slot": 11,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 62,
+				"who": 49,
 				"do": "walk_to",
 				"slot": 16,
 				"target": -1,
@@ -320,25 +302,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 502,
-				"who": 43,
+				"who": 37,
 				"do": "stand",
-				"slot": 6,
+				"slot": 10,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
 				"at": 502,
-				"who": 56,
-				"do": "stand",
-				"slot": 12,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 502,
-				"who": 67,
+				"who": 50,
 				"do": "walk_to",
 				"slot": 17,
 				"target": -1,
@@ -347,7 +320,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 503,
-				"who": 44,
+				"who": 22,
 				"do": "stand",
 				"slot": 7,
 				"target": -1,
@@ -356,16 +329,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 503,
-				"who": 57,
+				"who": 38,
 				"do": "stand",
-				"slot": 13,
+				"slot": 11,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
 				"at": 503,
-				"who": 68,
+				"who": 51,
 				"do": "walk_to",
 				"slot": 18,
 				"target": -1,
@@ -374,7 +347,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 504,
-				"who": 51,
+				"who": 33,
 				"do": "stand",
 				"slot": 8,
 				"target": -1,
@@ -383,7 +356,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 504,
-				"who": 69,
+				"who": 52,
 				"do": "walk_to",
 				"slot": 19,
 				"target": -1,
@@ -391,8 +364,17 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
+				"at": 505,
+				"who": 36,
+				"do": "stand",
+				"slot": 9,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
 				"at": 506,
-				"who": 58,
+				"who": 47,
 				"do": "stand",
 				"slot": 14,
 				"target": -1,
@@ -401,7 +383,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 507,
-				"who": 61,
+				"who": 48,
 				"do": "stand",
 				"slot": 15,
 				"target": -1,
@@ -410,7 +392,34 @@ const STAGINGS := [
 			},
 			{
 				"at": 508,
-				"who": 62,
+				"who": 39,
+				"do": "stand",
+				"slot": 12,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 509,
+				"who": 42,
+				"do": "stand",
+				"slot": 13,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 509,
+				"who": 50,
+				"do": "stand",
+				"slot": 17,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 512,
+				"who": 49,
 				"do": "stand",
 				"slot": 16,
 				"target": -1,
@@ -418,17 +427,8 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 509,
-				"who": 67,
-				"do": "stand",
-				"slot": 17,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 510,
-				"who": 68,
+				"at": 512,
+				"who": 51,
 				"do": "stand",
 				"slot": 18,
 				"target": -1,
@@ -436,8 +436,8 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 511,
-				"who": 69,
+				"at": 513,
+				"who": 52,
 				"do": "stand",
 				"slot": 19,
 				"target": -1,
@@ -446,124 +446,34 @@ const STAGINGS := [
 			},
 			{
 				"at": 540,
-				"who": 8,
+				"who": 7,
 				"do": "throw",
 				"slot": 0,
-				"target": 66,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "cabbage"
 			},
 			{
 				"at": 541,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
-				"target": 8,
+				"target": 7,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 547,
-				"who": 20,
+				"who": 8,
 				"do": "throw",
 				"slot": 1,
-				"target": 66,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "turnip"
 			},
 			{
 				"at": 548,
-				"who": 66,
-				"do": "react",
-				"slot": -1,
-				"target": 20,
-				"anim": "Hit_Chest",
-				"prop": ""
-			},
-			{
-				"at": 554,
-				"who": 31,
-				"do": "throw",
-				"slot": 2,
-				"target": 66,
-				"anim": "OverhandThrow",
-				"prop": "cabbage"
-			},
-			{
-				"at": 555,
-				"who": 66,
-				"do": "react",
-				"slot": -1,
-				"target": 31,
-				"anim": "Hit_Chest",
-				"prop": ""
-			},
-			{
-				"at": 561,
-				"who": 36,
-				"do": "throw",
-				"slot": 3,
-				"target": 66,
-				"anim": "OverhandThrow",
-				"prop": "turnip"
-			},
-			{
-				"at": 562,
-				"who": 66,
-				"do": "react",
-				"slot": -1,
-				"target": 36,
-				"anim": "Hit_Chest",
-				"prop": ""
-			},
-			{
-				"at": 568,
-				"who": 38,
-				"do": "throw",
-				"slot": 4,
-				"target": 66,
-				"anim": "OverhandThrow",
-				"prop": "cabbage"
-			},
-			{
-				"at": 569,
-				"who": 66,
-				"do": "react",
-				"slot": -1,
-				"target": 38,
-				"anim": "Hit_Chest",
-				"prop": ""
-			},
-			{
-				"at": 575,
-				"who": 42,
-				"do": "throw",
-				"slot": 5,
-				"target": 66,
-				"anim": "OverhandThrow",
-				"prop": "turnip"
-			},
-			{
-				"at": 576,
-				"who": 66,
-				"do": "react",
-				"slot": -1,
-				"target": 42,
-				"anim": "Hit_Chest",
-				"prop": ""
-			},
-			{
-				"at": 630,
-				"who": 8,
-				"do": "throw",
-				"slot": 0,
-				"target": 66,
-				"anim": "OverhandThrow",
-				"prop": "mud"
-			},
-			{
-				"at": 631,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
 				"target": 8,
@@ -571,143 +481,233 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
+				"at": 554,
+				"who": 10,
+				"do": "throw",
+				"slot": 2,
+				"target": 29,
+				"anim": "OverhandThrow",
+				"prop": "cabbage"
+			},
+			{
+				"at": 555,
+				"who": 29,
+				"do": "react",
+				"slot": -1,
+				"target": 10,
+				"anim": "Hit_Chest",
+				"prop": ""
+			},
+			{
+				"at": 561,
+				"who": 16,
+				"do": "throw",
+				"slot": 4,
+				"target": 29,
+				"anim": "OverhandThrow",
+				"prop": "turnip"
+			},
+			{
+				"at": 562,
+				"who": 29,
+				"do": "react",
+				"slot": -1,
+				"target": 16,
+				"anim": "Hit_Chest",
+				"prop": ""
+			},
+			{
+				"at": 568,
+				"who": 19,
+				"do": "throw",
+				"slot": 5,
+				"target": 29,
+				"anim": "OverhandThrow",
+				"prop": "cabbage"
+			},
+			{
+				"at": 569,
+				"who": 29,
+				"do": "react",
+				"slot": -1,
+				"target": 19,
+				"anim": "Hit_Chest",
+				"prop": ""
+			},
+			{
+				"at": 575,
+				"who": 21,
+				"do": "throw",
+				"slot": 6,
+				"target": 29,
+				"anim": "OverhandThrow",
+				"prop": "turnip"
+			},
+			{
+				"at": 576,
+				"who": 29,
+				"do": "react",
+				"slot": -1,
+				"target": 21,
+				"anim": "Hit_Chest",
+				"prop": ""
+			},
+			{
+				"at": 630,
+				"who": 7,
+				"do": "throw",
+				"slot": 0,
+				"target": 29,
+				"anim": "OverhandThrow",
+				"prop": "mud"
+			},
+			{
+				"at": 631,
+				"who": 29,
+				"do": "react",
+				"slot": -1,
+				"target": 7,
+				"anim": "Hit_Chest",
+				"prop": ""
+			},
+			{
 				"at": 637,
-				"who": 20,
+				"who": 8,
 				"do": "throw",
 				"slot": 1,
-				"target": 66,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "mud"
 			},
 			{
 				"at": 638,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
-				"target": 20,
+				"target": 8,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 644,
-				"who": 31,
+				"who": 10,
 				"do": "throw",
 				"slot": 2,
-				"target": 66,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "mud"
 			},
 			{
 				"at": 645,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
-				"target": 31,
+				"target": 10,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 651,
-				"who": 36,
+				"who": 16,
 				"do": "throw",
-				"slot": 3,
-				"target": 66,
+				"slot": 4,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "mud"
 			},
 			{
 				"at": 652,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
-				"target": 36,
+				"target": 16,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 658,
-				"who": 38,
+				"who": 19,
 				"do": "throw",
-				"slot": 4,
-				"target": 66,
+				"slot": 5,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "mud"
 			},
 			{
 				"at": 659,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
-				"target": 38,
+				"target": 19,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 665,
-				"who": 42,
+				"who": 21,
 				"do": "throw",
-				"slot": 5,
-				"target": 66,
+				"slot": 6,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "mud"
 			},
 			{
 				"at": 666,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
-				"target": 42,
+				"target": 21,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 672,
-				"who": 43,
+				"who": 22,
 				"do": "throw",
-				"slot": 6,
-				"target": 66,
+				"slot": 7,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "mud"
 			},
 			{
 				"at": 673,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
-				"target": 43,
+				"target": 22,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 679,
-				"who": 44,
+				"who": 33,
 				"do": "throw",
-				"slot": 7,
-				"target": 66,
+				"slot": 8,
+				"target": 29,
 				"anim": "OverhandThrow",
 				"prop": "mud"
 			},
 			{
 				"at": 680,
-				"who": 66,
+				"who": 29,
 				"do": "react",
 				"slot": -1,
-				"target": 44,
+				"target": 33,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 830,
-				"who": 25,
+				"who": 12,
 				"do": "release",
 				"slot": -1,
-				"target": 66,
+				"target": 29,
 				"anim": "Interact",
 				"prop": ""
 			},
 			{
 				"at": 835,
-				"who": 66,
+				"who": 29,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -716,7 +716,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 840,
-				"who": 8,
+				"who": 7,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -725,7 +725,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 841,
-				"who": 20,
+				"who": 8,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -734,7 +734,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 842,
-				"who": 31,
+				"who": 10,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -743,7 +743,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 843,
-				"who": 36,
+				"who": 14,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -752,7 +752,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 844,
-				"who": 38,
+				"who": 16,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -761,7 +761,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 845,
-				"who": 42,
+				"who": 19,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -770,7 +770,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 846,
-				"who": 43,
+				"who": 21,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -779,7 +779,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 847,
-				"who": 44,
+				"who": 22,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -788,7 +788,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 848,
-				"who": 51,
+				"who": 33,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -797,7 +797,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 849,
-				"who": 52,
+				"who": 36,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -806,7 +806,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 850,
-				"who": 53,
+				"who": 37,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -815,7 +815,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 851,
-				"who": 55,
+				"who": 38,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -824,7 +824,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 852,
-				"who": 56,
+				"who": 39,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -833,7 +833,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 853,
-				"who": 57,
+				"who": 42,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -842,7 +842,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 854,
-				"who": 58,
+				"who": 47,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -851,7 +851,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 855,
-				"who": 61,
+				"who": 48,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -860,7 +860,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 856,
-				"who": 62,
+				"who": 49,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -869,7 +869,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 857,
-				"who": 67,
+				"who": 50,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -878,7 +878,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 858,
-				"who": 68,
+				"who": 51,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -887,7 +887,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 859,
-				"who": 69,
+				"who": 52,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -897,37 +897,45 @@ const STAGINGS := [
 		],
 		"outcome": "carried_out",
 		"cause": [
-			"crime: a scuffle at the shrine",
-			"accusation: Wat pointing at Gwen in the square"
+			"crime: a scuffle at the well",
+			"accusation: Wat pointing at Rolf in the square"
 		],
-		"cue": "mud and jeers at Gwen in the pillory",
-		"day": 1627,
+		"cue": "mud and jeers at Rolf in the pillory",
+		"day": 1223,
 		"people": [
 			{
-				"id": 66,
-				"name": "Gwen",
-				"outfit": 6,
-				"home": "round",
-				"role": "farmer",
-				"marks": []
+				"id": 29,
+				"name": "Rolf",
+				"outfit": 9,
+				"home": "lodge",
+				"role": "woodcutter",
+				"marks": [
+					"pilloried"
+				]
 			},
 			{
-				"id": 25,
-				"name": "Juliana",
-				"outfit": 6,
-				"home": "lodge",
+				"id": 12,
+				"name": "Garrow",
+				"outfit": 0,
+				"home": "round",
 				"role": "elder",
 				"marks": []
 			},
 			{
-				"id": 31,
-				"name": "Joan",
-				"outfit": 11,
-				"home": "loaf",
+				"id": 16,
+				"name": "Elsbet",
+				"outfit": 9,
+				"home": "cabin",
 				"role": "priest",
-				"marks": [
-					"pilloried"
-				]
+				"marks": []
+			},
+			{
+				"id": 7,
+				"name": "Alys",
+				"outfit": 11,
+				"home": "cabin",
+				"role": "farmer",
+				"marks": []
 			},
 			{
 				"id": 8,
@@ -935,24 +943,70 @@ const STAGINGS := [
 				"outfit": 9,
 				"home": "cabin",
 				"role": "herder",
-				"marks": [
-					"pilloried"
-				]
+				"marks": []
 			},
 			{
-				"id": 20,
-				"name": "Cecily",
-				"outfit": 2,
+				"id": 10,
+				"name": "Oswin",
+				"outfit": 12,
+				"home": "cabin",
+				"role": "herder",
+				"marks": []
+			},
+			{
+				"id": 14,
+				"name": "Tilda",
+				"outfit": 1,
+				"home": "lodge",
+				"role": "miller",
+				"marks": []
+			},
+			{
+				"id": 19,
+				"name": "Bettony",
+				"outfit": 11,
+				"home": "hill",
+				"role": "miller",
+				"marks": []
+			},
+			{
+				"id": 21,
+				"name": "Cuthbert",
+				"outfit": 10,
+				"home": "hill",
+				"role": "woodcutter",
+				"marks": []
+			},
+			{
+				"id": 22,
+				"name": "Ilse",
+				"outfit": 5,
 				"home": "loaf",
 				"role": "herder",
 				"marks": []
 			},
 			{
+				"id": 33,
+				"name": "Ansel",
+				"outfit": 6,
+				"home": "loaf",
+				"role": "farmer",
+				"marks": []
+			},
+			{
 				"id": 36,
-				"name": "Tam",
+				"name": "Wystan",
 				"outfit": 2,
-				"home": "cabin",
+				"home": "loaf",
 				"role": "woodcutter",
+				"marks": []
+			},
+			{
+				"id": 37,
+				"name": "Godric",
+				"outfit": 7,
+				"home": "cabin",
+				"role": "farmer",
 				"marks": []
 			},
 			{
@@ -964,135 +1018,79 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
+				"id": 39,
+				"name": "Mara",
+				"outfit": 1,
+				"home": "loaf",
+				"role": "farmer",
+				"marks": []
+			},
+			{
 				"id": 42,
-				"name": "Edith",
+				"name": "Gwen",
 				"outfit": 5,
+				"home": "loaf",
+				"role": "farmer",
+				"marks": []
+			},
+			{
+				"id": 47,
+				"name": "Edith",
+				"outfit": 10,
 				"home": "cabin",
 				"role": "farmer",
 				"marks": []
 			},
 			{
-				"id": 43,
-				"name": "Wystan",
+				"id": 48,
+				"name": "Osric",
 				"outfit": 10,
-				"home": "loaf",
-				"role": "herder",
+				"home": "hill",
+				"role": "farmer",
 				"marks": []
 			},
 			{
-				"id": 44,
-				"name": "Jory",
-				"outfit": 2,
+				"id": 49,
+				"name": "Piers",
+				"outfit": 9,
 				"home": "loaf",
-				"role": "herder",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 50,
+				"name": "Hawise",
+				"outfit": 6,
+				"home": "hill",
+				"role": "child",
 				"marks": []
 			},
 			{
 				"id": 51,
-				"name": "Sybil",
+				"name": "Juliana",
 				"outfit": 8,
-				"home": "loaf",
-				"role": "woodcutter",
+				"home": "lodge",
+				"role": "child",
 				"marks": []
 			},
 			{
 				"id": 52,
-				"name": "Hawise",
+				"name": "Lettice",
 				"outfit": 1,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 53,
-				"name": "Ansel",
-				"outfit": 8,
-				"home": "cottage",
-				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 55,
-				"name": "Hob",
-				"outfit": 2,
-				"home": "cottage",
-				"role": "smith",
-				"marks": []
-			},
-			{
-				"id": 56,
-				"name": "Elsbet",
-				"outfit": 5,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 57,
-				"name": "Nell",
-				"outfit": 4,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 58,
-				"name": "Dunstan",
-				"outfit": 6,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 61,
-				"name": "Garrow",
-				"outfit": 2,
-				"home": "hill",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 62,
-				"name": "Orla",
-				"outfit": 1,
-				"home": "hill",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 67,
-				"name": "Sella",
-				"outfit": 1,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 68,
-				"name": "Piers",
-				"outfit": 11,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 69,
-				"name": "Godric",
-				"outfit": 8,
-				"home": "round",
+				"home": "lodge",
 				"role": "child",
 				"marks": []
 			}
 		],
-		"title": "Gwen in the Pillory",
-		"story": "One evening old grudges came to blows: Gwen struck Tam. Wat named Gwen before the elder. Juliana, the elder, heard it in the square. The sentence was a day in the pillory. They pelted Gwen with mud in the pillory until dusk."
+		"title": "Rolf in the Pillory",
+		"story": "One evening old grudges came to blows: Rolf struck Wat. Wat named Rolf before the elder. Garrow, the elder, heard it in the square. The sentence was a day in the pillory. They pelted Rolf with mud in the pillory until dusk. They are remembered as Rolf of the Pillory."
 	},
 	{
-		"id": 10,
+		"id": 22,
 		"kind": "bonfire",
 		"place": "stake",
 		"start": 720,
-		"end": 1293,
+		"end": 1300,
 		"phases": [
 			{
 				"name": "gather",
@@ -1109,49 +1107,56 @@ const STAGINGS := [
 			{
 				"name": "end",
 				"from": 1250,
-				"to": 1293,
+				"to": 1300,
 				"rescue": false
 			}
 		],
 		"roles": {
-			"victim": 3,
-			"accuser": 26,
-			"authority": 25,
+			"victim": 0,
+			"accuser": 6,
+			"authority": 6,
 			"crowd": [
 				2,
+				3,
 				4,
 				7,
 				8,
 				9,
 				10,
 				12,
-				13,
 				14,
 				15,
 				16,
-				17,
 				19,
 				20,
 				21,
 				22,
 				23,
-				24,
+				25,
 				26,
-				27,
-				28,
 				29,
+				30,
 				31,
 				32,
 				33,
 				34,
 				35,
-				36
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45
 			]
 		},
 		"beats": [
 			{
 				"at": 720,
-				"who": 3,
+				"who": 0,
 				"do": "walk_to",
 				"slot": -1,
 				"target": -1,
@@ -1160,10 +1165,10 @@ const STAGINGS := [
 			},
 			{
 				"at": 720,
-				"who": 25,
+				"who": 6,
 				"do": "walk_to",
 				"slot": -1,
-				"target": 3,
+				"target": 0,
 				"anim": "Walk_Formal",
 				"prop": ""
 			},
@@ -1178,7 +1183,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 726,
-				"who": 4,
+				"who": 3,
 				"do": "walk_to",
 				"slot": 1,
 				"target": -1,
@@ -1187,7 +1192,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 727,
-				"who": 7,
+				"who": 4,
 				"do": "walk_to",
 				"slot": 2,
 				"target": -1,
@@ -1196,7 +1201,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 728,
-				"who": 8,
+				"who": 7,
 				"do": "walk_to",
 				"slot": 3,
 				"target": -1,
@@ -1205,7 +1210,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 729,
-				"who": 9,
+				"who": 8,
 				"do": "walk_to",
 				"slot": 4,
 				"target": -1,
@@ -1214,7 +1219,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 730,
-				"who": 10,
+				"who": 9,
 				"do": "walk_to",
 				"slot": 5,
 				"target": -1,
@@ -1223,7 +1228,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 731,
-				"who": 12,
+				"who": 10,
 				"do": "walk_to",
 				"slot": 6,
 				"target": -1,
@@ -1232,7 +1237,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 732,
-				"who": 13,
+				"who": 12,
 				"do": "walk_to",
 				"slot": 7,
 				"target": -1,
@@ -1241,7 +1246,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 733,
-				"who": 3,
+				"who": 0,
 				"do": "lock",
 				"slot": -1,
 				"target": -1,
@@ -1277,7 +1282,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 736,
-				"who": 17,
+				"who": 19,
 				"do": "walk_to",
 				"slot": 11,
 				"target": -1,
@@ -1290,12 +1295,12 @@ const STAGINGS := [
 				"do": "stand",
 				"slot": 0,
 				"target": -1,
-				"anim": "Idle_Talking",
+				"anim": "Idle_FoldArms",
 				"prop": ""
 			},
 			{
 				"at": 737,
-				"who": 19,
+				"who": 20,
 				"do": "walk_to",
 				"slot": 12,
 				"target": -1,
@@ -1304,25 +1309,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 738,
-				"who": 4,
-				"do": "stand",
-				"slot": 1,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 738,
-				"who": 7,
-				"do": "stand",
-				"slot": 2,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 738,
-				"who": 20,
+				"who": 21,
 				"do": "walk_to",
 				"slot": 13,
 				"target": -1,
@@ -1331,7 +1318,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 739,
-				"who": 8,
+				"who": 4,
+				"do": "stand",
+				"slot": 2,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 739,
+				"who": 7,
 				"do": "stand",
 				"slot": 3,
 				"target": -1,
@@ -1340,7 +1336,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 739,
-				"who": 21,
+				"who": 22,
 				"do": "walk_to",
 				"slot": 14,
 				"target": -1,
@@ -1349,7 +1345,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 740,
-				"who": 9,
+				"who": 8,
 				"do": "stand",
 				"slot": 4,
 				"target": -1,
@@ -1358,7 +1354,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 740,
-				"who": 22,
+				"who": 23,
 				"do": "walk_to",
 				"slot": 15,
 				"target": -1,
@@ -1367,7 +1363,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 741,
-				"who": 10,
+				"who": 9,
 				"do": "stand",
 				"slot": 5,
 				"target": -1,
@@ -1376,7 +1372,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 741,
-				"who": 23,
+				"who": 25,
 				"do": "walk_to",
 				"slot": 16,
 				"target": -1,
@@ -1385,7 +1381,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 742,
-				"who": 24,
+				"who": 10,
+				"do": "stand",
+				"slot": 6,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 742,
+				"who": 26,
 				"do": "walk_to",
 				"slot": 17,
 				"target": -1,
@@ -1394,7 +1399,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 743,
-				"who": 26,
+				"who": 29,
 				"do": "walk_to",
 				"slot": 18,
 				"target": -1,
@@ -1403,7 +1408,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 744,
-				"who": 27,
+				"who": 30,
 				"do": "walk_to",
 				"slot": 19,
 				"target": -1,
@@ -1412,7 +1417,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 745,
-				"who": 28,
+				"who": 3,
+				"do": "stand",
+				"slot": 1,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 745,
+				"who": 31,
 				"do": "walk_to",
 				"slot": 20,
 				"target": -1,
@@ -1421,7 +1435,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 746,
-				"who": 29,
+				"who": 32,
 				"do": "walk_to",
 				"slot": 21,
 				"target": -1,
@@ -1430,20 +1444,11 @@ const STAGINGS := [
 			},
 			{
 				"at": 747,
-				"who": 31,
+				"who": 33,
 				"do": "walk_to",
 				"slot": 22,
 				"target": -1,
 				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 748,
-				"who": 12,
-				"do": "stand",
-				"slot": 6,
-				"target": -1,
-				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
@@ -1457,7 +1462,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 748,
-				"who": 32,
+				"who": 34,
 				"do": "walk_to",
 				"slot": 23,
 				"target": -1,
@@ -1466,7 +1471,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 749,
-				"who": 13,
+				"who": 12,
 				"do": "stand",
 				"slot": 7,
 				"target": -1,
@@ -1475,7 +1480,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 749,
-				"who": 33,
+				"who": 35,
 				"do": "walk_to",
 				"slot": 24,
 				"target": -1,
@@ -1493,7 +1498,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 750,
-				"who": 34,
+				"who": 19,
+				"do": "stand",
+				"slot": 11,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 750,
+				"who": 36,
 				"do": "walk_to",
 				"slot": 25,
 				"target": -1,
@@ -1502,7 +1516,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 751,
-				"who": 19,
+				"who": 20,
 				"do": "stand",
 				"slot": 12,
 				"target": -1,
@@ -1511,7 +1525,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 751,
-				"who": 35,
+				"who": 37,
 				"do": "walk_to",
 				"slot": 26,
 				"target": -1,
@@ -1529,7 +1543,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 752,
-				"who": 20,
+				"who": 21,
 				"do": "stand",
 				"slot": 13,
 				"target": -1,
@@ -1538,7 +1552,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 752,
-				"who": 36,
+				"who": 38,
 				"do": "walk_to",
 				"slot": 27,
 				"target": -1,
@@ -1547,16 +1561,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 753,
-				"who": 17,
-				"do": "stand",
-				"slot": 11,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 753,
-				"who": 21,
+				"who": 22,
 				"do": "stand",
 				"slot": 14,
 				"target": -1,
@@ -1564,8 +1569,17 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
+				"at": 753,
+				"who": 39,
+				"do": "walk_to",
+				"slot": 28,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
 				"at": 754,
-				"who": 22,
+				"who": 23,
 				"do": "stand",
 				"slot": 15,
 				"target": -1,
@@ -1573,17 +1587,71 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
+				"at": 754,
+				"who": 40,
+				"do": "walk_to",
+				"slot": 29,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
 				"at": 755,
-				"who": 23,
+				"who": 30,
 				"do": "stand",
-				"slot": 16,
+				"slot": 19,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
-				"at": 758,
+				"at": 755,
+				"who": 41,
+				"do": "walk_to",
+				"slot": 30,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 756,
 				"who": 31,
+				"do": "stand",
+				"slot": 20,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 756,
+				"who": 42,
+				"do": "walk_to",
+				"slot": 31,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 757,
+				"who": 32,
+				"do": "stand",
+				"slot": 21,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 757,
+				"who": 43,
+				"do": "walk_to",
+				"slot": 32,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 758,
+				"who": 33,
 				"do": "stand",
 				"slot": 22,
 				"target": -1,
@@ -1591,12 +1659,21 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 759,
-				"who": 32,
-				"do": "stand",
-				"slot": 23,
+				"at": 758,
+				"who": 44,
+				"do": "walk_to",
+				"slot": 33,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 759,
+				"who": 45,
+				"do": "walk_to",
+				"slot": 34,
+				"target": -1,
+				"anim": "Walk",
 				"prop": ""
 			},
 			{
@@ -1610,16 +1687,25 @@ const STAGINGS := [
 			},
 			{
 				"at": 760,
-				"who": 33,
+				"who": 25,
 				"do": "stand",
-				"slot": 24,
+				"slot": 16,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 760,
+				"who": 34,
+				"do": "stand",
+				"slot": 23,
+				"target": -1,
+				"anim": "Idle_FoldArms",
 				"prop": ""
 			},
 			{
 				"at": 761,
-				"who": 24,
+				"who": 26,
 				"do": "stand",
 				"slot": 17,
 				"target": -1,
@@ -1627,8 +1713,17 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
+				"at": 761,
+				"who": 36,
+				"do": "stand",
+				"slot": 25,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
 				"at": 762,
-				"who": 26,
+				"who": 29,
 				"do": "stand",
 				"slot": 18,
 				"target": -1,
@@ -1637,52 +1732,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 762,
-				"who": 34,
-				"do": "stand",
-				"slot": 25,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 763,
-				"who": 27,
-				"do": "stand",
-				"slot": 19,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 763,
-				"who": 36,
-				"do": "stand",
-				"slot": 27,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 764,
-				"who": 28,
-				"do": "stand",
-				"slot": 20,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 765,
-				"who": 29,
-				"do": "stand",
-				"slot": 21,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 768,
-				"who": 35,
+				"who": 37,
 				"do": "stand",
 				"slot": 26,
 				"target": -1,
@@ -1690,8 +1740,89 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
+				"at": 763,
+				"who": 38,
+				"do": "stand",
+				"slot": 27,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 766,
+				"who": 35,
+				"do": "stand",
+				"slot": 24,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 767,
+				"who": 39,
+				"do": "stand",
+				"slot": 28,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 767,
+				"who": 41,
+				"do": "stand",
+				"slot": 30,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 767,
+				"who": 42,
+				"do": "stand",
+				"slot": 31,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 768,
+				"who": 43,
+				"do": "stand",
+				"slot": 32,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 769,
+				"who": 44,
+				"do": "stand",
+				"slot": 33,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 770,
+				"who": 45,
+				"do": "stand",
+				"slot": 34,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 773,
+				"who": 40,
+				"do": "stand",
+				"slot": 29,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
 				"at": 780,
-				"who": 4,
+				"who": 3,
 				"do": "carry",
 				"slot": 1,
 				"target": -1,
@@ -1702,8 +1833,8 @@ const STAGINGS := [
 				"at": 780,
 				"who": 7,
 				"do": "throw",
-				"slot": 2,
-				"target": 3,
+				"slot": 3,
+				"target": 0,
 				"anim": "OverhandThrow",
 				"prop": "cabbage"
 			},
@@ -1718,7 +1849,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 781,
-				"who": 3,
+				"who": 0,
 				"do": "react",
 				"slot": -1,
 				"target": 7,
@@ -1727,43 +1858,43 @@ const STAGINGS := [
 			},
 			{
 				"at": 787,
-				"who": 8,
+				"who": 10,
 				"do": "throw",
-				"slot": 3,
-				"target": 3,
+				"slot": 6,
+				"target": 0,
 				"anim": "OverhandThrow",
 				"prop": "turnip"
 			},
 			{
 				"at": 788,
-				"who": 3,
+				"who": 0,
 				"do": "react",
 				"slot": -1,
-				"target": 8,
+				"target": 10,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 794,
-				"who": 9,
+				"who": 12,
 				"do": "throw",
-				"slot": 4,
-				"target": 3,
+				"slot": 7,
+				"target": 0,
 				"anim": "OverhandThrow",
 				"prop": "cabbage"
 			},
 			{
 				"at": 795,
-				"who": 3,
+				"who": 0,
 				"do": "react",
 				"slot": -1,
-				"target": 9,
+				"target": 12,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 800,
-				"who": 7,
+				"who": 4,
 				"do": "carry",
 				"slot": 2,
 				"target": -1,
@@ -1772,61 +1903,61 @@ const STAGINGS := [
 			},
 			{
 				"at": 801,
-				"who": 10,
+				"who": 15,
 				"do": "throw",
-				"slot": 5,
-				"target": 3,
+				"slot": 9,
+				"target": 0,
 				"anim": "OverhandThrow",
 				"prop": "turnip"
 			},
 			{
 				"at": 802,
-				"who": 3,
+				"who": 0,
 				"do": "react",
 				"slot": -1,
-				"target": 10,
+				"target": 15,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 808,
-				"who": 12,
+				"who": 16,
 				"do": "throw",
-				"slot": 6,
-				"target": 3,
+				"slot": 10,
+				"target": 0,
 				"anim": "OverhandThrow",
 				"prop": "cabbage"
 			},
 			{
 				"at": 809,
-				"who": 3,
+				"who": 0,
 				"do": "react",
 				"slot": -1,
-				"target": 12,
+				"target": 16,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 815,
-				"who": 13,
+				"who": 19,
 				"do": "throw",
-				"slot": 7,
-				"target": 3,
+				"slot": 11,
+				"target": 0,
 				"anim": "OverhandThrow",
 				"prop": "turnip"
 			},
 			{
 				"at": 816,
-				"who": 3,
+				"who": 0,
 				"do": "react",
 				"slot": -1,
-				"target": 13,
+				"target": 19,
 				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 820,
-				"who": 8,
+				"who": 7,
 				"do": "carry",
 				"slot": 3,
 				"target": -1,
@@ -1844,7 +1975,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1201,
-				"who": 4,
+				"who": 3,
 				"do": "stand",
 				"slot": 1,
 				"target": -1,
@@ -1853,7 +1984,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1202,
-				"who": 7,
+				"who": 4,
 				"do": "stand",
 				"slot": 2,
 				"target": -1,
@@ -1862,7 +1993,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1250,
-				"who": 3,
+				"who": 0,
 				"do": "fall",
 				"slot": -1,
 				"target": -1,
@@ -1880,7 +2011,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1261,
-				"who": 4,
+				"who": 3,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -1889,7 +2020,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1262,
-				"who": 7,
+				"who": 4,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -1898,7 +2029,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1263,
-				"who": 8,
+				"who": 7,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -1907,7 +2038,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1264,
-				"who": 9,
+				"who": 8,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -1916,7 +2047,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1265,
-				"who": 10,
+				"who": 9,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -1925,7 +2056,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1266,
-				"who": 12,
+				"who": 10,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -1934,7 +2065,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1267,
-				"who": 13,
+				"who": 12,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -1970,15 +2101,6 @@ const STAGINGS := [
 			},
 			{
 				"at": 1271,
-				"who": 17,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 1272,
 				"who": 19,
 				"do": "leave",
 				"slot": -1,
@@ -1987,7 +2109,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1273,
+				"at": 1272,
 				"who": 20,
 				"do": "leave",
 				"slot": -1,
@@ -1996,7 +2118,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1274,
+				"at": 1273,
 				"who": 21,
 				"do": "leave",
 				"slot": -1,
@@ -2005,7 +2127,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1275,
+				"at": 1274,
 				"who": 22,
 				"do": "leave",
 				"slot": -1,
@@ -2014,7 +2136,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1276,
+				"at": 1275,
 				"who": 23,
 				"do": "leave",
 				"slot": -1,
@@ -2023,8 +2145,8 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1277,
-				"who": 24,
+				"at": 1276,
+				"who": 25,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -2032,7 +2154,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1278,
+				"at": 1277,
 				"who": 26,
 				"do": "leave",
 				"slot": -1,
@@ -2041,25 +2163,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1279,
-				"who": 27,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 1280,
-				"who": 28,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 1281,
+				"at": 1278,
 				"who": 29,
 				"do": "leave",
 				"slot": -1,
@@ -2068,7 +2172,16 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1282,
+				"at": 1279,
+				"who": 30,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1280,
 				"who": 31,
 				"do": "leave",
 				"slot": -1,
@@ -2077,7 +2190,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1283,
+				"at": 1281,
 				"who": 32,
 				"do": "leave",
 				"slot": -1,
@@ -2086,7 +2199,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1284,
+				"at": 1282,
 				"who": 33,
 				"do": "leave",
 				"slot": -1,
@@ -2095,7 +2208,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1285,
+				"at": 1283,
 				"who": 34,
 				"do": "leave",
 				"slot": -1,
@@ -2104,7 +2217,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1286,
+				"at": 1284,
 				"who": 35,
 				"do": "leave",
 				"slot": -1,
@@ -2113,8 +2226,89 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 1287,
+				"at": 1285,
 				"who": 36,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1286,
+				"who": 37,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1287,
+				"who": 38,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1288,
+				"who": 39,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1289,
+				"who": 40,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1290,
+				"who": 41,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1291,
+				"who": 42,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1292,
+				"who": 43,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1293,
+				"who": 44,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 1294,
+				"who": 45,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -2125,24 +2319,24 @@ const STAGINGS := [
 		"outcome": "carried_out",
 		"cause": [
 			"crime: charms of twisted straw found by a doorway",
-			"accusation: Alder pointing at Agnes in the square"
+			"accusation: Tobin pointing at Osric in the square"
 		],
 		"cue": "wood piled round the stake",
-		"day": 93,
+		"day": 205,
 		"people": [
 			{
-				"id": 3,
-				"name": "Agnes",
-				"outfit": 12,
+				"id": 0,
+				"name": "Osric",
+				"outfit": 1,
 				"home": "cottage",
-				"role": "smith",
+				"role": "farmer",
 				"marks": []
 			},
 			{
-				"id": 25,
-				"name": "Juliana",
-				"outfit": 6,
-				"home": "lodge",
+				"id": 6,
+				"name": "Tobin",
+				"outfit": 8,
+				"home": "cabin",
 				"role": "elder",
 				"marks": []
 			},
@@ -2160,6 +2354,14 @@ const STAGINGS := [
 				"outfit": 11,
 				"home": "cottage",
 				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 3,
+				"name": "Agnes",
+				"outfit": 12,
+				"home": "lodge",
+				"role": "smith",
 				"marks": []
 			},
 			{
@@ -2203,14 +2405,6 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
-				"id": 13,
-				"name": "Gwen",
-				"outfit": 8,
-				"home": "round",
-				"role": "farmer",
-				"marks": []
-			},
-			{
 				"id": 14,
 				"name": "Tilda",
 				"outfit": 1,
@@ -2231,15 +2425,7 @@ const STAGINGS := [
 				"name": "Elsbet",
 				"outfit": 9,
 				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 17,
-				"name": "Merric",
-				"outfit": 11,
-				"home": "round",
-				"role": "midwife",
+				"role": "miller",
 				"marks": []
 			},
 			{
@@ -2279,15 +2465,15 @@ const STAGINGS := [
 				"name": "Wenna",
 				"outfit": 4,
 				"home": "hill",
-				"role": "child",
+				"role": "midwife",
 				"marks": []
 			},
 			{
-				"id": 24,
-				"name": "Jory",
-				"outfit": 11,
+				"id": 25,
+				"name": "Juliana",
+				"outfit": 6,
 				"home": "lodge",
-				"role": "herder",
+				"role": "farmer",
 				"marks": []
 			},
 			{
@@ -2299,27 +2485,19 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
-				"id": 27,
-				"name": "Colm",
-				"outfit": 0,
-				"home": "lodge",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 28,
-				"name": "Simkin",
-				"outfit": 10,
-				"home": "lodge",
-				"role": "miller",
-				"marks": []
-			},
-			{
 				"id": 29,
 				"name": "Rolf",
 				"outfit": 9,
 				"home": "lodge",
 				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 30,
+				"name": "Piers",
+				"outfit": 2,
+				"home": "loaf",
+				"role": "miller",
 				"marks": []
 			},
 			{
@@ -2356,7 +2534,7 @@ const STAGINGS := [
 			},
 			{
 				"id": 35,
-				"name": "Godric",
+				"name": "Rafe",
 				"outfit": 10,
 				"home": "round",
 				"role": "child",
@@ -2364,48 +2542,123 @@ const STAGINGS := [
 			},
 			{
 				"id": 36,
-				"name": "Tam",
+				"name": "Wystan",
 				"outfit": 2,
+				"home": "loaf",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 37,
+				"name": "Godric",
+				"outfit": 7,
+				"home": "cabin",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 38,
+				"name": "Rose",
+				"outfit": 9,
+				"home": "loaf",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 39,
+				"name": "Mara",
+				"outfit": 1,
+				"home": "hill",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 40,
+				"name": "Colm",
+				"outfit": 9,
+				"home": "lodge",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 41,
+				"name": "Hob",
+				"outfit": 10,
+				"home": "cottage",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 42,
+				"name": "Gwen",
+				"outfit": 5,
+				"home": "loaf",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 43,
+				"name": "Tam",
+				"outfit": 10,
+				"home": "loaf",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 44,
+				"name": "Bram",
+				"outfit": 2,
+				"home": "cabin",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 45,
+				"name": "Nell",
+				"outfit": 3,
 				"home": "cabin",
 				"role": "child",
 				"marks": []
 			}
 		],
-		"title": "The Burning of Agnes",
-		"story": "That season people saw a hailstorm in summer, and began to watch one another. Whispers started that Agnes had cursed the village - charms of twisted straw found by a doorway. Alder named Agnes before the elder. Juliana, the elder, heard it in the square. They put Agnes in the millpond. They floated. Guilty. The sentence was the fire. They burned Agnes at the stake at dusk; the smoke was seen from the next valley. They are remembered as Agnes the Burned."
+		"title": "The Burning of Osric",
+		"story": "Then came lights over the marsh. The old women said it meant a curse among them. Whispers started that Osric had cursed the village - charms of twisted straw found by a doorway. Tobin named Osric before the elder. Tobin, the elder, judged it too. They put Osric in the millpond. They floated. Guilty. The sentence was the fire. They burned Osric at the stake at dusk; the smoke was seen from the next valley. They are remembered as Osric the Burned."
 	},
 	{
-		"id": 19,
-		"kind": "hanging",
-		"place": "gallows",
+		"id": 9,
+		"kind": "exile",
+		"place": "gate_south",
 		"start": 480,
-		"end": 990,
+		"end": 643,
 		"phases": [
 			{
 				"name": "gather",
 				"from": 480,
-				"to": 540,
+				"to": 543,
 				"rescue": true
 			},
 			{
-				"name": "hanging",
-				"from": 540,
-				"to": 950,
+				"name": "exile",
+				"from": 543,
+				"to": 593,
 				"rescue": true
 			},
 			{
 				"name": "end",
-				"from": 950,
-				"to": 990,
+				"from": 593,
+				"to": 643,
 				"rescue": false
 			}
 		],
 		"roles": {
-			"victim": 27,
-			"accuser": 12,
-			"authority": 25,
+			"victim": 5,
+			"accuser": 32,
+			"authority": 6,
 			"crowd": [
+				0,
+				1,
 				2,
+				3,
 				4,
 				7,
 				8,
@@ -2416,11 +2669,17 @@ const STAGINGS := [
 				15,
 				16,
 				17,
+				18,
 				19,
 				20,
+				21,
 				22,
 				23,
+				25,
+				26,
+				28,
 				29,
+				30,
 				31,
 				32,
 				33,
@@ -2429,1056 +2688,26 @@ const STAGINGS := [
 				36,
 				37,
 				38,
-				39
+				39,
+				40
 			]
 		},
 		"beats": [
 			{
 				"at": 480,
-				"who": 25,
-				"do": "walk_to",
-				"slot": -1,
-				"target": 27,
-				"anim": "Walk_Formal",
-				"prop": ""
-			},
-			{
-				"at": 480,
-				"who": 27,
+				"who": 5,
 				"do": "walk_to",
 				"slot": -1,
 				"target": -1,
 				"anim": "Walk",
 				"prop": ""
 			},
-			{
-				"at": 485,
-				"who": 2,
-				"do": "walk_to",
-				"slot": 0,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 486,
-				"who": 4,
-				"do": "walk_to",
-				"slot": 1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 487,
-				"who": 7,
-				"do": "walk_to",
-				"slot": 2,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 488,
-				"who": 8,
-				"do": "walk_to",
-				"slot": 3,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 489,
-				"who": 9,
-				"do": "walk_to",
-				"slot": 4,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 490,
-				"who": 10,
-				"do": "walk_to",
-				"slot": 5,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 491,
-				"who": 2,
-				"do": "stand",
-				"slot": 0,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 491,
-				"who": 12,
-				"do": "walk_to",
-				"slot": 6,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 492,
-				"who": 4,
-				"do": "stand",
-				"slot": 1,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 492,
-				"who": 14,
-				"do": "walk_to",
-				"slot": 7,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 493,
-				"who": 15,
-				"do": "walk_to",
-				"slot": 8,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 494,
-				"who": 16,
-				"do": "walk_to",
-				"slot": 9,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 494,
-				"who": 27,
-				"do": "lock",
-				"slot": -1,
-				"target": -1,
-				"anim": "Idle",
-				"prop": ""
-			},
-			{
-				"at": 495,
-				"who": 7,
-				"do": "stand",
-				"slot": 2,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 495,
-				"who": 17,
-				"do": "walk_to",
-				"slot": 10,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 496,
-				"who": 8,
-				"do": "stand",
-				"slot": 3,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 496,
-				"who": 19,
-				"do": "walk_to",
-				"slot": 11,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 497,
-				"who": 9,
-				"do": "stand",
-				"slot": 4,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 497,
-				"who": 20,
-				"do": "walk_to",
-				"slot": 12,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 498,
-				"who": 10,
-				"do": "stand",
-				"slot": 5,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 498,
-				"who": 22,
-				"do": "walk_to",
-				"slot": 13,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 499,
-				"who": 23,
-				"do": "walk_to",
-				"slot": 14,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 500,
-				"who": 29,
-				"do": "walk_to",
-				"slot": 15,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 31,
-				"do": "walk_to",
-				"slot": 16,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 502,
-				"who": 32,
-				"do": "walk_to",
-				"slot": 17,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 503,
-				"who": 12,
-				"do": "stand",
-				"slot": 6,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 503,
-				"who": 15,
-				"do": "stand",
-				"slot": 8,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 503,
-				"who": 33,
-				"do": "walk_to",
-				"slot": 18,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 504,
-				"who": 14,
-				"do": "stand",
-				"slot": 7,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 504,
-				"who": 34,
-				"do": "walk_to",
-				"slot": 19,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 505,
-				"who": 35,
-				"do": "walk_to",
-				"slot": 20,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 506,
-				"who": 16,
-				"do": "stand",
-				"slot": 9,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 506,
-				"who": 19,
-				"do": "stand",
-				"slot": 11,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 506,
-				"who": 36,
-				"do": "walk_to",
-				"slot": 21,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 507,
-				"who": 17,
-				"do": "stand",
-				"slot": 10,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 507,
-				"who": 20,
-				"do": "stand",
-				"slot": 12,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 507,
-				"who": 37,
-				"do": "walk_to",
-				"slot": 22,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 508,
-				"who": 22,
-				"do": "stand",
-				"slot": 13,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 508,
-				"who": 38,
-				"do": "walk_to",
-				"slot": 23,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 509,
-				"who": 23,
-				"do": "stand",
-				"slot": 14,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 509,
-				"who": 31,
-				"do": "stand",
-				"slot": 16,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 509,
-				"who": 39,
-				"do": "walk_to",
-				"slot": 24,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 510,
-				"who": 32,
-				"do": "stand",
-				"slot": 17,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 510,
-				"who": 34,
-				"do": "stand",
-				"slot": 19,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 511,
-				"who": 33,
-				"do": "stand",
-				"slot": 18,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 513,
-				"who": 29,
-				"do": "stand",
-				"slot": 15,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 514,
-				"who": 36,
-				"do": "stand",
-				"slot": 21,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 517,
-				"who": 35,
-				"do": "stand",
-				"slot": 20,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 517,
-				"who": 37,
-				"do": "stand",
-				"slot": 22,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 517,
-				"who": 39,
-				"do": "stand",
-				"slot": 24,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 518,
-				"who": 38,
-				"do": "stand",
-				"slot": 23,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 520,
-				"who": 2,
-				"do": "gesture",
-				"slot": 0,
-				"target": -1,
-				"anim": "Fixing_Kneeling",
-				"prop": ""
-			},
-			{
-				"at": 540,
-				"who": 12,
-				"do": "gesture",
-				"slot": -1,
-				"target": -1,
-				"anim": "Spell_Simple_Idle",
-				"prop": ""
-			},
-			{
-				"at": 550,
-				"who": 4,
-				"do": "gesture",
-				"slot": 1,
-				"target": -1,
-				"anim": "Fixing_Kneeling",
-				"prop": ""
-			},
-			{
-				"at": 950,
-				"who": 27,
-				"do": "fall",
-				"slot": -1,
-				"target": -1,
-				"anim": "Death01",
-				"prop": ""
-			},
-			{
-				"at": 960,
-				"who": 2,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 961,
-				"who": 4,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 962,
-				"who": 7,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 963,
-				"who": 8,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 964,
-				"who": 9,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 965,
-				"who": 10,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 966,
-				"who": 12,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 967,
-				"who": 14,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 968,
-				"who": 15,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 969,
-				"who": 16,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 970,
-				"who": 17,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 971,
-				"who": 19,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 972,
-				"who": 20,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 973,
-				"who": 22,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 974,
-				"who": 23,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 975,
-				"who": 29,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 976,
-				"who": 31,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 977,
-				"who": 32,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 978,
-				"who": 33,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 979,
-				"who": 34,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 980,
-				"who": 35,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 981,
-				"who": 36,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 982,
-				"who": 37,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 983,
-				"who": 38,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 984,
-				"who": 39,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			}
-		],
-		"outcome": "carried_out",
-		"cause": [
-			"crime: a brawl at the shrine that ended with someone not getting up",
-			"accusation: Garrow pointing at Colm in the square"
-		],
-		"cue": "the gallows built by lantern light",
-		"day": 148,
-		"people": [
-			{
-				"id": 27,
-				"name": "Colm",
-				"outfit": 0,
-				"home": "lodge",
-				"role": "midwife",
-				"marks": []
-			},
-			{
-				"id": 25,
-				"name": "Juliana",
-				"outfit": 6,
-				"home": "lodge",
-				"role": "elder",
-				"marks": []
-			},
-			{
-				"id": 12,
-				"name": "Garrow",
-				"outfit": 0,
-				"home": "round",
-				"role": "priest",
-				"marks": []
-			},
-			{
-				"id": 2,
-				"name": "Dunstan",
-				"outfit": 11,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 4,
-				"name": "Edric",
-				"outfit": 5,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 7,
-				"name": "Alys",
-				"outfit": 11,
-				"home": "cabin",
-				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 8,
-				"name": "Wat",
-				"outfit": 9,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 9,
-				"name": "Edith",
-				"outfit": 10,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 10,
-				"name": "Oswin",
-				"outfit": 12,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 14,
-				"name": "Tilda",
-				"outfit": 1,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 15,
-				"name": "Orla",
-				"outfit": 2,
-				"home": "hill",
-				"role": "miller",
-				"marks": []
-			},
-			{
-				"id": 16,
-				"name": "Elsbet",
-				"outfit": 9,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 17,
-				"name": "Merric",
-				"outfit": 11,
-				"home": "round",
-				"role": "midwife",
-				"marks": []
-			},
-			{
-				"id": 19,
-				"name": "Bettony",
-				"outfit": 11,
-				"home": "hill",
-				"role": "miller",
-				"marks": []
-			},
-			{
-				"id": 20,
-				"name": "Cecily",
-				"outfit": 2,
-				"home": "hill",
-				"role": "herder",
-				"marks": []
-			},
-			{
-				"id": 22,
-				"name": "Ilse",
-				"outfit": 5,
-				"home": "hill",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 23,
-				"name": "Wenna",
-				"outfit": 4,
-				"home": "hill",
-				"role": "midwife",
-				"marks": []
-			},
-			{
-				"id": 29,
-				"name": "Rolf",
-				"outfit": 9,
-				"home": "lodge",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 31,
-				"name": "Joan",
-				"outfit": 11,
-				"home": "loaf",
-				"role": "herder",
-				"marks": []
-			},
-			{
-				"id": 32,
-				"name": "Hugh",
-				"outfit": 0,
-				"home": "loaf",
-				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 33,
-				"name": "Ansel",
-				"outfit": 6,
-				"home": "loaf",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 34,
-				"name": "Isolde",
-				"outfit": 7,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 35,
-				"name": "Godric",
-				"outfit": 10,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 36,
-				"name": "Tam",
-				"outfit": 2,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 37,
-				"name": "Aldric",
-				"outfit": 7,
-				"home": "hill",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 38,
-				"name": "Rose",
-				"outfit": 9,
-				"home": "hill",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 39,
-				"name": "Petra",
-				"outfit": 1,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			}
-		],
-		"title": "The Hanging of Colm",
-		"story": "That season people saw a hailstorm in summer, and began to watch one another. Whispers started that Simkin had cursed the village - charms of twisted straw found by a doorway. Gwen named Simkin before the elder. Juliana, the elder, heard it in the square. They put Simkin in the millpond. They floated. Guilty. The sentence was exile. Colm had never forgiven Gwen for what was done to Simkin. Gwen was found dead at the shrine. Garrow named Colm before the elder. Juliana, the elder, heard it in the square. The sentence was the rope. They hanged Colm at dawn from a gallows built by lantern light. They are remembered as Colm the Hanged."
-	},
-	{
-		"id": 1,
-		"kind": "exile",
-		"place": "gate_south",
-		"start": 480,
-		"end": 635,
-		"phases": [
-			{
-				"name": "gather",
-				"from": 480,
-				"to": 540,
-				"rescue": true
-			},
-			{
-				"name": "exile",
-				"from": 540,
-				"to": 590,
-				"rescue": true
-			},
-			{
-				"name": "end",
-				"from": 590,
-				"to": 635,
-				"rescue": false
-			}
-		],
-		"roles": {
-			"victim": 6,
-			"accuser": 28,
-			"authority": 11,
-			"crowd": [
-				0,
-				1,
-				2,
-				3,
-				4,
-				5,
-				7,
-				8,
-				9,
-				10,
-				12,
-				13,
-				14,
-				15,
-				16,
-				17,
-				19,
-				20,
-				21,
-				22,
-				23,
-				24,
-				25,
-				26,
-				27,
-				28,
-				29,
-				31,
-				32,
-				33
-			]
-		},
-		"beats": [
 			{
 				"at": 480,
 				"who": 6,
 				"do": "walk_to",
 				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 480,
-				"who": 11,
-				"do": "walk_to",
-				"slot": -1,
-				"target": 6,
+				"target": 5,
 				"anim": "Walk_Formal",
 				"prop": ""
 			},
@@ -3529,7 +2758,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 490,
-				"who": 5,
+				"who": 7,
 				"do": "walk_to",
 				"slot": 5,
 				"target": -1,
@@ -3538,7 +2767,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 491,
-				"who": 7,
+				"who": 8,
 				"do": "walk_to",
 				"slot": 6,
 				"target": -1,
@@ -3547,7 +2776,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 492,
-				"who": 8,
+				"who": 9,
 				"do": "walk_to",
 				"slot": 7,
 				"target": -1,
@@ -3556,7 +2785,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 493,
-				"who": 9,
+				"who": 10,
 				"do": "walk_to",
 				"slot": 8,
 				"target": -1,
@@ -3565,7 +2794,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 494,
-				"who": 10,
+				"who": 12,
 				"do": "walk_to",
 				"slot": 9,
 				"target": -1,
@@ -3574,7 +2803,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 495,
-				"who": 12,
+				"who": 14,
 				"do": "walk_to",
 				"slot": 10,
 				"target": -1,
@@ -3583,7 +2812,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 496,
-				"who": 13,
+				"who": 15,
 				"do": "walk_to",
 				"slot": 11,
 				"target": -1,
@@ -3592,7 +2821,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 497,
-				"who": 14,
+				"who": 16,
 				"do": "walk_to",
 				"slot": 12,
 				"target": -1,
@@ -3601,7 +2830,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 498,
-				"who": 15,
+				"who": 17,
 				"do": "walk_to",
 				"slot": 13,
 				"target": -1,
@@ -3610,7 +2839,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 499,
-				"who": 16,
+				"who": 18,
 				"do": "walk_to",
 				"slot": 14,
 				"target": -1,
@@ -3623,12 +2852,12 @@ const STAGINGS := [
 				"do": "stand",
 				"slot": 0,
 				"target": -1,
-				"anim": "Idle_FoldArms",
+				"anim": "Idle_Talking",
 				"prop": ""
 			},
 			{
 				"at": 500,
-				"who": 17,
+				"who": 19,
 				"do": "walk_to",
 				"slot": 15,
 				"target": -1,
@@ -3641,12 +2870,12 @@ const STAGINGS := [
 				"do": "stand",
 				"slot": 1,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_Talking",
 				"prop": ""
 			},
 			{
 				"at": 501,
-				"who": 19,
+				"who": 20,
 				"do": "walk_to",
 				"slot": 16,
 				"target": -1,
@@ -3659,12 +2888,12 @@ const STAGINGS := [
 				"do": "stand",
 				"slot": 2,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_FoldArms",
 				"prop": ""
 			},
 			{
 				"at": 502,
-				"who": 20,
+				"who": 21,
 				"do": "walk_to",
 				"slot": 17,
 				"target": -1,
@@ -3677,12 +2906,12 @@ const STAGINGS := [
 				"do": "stand",
 				"slot": 3,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_FoldArms",
 				"prop": ""
 			},
 			{
 				"at": 503,
-				"who": 21,
+				"who": 22,
 				"do": "walk_to",
 				"slot": 18,
 				"target": -1,
@@ -3695,12 +2924,12 @@ const STAGINGS := [
 				"do": "stand",
 				"slot": 4,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_FoldArms",
 				"prop": ""
 			},
 			{
 				"at": 504,
-				"who": 22,
+				"who": 23,
 				"do": "walk_to",
 				"slot": 19,
 				"target": -1,
@@ -3709,7 +2938,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 505,
-				"who": 5,
+				"who": 7,
 				"do": "stand",
 				"slot": 5,
 				"target": -1,
@@ -3718,7 +2947,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 505,
-				"who": 23,
+				"who": 25,
 				"do": "walk_to",
 				"slot": 20,
 				"target": -1,
@@ -3727,16 +2956,25 @@ const STAGINGS := [
 			},
 			{
 				"at": 506,
-				"who": 7,
+				"who": 8,
 				"do": "stand",
 				"slot": 6,
 				"target": -1,
-				"anim": "Idle_Talking",
+				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
 				"at": 506,
-				"who": 24,
+				"who": 12,
+				"do": "stand",
+				"slot": 9,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 506,
+				"who": 26,
 				"do": "walk_to",
 				"slot": 21,
 				"target": -1,
@@ -3745,16 +2983,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 507,
-				"who": 8,
+				"who": 9,
 				"do": "stand",
 				"slot": 7,
 				"target": -1,
-				"anim": "Idle_Talking",
+				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
 				"at": 507,
-				"who": 12,
+				"who": 14,
 				"do": "stand",
 				"slot": 10,
 				"target": -1,
@@ -3763,7 +3001,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 507,
-				"who": 25,
+				"who": 15,
+				"do": "stand",
+				"slot": 11,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 507,
+				"who": 28,
 				"do": "walk_to",
 				"slot": 22,
 				"target": -1,
@@ -3772,25 +3019,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 508,
-				"who": 9,
+				"who": 10,
 				"do": "stand",
 				"slot": 8,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 508,
-				"who": 13,
-				"do": "stand",
-				"slot": 11,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
 				"at": 508,
-				"who": 26,
+				"who": 29,
 				"do": "walk_to",
 				"slot": 23,
 				"target": -1,
@@ -3799,16 +3037,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 509,
-				"who": 10,
-				"do": "stand",
-				"slot": 9,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 509,
-				"who": 14,
+				"who": 16,
 				"do": "stand",
 				"slot": 12,
 				"target": -1,
@@ -3817,7 +3046,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 509,
-				"who": 27,
+				"who": 30,
 				"do": "walk_to",
 				"slot": 24,
 				"target": -1,
@@ -3826,7 +3055,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 510,
-				"who": 15,
+				"who": 17,
 				"do": "stand",
 				"slot": 13,
 				"target": -1,
@@ -3835,7 +3064,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 510,
-				"who": 28,
+				"who": 18,
+				"do": "stand",
+				"slot": 14,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 510,
+				"who": 31,
 				"do": "walk_to",
 				"slot": 25,
 				"target": -1,
@@ -3844,16 +3082,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 511,
-				"who": 16,
+				"who": 19,
 				"do": "stand",
-				"slot": 14,
+				"slot": 15,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_FoldArms",
 				"prop": ""
 			},
 			{
 				"at": 511,
-				"who": 29,
+				"who": 32,
 				"do": "walk_to",
 				"slot": 26,
 				"target": -1,
@@ -3862,25 +3100,16 @@ const STAGINGS := [
 			},
 			{
 				"at": 512,
-				"who": 17,
+				"who": 20,
 				"do": "stand",
-				"slot": 15,
+				"slot": 16,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
 				"at": 512,
-				"who": 19,
-				"do": "stand",
-				"slot": 16,
-				"target": -1,
-				"anim": "Idle_FoldArms",
-				"prop": ""
-			},
-			{
-				"at": 512,
-				"who": 31,
+				"who": 33,
 				"do": "walk_to",
 				"slot": 27,
 				"target": -1,
@@ -3889,16 +3118,25 @@ const STAGINGS := [
 			},
 			{
 				"at": 513,
-				"who": 20,
+				"who": 21,
 				"do": "stand",
 				"slot": 17,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_FoldArms",
 				"prop": ""
 			},
 			{
 				"at": 513,
-				"who": 32,
+				"who": 25,
+				"do": "stand",
+				"slot": 20,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 513,
+				"who": 34,
 				"do": "walk_to",
 				"slot": 28,
 				"target": -1,
@@ -3907,25 +3145,25 @@ const STAGINGS := [
 			},
 			{
 				"at": 514,
-				"who": 21,
+				"who": 22,
 				"do": "stand",
 				"slot": 18,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_FoldArms",
 				"prop": ""
 			},
 			{
 				"at": 514,
-				"who": 24,
+				"who": 26,
 				"do": "stand",
 				"slot": 21,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_Talking",
 				"prop": ""
 			},
 			{
 				"at": 514,
-				"who": 33,
+				"who": 35,
 				"do": "walk_to",
 				"slot": 29,
 				"target": -1,
@@ -3934,7 +3172,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 515,
-				"who": 22,
+				"who": 23,
 				"do": "stand",
 				"slot": 19,
 				"target": -1,
@@ -3943,34 +3181,106 @@ const STAGINGS := [
 			},
 			{
 				"at": 515,
-				"who": 25,
+				"who": 28,
 				"do": "stand",
 				"slot": 22,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_Talking",
 				"prop": ""
 			},
 			{
-				"at": 516,
-				"who": 23,
-				"do": "stand",
-				"slot": 20,
+				"at": 515,
+				"who": 36,
+				"do": "walk_to",
+				"slot": 30,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Walk",
 				"prop": ""
 			},
 			{
 				"at": 516,
-				"who": 26,
+				"who": 29,
 				"do": "stand",
 				"slot": 23,
 				"target": -1,
-				"anim": "Idle_No",
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 516,
+				"who": 37,
+				"do": "walk_to",
+				"slot": 31,
+				"target": -1,
+				"anim": "Walk",
 				"prop": ""
 			},
 			{
 				"at": 517,
-				"who": 27,
+				"who": 38,
+				"do": "walk_to",
+				"slot": 32,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 518,
+				"who": 39,
+				"do": "walk_to",
+				"slot": 33,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 519,
+				"who": 40,
+				"do": "walk_to",
+				"slot": 34,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 526,
+				"who": 35,
+				"do": "stand",
+				"slot": 29,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 527,
+				"who": 40,
+				"do": "stand",
+				"slot": 34,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 528,
+				"who": 34,
+				"do": "stand",
+				"slot": 28,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 529,
+				"who": 39,
+				"do": "stand",
+				"slot": 33,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 530,
+				"who": 30,
 				"do": "stand",
 				"slot": 24,
 				"target": -1,
@@ -3978,17 +3288,26 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 518,
-				"who": 28,
+				"at": 531,
+				"who": 31,
 				"do": "stand",
 				"slot": 25,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 531,
+				"who": 37,
+				"do": "stand",
+				"slot": 31,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
-				"at": 519,
-				"who": 29,
+				"at": 532,
+				"who": 32,
 				"do": "stand",
 				"slot": 26,
 				"target": -1,
@@ -3997,33 +3316,33 @@ const STAGINGS := [
 			},
 			{
 				"at": 533,
-				"who": 31,
+				"who": 33,
 				"do": "stand",
 				"slot": 27,
 				"target": -1,
-				"anim": "Idle_FoldArms",
+				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
-				"at": 534,
-				"who": 32,
+				"at": 536,
+				"who": 36,
 				"do": "stand",
-				"slot": 28,
+				"slot": 30,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
-				"at": 535,
-				"who": 33,
+				"at": 538,
+				"who": 38,
 				"do": "stand",
-				"slot": 29,
+				"slot": 32,
 				"target": -1,
 				"anim": "Idle_No",
 				"prop": ""
 			},
 			{
-				"at": 540,
+				"at": 543,
 				"who": 12,
 				"do": "gesture",
 				"slot": -1,
@@ -4032,8 +3351,26 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 595,
-				"who": 6,
+				"at": 543,
+				"who": 32,
+				"do": "throw",
+				"slot": 26,
+				"target": 5,
+				"anim": "OverhandThrow",
+				"prop": "cabbage"
+			},
+			{
+				"at": 544,
+				"who": 5,
+				"do": "react",
+				"slot": -1,
+				"target": 32,
+				"anim": "Hit_Chest",
+				"prop": ""
+			},
+			{
+				"at": 598,
+				"who": 5,
 				"do": "walk_to",
 				"slot": -1,
 				"target": -1,
@@ -4041,7 +3378,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 600,
+				"at": 603,
 				"who": 0,
 				"do": "leave",
 				"slot": -1,
@@ -4050,7 +3387,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 601,
+				"at": 604,
 				"who": 1,
 				"do": "leave",
 				"slot": -1,
@@ -4059,7 +3396,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 602,
+				"at": 605,
 				"who": 2,
 				"do": "leave",
 				"slot": -1,
@@ -4068,7 +3405,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 603,
+				"at": 606,
 				"who": 3,
 				"do": "leave",
 				"slot": -1,
@@ -4077,7 +3414,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 604,
+				"at": 607,
 				"who": 4,
 				"do": "leave",
 				"slot": -1,
@@ -4086,16 +3423,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 605,
-				"who": 5,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 606,
+				"at": 608,
 				"who": 7,
 				"do": "leave",
 				"slot": -1,
@@ -4104,7 +3432,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 607,
+				"at": 609,
 				"who": 8,
 				"do": "leave",
 				"slot": -1,
@@ -4113,7 +3441,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 608,
+				"at": 610,
 				"who": 9,
 				"do": "leave",
 				"slot": -1,
@@ -4122,7 +3450,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 609,
+				"at": 611,
 				"who": 10,
 				"do": "leave",
 				"slot": -1,
@@ -4131,7 +3459,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 610,
+				"at": 612,
 				"who": 12,
 				"do": "leave",
 				"slot": -1,
@@ -4140,16 +3468,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 611,
-				"who": 13,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 612,
+				"at": 613,
 				"who": 14,
 				"do": "leave",
 				"slot": -1,
@@ -4158,7 +3477,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 613,
+				"at": 614,
 				"who": 15,
 				"do": "leave",
 				"slot": -1,
@@ -4167,7 +3486,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 614,
+				"at": 615,
 				"who": 16,
 				"do": "leave",
 				"slot": -1,
@@ -4176,7 +3495,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 615,
+				"at": 616,
 				"who": 17,
 				"do": "leave",
 				"slot": -1,
@@ -4185,17 +3504,8 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 616,
-				"who": 19,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
 				"at": 617,
-				"who": 20,
+				"who": 18,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4204,7 +3514,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 618,
-				"who": 21,
+				"who": 19,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4213,7 +3523,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 619,
-				"who": 22,
+				"who": 20,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4222,7 +3532,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 620,
-				"who": 23,
+				"who": 21,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4231,7 +3541,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 621,
-				"who": 24,
+				"who": 22,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4240,7 +3550,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 622,
-				"who": 25,
+				"who": 23,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4249,7 +3559,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 623,
-				"who": 26,
+				"who": 25,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4258,7 +3568,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 624,
-				"who": 27,
+				"who": 26,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4285,7 +3595,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 627,
-				"who": 31,
+				"who": 30,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4294,7 +3604,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 628,
-				"who": 32,
+				"who": 31,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4303,7 +3613,79 @@ const STAGINGS := [
 			},
 			{
 				"at": 629,
+				"who": 32,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 630,
 				"who": 33,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 631,
+				"who": 34,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 632,
+				"who": 35,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 633,
+				"who": 36,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 634,
+				"who": 37,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 635,
+				"who": 38,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 636,
+				"who": 39,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 637,
+				"who": 40,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -4311,26 +3693,28 @@ const STAGINGS := [
 				"prop": ""
 			}
 		],
-		"outcome": "commuted",
+		"outcome": "carried_out",
 		"cause": [
-			"crime: charms of twisted straw found by a doorway",
-			"accusation: Simkin pointing at Tobin in the square"
+			"crime: a scuffle at the shrine",
+			"accusation: Hugh pointing at Marjory in the square"
 		],
-		"cue": "Tobin led to the south gate",
-		"day": 4,
+		"cue": "Marjory led to the south gate",
+		"day": 113,
 		"people": [
+			{
+				"id": 5,
+				"name": "Marjory",
+				"outfit": 12,
+				"home": "lodge",
+				"role": "herder",
+				"marks": [
+					"pilloried"
+				]
+			},
 			{
 				"id": 6,
 				"name": "Tobin",
 				"outfit": 8,
-				"home": "cabin",
-				"role": "midwife",
-				"marks": []
-			},
-			{
-				"id": 11,
-				"name": "Bram",
-				"outfit": 10,
 				"home": "cabin",
 				"role": "elder",
 				"marks": []
@@ -4384,11 +3768,1353 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
+				"id": 7,
+				"name": "Alys",
+				"outfit": 11,
+				"home": "cabin",
+				"role": "farmer",
+				"marks": []
+			},
+			{
+				"id": 8,
+				"name": "Wat",
+				"outfit": 9,
+				"home": "cabin",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 9,
+				"name": "Edith",
+				"outfit": 10,
+				"home": "cabin",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 10,
+				"name": "Oswin",
+				"outfit": 12,
+				"home": "cabin",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 14,
+				"name": "Tilda",
+				"outfit": 1,
+				"home": "round",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 15,
+				"name": "Orla",
+				"outfit": 2,
+				"home": "hill",
+				"role": "miller",
+				"marks": []
+			},
+			{
+				"id": 16,
+				"name": "Elsbet",
+				"outfit": 9,
+				"home": "round",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 17,
+				"name": "Merric",
+				"outfit": 11,
+				"home": "round",
+				"role": "midwife",
+				"marks": []
+			},
+			{
+				"id": 18,
+				"name": "Aldric",
+				"outfit": 7,
+				"home": "hill",
+				"role": "midwife",
+				"marks": []
+			},
+			{
+				"id": 19,
+				"name": "Bettony",
+				"outfit": 11,
+				"home": "hill",
+				"role": "miller",
+				"marks": []
+			},
+			{
+				"id": 20,
+				"name": "Cecily",
+				"outfit": 2,
+				"home": "hill",
+				"role": "herder",
+				"marks": []
+			},
+			{
+				"id": 21,
+				"name": "Cuthbert",
+				"outfit": 10,
+				"home": "hill",
+				"role": "woodcutter",
+				"marks": []
+			},
+			{
+				"id": 22,
+				"name": "Ilse",
+				"outfit": 5,
+				"home": "hill",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 23,
+				"name": "Wenna",
+				"outfit": 4,
+				"home": "hill",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 25,
+				"name": "Juliana",
+				"outfit": 6,
+				"home": "lodge",
+				"role": "farmer",
+				"marks": []
+			},
+			{
+				"id": 26,
+				"name": "Alder",
+				"outfit": 6,
+				"home": "lodge",
+				"role": "farmer",
+				"marks": []
+			},
+			{
+				"id": 28,
+				"name": "Simkin",
+				"outfit": 10,
+				"home": "lodge",
+				"role": "miller",
+				"marks": []
+			},
+			{
+				"id": 29,
+				"name": "Rolf",
+				"outfit": 9,
+				"home": "lodge",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 30,
+				"name": "Piers",
+				"outfit": 2,
+				"home": "loaf",
+				"role": "miller",
+				"marks": []
+			},
+			{
+				"id": 31,
+				"name": "Joan",
+				"outfit": 11,
+				"home": "loaf",
+				"role": "herder",
+				"marks": []
+			},
+			{
+				"id": 32,
+				"name": "Hugh",
+				"outfit": 0,
+				"home": "loaf",
+				"role": "farmer",
+				"marks": []
+			},
+			{
+				"id": 33,
+				"name": "Ansel",
+				"outfit": 6,
+				"home": "loaf",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 34,
+				"name": "Isolde",
+				"outfit": 7,
+				"home": "cottage",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 35,
+				"name": "Rafe",
+				"outfit": 10,
+				"home": "round",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 36,
+				"name": "Wystan",
+				"outfit": 2,
+				"home": "loaf",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 37,
+				"name": "Godric",
+				"outfit": 7,
+				"home": "cabin",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 38,
+				"name": "Rose",
+				"outfit": 9,
+				"home": "loaf",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 39,
+				"name": "Mara",
+				"outfit": 1,
+				"home": "hill",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 40,
+				"name": "Colm",
+				"outfit": 9,
+				"home": "lodge",
+				"role": "child",
+				"marks": []
+			}
+		],
+		"title": "Marjory Walks Out",
+		"story": "One evening old grudges came to blows: Marjory struck Hugh. Hugh named Marjory before the elder. Tobin, the elder, heard it in the square. The sentence was exile."
+	},
+	{
+		"id": 2,
+		"kind": "trial",
+		"place": "square",
+		"start": 480,
+		"end": 580,
+		"phases": [
+			{
+				"name": "gather",
+				"from": 480,
+				"to": 540,
+				"rescue": true
+			},
+			{
+				"name": "fine",
+				"from": 540,
+				"to": 530,
+				"rescue": true
+			},
+			{
+				"name": "end",
+				"from": 530,
+				"to": 580,
+				"rescue": false
+			}
+		],
+		"roles": {
+			"victim": 5,
+			"accuser": 31,
+			"authority": 6,
+			"crowd": [
+				0,
+				1,
+				2,
+				3,
+				4,
+				7,
+				8,
+				9,
+				10,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26,
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37
+			]
+		},
+		"beats": [
+			{
+				"at": 480,
+				"who": 5,
+				"do": "walk_to",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 480,
+				"who": 6,
+				"do": "walk_to",
+				"slot": -1,
+				"target": 5,
+				"anim": "Walk_Formal",
+				"prop": ""
+			},
+			{
+				"at": 485,
+				"who": 0,
+				"do": "walk_to",
+				"slot": 0,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 486,
+				"who": 1,
+				"do": "walk_to",
+				"slot": 1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 487,
+				"who": 2,
+				"do": "walk_to",
+				"slot": 2,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 488,
+				"who": 3,
+				"do": "walk_to",
+				"slot": 3,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 489,
+				"who": 4,
+				"do": "walk_to",
+				"slot": 4,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 490,
+				"who": 7,
+				"do": "walk_to",
+				"slot": 5,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 491,
+				"who": 0,
+				"do": "stand",
+				"slot": 0,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 491,
+				"who": 8,
+				"do": "walk_to",
+				"slot": 6,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 492,
+				"who": 1,
+				"do": "stand",
+				"slot": 1,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 492,
+				"who": 9,
+				"do": "walk_to",
+				"slot": 7,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 493,
+				"who": 2,
+				"do": "stand",
+				"slot": 2,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 493,
+				"who": 10,
+				"do": "walk_to",
+				"slot": 8,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 494,
+				"who": 3,
+				"do": "stand",
+				"slot": 3,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 494,
+				"who": 12,
+				"do": "walk_to",
+				"slot": 9,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 495,
+				"who": 4,
+				"do": "stand",
+				"slot": 4,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 495,
+				"who": 13,
+				"do": "walk_to",
+				"slot": 10,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 496,
+				"who": 14,
+				"do": "walk_to",
+				"slot": 11,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 497,
+				"who": 7,
+				"do": "stand",
+				"slot": 5,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 497,
+				"who": 15,
+				"do": "walk_to",
+				"slot": 12,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 498,
+				"who": 8,
+				"do": "stand",
+				"slot": 6,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 498,
+				"who": 16,
+				"do": "walk_to",
+				"slot": 13,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 499,
+				"who": 9,
+				"do": "stand",
+				"slot": 7,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 499,
+				"who": 17,
+				"do": "walk_to",
+				"slot": 14,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 500,
+				"who": 10,
+				"do": "stand",
+				"slot": 8,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 500,
+				"who": 18,
+				"do": "walk_to",
+				"slot": 15,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 501,
+				"who": 19,
+				"do": "walk_to",
+				"slot": 16,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 502,
+				"who": 12,
+				"do": "stand",
+				"slot": 9,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 502,
+				"who": 20,
+				"do": "walk_to",
+				"slot": 17,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 503,
+				"who": 13,
+				"do": "stand",
+				"slot": 10,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 503,
+				"who": 21,
+				"do": "walk_to",
+				"slot": 18,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 504,
+				"who": 14,
+				"do": "stand",
+				"slot": 11,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 504,
+				"who": 22,
+				"do": "walk_to",
+				"slot": 19,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 505,
+				"who": 15,
+				"do": "stand",
+				"slot": 12,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 505,
+				"who": 23,
+				"do": "walk_to",
+				"slot": 20,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 506,
+				"who": 16,
+				"do": "stand",
+				"slot": 13,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 506,
+				"who": 18,
+				"do": "stand",
+				"slot": 15,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 506,
+				"who": 24,
+				"do": "walk_to",
+				"slot": 21,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 507,
+				"who": 17,
+				"do": "stand",
+				"slot": 14,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 507,
+				"who": 19,
+				"do": "stand",
+				"slot": 16,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 507,
+				"who": 25,
+				"do": "walk_to",
+				"slot": 22,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 508,
+				"who": 20,
+				"do": "stand",
+				"slot": 17,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 508,
+				"who": 26,
+				"do": "walk_to",
+				"slot": 23,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 509,
+				"who": 21,
+				"do": "stand",
+				"slot": 18,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 509,
+				"who": 27,
+				"do": "walk_to",
+				"slot": 24,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 510,
+				"who": 22,
+				"do": "stand",
+				"slot": 19,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 510,
+				"who": 28,
+				"do": "walk_to",
+				"slot": 25,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 511,
+				"who": 23,
+				"do": "stand",
+				"slot": 20,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 511,
+				"who": 29,
+				"do": "walk_to",
+				"slot": 26,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 512,
+				"who": 30,
+				"do": "walk_to",
+				"slot": 27,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 513,
+				"who": 31,
+				"do": "walk_to",
+				"slot": 28,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 514,
+				"who": 32,
+				"do": "walk_to",
+				"slot": 29,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 515,
+				"who": 24,
+				"do": "stand",
+				"slot": 21,
+				"target": -1,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 515,
+				"who": 33,
+				"do": "walk_to",
+				"slot": 30,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 516,
+				"who": 25,
+				"do": "stand",
+				"slot": 22,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 516,
+				"who": 34,
+				"do": "walk_to",
+				"slot": 31,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 517,
+				"who": 26,
+				"do": "stand",
+				"slot": 23,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 517,
+				"who": 35,
+				"do": "walk_to",
+				"slot": 32,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 518,
+				"who": 27,
+				"do": "stand",
+				"slot": 24,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 518,
+				"who": 36,
+				"do": "walk_to",
+				"slot": 33,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 519,
+				"who": 28,
+				"do": "stand",
+				"slot": 25,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 519,
+				"who": 37,
+				"do": "walk_to",
+				"slot": 34,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 520,
+				"who": 29,
+				"do": "stand",
+				"slot": 26,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 522,
+				"who": 34,
+				"do": "stand",
+				"slot": 31,
+				"target": -1,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 525,
+				"who": 30,
+				"do": "stand",
+				"slot": 27,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 525,
+				"who": 35,
+				"do": "stand",
+				"slot": 32,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 526,
+				"who": 31,
+				"do": "stand",
+				"slot": 28,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 526,
+				"who": 37,
+				"do": "stand",
+				"slot": 34,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 527,
+				"who": 32,
+				"do": "stand",
+				"slot": 29,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 528,
+				"who": 33,
+				"do": "stand",
+				"slot": 30,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 531,
+				"who": 36,
+				"do": "stand",
+				"slot": 33,
+				"target": -1,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 535,
+				"who": 5,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 540,
+				"who": 0,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 541,
+				"who": 1,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 542,
+				"who": 2,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 543,
+				"who": 3,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 544,
+				"who": 4,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 545,
+				"who": 7,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 546,
+				"who": 8,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 547,
+				"who": 9,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 548,
+				"who": 10,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 549,
+				"who": 12,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 550,
+				"who": 13,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 551,
+				"who": 14,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 552,
+				"who": 15,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 553,
+				"who": 16,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 554,
+				"who": 17,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 555,
+				"who": 18,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 556,
+				"who": 19,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 557,
+				"who": 20,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 558,
+				"who": 21,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 559,
+				"who": 22,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 560,
+				"who": 23,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 561,
+				"who": 24,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 562,
+				"who": 25,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 563,
+				"who": 26,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 564,
+				"who": 27,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 565,
+				"who": 28,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 566,
+				"who": 29,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 567,
+				"who": 30,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 568,
+				"who": 31,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 569,
+				"who": 32,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 570,
+				"who": 33,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 571,
+				"who": 34,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 572,
+				"who": 35,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 573,
+				"who": 36,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 574,
+				"who": 37,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			}
+		],
+		"outcome": "confessed_spared",
+		"cause": [
+			"crime: a scuffle at the shrine",
+			"accusation: Joan pointing at Marjory in the square"
+		],
+		"cue": "coins counted out on the elder's bench",
+		"day": 54,
+		"people": [
+			{
 				"id": 5,
 				"name": "Marjory",
 				"outfit": 12,
 				"home": "cottage",
 				"role": "herder",
+				"marks": []
+			},
+			{
+				"id": 6,
+				"name": "Tobin",
+				"outfit": 8,
+				"home": "cabin",
+				"role": "elder",
+				"marks": []
+			},
+			{
+				"id": 12,
+				"name": "Garrow",
+				"outfit": 0,
+				"home": "round",
+				"role": "priest",
+				"marks": []
+			},
+			{
+				"id": 0,
+				"name": "Osric",
+				"outfit": 1,
+				"home": "cottage",
+				"role": "farmer",
+				"marks": []
+			},
+			{
+				"id": 1,
+				"name": "Maud",
+				"outfit": 6,
+				"home": "cottage",
+				"role": "smith",
+				"marks": []
+			},
+			{
+				"id": 2,
+				"name": "Dunstan",
+				"outfit": 11,
+				"home": "cottage",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 3,
+				"name": "Agnes",
+				"outfit": 12,
+				"home": "cottage",
+				"role": "smith",
+				"marks": []
+			},
+			{
+				"id": 4,
+				"name": "Edric",
+				"outfit": 5,
+				"home": "cottage",
+				"role": "child",
 				"marks": []
 			},
 			{
@@ -4461,6 +5187,14 @@ const STAGINGS := [
 				"outfit": 11,
 				"home": "round",
 				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 18,
+				"name": "Aldric",
+				"outfit": 7,
+				"home": "hill",
+				"role": "midwife",
 				"marks": []
 			},
 			{
@@ -4552,1041 +5286,11 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
-				"id": 31,
-				"name": "Joan",
-				"outfit": 11,
-				"home": "loaf",
-				"role": "herder",
-				"marks": []
-			},
-			{
-				"id": 32,
-				"name": "Hugh",
-				"outfit": 0,
-				"home": "loaf",
-				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 33,
-				"name": "Ansel",
-				"outfit": 6,
-				"home": "loaf",
-				"role": "child",
-				"marks": []
-			}
-		],
-		"title": "Tobin Walks Out",
-		"story": "That season people saw a red moon, and began to watch one another. Whispers started that Tobin had cursed the village - charms of twisted straw found by a doorway. Simkin named Tobin before the elder. Bram, the elder, heard it in the square. They put Tobin in the millpond. They floated. Guilty. The law asked for the fire, but the elder, weary of blood, gave exile."
-	},
-	{
-		"id": 9,
-		"kind": "trial",
-		"place": "square",
-		"start": 480,
-		"end": 572,
-		"phases": [
-			{
-				"name": "gather",
-				"from": 480,
-				"to": 540,
-				"rescue": true
-			},
-			{
-				"name": "fine",
-				"from": 540,
-				"to": 530,
-				"rescue": true
-			},
-			{
-				"name": "end",
-				"from": 530,
-				"to": 572,
-				"rescue": false
-			}
-		],
-		"roles": {
-			"victim": 27,
-			"accuser": 25,
-			"authority": 25,
-			"crowd": [
-				2,
-				3,
-				4,
-				7,
-				8,
-				9,
-				10,
-				12,
-				13,
-				14,
-				15,
-				16,
-				17,
-				19,
-				20,
-				21,
-				22,
-				23,
-				26,
-				28,
-				29,
-				31,
-				32,
-				33,
-				34,
-				35,
-				36
-			]
-		},
-		"beats": [
-			{
-				"at": 480,
-				"who": 25,
-				"do": "walk_to",
-				"slot": -1,
-				"target": 27,
-				"anim": "Walk_Formal",
-				"prop": ""
-			},
-			{
-				"at": 480,
-				"who": 27,
-				"do": "walk_to",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 485,
-				"who": 2,
-				"do": "walk_to",
-				"slot": 0,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 486,
-				"who": 3,
-				"do": "walk_to",
-				"slot": 1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 487,
-				"who": 4,
-				"do": "walk_to",
-				"slot": 2,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 488,
-				"who": 7,
-				"do": "walk_to",
-				"slot": 3,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 489,
-				"who": 8,
-				"do": "walk_to",
-				"slot": 4,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 490,
-				"who": 9,
-				"do": "walk_to",
-				"slot": 5,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 491,
-				"who": 2,
-				"do": "stand",
-				"slot": 0,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 491,
-				"who": 10,
-				"do": "walk_to",
-				"slot": 6,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 492,
-				"who": 3,
-				"do": "stand",
-				"slot": 1,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 492,
-				"who": 12,
-				"do": "walk_to",
-				"slot": 7,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 493,
-				"who": 4,
-				"do": "stand",
-				"slot": 2,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 493,
-				"who": 13,
-				"do": "walk_to",
-				"slot": 8,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 494,
-				"who": 14,
-				"do": "walk_to",
-				"slot": 9,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 495,
-				"who": 7,
-				"do": "stand",
-				"slot": 3,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 495,
-				"who": 15,
-				"do": "walk_to",
-				"slot": 10,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 496,
-				"who": 8,
-				"do": "stand",
-				"slot": 4,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 496,
-				"who": 16,
-				"do": "walk_to",
-				"slot": 11,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 497,
-				"who": 9,
-				"do": "stand",
-				"slot": 5,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 497,
-				"who": 17,
-				"do": "walk_to",
-				"slot": 12,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 498,
-				"who": 10,
-				"do": "stand",
-				"slot": 6,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 498,
-				"who": 19,
-				"do": "walk_to",
-				"slot": 13,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 499,
-				"who": 20,
-				"do": "walk_to",
-				"slot": 14,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 500,
-				"who": 12,
-				"do": "stand",
-				"slot": 7,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 500,
-				"who": 21,
-				"do": "walk_to",
-				"slot": 15,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 13,
-				"do": "stand",
-				"slot": 8,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 15,
-				"do": "stand",
-				"slot": 10,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 22,
-				"do": "walk_to",
-				"slot": 16,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 502,
-				"who": 14,
-				"do": "stand",
-				"slot": 9,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 502,
-				"who": 23,
-				"do": "walk_to",
-				"slot": 17,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 503,
-				"who": 26,
-				"do": "walk_to",
-				"slot": 18,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 504,
-				"who": 16,
-				"do": "stand",
-				"slot": 11,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 504,
-				"who": 19,
-				"do": "stand",
-				"slot": 13,
-				"target": -1,
-				"anim": "Idle_FoldArms",
-				"prop": ""
-			},
-			{
-				"at": 504,
-				"who": 28,
-				"do": "walk_to",
-				"slot": 19,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 505,
-				"who": 17,
-				"do": "stand",
-				"slot": 12,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 505,
-				"who": 20,
-				"do": "stand",
-				"slot": 14,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 505,
-				"who": 29,
-				"do": "walk_to",
-				"slot": 20,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 506,
-				"who": 21,
-				"do": "stand",
-				"slot": 15,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 506,
-				"who": 31,
-				"do": "walk_to",
-				"slot": 21,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 507,
-				"who": 22,
-				"do": "stand",
-				"slot": 16,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 507,
-				"who": 32,
-				"do": "walk_to",
-				"slot": 22,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 508,
-				"who": 23,
-				"do": "stand",
-				"slot": 17,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 508,
-				"who": 33,
-				"do": "walk_to",
-				"slot": 23,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 509,
-				"who": 34,
-				"do": "walk_to",
-				"slot": 24,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 510,
-				"who": 35,
-				"do": "walk_to",
-				"slot": 25,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 511,
-				"who": 36,
-				"do": "walk_to",
-				"slot": 26,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 512,
-				"who": 26,
-				"do": "stand",
-				"slot": 18,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 513,
-				"who": 28,
-				"do": "stand",
-				"slot": 19,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 514,
-				"who": 29,
-				"do": "stand",
-				"slot": 20,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 515,
-				"who": 34,
-				"do": "stand",
-				"slot": 24,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 518,
-				"who": 35,
-				"do": "stand",
-				"slot": 25,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 518,
-				"who": 36,
-				"do": "stand",
-				"slot": 26,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 519,
-				"who": 31,
-				"do": "stand",
-				"slot": 21,
-				"target": -1,
-				"anim": "Idle_FoldArms",
-				"prop": ""
-			},
-			{
-				"at": 520,
-				"who": 32,
-				"do": "stand",
-				"slot": 22,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 521,
-				"who": 33,
-				"do": "stand",
-				"slot": 23,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 535,
-				"who": 27,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 540,
-				"who": 2,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 541,
-				"who": 3,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 542,
-				"who": 4,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 543,
-				"who": 7,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 544,
-				"who": 8,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 545,
-				"who": 9,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 546,
-				"who": 10,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 547,
-				"who": 12,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 548,
-				"who": 13,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 549,
-				"who": 14,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 550,
-				"who": 15,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 551,
-				"who": 16,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 552,
-				"who": 17,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 553,
-				"who": 19,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 554,
-				"who": 20,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 555,
-				"who": 21,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 556,
-				"who": 22,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 557,
-				"who": 23,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 558,
-				"who": 26,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 559,
-				"who": 28,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 560,
-				"who": 29,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 561,
-				"who": 31,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 562,
-				"who": 32,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 563,
-				"who": 33,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 564,
-				"who": 34,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 565,
-				"who": 35,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 566,
-				"who": 36,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			}
-		],
-		"outcome": "confessed_spared",
-		"cause": [
-			"crime: a scuffle at the well",
-			"accusation: Juliana pointing at Colm in the square"
-		],
-		"cue": "coins counted out on the elder's bench",
-		"day": 86,
-		"people": [
-			{
-				"id": 27,
-				"name": "Colm",
-				"outfit": 0,
-				"home": "lodge",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 25,
-				"name": "Juliana",
-				"outfit": 6,
-				"home": "lodge",
-				"role": "elder",
-				"marks": []
-			},
-			{
-				"id": 12,
-				"name": "Garrow",
-				"outfit": 0,
-				"home": "round",
-				"role": "priest",
-				"marks": []
-			},
-			{
-				"id": 2,
-				"name": "Dunstan",
-				"outfit": 11,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 3,
-				"name": "Agnes",
-				"outfit": 12,
-				"home": "cottage",
-				"role": "smith",
-				"marks": []
-			},
-			{
-				"id": 4,
-				"name": "Edric",
-				"outfit": 5,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 7,
-				"name": "Alys",
-				"outfit": 11,
-				"home": "cabin",
-				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 8,
-				"name": "Wat",
-				"outfit": 9,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 9,
-				"name": "Edith",
-				"outfit": 10,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 10,
-				"name": "Oswin",
-				"outfit": 12,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 13,
-				"name": "Gwen",
-				"outfit": 8,
-				"home": "round",
-				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 14,
-				"name": "Tilda",
-				"outfit": 1,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 15,
-				"name": "Orla",
+				"id": 30,
+				"name": "Piers",
 				"outfit": 2,
-				"home": "hill",
+				"home": "loaf",
 				"role": "miller",
-				"marks": []
-			},
-			{
-				"id": 16,
-				"name": "Elsbet",
-				"outfit": 9,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 17,
-				"name": "Merric",
-				"outfit": 11,
-				"home": "round",
-				"role": "midwife",
-				"marks": []
-			},
-			{
-				"id": 19,
-				"name": "Bettony",
-				"outfit": 11,
-				"home": "hill",
-				"role": "miller",
-				"marks": []
-			},
-			{
-				"id": 20,
-				"name": "Cecily",
-				"outfit": 2,
-				"home": "hill",
-				"role": "herder",
-				"marks": []
-			},
-			{
-				"id": 21,
-				"name": "Cuthbert",
-				"outfit": 10,
-				"home": "hill",
-				"role": "woodcutter",
-				"marks": []
-			},
-			{
-				"id": 22,
-				"name": "Ilse",
-				"outfit": 5,
-				"home": "hill",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 23,
-				"name": "Wenna",
-				"outfit": 4,
-				"home": "hill",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 26,
-				"name": "Alder",
-				"outfit": 6,
-				"home": "lodge",
-				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 28,
-				"name": "Simkin",
-				"outfit": 10,
-				"home": "lodge",
-				"role": "miller",
-				"marks": []
-			},
-			{
-				"id": 29,
-				"name": "Rolf",
-				"outfit": 9,
-				"home": "lodge",
-				"role": "child",
 				"marks": []
 			},
 			{
@@ -5623,7 +5327,7 @@ const STAGINGS := [
 			},
 			{
 				"id": 35,
-				"name": "Godric",
+				"name": "Rafe",
 				"outfit": 10,
 				"home": "round",
 				"role": "child",
@@ -5631,18 +5335,26 @@ const STAGINGS := [
 			},
 			{
 				"id": 36,
-				"name": "Tam",
+				"name": "Wystan",
 				"outfit": 2,
+				"home": "loaf",
+				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 37,
+				"name": "Godric",
+				"outfit": 7,
 				"home": "cabin",
 				"role": "child",
 				"marks": []
 			}
 		],
-		"title": "Colm's Fine",
-		"story": "One evening old grudges came to blows: Colm struck Gwen. Juliana named Colm before the elder. Juliana, the elder, judged it too. Colm confessed, and was spared the worst. The sentence was a fine. Colm paid in grain. They are remembered as Colm Who Confessed."
+		"title": "Marjory's Fine",
+		"story": "One evening old grudges came to blows: Marjory struck Hugh. Joan named Marjory before the elder. Tobin, the elder, heard it in the square. Marjory confessed, and was spared the worst. The sentence was a fine. Marjory paid in grain. They are remembered as Marjory Who Confessed."
 	},
 	{
-		"id": 5,
+		"id": 0,
 		"kind": "festival",
 		"place": "square",
 		"start": 1080,
@@ -5660,9 +5372,13 @@ const STAGINGS := [
 			"accuser": -1,
 			"authority": 11,
 			"crowd": [
+				0,
+				1,
 				2,
 				3,
 				4,
+				5,
+				6,
 				7,
 				8,
 				9,
@@ -5674,6 +5390,7 @@ const STAGINGS := [
 				15,
 				16,
 				17,
+				18,
 				19,
 				20,
 				21,
@@ -5684,18 +5401,13 @@ const STAGINGS := [
 				26,
 				27,
 				28,
-				29,
-				31,
-				32,
-				33,
-				34,
-				35
+				29
 			]
 		},
 		"beats": [
 			{
 				"at": 1080,
-				"who": 2,
+				"who": 0,
 				"do": "walk_to",
 				"slot": 0,
 				"target": -1,
@@ -5704,7 +5416,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1081,
-				"who": 3,
+				"who": 1,
 				"do": "walk_to",
 				"slot": 1,
 				"target": -1,
@@ -5713,7 +5425,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1082,
-				"who": 4,
+				"who": 2,
 				"do": "walk_to",
 				"slot": 2,
 				"target": -1,
@@ -5722,7 +5434,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1083,
-				"who": 7,
+				"who": 3,
 				"do": "walk_to",
 				"slot": 3,
 				"target": -1,
@@ -5731,7 +5443,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1084,
-				"who": 8,
+				"who": 4,
 				"do": "walk_to",
 				"slot": 4,
 				"target": -1,
@@ -5740,7 +5452,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1085,
-				"who": 9,
+				"who": 5,
 				"do": "walk_to",
 				"slot": 5,
 				"target": -1,
@@ -5749,7 +5461,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1086,
-				"who": 10,
+				"who": 6,
 				"do": "walk_to",
 				"slot": 6,
 				"target": -1,
@@ -5758,7 +5470,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1087,
-				"who": 11,
+				"who": 7,
 				"do": "walk_to",
 				"slot": 7,
 				"target": -1,
@@ -5767,7 +5479,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1088,
-				"who": 12,
+				"who": 8,
 				"do": "walk_to",
 				"slot": 8,
 				"target": -1,
@@ -5776,7 +5488,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1089,
-				"who": 13,
+				"who": 9,
 				"do": "walk_to",
 				"slot": 9,
 				"target": -1,
@@ -5785,7 +5497,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1090,
-				"who": 14,
+				"who": 10,
 				"do": "walk_to",
 				"slot": 10,
 				"target": -1,
@@ -5794,7 +5506,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1091,
-				"who": 15,
+				"who": 11,
 				"do": "walk_to",
 				"slot": 11,
 				"target": -1,
@@ -5803,7 +5515,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1092,
-				"who": 16,
+				"who": 12,
 				"do": "walk_to",
 				"slot": 12,
 				"target": -1,
@@ -5812,7 +5524,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1093,
-				"who": 17,
+				"who": 13,
 				"do": "walk_to",
 				"slot": 13,
 				"target": -1,
@@ -5821,7 +5533,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1094,
-				"who": 19,
+				"who": 14,
 				"do": "walk_to",
 				"slot": 14,
 				"target": -1,
@@ -5830,7 +5542,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1095,
-				"who": 20,
+				"who": 15,
 				"do": "walk_to",
 				"slot": 15,
 				"target": -1,
@@ -5839,7 +5551,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1096,
-				"who": 21,
+				"who": 16,
 				"do": "walk_to",
 				"slot": 16,
 				"target": -1,
@@ -5848,7 +5560,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1097,
-				"who": 22,
+				"who": 17,
 				"do": "walk_to",
 				"slot": 17,
 				"target": -1,
@@ -5857,7 +5569,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1098,
-				"who": 23,
+				"who": 18,
 				"do": "walk_to",
 				"slot": 18,
 				"target": -1,
@@ -5866,7 +5578,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1099,
-				"who": 24,
+				"who": 19,
 				"do": "walk_to",
 				"slot": 19,
 				"target": -1,
@@ -5875,7 +5587,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1100,
-				"who": 25,
+				"who": 20,
 				"do": "walk_to",
 				"slot": 20,
 				"target": -1,
@@ -5884,7 +5596,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1101,
-				"who": 26,
+				"who": 21,
 				"do": "walk_to",
 				"slot": 21,
 				"target": -1,
@@ -5893,7 +5605,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1102,
-				"who": 27,
+				"who": 22,
 				"do": "walk_to",
 				"slot": 22,
 				"target": -1,
@@ -5902,7 +5614,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1103,
-				"who": 28,
+				"who": 23,
 				"do": "walk_to",
 				"slot": 23,
 				"target": -1,
@@ -5911,7 +5623,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1104,
-				"who": 29,
+				"who": 24,
 				"do": "walk_to",
 				"slot": 24,
 				"target": -1,
@@ -5920,7 +5632,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1105,
-				"who": 31,
+				"who": 25,
 				"do": "walk_to",
 				"slot": 25,
 				"target": -1,
@@ -5929,7 +5641,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1106,
-				"who": 32,
+				"who": 26,
 				"do": "walk_to",
 				"slot": 26,
 				"target": -1,
@@ -5938,7 +5650,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1107,
-				"who": 33,
+				"who": 27,
 				"do": "walk_to",
 				"slot": 27,
 				"target": -1,
@@ -5947,7 +5659,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1108,
-				"who": 34,
+				"who": 28,
 				"do": "walk_to",
 				"slot": 28,
 				"target": -1,
@@ -5956,7 +5668,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1109,
-				"who": 35,
+				"who": 29,
 				"do": "walk_to",
 				"slot": 29,
 				"target": -1,
@@ -5965,7 +5677,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1110,
-				"who": 2,
+				"who": 0,
 				"do": "stand",
 				"slot": 0,
 				"target": -1,
@@ -5974,7 +5686,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1111,
-				"who": 3,
+				"who": 1,
 				"do": "stand",
 				"slot": 1,
 				"target": -1,
@@ -5983,7 +5695,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1112,
-				"who": 4,
+				"who": 2,
 				"do": "stand",
 				"slot": 2,
 				"target": -1,
@@ -5992,7 +5704,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1113,
-				"who": 7,
+				"who": 3,
 				"do": "stand",
 				"slot": 3,
 				"target": -1,
@@ -6001,7 +5713,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1114,
-				"who": 8,
+				"who": 4,
 				"do": "stand",
 				"slot": 4,
 				"target": -1,
@@ -6010,7 +5722,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1115,
-				"who": 9,
+				"who": 5,
 				"do": "stand",
 				"slot": 5,
 				"target": -1,
@@ -6019,7 +5731,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1116,
-				"who": 10,
+				"who": 6,
 				"do": "stand",
 				"slot": 6,
 				"target": -1,
@@ -6028,7 +5740,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1117,
-				"who": 11,
+				"who": 7,
 				"do": "stand",
 				"slot": 7,
 				"target": -1,
@@ -6037,7 +5749,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1118,
-				"who": 12,
+				"who": 8,
 				"do": "stand",
 				"slot": 8,
 				"target": -1,
@@ -6046,7 +5758,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1119,
-				"who": 13,
+				"who": 9,
 				"do": "stand",
 				"slot": 9,
 				"target": -1,
@@ -6055,7 +5767,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1120,
-				"who": 14,
+				"who": 10,
 				"do": "stand",
 				"slot": 10,
 				"target": -1,
@@ -6064,7 +5776,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1121,
-				"who": 15,
+				"who": 11,
 				"do": "stand",
 				"slot": 11,
 				"target": -1,
@@ -6073,7 +5785,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1122,
-				"who": 16,
+				"who": 12,
 				"do": "stand",
 				"slot": 12,
 				"target": -1,
@@ -6082,7 +5794,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1123,
-				"who": 17,
+				"who": 13,
 				"do": "stand",
 				"slot": 13,
 				"target": -1,
@@ -6091,7 +5803,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1124,
-				"who": 19,
+				"who": 14,
 				"do": "stand",
 				"slot": 14,
 				"target": -1,
@@ -6100,7 +5812,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1125,
-				"who": 20,
+				"who": 15,
 				"do": "stand",
 				"slot": 15,
 				"target": -1,
@@ -6109,7 +5821,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1126,
-				"who": 21,
+				"who": 16,
 				"do": "stand",
 				"slot": 16,
 				"target": -1,
@@ -6118,7 +5830,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1127,
-				"who": 22,
+				"who": 17,
 				"do": "stand",
 				"slot": 17,
 				"target": -1,
@@ -6127,7 +5839,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1128,
-				"who": 23,
+				"who": 18,
 				"do": "stand",
 				"slot": 18,
 				"target": -1,
@@ -6136,7 +5848,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1129,
-				"who": 24,
+				"who": 19,
 				"do": "stand",
 				"slot": 19,
 				"target": -1,
@@ -6145,7 +5857,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1130,
-				"who": 25,
+				"who": 20,
 				"do": "stand",
 				"slot": 20,
 				"target": -1,
@@ -6154,7 +5866,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1131,
-				"who": 26,
+				"who": 21,
 				"do": "stand",
 				"slot": 21,
 				"target": -1,
@@ -6163,7 +5875,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1132,
-				"who": 27,
+				"who": 22,
 				"do": "stand",
 				"slot": 22,
 				"target": -1,
@@ -6172,7 +5884,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1133,
-				"who": 28,
+				"who": 23,
 				"do": "stand",
 				"slot": 23,
 				"target": -1,
@@ -6181,7 +5893,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1134,
-				"who": 29,
+				"who": 24,
 				"do": "stand",
 				"slot": 24,
 				"target": -1,
@@ -6190,7 +5902,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1135,
-				"who": 31,
+				"who": 25,
 				"do": "stand",
 				"slot": 25,
 				"target": -1,
@@ -6199,7 +5911,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1136,
-				"who": 32,
+				"who": 26,
 				"do": "stand",
 				"slot": 26,
 				"target": -1,
@@ -6208,7 +5920,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1137,
-				"who": 33,
+				"who": 27,
 				"do": "stand",
 				"slot": 27,
 				"target": -1,
@@ -6217,7 +5929,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1138,
-				"who": 34,
+				"who": 28,
 				"do": "stand",
 				"slot": 28,
 				"target": -1,
@@ -6226,7 +5938,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1139,
-				"who": 35,
+				"who": 29,
 				"do": "stand",
 				"slot": 29,
 				"target": -1,
@@ -6235,7 +5947,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1300,
-				"who": 2,
+				"who": 0,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6244,7 +5956,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1301,
-				"who": 3,
+				"who": 1,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6253,7 +5965,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1302,
-				"who": 4,
+				"who": 2,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6262,7 +5974,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1303,
-				"who": 7,
+				"who": 3,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6271,7 +5983,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1304,
-				"who": 8,
+				"who": 4,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6280,7 +5992,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1305,
-				"who": 9,
+				"who": 5,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6289,7 +6001,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1306,
-				"who": 10,
+				"who": 6,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6298,7 +6010,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1307,
-				"who": 11,
+				"who": 7,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6307,7 +6019,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1308,
-				"who": 12,
+				"who": 8,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6316,7 +6028,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1309,
-				"who": 13,
+				"who": 9,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6325,7 +6037,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1310,
-				"who": 14,
+				"who": 10,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6334,7 +6046,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1311,
-				"who": 15,
+				"who": 11,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6343,7 +6055,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1312,
-				"who": 16,
+				"who": 12,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6352,7 +6064,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1313,
-				"who": 17,
+				"who": 13,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6361,7 +6073,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1314,
-				"who": 19,
+				"who": 14,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6370,7 +6082,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1315,
-				"who": 20,
+				"who": 15,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6379,7 +6091,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1316,
-				"who": 21,
+				"who": 16,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6388,7 +6100,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1317,
-				"who": 22,
+				"who": 17,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6397,7 +6109,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1318,
-				"who": 23,
+				"who": 18,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6406,7 +6118,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1319,
-				"who": 24,
+				"who": 19,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6415,7 +6127,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1320,
-				"who": 25,
+				"who": 20,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6424,7 +6136,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1321,
-				"who": 26,
+				"who": 21,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6433,7 +6145,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1322,
-				"who": 27,
+				"who": 22,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6442,7 +6154,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1323,
-				"who": 28,
+				"who": 23,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6451,7 +6163,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1324,
-				"who": 29,
+				"who": 24,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6460,7 +6172,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1325,
-				"who": 31,
+				"who": 25,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6469,7 +6181,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1326,
-				"who": 32,
+				"who": 26,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6478,7 +6190,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1327,
-				"who": 33,
+				"who": 27,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6487,7 +6199,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1328,
-				"who": 34,
+				"who": 28,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6496,7 +6208,7 @@ const STAGINGS := [
 			},
 			{
 				"at": 1329,
-				"who": 35,
+				"who": 29,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -6511,6 +6223,22 @@ const STAGINGS := [
 		"cue": "dancing in the square",
 		"day": 22,
 		"people": [
+			{
+				"id": 0,
+				"name": "Osric",
+				"outfit": 1,
+				"home": "cottage",
+				"role": "farmer",
+				"marks": []
+			},
+			{
+				"id": 1,
+				"name": "Maud",
+				"outfit": 6,
+				"home": "cottage",
+				"role": "smith",
+				"marks": []
+			},
 			{
 				"id": 2,
 				"name": "Dunstan",
@@ -6533,6 +6261,22 @@ const STAGINGS := [
 				"outfit": 5,
 				"home": "cottage",
 				"role": "child",
+				"marks": []
+			},
+			{
+				"id": 5,
+				"name": "Marjory",
+				"outfit": 12,
+				"home": "cottage",
+				"role": "herder",
+				"marks": []
+			},
+			{
+				"id": 6,
+				"name": "Tobin",
+				"outfit": 8,
+				"home": "cabin",
+				"role": "midwife",
 				"marks": []
 			},
 			{
@@ -6624,6 +6368,14 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
+				"id": 18,
+				"name": "Aldric",
+				"outfit": 7,
+				"home": "hill",
+				"role": "midwife",
+				"marks": []
+			},
+			{
 				"id": 19,
 				"name": "Bettony",
 				"outfit": 11,
@@ -6708,46 +6460,6 @@ const STAGINGS := [
 				"name": "Rolf",
 				"outfit": 9,
 				"home": "lodge",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 31,
-				"name": "Joan",
-				"outfit": 11,
-				"home": "loaf",
-				"role": "herder",
-				"marks": []
-			},
-			{
-				"id": 32,
-				"name": "Hugh",
-				"outfit": 0,
-				"home": "loaf",
-				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 33,
-				"name": "Ansel",
-				"outfit": 6,
-				"home": "loaf",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 34,
-				"name": "Isolde",
-				"outfit": 7,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 35,
-				"name": "Godric",
-				"outfit": 10,
-				"home": "round",
 				"role": "child",
 				"marks": []
 			}
