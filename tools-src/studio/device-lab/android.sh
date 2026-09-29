@@ -32,7 +32,8 @@ lab_sign() {    # apk
 # Godot 4.7.2 in our test. The APK is re-aligned and re-signed.
 lab_args() {    # apk arg...
   local apk=$1; shift
-  python "$(dirname "${BASH_SOURCE[0]}")/bake_args.py" "$apk" "$@" || return 1
+  # a Windows path for Windows Python, however this file was sourced
+  python "$(cd "$(dirname "${BASH_SOURCE[0]}")" && (pwd -W 2>/dev/null || pwd))/bake_args.py" "$apk" "$@" || return 1
   "$LAB_SDK/build-tools/$LAB_BUILD_TOOLS/zipalign.exe" -f -p 4 "$apk" "$apk.aligned" && mv "$apk.aligned" "$apk" && lab_sign "$apk"
 }
 

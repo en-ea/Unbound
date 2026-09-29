@@ -17,7 +17,15 @@ var _by_sector: Array = [[], []]       # worst frame ms per 45-degree sector, pe
 var _slow: PackedStringArray = []      # every frame over 50 ms, and when
 
 
+var _prev_objects := 0
+var _prev_faded := 0
+var _fader: Node        # the game's see-through fade for trees between camera and player
+var _budget := {"scripts": [], "physics": [], "render cpu": []}   # every frame, for the medians
+
+
 func _ready() -> void:
+	_fader = get_tree().current_scene.get_node_or_null("OcclusionFader")
+	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
 	for lap in 2:
 		var s: Array[float] = []
 		s.resize(8)
@@ -39,8 +47,22 @@ func _process(delta: float) -> void:
 		set_process(false)
 		return
 	_laps[lap].append(frame_ms)
+	var objects := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_OBJECTS_IN_FRAME)
+	_budget["scripts"].append(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0)
+	_budget["physics"].append(Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0)
+	_budget["render cpu"].append(RenderingServer.viewport_get_measured_render_time_cpu(get_viewport().get_viewport_rid()))
+	var faded: int = _fader.get("_faded").size() if _fader and _fader.get("_faded") != null else -1
 	if frame_ms > 50.0:
-		_slow.append("%.0f ms at lap %d, %.0f deg, %.1f s after launch" % [frame_ms, lap + 1, fmod(_turned, 360.0), Time.get_ticks_msec() / 1000.0])
+		# Where the slow frame went. The monitors describe the previous frame, which is the slow one.
+		var vp := get_viewport().get_viewport_rid()
+		_slow.append("%.0f ms at lap %d, %.0f deg, %.1f s: scripts %.1f, physics %.1f, render cpu %.1f, gpu %.1f, frame setup %.1f ms; objects %d (was %d), trees faded %d (was %d), nodes %d, video mem %d MB" % [
+			frame_ms, lap + 1, fmod(_turned, 360.0), Time.get_ticks_msec() / 1000.0,
+			Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
+			RenderingServer.viewport_get_measured_render_time_cpu(vp), RenderingServer.viewport_get_measured_render_time_gpu(vp),
+			RenderingServer.get_frame_setup_time_cpu(), objects, _prev_objects, faded, _prev_faded,
+			Performance.get_monitor(Performance.OBJECT_NODE_COUNT), Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576])
+	_prev_objects = objects
+	_prev_faded = faded
 	var sector := int(fmod(_turned, 360.0) / 45.0)
 	_by_sector[lap][sector] = maxf(_by_sector[lap][sector], frame_ms)
 	_turned += speed * delta
@@ -74,6 +96,10 @@ func _report() -> void:
 		"worst frame per 45-degree sector, lap 2: " + " ".join(PackedStringArray(_by_sector[1].map(func(x: float) -> String: return "%.0f" % x))),
 		"frames over 50 ms: " + ("none" if _slow.is_empty() else "; ".join(_slow)),
 		"SaveGame.save_game() timed alone, 3 calls: %s ms" % ", ".join(saves),
+		"every frame, median / 95th (ms): " + ", ".join(PackedStringArray(_budget.keys().map(func(k: String) -> String:
+			var v: Array = _budget[k].duplicate()
+			v.sort()
+			return "%s %.1f / %.1f" % [k, v[v.size() / 2], v[int(v.size() * 0.95)]]))),
 	])
 	for s in lines:
 		print("TURNTABLE ", s)

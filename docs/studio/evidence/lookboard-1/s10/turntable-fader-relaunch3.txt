@@ -1,0 +1,8 @@
+device: SM-G973F; gl_compatibility; turning 90 deg/s; draws 627, triangles 149k (at the end)
+lap 1 (first sight): 117 frames, median 33.4 ms, 95th 41.6 ms, worst 131.5 ms, over 50 ms: 5
+lap 2 (seen before): 120 frames, median 33.1 ms, 95th 36.7 ms, worst 40.5 ms, over 50 ms: 0
+worst frame per 45-degree sector, lap 1: 36 36 36 59 38 42 132 37
+worst frame per 45-degree sector, lap 2: 36 41 36 39 38 38 37 38
+frames over 50 ms: 59 ms at lap 1, 168 deg, 12.7 s: scripts 21.5, physics 7.7, render cpu 11.3, gpu 0.0, frame setup 0.6 ms; objects 503 (was 513), trees faded 0 (was 0), nodes 2495, video mem 80 MB; 132 ms at lap 1, 273 deg, 14.0 s: scripts 19.0, physics 8.8, render cpu 13.1, gpu 0.0, frame setup 0.6 ms; objects 615 (was 603), trees faded 0 (was 0), nodes 2495, video mem 80 MB; 55 ms at lap 1, 280 deg, 14.0 s: scripts 19.0, physics 8.8, render cpu 14.6, gpu 0.0, frame setup 1.1 ms; objects 634 (was 615), trees faded 0 (was 0), nodes 2495, video mem 80 MB; 62 ms at lap 1, 285 deg, 14.1 s: scripts 94.1, physics 16.4, render cpu 13.5, gpu 0.0, frame setup 1.1 ms; objects 640 (was 634), trees faded 0 (was 0), nodes 2495, video mem 80 MB; 60 ms at lap 1, 296 deg, 14.2 s: scripts 94.1, physics 16.4, render cpu 13.0, gpu 0.0, frame setup 1.1 ms; objects 645 (was 654), trees faded 1 (was 0), nodes 2496, video mem 80 MB
+SaveGame.save_game() timed alone, 3 calls: 23.2, 19.0, 16.4 ms
+every frame, median / 95th (ms): scripts 21.5 / 94.1, physics 8.9 / 16.4, render cpu 14.1 / 17.7

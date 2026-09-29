@@ -170,6 +170,8 @@ The lead spot-checked the report's repo claims against Enea's code, and they hol
 - **W4-1 done** `[run]` (`LOOKBOARD-1.md`): 4 framings x 2 renderers x day and dusk, plus the fog pushed out.
   - On the S10 every framing holds 30 fps standing still (EXPLORE: 629 draw calls).
   - Turning the camera stutters on early launches (up to 235 ms) and is clean once the shader cache has filled. The fix is shader warm-up at the first load.
+  - **Correction (later that night):** after seven more launches, stutters while turning also occur on some relaunches (4 of 7 launches, worst 242 ms). They are not the tree fade, and mostly not scripts; the time lies outside what Godot measures. Next: a Perfetto system trace in the camera prototype, and the same test on the S24.
   - The Mobile renderer can't be judged until the lighting gets a pass for it.
   - The autosave costs 17-22 ms on the main thread on the S10, every 15 s.
 - **Device lab:** `lab_args` bakes dev arguments into an APK; `lab_wake` catches a locked phone (Android pauses the game, and a run silently does nothing).
+- **i4 done:** pull requests #2 (safe saves), #3 (HUD from the safe area) and #4 (iPhone swipe), each off `main` and tested as its description says. Saves were checked on the S10, including recovery from a cut-off save.

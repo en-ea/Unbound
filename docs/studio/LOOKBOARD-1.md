@@ -72,6 +72,19 @@ The S10 pictures (`evidence/lookboard-1/s10/`) stand a little further north than
   - Godot's Mobile renderer has built-in help for this (ubershaders, and a shader baker at export). Compatibility doesn't.
 - **One launch stuttered in directions it had already seen.** So not everything is shaders, and this needs a trace before we name a cause.
 
+**Correction (29 Sep, later the same night)** `[run]`. After seven more S10 launches, the reading above is only partly right.
+- **Stutters while turning aren't only first-launch.** 3 launches were clean. 4 had 1-7 frames over 50 ms (worst 242 ms), including relaunches and directions already seen. The shader cache helps, but it doesn't explain all of them.
+- **What the per-frame breakdown rules out:**
+  - your see-through tree fade: no tree was fading at almost any slow frame;
+  - mostly, your scripts and the render submission: they're at normal levels in most slow frames, though two frames had script peaks of 94-126 ms.
+- **Where the time goes:** most of the lost time lies outside what Godot measures, so the likely cause is the S10's graphics driver or its CPU scheduling.
+- **Standing still, no launch stuttered.**
+- **Next:**
+  - a system trace (Android's built-in Perfetto) in the camera prototype, before any drag ships;
+  - the same test on a faster phone (Hilmi's S24);
+  - extending your loading-screen warm-up (`core/warmup.gd`), which already prepares effects near today's camera, to everything a turning camera can see.
+- Runs: `evidence/lookboard-1/s10/turntable-trace-*.txt` and `turntable-fader-*.txt`.
+
 **Your autosave, timed alone** (it runs on the main thread every 15 s during play): 17-22 ms on the S10 with a fresh save, and 12 ms on the PC. It grows as the world fills. At 30 fps, that's a small hitch every 15 s. The "safe saves" fix in `NEXT.md` can also move the file write off the main thread.
 
 ## 4. Your picks, Enea
