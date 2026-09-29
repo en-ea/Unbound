@@ -2,7 +2,9 @@ extends Node
 ## Spike: the stage witness. Plays the hand-made pillory (staging.gd demo_pillory) on a stage (stage.gd)
 ## in the running game's meadow village, and optionally saves screenshots at its key beats, then quits.
 ##   godot --path game --resolution 1560x720 -- --studio=village/witness --frame=fight --at=1.5,26 --time=0.45
-##         [--witness-shots=DIR] [--witness-speed=8]
+##         [--witness-shots=DIR] [--witness-speed=8] [--witness-hide-player] [--witness-skip=MINUTES]
+## --witness-skip jumps that many game minutes into the staging at once (stage.skip_to), to test it.
+## For a close look, stand the (hidden) player at the place: --at=-0.5,18 --view=6,-40 --witness-hide-player.
 ## Shots: DIR/witness-<beat>.png for the people coming out, the crowd gathered, the first throw, stones
 ## flying, the release and everyone home. Each shot also prints a probe line (state, not pixels) and the
 ## frame's rendering counts; the stage's own per-frame cost is printed at the end.
@@ -22,6 +24,12 @@ var _dir := ""
 var _speed := 8.0
 var _shots: Array[Dictionary] = []   # {"name", "at" (minute), "wait" ("" / "flying" / "released" / "finished")}
 var _slowed := false
+var _hide_player := false
+var _skip := 0.0
+var _frame := 0
+var _in_house := {}         # "id@minute" of anyone seen inside a house footprint (walking included)
+var _crowded := {}          # pairs seen standing on top of each other
+var _at := Vector2.INF      # --at=x,z: dev_args only applies it when --shot is given, so the witness does it too
 
 
 static func on_device(tree: SceneTree) -> void:
@@ -35,6 +43,13 @@ func _ready() -> void:
 			_dir = arg.trim_prefix("--witness-shots=")
 		elif arg.begins_with("--witness-speed="):
 			_speed = float(arg.trim_prefix("--witness-speed="))
+		elif arg.begins_with("--witness-skip="):
+			_skip = float(arg.trim_prefix("--witness-skip="))
+		elif arg == "--witness-hide-player":
+			_hide_player = true
+		elif arg.begins_with("--at="):
+			var v := arg.trim_prefix("--at=").split(",")
+			_at = Vector2(float(v[0]), float(v[1]))
 	if _dir != "":
 		DirAccess.make_dir_recursive_absolute(_dir)
 
@@ -45,8 +60,9 @@ func _process(delta: float) -> void:
 		if _t >= LOAD_WAIT:
 			_begin()
 		return
-	if _shots.is_empty():
-		return
+	_watch()
+	if _shots.is_empty() or _frame < 3:
+		return      # after a skip the bodies need a frame or two to take up their poses
 	var shot := _shots[0]
 	var minute: float = _stage.minute()
 	var wait: String = shot["wait"]
@@ -56,7 +72,7 @@ func _process(delta: float) -> void:
 			_slowed = true
 	var ready := minute >= float(shot["at"])
 	if ready and wait == "flying":
-		ready = _stage.flying() >= 0.4
+		ready = _stage.flying() >= float(shot.get("along", 0.4))
 	elif ready and wait == "released":
 		ready = _stage.released_minute() >= 0.0 and minute >= _stage.released_minute() + 1.6
 	elif wait == "finished":
@@ -79,8 +95,20 @@ func _begin() -> void:
 	var staging: Dictionary = demo[0]
 	_stage = StageScript.new()
 	get_tree().current_scene.add_child(_stage)
+	var player := get_tree().current_scene.get_node("Player") as Node3D
+	if _at != Vector2.INF:
+		player.global_position = Vector3(_at.x, WorldShape.new().height_at(_at.x, _at.y) + 0.3, _at.y)
+		get_tree().current_scene.get_node("CameraRig").snap()
+	if _hide_player:
+		player.visible = false
 	_stage.finished.connect(func() -> void: print("WITNESS finished at minute %.1f" % _stage.minute()))
+	var spawn_start := Time.get_ticks_usec()
 	_stage.play(staging, demo[1], _speed)
+	print("WITNESS play() took %d ms (spawning %d bodies)" % [(Time.get_ticks_usec() - spawn_start) / 1000, demo[1].size()])
+	if _skip > 0.0:
+		var t0 := Time.get_ticks_usec()
+		_stage.skip_to(float(staging["start"]) + _skip)
+		print("WITNESS skipped to minute %.1f in %d ms: %s" % [_stage.minute(), (Time.get_ticks_usec() - t0) / 1000, _stage.probe()])
 	if _dir == "":
 		return
 	var first_throw := -1
@@ -98,10 +126,11 @@ func _begin() -> void:
 	_shots.append({"name": "gathered", "at": first_throw - 1, "wait": ""})
 	_shots.append({"name": "first-throw", "at": first_throw, "wait": "flying"})
 	if stones.size() > 0:     # the third stone if there is one: stones in the air and some already down
-		_shots.append({"name": "stones", "at": stones[mini(2, stones.size() - 1)], "wait": "flying"})
+		_shots.append({"name": "stones", "at": stones[mini(2, stones.size() - 1)], "wait": "flying", "along": 0.7})
 	_shots.append({"name": "release", "at": release, "wait": "released"})
 	_shots.append({"name": "home", "at": staging["end"] + 30, "wait": "finished"})   # walks home can outlast the staging
-	print("WITNESS playing %s at x%.1f, %d beats, minutes %d-%d; shots to %s" % [staging["kind"], _speed, staging["beats"].size(), start, staging["end"], _dir])
+	print("WITNESS playing %s at x%.1f, %d beats, minutes %d-%d; player at %s; shots to %s" % [staging["kind"], _speed, staging["beats"].size(),
+		start, staging["end"], player.global_position.snapped(Vector3.ONE * 0.1), _dir])
 
 
 func _shoot(shot_name: String) -> void:
@@ -125,6 +154,21 @@ func _shoot(shot_name: String) -> void:
 		_stage.probe()])
 
 
+## Every few frames, the probe's view of the whole run (not only the shots): anyone walking through a
+## house, anyone standing on someone else.
+func _watch() -> void:
+	_frame += 1
+	if _frame % 4 != 0:
+		return
+	var p: Dictionary = _stage.probe()
+	for id: String in p["in_house"]:
+		if _in_house.size() < 20:
+			_in_house["%s@%d" % [id, int(p["minute"])]] = true
+	for pair: String in p["crowded"]:
+		_crowded[pair] = true
+
+
 func _finish() -> void:
+	print("WITNESS over the run: inside a house %s; standing on each other %s" % [_in_house.keys(), _crowded.keys()])
 	print("WITNESS stage cost and lateness: ", _stage.stats())
 	get_tree().quit()

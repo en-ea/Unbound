@@ -11,6 +11,8 @@ extends Node3D
 ## run looks the same at any speed; props lying on the ground are the one exception (they linger
 ## PROP_LINGER real seconds, for the eye).
 ## Per frame: one pass over the people and the props in flight; no allocations, no node lookups.
+## Bodies are made one per frame after play(), in the order they are needed (a CharacterVisual takes
+## ~90 ms to make on a PC: twelve at once froze the game for a second); one needed sooner is made at once.
 
 signal finished
 
@@ -38,7 +40,7 @@ const DEFAULT_ANIM := {"walk_to": "Walk", "leave": "Walk", "carry": "Walk_Carry"
 const DEVICES := {"pillory": "pillory"}
 const DEVICE_FACING := Vector2(0.0, 1.0)
 const DEVICE_HALF := Vector2(0.85, 0.12)     # half width across, half depth along the facing (walls to walk round)
-const LOCK_BACK := 0.2       # the body kneels this far behind the head hole (Crouch_Idle's head leads its feet by 0.2 m)
+const LOCK_BACK := 0.25      # the body kneels this far behind the head hole (Crouch_Idle's head leads its feet by 0.2 m)
 const BESIDE := 1.4          # an official (the elder releasing) stands this far to the side of the device
 ## Where a head is in its body's own space (+z is forward), measured on the hero rig: the Head bone plus
 ## ~0.12 m to the middle of the head. Thrown props aim here.
@@ -60,7 +62,8 @@ const JOLT_TIME := 0.25
 ## A person on the stage: their body and what it is doing.
 class Actor:
 	var id := 0
-	var body: Node3D
+	var person := {}
+	var body: Node3D                  # null until made (_embody)
 	var door := Vector2.ZERO
 	var pos := Vector2.ZERO           # on the ground (x, z)
 	var y := 0.0
@@ -110,6 +113,7 @@ var _speed := 1.0
 var _clock := 0.0                     # stage seconds since the staging's start
 var _next := 0                        # the next beat to hand out
 var _actors: Array[Actor] = []
+var _unmade: Array[Actor] = []        # bodies still to make, soonest needed first
 var _by_id := {}                      # person id -> Actor
 var _victim: Actor
 var _place := ""
@@ -130,6 +134,11 @@ var _throws := 0
 var _cost_frames := 0
 var _cost_sum := 0
 var _cost_max := 0
+var _cost_max_at := 0.0               # the game minute of the dearest frame
+var _made := 0                        # bodies made, and the time it took (the body's cost, kept apart)
+var _made_us := 0
+var _made_max_us := 0
+var _made_in_frame := 0
 var _latest := 0.0
 var _latest_beat := -1
 
@@ -156,10 +165,11 @@ func play(staging: Dictionary, people: Array, speed: float = 1.0) -> void:
 		_device.position = Vector3(_device_at.x, _shape.height_at(_device_at.x, _device_at.y), _device_at.y)
 		_device.rotation.y = atan2(DEVICE_FACING.x, DEVICE_FACING.y)
 	for person: Dictionary in people:
-		_spawn(person)
+		_add_person(person)
 	var victim_id: int = staging["roles"].get("victim", -1)
 	_victim = _by_id.get(victim_id)
 	_pair_hits()
+	_queue_bodies()
 	set_process(true)
 
 
@@ -168,6 +178,7 @@ func clear() -> void:
 	for c in get_children():
 		c.queue_free()
 	_actors.clear()
+	_unmade.clear()
 	_by_id.clear()
 	_shots.clear()
 	_lying.clear()
@@ -180,6 +191,12 @@ func clear() -> void:
 	_released = -1.0
 	_done = false
 	_throws = 0
+	_made = 0
+	_made_us = 0
+	_made_max_us = 0
+	_cost_frames = 0
+	_cost_sum = 0
+	_cost_max = 0
 	_latest = 0.0
 	_latest_beat = -1
 	set_process(false)
@@ -262,18 +279,26 @@ func probe() -> Dictionary:
 ## The stage's own cost per frame (microseconds of _process) and the latest any beat started.
 func stats() -> Dictionary:
 	return {"frames": _cost_frames, "mean_us": roundi(float(_cost_sum) / maxi(_cost_frames, 1)), "max_us": _cost_max,
+		"max_at_minute": snappedf(_cost_max_at, 0.1),
+		"bodies_made": _made, "make_mean_ms": snappedf(_made_us / 1000.0 / maxi(_made, 1), 0.1), "make_max_ms": snappedf(_made_max_us / 1000.0, 0.1),
 		"latest_minutes": snappedf(_latest / SECONDS_PER_MINUTE, 0.1),
 		"latest_beat": str(_beats[_latest_beat]) if _latest_beat >= 0 else ""}
 
 
 func _process(delta: float) -> void:
+	_made_in_frame = 0
+	if not _unmade.is_empty():
+		_embody(_unmade[0])
 	var t0 := Time.get_ticks_usec()
+	_made_in_frame = 0
 	_step(delta * _speed)
 	_age_lying(delta)
-	var used := Time.get_ticks_usec() - t0
+	var used := Time.get_ticks_usec() - t0 - _made_in_frame   # making a body is the body's cost, not the stage's
 	_cost_frames += 1
 	_cost_sum += used
-	_cost_max = maxi(_cost_max, used)
+	if used > _cost_max:
+		_cost_max = used
+		_cost_max_at = minute()
 
 
 ## Every body is made here, so a cheaper body can replace CharacterVisual by changing this one function
@@ -299,23 +324,47 @@ func _make_prop(prop: String) -> Node3D:
 	return source.call(prop) as Node3D
 
 
-func _spawn(person: Dictionary) -> void:
+func _add_person(person: Dictionary) -> void:
 	var a := Actor.new()
 	a.id = int(person["id"])
+	a.person = person
 	a.door = Sites.DOORS.get(person.get("home", ""), _focus)
 	a.pos = a.door
 	a.y = _shape.height_at(a.pos.x, a.pos.y)
-	a.body = _make_body(person)
+	_actors.append(a)
+	_by_id[a.id] = a
+
+
+## Orders the bodies to make by when each person is first needed.
+func _queue_bodies() -> void:
+	var first := {}
+	for b: Dictionary in _beats:
+		if not first.has(b["who"]):
+			first[b["who"]] = b["at"]
+	_unmade = _actors.duplicate()
+	_unmade.sort_custom(func(p: Actor, q: Actor) -> bool: return first.get(p.id, 1 << 30) < first.get(q.id, 1 << 30))
+
+
+## Makes an actor's body (at home: hidden, at the door).
+func _embody(a: Actor) -> void:
+	var t0 := Time.get_ticks_usec()
+	_unmade.erase(a)
+	a.body = _make_body(a.person)
 	add_child(a.body)
 	a.body.position = Vector3(a.pos.x, a.y, a.pos.y)
 	a.native_loop = a.body.has_method("play_loop")
-	_hide(a, true)
+	a.inside = true
+	a.body.visible = false
+	a.body.process_mode = Node.PROCESS_MODE_DISABLED
 	if _anims == null and not a.native_loop:
 		var players := a.body.find_children("*", "AnimationPlayer", true, false)
 		if not players.is_empty():
 			_anims = players[0]
-	_actors.append(a)
-	_by_id[a.id] = a
+	var took := Time.get_ticks_usec() - t0
+	_made += 1
+	_made_us += took
+	_made_max_us = maxi(_made_max_us, took)
+	_made_in_frame += took
 
 
 ## Pairs each throw with the victim's react beat that answers it, so the hit plays when the prop lands
@@ -550,6 +599,10 @@ func _face(a: Actor, at: Vector2) -> void:
 
 
 func _hide(a: Actor, hidden: bool) -> void:
+	if a.body == null:
+		if hidden:
+			return
+		_embody(a)                        # needed before its turn in the queue
 	a.inside = hidden
 	a.body.visible = not hidden
 	# A body at home costs nothing: its animation and scripts stop too.
@@ -748,6 +801,11 @@ func _route(from: Vector2, to: Vector2) -> PackedVector2Array:
 	var path := PackedVector2Array()
 	if start != from:
 		path.append(start)
+	if _clear(start, end):                 # most walks: nothing in the way
+		path.append(end)
+		if end != to:
+			path.append(to)
+		return path
 	var nodes := PackedVector2Array([start, end])
 	var near := Rect2(start, Vector2.ZERO).expand(end).grow(6.0)
 	for r in _blocks:

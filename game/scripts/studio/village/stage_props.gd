@@ -13,8 +13,9 @@ static var _materials := {}
 
 
 ## The pillory the victim is locked into, sized for a crouching body (Crouch_Idle puts the neck at
-## ~0.84 m and the head 0.2 m in front of the feet). Origin: the ground under the head hole; the board
-## faces +z, so the victim kneels on its -z side with the head poking out towards +z.
+## ~0.84 m and the head 0.2 m in front of the feet): the board stops just under the chin, so the head
+## shows over it and the body hides behind. Origin: the ground under the head hole; the board faces +z,
+## so the victim kneels on its -z side with the head poking out towards +z.
 static func pillory() -> Node3D:
 	var root := Node3D.new()
 	root.name = "Pillory"
@@ -22,7 +23,7 @@ static func pillory() -> Node3D:
 	var dark := _material("pillory_dark", Color(0.16, 0.11, 0.08))
 	for side: float in [-0.72, 0.72]:          # two posts
 		_add(root, _box("post", Vector3(0.14, 1.25, 0.14)), wood, Vector3(side, 0.625, -0.05))
-	_add(root, _box("board", Vector3(1.6, 0.26, 0.09)), wood, Vector3(0.0, 0.82, 0.0))      # the neck board
+	_add(root, _box("board", Vector3(1.6, 0.28, 0.09)), wood, Vector3(0.0, 0.72, 0.0))      # the neck board
 	_add(root, _box("cap", Vector3(1.7, 0.08, 0.16)), dark, Vector3(0.0, 1.27, -0.05))      # the top rail
 	return root
 
@@ -42,7 +43,8 @@ static func mud() -> Node3D:
 
 
 static func stone() -> Node3D:
-	return _ball("stone", 0.075, Color(0.52, 0.52, 0.54), Vector3(1.2, 0.8, 1.0), 5, 3)
+	# Light and a little large: the path is strewn with dark grey pebbles, and a stone has to read in flight.
+	return _ball("stone", 0.1, Color(0.78, 0.75, 0.7), Vector3(1.2, 0.8, 1.0), 5, 3)
 
 
 static func flower() -> Node3D:
