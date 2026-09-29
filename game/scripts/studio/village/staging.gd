@@ -27,7 +27,8 @@ const OUTCOMES := ["carried_out", "commuted", "rescued", "crowd_turned", "acquit
 ## Animations the stage may be asked for (Quaternius UAL1 and UAL2, names as imported).
 const ANIMS := ["Idle", "Walk", "Walk_Formal", "Walk_Carry", "Jog_Fwd", "Idle_FoldArms", "Idle_No", "Yes",
 	"Idle_Talking", "Idle_Torch", "OverhandThrow", "Hit_Head", "Hit_Chest", "Crouch_Idle", "Fixing_Kneeling",
-	"Spell_Simple_Idle", "Spell_Simple_Shoot", "Dance", "Death01", "Push", "Interact", "Sitting_Idle", "Consume"]
+	"Spell_Simple_Idle", "Spell_Simple_Shoot", "Dance", "Death01", "Push", "Interact", "Sitting_Idle", "Consume",
+	"Idle_Rail"]   # appended (stage 2): bent forward over a rail, the pillory's pose (props.gd VICTIM_POSE)
 ## Things that can be thrown or carried (props the stage makes).
 const PROPS := ["cabbage", "turnip", "mud", "stone", "flower", "wood", "torch"]
 
