@@ -88,6 +88,62 @@ This is r3's behaviour stack, now embodied:
 - **Near the player, villagers are full bodies.** Behaviour trees or state machines handle walking to the square, working and fleeing, and they carry out the kernel's decisions. Far away they are folded into households and keep their identity. (STALKER's lesson, `ROUTE.md` section 4.)
 - **Legibility without reading.** Each notable act has a visible cause chain: someone seen taking, someone telling, a crowd forming, the elder calling a trial. The headless test from r3 carries over: every notable act has a logged reason, now paired with a staged cue.
 
+### 3.2a Public acts: the catalogue (Hilmi's additions, 29 Sep, and the studio's inventions)
+
+Hilmi `[chat]`: "I want to add some more things though, like bonfire burning, pillories, cannabilism, rock throwing and more - you don't need my permission for these sort of inventive things."
+
+**How a public act is chosen** `[design]`. The kernel picks, so every phone agrees:
+- **The age's law table:** crime, severity and the accused's standing give the allowed acts.
+- **The crowd's mood:** anger, fear, hunger and reverence rise with shocks, rumours and omens.
+- **The authority's strength:** a respected elder holds a trial; a weak one loses the crowd to a mob.
+- **The levers you pull.**
+
+The crowd's mood escalates the same act. At a pillory, the crowd starts with rotten food, moves to mud, and, if anger peaks, throws stones. So a shaming can turn lethal, as it sometimes did historically.
+
+| Act | Ages | Triggered by | What you see | Your levers |
+|---|---|---|---|---|
+| **Pillory and stocks** | village, town | petty theft, cheating at market, slander | The accused locked in the square; the crowd pelts, and the escalation shows in what they pick up | Throw too; shield them; calm the crowd (food in famine lowers anger); free them at night |
+| **Rock throwing (stoning)** | tribal, village | adultery rumours, blasphemy, a "cursed" outsider; or a pillory gone wrong | A ring of villagers, stones in hand, one thrown first | Throw the first stone, or step into the ring |
+| **Bonfire burning (the stake)** | village (in fearful ages), tribal (sacrificial fire) | witchcraft, heresy, storm people taken for demons, cannibals | Wood carried in over hours; the stake raised; the bonfire lit at dusk, the crowd lit orange; smoke seen from the next village | Bring evidence; bribe the priest; swap in an effigy (the crowd accepts it if appeased); rescue before dusk |
+| **Effigy burning** (the gentler outcome) | village, town | the crowd is appeased but needs a ritual; festivals | A straw figure in the accused's clothes burned; a feast follows | Talk the crowd down to it |
+| **Hanging** | village, town | murder, arson, repeated theft, treason | The gallows built plank by plank in the square; the crowd gathers | Testify; bribe; demand trial by combat; cut the rope (outlaw) |
+| **Trial by combat** | village, town | an accused with no witnesses; a noble accusation | A ring marked in the square; the accused or a champion fights the accuser | **Fight as their champion.** Enea's combat becomes justice |
+| **Trial by ordeal** | village | no evidence either way | Ducking in the millpond (floating means guilty), or carrying hot iron | Rig it; plead; replace the test |
+| **Branding** | village, town | theft (second offence) | A mark on the villager's face or hand, visible on their model for the rest of their life | Marked villagers are treated as thieves by everyone; hire them anyway |
+| **Exile** | all | any crime when the law is lenient, or the accused is needed elsewhere | The accused walks out carrying one bundle, with the village watching | **Exiles persist.** They become outlaws or bandits in the wilds, and may come back for revenge |
+| **Scapegoat drive** | tribal | a drought, or a storm omen | A goat, or an outsider, driven into the wilds "carrying" the village's sins | Follow and save them, or leave them |
+| **Sacrifice** | tribal | a storm or a drought the age reads as divine anger | A procession to the stone circle at dawn | Replace the offering; stop it; let it happen and watch the omen "work" |
+| **Head on a stake** (aftermath) | tribal, town | an executed raider or traitor | A warning at the gate | It raises other villages' fear of this one |
+| **Tar and feathering** | town | a disliked official; a "traitor" | A mob with a bucket and a pillow sack | Join or stop the mob |
+| **Charivari, "rough music"** | village, town | an unpopular marriage, a hen-pecked husband, a miser | A night crowd banging pots outside a house: shaming without violence | Join it (the village likes you more); warn them |
+| **Burning the accused's house** | all | a mob with no trial | Torches at night | Put it out; save what's inside |
+| **Veneration** (the opposite outcome) | all | good fortune followed a group: rain after they arrived, the storm passed them by | Offerings at their door, a shrine, pilgrims from other villages; generations later, possibly torn down again | Preach their holiness; fake a miracle; expose a fake |
+
+**Cannibalism** (every age, from two roots, shown only through aftermath):
+- **Famine.** The kernel already models hunger. In a long famine, a desperate household may eat the dead in secret. The signs are a missing body, a sealed door, a cooking pit, bones, and a rumour. **Discovery is the worst taboo in the village and tribal ages:** a trial, then burning or stoning, and the family's name is marked for generations.
+- **Ritual, in the tribal age.** Some peoples in the tribal age eat a slain enemy's heart for their strength. When a storm regresses a zone, **the village's own ancestors may bring that rite back with them**. To the present-day village that is monstrous, and it is the sharpest culture clash between the ages. It drives the burning of the "demon" ancestors, or a war on the regressed zone: the "turn on the village it came from" given a reason.
+- **You can be captured by a regressed tribe.** In single-player you escape or trade your way out. In co-op, your friend comes for you.
+
+**More misbehaviour for the kernel's catalogue** (villagers do these on their own; players can too):
+- **Poisoning a well,** and blaming the outsiders. This is the classic pogrom trigger, and the same verb as the traitor orders later.
+- **False accusation** to take a neighbour's field. Villagers use the trial system for their own schemes.
+- **Hoarding grain in famine;** grave robbing; body snatching (town).
+- **Arson;** cattle rustling.
+- **Night rituals of a secret cult.**
+- **Omens,** read through the age's beliefs (a two-headed calf, a red moon, a storm front), which raise the crowd's fear and pick a scapegoat.
+
+**Boundaries that stay** (from r3 section 5, set by Hilmi and Enea; not changed by the standing permission):
+- no sexual violence;
+- no children as victims;
+- no torture detail;
+- slavery is never a mechanic.
+
+Death is staged: silhouettes at a distance, the crowd's reaction, the aftermath. It is never gore. **Age rating:** this content means PEGI 16 to 18 if the game is ever published on a store. For private sideloaded play, it's the owners' call.
+
+**In the slice** (section 4), two chains show the ages clashing:
+1. **Theft → pillory, with pelting that can escalate → hanging or exile.** It includes trial by combat as the player's lever.
+2. **A storm → tribal ancestors with a sacrificial or cannibal rite → the village's fear → a bonfire burning, or veneration.**
+
 ### 3.3 Time storms, with three ages and ancestors
 
 Decided 29 Sep `[chat]`: storm people are **their own ancestors**, and there are **three ages**.
@@ -236,7 +292,7 @@ Hilmi's domain runs on Cloudflare `[chat]`, so matchmaking, rooms and log storag
 | Part | In the slice | Not yet |
 |---|---|---|
 | World | Land 1 (Enea's meadow region). **One story village** (anchored: Enea's existing village). **One ordinary village** that lives by the kernel | Lands 2 and 3, the sea, the town age |
-| Villagers | 20-30 near you with needs and values. One crime chain: theft → accusation → gathering → trial → a punishment by the age's law | Schemes, faith, factions |
+| Villagers | 20-30 near you with needs and values. **Two chains** (section 3.2a): theft → pillory (the pelting can escalate) → hanging or exile, with trial by combat; and storm → tribal ancestors' rite → fear → bonfire burning or veneration | The rest of the catalogue, factions |
 | Manipulation | Plant evidence, testify, bribe | Rumour chains, freeing prisoners |
 | Storm | One forecast storm. Part of the ordinary village regresses to the **tribal** age: ancestors, language distance 2 (barter or spears), border conflict, one of the four endings | Multiple storms, the town age |
 | Combat | Enea's combat plus a lock-on and parry prototype; edge markers | Radial wheel, spells, target cycling |
@@ -255,7 +311,7 @@ Hilmi's domain runs on Cloudflare `[chat]`, so matchmaking, rooms and log storag
 
 | # | Milestone | Done when | Needs |
 |---|---|---|---|
-| **M1** | **The village, headless** (A0 reshaped): crimes → trials → punishments; storms → regression → ancestors; language distance; staged-event output; anchored villages | Thousands of simulated years pass the invariants: every notable act has a reason and a staged cue; no collapse loops; no single behaviour dominates; conformance against a JavaScript reference | Nothing |
+| **M1** | **The village, headless** (A0 reshaped): crimes → trials → the public acts of section 3.2a (the slice's two chains first); storms → regression → ancestors; language distance; staged-event output; anchored villages | Thousands of simulated years pass the invariants: every notable act has a reason and a staged cue; no collapse loops; no single behaviour dominates; conformance against a JavaScript reference | Nothing |
 | **M2** | **The village on screen**: embodied villagers and stagings (gathering, trial, gallows) in Enea's game; the ordinary village built from building families, today's plus tribal | A trial plays out on the S10 at 30 fps, and you can read it without text; the replay test passes | M1; tribal building and clothing sets (Blender scripts, Enea's pipeline) |
 | **M3** | **Camera**: the tilted default, Look, Inside, Talk, Build; edge markers; target-follow in Look; the shader warm-up extended; a Perfetto trace of the turning stutter | Smooth switching between modes; no stutter above 50 ms on the S10 after the warm-up | Enea confirms the tilted default |
 | **M4** | **Slice playtest** (owner play, each on your own phone) | The "done when" of section 4 | M1-M3 |
@@ -312,6 +368,7 @@ Hilmi's domain runs on Cloudflare `[chat]`, so matchmaking, rooms and log storag
 | 29 Sep | Multiplayer left until after the slice, with the capacity kept in mind; players are never on the same Wi-Fi | Hilmi `[chat]`: "we would never be under the same wifi though and multiplayer needs to have the capacity kept in mind but left until later" |
 | 29 Sep | Hilmi's domain runs on Cloudflare: a candidate home for rooms, matchmaking and world logs | Hilmi `[chat]` |
 | 29 Sep | Enea may read Hilmi's own words in the branch documents | Hilmi `[chat]`: "let him see them" |
+| 29 Sep | Bonfire burning, pillories, cannibalism and rock throwing added; **standing permission for inventive content of this kind** (the boundaries in section 3.2a stay) | Hilmi `[chat]`: "you don't need my permission for these sort of inventive things" |
 
 ---
 
