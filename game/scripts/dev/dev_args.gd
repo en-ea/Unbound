@@ -46,12 +46,25 @@ func _ready() -> void:
 			_shot_path = arg.trim_prefix("--shot=")
 		elif arg.begins_with("--shotframe="):
 			_shot_frame = int(arg.trim_prefix("--shotframe="))
-		elif arg.begins_with("--lab"):                    # --lab, or --lab=x,z to stand at a spot in it
+		elif arg == "--lab" or arg.begins_with("--lab="):  # --lab, or --lab=x,z to stand at a spot in it
 			var spot := Vector2(0.0, 7.5)
 			if arg.begins_with("--lab="):
 				var v := arg.trim_prefix("--lab=").split(",")
 				spot = Vector2(float(v[0]), float(v[1]))
 			get_tree().call_group.call_deferred("build_lab", "enter", spot)
+			if "--labtest" in OS.get_cmdline_user_args():      # spawn one of everything, then clear it (prints counts)
+				get_tree().create_timer(1.0).timeout.connect(func() -> void:
+					var lab := get_tree().get_first_node_in_group("build_lab")
+					var before := WorldResources.node_count()
+					for k in ["boar", "wolf", "shadow", "tree", "pine", "apple", "rock", "copper", "iron", "chest", "gear", "sword"]:
+						lab.spawn(k)
+					print("LABTEST nodes ", before, " -> ", WorldResources.node_count(), " spawned children ", lab._spawns.get_child_count())
+					get_tree().create_timer(1.0).timeout.connect(func() -> void:
+						lab.clear_spawns()
+						print("LABTEST after clear ", WorldResources.node_count())))
+			if "--labmenu" in OS.get_cmdline_user_args():      # and open the lab menu
+				get_tree().create_timer(0.5).timeout.connect(func() -> void:
+					get_node("../HUD").open_station({"mode": "lab", "lab": get_tree().get_first_node_in_group("build_lab")}))
 		elif arg == "--craft" or arg == "--bag":      # open a screen (with some items to show)
 			for item in ["wood", "stone", "flint", "copper", "hide", "apple", "resin"]:
 				Inventory.add(item, 5)

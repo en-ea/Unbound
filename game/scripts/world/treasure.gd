@@ -39,23 +39,35 @@ func build(shape: WorldShape) -> void:
 		for x in [-1.3, 1.3]:
 			_collider(ruin, Vector3(x, 1.5, 0), Vector3(0.7, 3.0, 0.7))
 	for c: Vector4 in CHESTS.get(Region.current, []):
-		var at := Vector3(c.x, shape.height_at(c.x, c.y) + c.w, c.y)
-		var id := WorldResources.add_node("chest", at)
-		var root := Node3D.new()
-		add_child(root)
-		root.global_position = at
-		root.rotation.y = deg_to_rad(c.z)
-		root.add_child(_solid(CHEST_BASE.instantiate()))
-		var lid := _solid(CHEST_LID.instantiate())
-		lid.position = LID_HINGE
-		root.add_child(lid)
-		_collider(root, Vector3(0, 0.3, 0), Vector3(0.9, 0.6, 0.6))
-		var glint := _make_glint()
-		root.add_child(glint)
-		_chests[id] = {"root": root, "lid": lid, "glint": glint}
+		add_chest(Vector3(c.x, shape.height_at(c.x, c.y) + c.w, c.y), c.z)
 	WorldResources.depleted.connect(_on_opened)
 	WorldResources.respawned.connect(_on_refilled)
 	WorldResources.loaded.connect(_on_loaded)
+
+
+## A chest at `at`, turned `yaw` degrees. Returns its resource id.
+func add_chest(at: Vector3, yaw: float) -> int:
+	var id := WorldResources.add_node("chest", at)
+	var root := Node3D.new()
+	add_child(root)
+	root.global_position = at
+	root.rotation.y = deg_to_rad(yaw)
+	root.add_child(_solid(CHEST_BASE.instantiate()))
+	var lid := _solid(CHEST_LID.instantiate())
+	lid.position = LID_HINGE
+	root.add_child(lid)
+	_collider(root, Vector3(0, 0.3, 0), Vector3(0.9, 0.6, 0.6))
+	var glint := _make_glint()
+	root.add_child(glint)
+	_chests[id] = {"root": root, "lid": lid, "glint": glint}
+	return id
+
+
+## Takes a chest away again (the build lab clearing its test spawns).
+func remove_chest(id: int) -> void:
+	if _chests.has(id):
+		_chests[id]["root"].queue_free()
+		_chests.erase(id)
 
 
 func _on_opened(id: int, drops: Array) -> void:

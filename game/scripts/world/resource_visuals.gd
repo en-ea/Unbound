@@ -52,6 +52,21 @@ func setup(gatherables: Array[Dictionary]) -> void:
 	WorldResources.loaded.connect(_on_loaded)
 
 
+## One more gatherable after setup (the build lab's test spawns). Returns its resource id.
+func add_gatherable(g: Dictionary) -> int:
+	var id: int = WorldResources.add_node(g["type"], g["xf"].origin, g["scale"])
+	_entries[id] = g
+	return id
+
+
+## Forgets a gatherable (and its stump) when the build lab clears its spawns.
+func forget(id: int) -> void:
+	_entries.erase(id)
+	if _stumps.has(id):
+		_stumps[id].queue_free()
+		_stumps.erase(id)
+
+
 ## The instance transform at the node's current size (saplings are smaller).
 func _shown(id: int, extra := Basis.IDENTITY, factor := -1.0) -> Transform3D:
 	var base: Transform3D = _entries[id]["xf"]

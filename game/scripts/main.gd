@@ -61,6 +61,9 @@ func _ready() -> void:
 	var lab := Node3D.new()
 	lab.set_script(preload("res://scripts/dev/build_lab.gd"))
 	lab.player = player
+	lab.scatter = scatter
+	lab.visuals = $ResourceVisuals
+	lab.treasure = treasure
 	add_child(lab)
 	var critters := Node3D.new()
 	critters.set_script(preload("res://scripts/world/critters.gd"))

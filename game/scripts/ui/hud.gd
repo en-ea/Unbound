@@ -284,6 +284,9 @@ func open_station(props: Dictionary) -> void:
 	if props.get("mode", "") == "craft":
 		open_crafting()
 		return
+	if props.get("mode", "") == "lab":       # the build lab's board (dev/lab_menu.gd)
+		_modal(preload("res://scripts/dev/lab_menu.gd"), {"lab": props["lab"]})
+		return
 	var panel := _modal(preload("res://scripts/ui/shop_panel.gd"), props)
 	panel.build_home.connect(start_build_mode)
 

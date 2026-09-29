@@ -40,6 +40,19 @@ func add_node(type: String, pos: Vector3, scale := 1.0) -> int:
 	return id
 
 
+func node_count() -> int:
+	return _nodes.size()
+
+
+## Removes every node from `count` on (the build lab's test spawns), so they never reach a save.
+func truncate(count: int) -> void:
+	if count >= _nodes.size():
+		return
+	_nodes.resize(count)
+	for cell: Vector2i in _grid:
+		_grid[cell] = _grid[cell].filter(func(id: int) -> bool: return id < count)
+
+
 func get_node_data(id: int) -> Dictionary:
 	return _nodes[id]
 
