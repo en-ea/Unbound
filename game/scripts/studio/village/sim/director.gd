@@ -28,7 +28,7 @@ static func director_day(V: S.Village) -> void:
 		s.day = V.day; s.kind = "festival"; s.name = FEASTS[doy]; s.who = -1; s.other = -1
 		V.schedule.append(s)
 	# omens: rare; hardship makes them likelier (a hungry village reads signs everywhere)
-	if R.chance(R.key(k, 2), (2200 + R.idiv(V.hardship, 2) * 8) * V.pace):
+	if R.chance(R.key(k, 2), (900 + R.idiv(V.hardship, 2) * 8) * V.pace):
 		var omen: String = C.OMENS[R.pick(R.key(k, 3), C.OMENS.size())]
 		V.fear = clampi(V.fear + 460, 0, 1000)
 		V.stats["omens"] += 1

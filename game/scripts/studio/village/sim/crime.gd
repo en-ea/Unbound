@@ -395,7 +395,7 @@ static func discover_crimes(V: S.Village) -> void:
 			if told >= 0:
 				for w in c.witnesses:
 					var q := V.people[w]
-					if not q.alive or not q.present or Village.is_kin(V, w, c.culprit) or q.traits[C.HONESTY] < 45 or Village.opinion(V, w, c.culprit) > 30:
+					if w == told or not q.alive or not q.present or Village.is_kin(V, w, c.culprit) or q.traits[C.HONESTY] < 45 or Village.opinion(V, w, c.culprit) > 30:
 						continue
 					var seen: S.Belief = null
 					for b in q.beliefs:

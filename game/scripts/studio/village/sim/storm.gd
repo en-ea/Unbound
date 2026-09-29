@@ -194,7 +194,7 @@ static func rite_act(V: S.Village, s: S.Sched) -> void:
 			Justice.earn(V, r.id, "rescuer")
 			Village.set_opinion(V, L.id, r.id, -80)
 			Justice.remember(L, r.id, rev)
-			make_rite_staging(V, L.id, q.id, worshippers, "rescued", r.id, rev)
+			V.events[rev].data["staging"] = make_rite_staging(V, L.id, q.id, worshippers, "rescued", r.id, rev)["id"]
 			return
 	# the offering (only ever an adult; the heart kept for the fire in the private build, as their fathers did)
 	var heart := V.tier != "store" and R.chance(R.key(k, 9), 400000)
@@ -205,7 +205,7 @@ static func rite_act(V: S.Village, s: S.Sched) -> void:
 	var acts: Dictionary = V.stats["acts"]
 	acts["sacrifice"] = acts.get("sacrifice", 0) + 1
 	Village.die(V, q.id, "sacrificed", PackedInt32Array([ev]), "a still shape on the stone at dawn")
-	make_rite_staging(V, L.id, q.id, worshippers, "carried_out", -1, ev)
+	V.events[ev].data["staging"] = make_rite_staging(V, L.id, q.id, worshippers, "carried_out", -1, ev)["id"]
 	# to the village it is murder, done openly: every grown member of the dead's household saw the drums
 	var c := Crime.add_crime(V, "sacrifice", L.id, q.household, q.id, 300, Village.place_id(V, "stake"), "", PackedInt32Array([ev]), "ash and blood on the stone", {"motive": "rite"})
 	c.discovered = true
@@ -243,14 +243,25 @@ static func make_rite_staging(V: S.Village, leader: int, victim: int, worshipper
 		Justice._beat(beats, start + 16, rescuer, "leave", -1, -1, "Jog_Fwd")
 	else:
 		Justice._beat(beats, start + 60, victim, "fall", -1, -1, "Death01")
+	# the village wakes to the drums: the nearest dozen come, and stand back appalled (outer slots, after the ring)
+	var onlookers: Array[int] = []
+	for p in V.people:
+		if onlookers.size() < 12 and p.alive and p.present and p.ancestor < 0 and p.id != victim and p.id != rescuer and Village.age_of(V, p) >= 14:
+			onlookers.append(p.id)   # (people are in id order: the reference's sort and slice)
+	for i in onlookers.size():
+		Justice._beat(beats, start + 15 + i, onlookers[i], "walk_to", ring.size() + i, -1, "Jog_Fwd")
+		Justice._beat(beats, start + 35 + i, onlookers[i], "stand", ring.size() + i, -1, "Idle_No")
 	var end := start + 90
 	for i in ring.size():
 		Justice._beat(beats, end + i, ring[i], "leave", -1, -1, "Walk")
+	for i in onlookers.size():
+		Justice._beat(beats, end + 5 + i, onlookers[i], "leave", -1, -1, "Walk")
 	Justice._beat(beats, end, leader, "leave", -1, -1, "Walk")
 	Justice._sort_beats(beats)
 	# (not de-duplicated, as in the reference)
 	var ids: Array[int] = [victim, leader]
 	ids.append_array(ring)
+	ids.append_array(onlookers)
 	if rescuer >= 0:
 		ids.append(rescuer)
 	var people := []
@@ -258,10 +269,10 @@ static func make_rite_staging(V: S.Village, leader: int, victim: int, worshipper
 		people.append(Justice.person_entry(V, id))
 	var cue := V.events[ev].cue
 	var staging := {
-		"id": V.staging_count, "kind": "sacrifice", "place": "stake", "start": start, "end": end + ring.size() + 5,
+		"id": V.staging_count, "kind": "sacrifice", "place": "stake", "start": start, "end": end + ring.size() + onlookers.size() + 10,
 		"phases": [{"name": "night", "from": start - 480, "to": start, "rescue": true}, {"name": "rite", "from": start, "to": start + 60, "rescue": true},
 			{"name": "end", "from": start + 60, "to": end + ring.size() + 5, "rescue": false}],
-		"roles": {"victim": victim, "accuser": leader, "authority": leader, "crowd": ring},
+		"roles": {"victim": victim, "accuser": leader, "authority": leader, "crowd": ring + onlookers},
 		"beats": beats, "outcome": outcome, "cause": ["rite: %s" % cue], "cue": cue, "day": V.day, "people": people,
 	}
 	V.staging_count += 1
