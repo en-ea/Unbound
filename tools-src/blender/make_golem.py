@@ -1,8 +1,10 @@
-"""Builds Brakk, the golem blacksmith, on the Quaternius UAL skeleton (same rig as make_hero.py), from
-the owner's reference picture: a hulking body of faceted rock, glowing rune bracers and a glowing chest
-crack, a big horned pauldron on one shoulder and layered iron plates on the other, a leather apron, a
-small rocky head with glowing eyes and a beard-block chin. The game scales him up (about 1.5x).
-Materials are fixed colours; "Glow" shines (the game's solid shader).
+"""Builds Brakk, the golem blacksmith, on the Quaternius UAL skeleton (same rig as make_hero.py, so every UAL
+animation works). From the owner's reference picture, kept simple: a hulking V-shaped body of chiselled
+warm-grey boulders, a small head sunk low between big shoulder rocks (heavy brow, glowing eyes, square
+jaw), a glowing lava crack down the chest, huge forearms with glowing rune bands, a horned boulder on his
+left shoulder and stacked plates on his right, a leather belt with a rune buckle, a leather apron, stumpy
+rock legs. Every rock is fixed to one bone, so nothing stretches when he moves. The game scales him up
+(Npcs "brakk": about 1.6x). Sonnet's first version is kept as make_golem_v1.py / golem_v1.glb.
 
 Run: ~/blender-venv/bin/python tools-src/blender/make_golem.py
 """
@@ -12,7 +14,7 @@ import random
 import sys
 import bpy  # noqa: F401
 import bmesh
-from mathutils import Vector as V
+from mathutils import Euler, Vector as V
 
 sys.path.append(os.path.dirname(__file__))
 import rigkit as rk  # noqa: E402
@@ -22,143 +24,131 @@ RIG = os.path.join(ROOT, "game", "assets", "quaternius_characters", "UAL1_Standa
 OUT = os.path.join(ROOT, "game", "assets", "characters", "golem.glb")
 
 COLORS = {
-    "Stone": (0.5, 0.47, 0.45), "StoneDark": (0.32, 0.3, 0.33), "StoneWarm": (0.57, 0.5, 0.46),
-    "Iron": (0.3, 0.33, 0.45), "Leather": (0.74, 0.4, 0.17), "Glow": (1.0, 0.46, 0.1),
+    "Stone": (0.55, 0.49, 0.43), "StoneDark": (0.41, 0.37, 0.35), "StoneLight": (0.64, 0.57, 0.5),
+    "Apron": (0.5, 0.27, 0.15), "Glow": (1.0, 0.52, 0.14),
 }
-SHADE = 0.11
+SHADE = 0.1
 
 
-def slab(bm, center, size, rot=(0, 0, 0), bottom=1.0, top=1.0, seed=0, bevel=0.02, wobble=0.04):
-    """A chunky angular block of stone: a cube scaled to `size`, its top and bottom faces scaled by `top` /
-    `bottom` (a wedge or trapezoid), turned by `rot` degrees, corners nudged a little, edges chamfered."""
-    from mathutils import Euler
-    rnd = random.Random(seed + int(center.x * 100) * 7 + int(center.z * 100) * 13)
-    g = bmesh.ops.create_cube(bm, size=1.0)
-    turn = Euler([math.radians(a) for a in rot]).to_matrix()
-    for v in g["verts"]:
-        k = top if v.co.z > 0 else bottom
-        p = V((v.co.x * size[0] * k, v.co.y * size[1] * k, v.co.z * size[2]))
-        p += V((rnd.uniform(-wobble, wobble) * size[0], rnd.uniform(-wobble, wobble) * size[1], rnd.uniform(-wobble, wobble) * size[2]))
-        v.co = turn @ p + center
-    edges = list({e for v in g["verts"] for e in v.link_edges})
-    if bevel > 0:
-        bmesh.ops.bevel(bm, geom=edges, offset=bevel, segments=1, affect="EDGES")
+def rock(bm, c, size, seed, rot=(0, 0, 0), squareness=0.75, jitter=0.05, top=1.0):
+    """A chiselled block of stone: a cube cut once along each edge and pulled a little towards a ball
+    (flat faces with cut-off corners), each corner nudged, scaled to `size` (full width, depth, height),
+    turned by `rot` degrees. `top` < 1 narrows the top (a wedge). `squareness` 1 = a plain box."""
+    rnd = random.Random(seed)
+    first = len(bm.verts)                       # new verts are added at the end
+    g = bmesh.ops.create_cube(bm, size=2.0)
+    bmesh.ops.subdivide_edges(bm, edges=list({e for v in g["verts"] for e in v.link_edges}), cuts=1, use_grid_fill=True)
+    turn = turn_of(rot)
+    bm.verts.ensure_lookup_table()
+    for v in bm.verts[first:]:
+        p = v.co.copy()
+        p = p.lerp(p.normalized() * 1.2, 1.0 - squareness) * (1.0 + rnd.uniform(-jitter, jitter))
+        k = 1.0 + (top - 1.0) * max(p.z, 0.0)
+        v.co = c + turn @ V((p.x * size[0] * 0.5 * k, p.y * size[1] * 0.5 * k, p.z * size[2] * 0.5))
 
 
-def spike(bm, base, tip, radius):
-    rk.tube(bm, [base, (base + tip) / 2, tip], [(radius, radius), (radius * 0.6, radius * 0.6), (0.006, 0.006)], seg=4)
+def turn_of(rot):
+    return Euler([math.radians(a) for a in rot]).to_matrix()
+
+
+def glow_bar(bm, a, b, width, depth=0.03):
+    """A thin glowing stroke from a to b (runes and cracks), facing -Y."""
+    d = b - a
+    c = (a + b) / 2
+    ang = math.degrees(math.atan2(d.x, d.z))
+    rock(bm, c, (width, depth, d.length + width * 0.5), 0, rot=(0, ang, 0), squareness=1.0, jitter=0.0)
+
+
+def rune(bm, c, s):
+    """A simple carved rune (a staff with a hook and a kick), glowing, on a face that looks -Y."""
+    glow_bar(bm, c + V((-0.25, 0, -0.45)) * s, c + V((-0.25, 0, 0.45)) * s, 0.12 * s)
+    glow_bar(bm, c + V((-0.25, 0, 0.45)) * s, c + V((0.25, 0, 0.2)) * s, 0.12 * s)
+    glow_bar(bm, c + V((0.25, 0, 0.2)) * s, c + V((-0.2, 0, 0.0)) * s, 0.12 * s)
+    glow_bar(bm, c + V((-0.1, 0, 0.0)) * s, c + V((0.3, 0, -0.45)) * s, 0.12 * s)
 
 
 def skirt_weights(p, top=0.99):
     side = "thigh_l" if p.x > 0 else "thigh_r"
-    leg = max(0.0, min(0.75, (top - p.z) * 2.2))
-    upper = rk.weights_by_distance(["pelvis", "spine_01"])(p)
-    out = {k: v * (1 - leg) for k, v in upper.items()}
-    out[side] = out.get(side, 0) + leg
+    leg = max(0.0, min(0.7, (top - p.z) * 2.0))
+    out = {"pelvis": 1.0 - leg}
+    out[side] = leg
     return out
-
-
-def torso_weights(p):
-    if p.z < 0.99:
-        return skirt_weights(p)
-    return rk.weights_by_distance(["pelvis", "spine_01", "spine_02", "spine_03", "neck_01", "clavicle_l", "clavicle_r"])(p)
 
 
 def build(arm):
     parts = []
     flat = {"smooth": False, "shade_var": SHADE}
-    headw = rk.fixed("Head")
 
-    def part(name, mat, weights, builder, **kw):
-        parts.append(rk.build_part(arm, name, mat, weights, builder, **(flat | kw)))
+    def part(name, mat, bone_or_weights, builder):
+        w = rk.fixed(bone_or_weights) if isinstance(bone_or_weights, str) else bone_or_weights
+        parts.append(rk.build_part(arm, name, mat, w, builder, **flat))
 
-    def many(bm, *calls):
-        for c in calls:
-            c(bm)
+    # --- torso: a broad upper chest and back, two big pecs, a narrower belly -------------------------
+    part("G_chest", "Stone", "spine_03", lambda bm: (
+        rock(bm, V((0, 0.03, 1.42)), (0.78, 0.5, 0.42), 1, top=0.9),
+        rock(bm, V((0, 0.14, 1.56)), (0.62, 0.36, 0.26), 2)))
+    part("G_pecs", "StoneLight", "spine_03", lambda bm: [
+        rock(bm, V((s * 0.16, -0.17, 1.4)), (0.32, 0.18, 0.3), 3 + (s > 0), rot=(0, s * 6, 0)) for s in (1, -1)])
+    part("G_belly", "Stone", "spine_02", lambda bm: (
+        rock(bm, V((0, 0.0, 1.2)), (0.54, 0.4, 0.3), 5),
+        rock(bm, V((0, -0.15, 1.2)), (0.3, 0.14, 0.24), 6)))
+    part("G_hips", "StoneDark", "pelvis", lambda bm: rock(bm, V((0, 0.02, 0.98)), (0.5, 0.36, 0.2), 7))
+    part("G_crack", "Glow", "spine_03", lambda bm: (                   # the lava crack between the pecs
+        glow_bar(bm, V((0.0, -0.245, 1.52)), V((0.03, -0.245, 1.44)), 0.035),
+        glow_bar(bm, V((0.03, -0.245, 1.44)), V((-0.02, -0.25, 1.36)), 0.045),
+        glow_bar(bm, V((-0.02, -0.25, 1.36)), V((0.01, -0.245, 1.28)), 0.035),
+        glow_bar(bm, V((-0.02, -0.25, 1.36)), V((-0.09, -0.24, 1.33)), 0.025)))
+    # Big trapezius rocks rise either side of the neck, so the head sits low between them.
+    part("G_traps", "Stone", "spine_03", lambda bm: [
+        rock(bm, V((s * 0.19, 0.05, 1.63)), (0.24, 0.3, 0.2), 8 + (s > 0), rot=(0, s * 14, 0)) for s in (1, -1)])
 
-    # --- torso: a big wedge of stone, a raised chest plate with a glowing crack, side plates ---------
-    part("G_torso", "Stone", torso_weights, lambda bm: (
-        slab(bm, V((0, 0.0, 1.38)), (0.7, 0.46, 0.46), bottom=0.62, seed=1),
-        slab(bm, V((0, 0.0, 1.08)), (0.46, 0.36, 0.26), bottom=0.85, seed=2),
-        slab(bm, V((0, 0.0, 0.9)), (0.5, 0.34, 0.16), seed=3)))
-    part("G_chest_plate", "StoneWarm", torso_weights, lambda bm: (
-        slab(bm, V((0, -0.24, 1.4)), (0.36, 0.1, 0.34), bottom=0.75, seed=4),
-        slab(bm, V((0.25, -0.22, 1.44)), (0.2, 0.09, 0.24), rot=(0, 0, -8), seed=5),
-        slab(bm, V((-0.25, -0.22, 1.44)), (0.2, 0.09, 0.24), rot=(0, 0, 8), seed=6),
-        slab(bm, V((0, -0.2, 1.1)), (0.28, 0.08, 0.2), bottom=0.8, seed=7)))
-    part("G_back", "StoneDark", torso_weights, lambda bm: (
-        slab(bm, V((0, 0.24, 1.42)), (0.5, 0.12, 0.34), seed=8), slab(bm, V((0, 0.2, 1.1)), (0.3, 0.1, 0.2), seed=9)))
-    part("G_traps", "Stone", rk.weights_by_distance(["spine_03", "neck_01", "clavicle_l", "clavicle_r"]), lambda bm: [
-        slab(bm, V((s * 0.2, 0.02, 1.62)), (0.26, 0.26, 0.14), rot=(0, 0, s * 12), seed=10) for s in (1, -1)])
-    # The glowing crack: a jagged run of thin plates down the chest plate, with runes at each side.
-    part("G_crack", "Glow", torso_weights, lambda bm: (
-        slab(bm, V((0.02, -0.298, 1.5)), (0.04, 0.02, 0.12), rot=(0, 0, 18), bevel=0, wobble=0, seed=11),
-        slab(bm, V((-0.03, -0.3, 1.4)), (0.05, 0.02, 0.12), rot=(0, 0, -22), bevel=0, wobble=0, seed=12),
-        slab(bm, V((0.03, -0.302, 1.3)), (0.06, 0.02, 0.12), rot=(0, 0, 20), bevel=0, wobble=0, seed=13),
-        slab(bm, V((-0.01, -0.3, 1.2)), (0.05, 0.02, 0.1), rot=(0, 0, -16), bevel=0, wobble=0, seed=14),
-        slab(bm, V((0.25, -0.272, 1.46)), (0.07, 0.014, 0.1), bevel=0, wobble=0, seed=15),
-        slab(bm, V((-0.25, -0.272, 1.46)), (0.07, 0.014, 0.1), bevel=0, wobble=0, seed=16)))
-    part("G_neck", "StoneDark", rk.weights_by_distance(["spine_03", "neck_01", "Head"]), lambda bm: slab(bm, V((0, 0.0, 1.6)), (0.22, 0.2, 0.12), seed=17))
+    # --- head: small and square, heavy brow, glowing eyes, a jutting jaw ----------------------------
+    part("G_head", "Stone", "Head", lambda bm: rock(bm, V((0, -0.06, 1.68)), (0.24, 0.24, 0.26), 10, top=0.9))
+    part("G_brow", "StoneDark", "Head", lambda bm: rock(bm, V((0, -0.17, 1.735)), (0.27, 0.08, 0.07), 11, squareness=0.8))
+    part("G_jaw", "StoneLight", "Head", lambda bm: rock(bm, V((0, -0.14, 1.6)), (0.22, 0.14, 0.11), 12, top=1.1))
+    part("G_nose", "StoneLight", "Head", lambda bm: rock(bm, V((0, -0.19, 1.67)), (0.05, 0.05, 0.08), 13))
+    part("G_eyes", "Glow", "Head", lambda bm: [
+        rock(bm, V((s * 0.06, -0.185, 1.7)), (0.055, 0.02, 0.028), 0, squareness=1.0, jitter=0.0) for s in (1, -1)])
 
-    # --- belt and apron ---------------------------------------------------------------------
-    part("G_belt", "Leather", torso_weights, lambda bm: slab(bm, V((0, 0.01, 0.98)), (0.56, 0.4, 0.09), bevel=0.012, seed=18))
-    part("G_buckle", "StoneWarm", rk.fixed("pelvis"), lambda bm: slab(bm, V((0, -0.215, 0.98)), (0.15, 0.05, 0.13), seed=19))
-    part("G_buckle_rune", "Glow", rk.fixed("pelvis"), lambda bm: slab(bm, V((0, -0.245, 0.98)), (0.07, 0.014, 0.08), bevel=0, wobble=0, seed=20))
-    apron = rk.weights_by_distance(["pelvis", "spine_01"])
-    part("G_apron_front", "Leather", apron, lambda bm: slab(bm, V((0, -0.2, 0.78)), (0.3, 0.03, 0.34), bottom=0.8, bevel=0.01, seed=21))
-    part("G_apron_back", "Leather", apron, lambda bm: slab(bm, V((0, 0.2, 0.78)), (0.3, 0.03, 0.34), bottom=0.8, bevel=0.01, seed=22))
-
-    # --- arms and legs -----------------------------------------------------------------------
+    # --- arms: big upper arms, huge forearms with rune bands, heavy fists ---------------------------
     for s, side in ((1, "l"), (-1, "r")):
-        arm_bones = [f"clavicle_{side}", f"upperarm_{side}", f"lowerarm_{side}", f"hand_{side}"]
-        aw = rk.weights_by_distance(arm_bones, top=2)
-        pts = [V((s * x, 0.066, 1.441)) for x in (0.14, 0.3, 0.466, 0.6)]
-        part(f"G_arm_{side}", "Stone", aw, lambda bm, pts=pts: rk.tube(
-            bm, pts, [(0.19, 0.19), (0.18, 0.18), (0.17, 0.17), (0.16, 0.16)], ref=V((0, 0, 1)), seg=4))
-        part(f"G_bicep_{side}", "StoneWarm", rk.weights_by_distance([f"upperarm_{side}", f"clavicle_{side}"], top=2), lambda bm, s=s: (
-            slab(bm, V((s * 0.33, 0.04, 1.49)), (0.26, 0.26, 0.26), seed=23), slab(bm, V((s * 0.47, 0.05, 1.42)), (0.2, 0.22, 0.2), seed=24)))
-        part(f"G_bracer_{side}", "Iron", rk.weights_by_distance([f"lowerarm_{side}", f"hand_{side}"], top=2), lambda bm, s=s: slab(
-            bm, V((s * 0.63, 0.066, 1.441)), (0.3, 0.4, 0.38), bevel=0.03, seed=25))
-        part(f"G_bracer_rune_{side}", "Glow", rk.weights_by_distance([f"lowerarm_{side}"], top=1), lambda bm, s=s: (
-            slab(bm, V((s * 0.63, -0.147, 1.44)), (0.11, 0.014, 0.16), bevel=0, wobble=0, seed=26),
-            slab(bm, V((s * 0.63, 0.28, 1.44)), (0.11, 0.014, 0.16), bevel=0, wobble=0, seed=27)))
-        part(f"G_fist_{side}", "StoneWarm", rk.fixed(f"hand_{side}"), lambda bm, s=s: (
-            slab(bm, V((s * 0.84, 0.066, 1.43)), (0.26, 0.26, 0.26), seed=28), slab(bm, V((s * 0.95, 0.05, 1.44)), (0.1, 0.22, 0.2), seed=29)))
-        x = s * 0.13
-        part(f"G_leg_{side}", "Stone", rk.weights_by_distance(["pelvis", f"thigh_{side}", f"calf_{side}"], top=2), lambda bm, x=x: rk.tube(
-            bm, [V((x, 0.0, 0.99)), V((x * 1.1, 0.0, 0.72)), V((x, 0.01, 0.5)), V((x, 0.025, 0.36))],
-            [(0.2, 0.2), (0.19, 0.19), (0.17, 0.17), (0.155, 0.155)], seg=4))
-        part(f"G_knee_{side}", "StoneWarm", rk.weights_by_distance([f"thigh_{side}", f"calf_{side}"], top=2), lambda bm, x=x: slab(
-            bm, V((x, -0.16, 0.56)), (0.26, 0.12, 0.2), seed=30))
-        foot = rk.weights_by_distance([f"calf_{side}", f"foot_{side}", f"ball_{side}"], top=2)
-        part(f"G_boot_{side}", "StoneDark", foot, lambda bm, x=x: (
-            slab(bm, V((x, -0.08, 0.09)), (0.32, 0.5, 0.18), seed=31), slab(bm, V((x, 0.03, 0.3)), (0.3, 0.3, 0.26), seed=32)))
-        part(f"G_boot_band_{side}", "Iron", rk.weights_by_distance([f"calf_{side}"], top=1), lambda bm, x=x: slab(
-            bm, V((x, 0.03, 0.44)), (0.34, 0.34, 0.06), bevel=0.01, seed=33))
+        part(f"G_upperarm_{side}", "Stone", f"upperarm_{side}", lambda bm, s=s: (
+            rock(bm, V((s * 0.31, 0.07, 1.44)), (0.3, 0.3, 0.3), 20 + s),
+            rock(bm, V((s * 0.33, 0.0, 1.47)), (0.2, 0.18, 0.2), 22 + s)))
+        part(f"G_forearm_{side}", "Stone", f"lowerarm_{side}", lambda bm, s=s: (
+            rock(bm, V((s * 0.6, 0.07, 1.44)), (0.34, 0.36, 0.36), 24 + s),))
+        part(f"G_band_{side}", "StoneDark", f"lowerarm_{side}", lambda bm, s=s: (
+            rock(bm, V((s * 0.62, 0.07, 1.44)), (0.16, 0.41, 0.41), 26 + s, squareness=0.85, jitter=0.02),))
+        part(f"G_rune_{side}", "Glow", f"lowerarm_{side}", lambda bm, s=s: rune(bm, V((s * 0.62, -0.143, 1.44)), 0.1))
+        part(f"G_fist_{side}", "StoneLight", f"hand_{side}", lambda bm, s=s: (
+            rock(bm, V((s * 0.85, 0.06, 1.43)), (0.24, 0.27, 0.27), 28 + s),
+            rock(bm, V((s * 0.95, 0.04, 1.43)), (0.1, 0.24, 0.22), 30 + s)))
+        # Legs: stumpy stone pillars, a knee cap, big flat feet.
+        x = s * 0.12
+        part(f"G_thigh_{side}", "Stone", f"thigh_{side}", lambda bm, x=x, s=s: rock(bm, V((x, 0.0, 0.72)), (0.3, 0.32, 0.46), 32 + s))
+        part(f"G_knee_{side}", "StoneLight", f"calf_{side}", lambda bm, x=x, s=s: rock(bm, V((x, -0.13, 0.52)), (0.2, 0.12, 0.16), 34 + s))
+        part(f"G_calf_{side}", "StoneDark", f"calf_{side}", lambda bm, x=x, s=s: rock(bm, V((x, 0.02, 0.32)), (0.3, 0.3, 0.42), 36 + s, top=1.1))
+        part(f"G_foot_{side}", "Stone", f"foot_{side}", lambda bm, x=x, s=s: rock(bm, V((x, -0.07, 0.09)), (0.32, 0.44, 0.2), 38 + s, top=0.85))
 
-    # --- shoulders: a big horned slab on his left, layered iron plates on his right ------------
-    lw = rk.weights_by_distance(["clavicle_l", "upperarm_l"], top=2)
-    part("G_pauldron_l", "StoneDark", lw, lambda bm: (
-        slab(bm, V((0.36, 0.03, 1.66)), (0.44, 0.4, 0.16), rot=(0, 0, -8), seed=34),
-        slab(bm, V((0.4, 0.03, 1.55)), (0.46, 0.42, 0.12), rot=(0, 0, -8), seed=35)))
-    part("G_pauldron_l_horn", "Stone", lw, lambda bm: (spike(bm, V((0.42, 0.0, 1.72)), V((0.56, -0.05, 2.05)), 0.09),
-                                                      spike(bm, V((0.28, 0.1, 1.72)), V((0.28, 0.2, 1.98)), 0.06)))
-    rw = rk.weights_by_distance(["clavicle_r", "upperarm_r"], top=2)
-    part("G_pauldron_r", "Iron", rw, lambda bm: [
-        slab(bm, V((-0.34 - i * 0.06, 0.03, 1.68 - i * 0.09)), (0.4 - i * 0.02, 0.36, 0.11), rot=(0, 0, 8 + i * 3), seed=36 + i) for i in range(3)])
-    part("G_pauldron_r_spike", "StoneDark", rw, lambda bm: spike(bm, V((-0.3, 0.03, 1.74)), V((-0.32, 0.03, 1.98)), 0.07))
+    # --- shoulders: a horned boulder on the left, stacked stone plates on the right ------------------
+    part("G_pauldron_l", "StoneDark", "clavicle_l", lambda bm: (
+        rock(bm, V((0.34, 0.05, 1.62)), (0.44, 0.44, 0.24), 40, rot=(0, -12, 0)),
+        rock(bm, V((0.46, 0.05, 1.5)), (0.3, 0.4, 0.16), 41, rot=(0, -30, 0))))
+    part("G_horn_l", "StoneLight", "clavicle_l", lambda bm: rk.tube(
+        bm, [V((0.4, 0.05, 1.7)), V((0.5, 0.03, 1.84)), V((0.62, 0.0, 1.93))], [(0.08, 0.08), (0.05, 0.05), (0.008, 0.008)], seg=5))
+    part("G_pauldron_r", "StoneDark", "clavicle_r", lambda bm: [
+        rock(bm, V((-0.33 - i * 0.07, 0.05, 1.64 - i * 0.07)), (0.38 - i * 0.04, 0.42, 0.12), 42 + i, rot=(0, 10 + i * 12, 0), squareness=0.8)
+        for i in range(3)])
 
-    # --- head: a small blocky head sunk between the shoulders, heavy brow, beard-block chin --------
-    part("G_head", "Stone", headw, lambda bm: (
-        slab(bm, V((0, -0.02, 1.75)), (0.28, 0.28, 0.24), top=0.85, seed=40),
-        slab(bm, V((0, -0.155, 1.7)), (0.06, 0.05, 0.1), seed=41)))
-    part("G_beard", "StoneWarm", headw, lambda bm: (
-        slab(bm, V((0, -0.11, 1.63)), (0.24, 0.14, 0.14), bottom=0.7, seed=42),
-        slab(bm, V((0, -0.12, 1.56)), (0.14, 0.1, 0.08), seed=43)))
-    part("G_brow", "StoneDark", headw, lambda bm: (
-        slab(bm, V((0, -0.14, 1.79)), (0.3, 0.07, 0.06), seed=44), slab(bm, V((0, 0.0, 1.9)), (0.12, 0.18, 0.06), seed=45)))
-    part("G_eyes", "Glow", headw, lambda bm: [
-        slab(bm, V((s * 0.065, -0.152, 1.74)), (0.05, 0.02, 0.028), bevel=0, wobble=0, seed=46) for s in (1, -1)])
+    # --- belt, rune buckle, apron ----------------------------------------------------------------
+    part("G_belt", "Apron", "pelvis", lambda bm: rk.tube(
+        bm, rk.ring_path(V((0, 0.02, 1.02)), 0.29, 0.22, 12), [(0.05, 0.03)] * 12, ref=V((0, 0, 1)), seg=4, closed=True))
+    part("G_buckle", "StoneLight", "pelvis", lambda bm: rock(bm, V((0, -0.235, 1.02)), (0.15, 0.06, 0.14), 45, squareness=0.85, jitter=0.02))
+    part("G_buckle_rune", "Glow", "pelvis", lambda bm: rune(bm, V((0, -0.268, 1.02)), 0.08))
+    apron = lambda p: skirt_weights(p)
+    part("G_apron", "Apron", apron, lambda bm: (
+        rock(bm, V((0, -0.23, 0.79)), (0.4, 0.04, 0.44), 46, squareness=1.0, jitter=0.02, top=0.8),
+        rock(bm, V((0, 0.24, 0.8)), (0.44, 0.04, 0.4), 47, squareness=1.0, jitter=0.02, top=0.8)))
     return parts
 
 

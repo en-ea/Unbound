@@ -17,7 +17,8 @@ func _ready():
 		Npcs.dress_visual(OS.get_environment("GV_NPC"), v)
 		var cam := Camera3D.new(); cam.fov = 40; add_child(cam)
 		var a := deg_to_rad(float(OS.get_environment("GV_ANGLE")) if OS.get_environment("GV_ANGLE") != "" else 20.0)
-		cam.position = Vector3(sin(a) * 6.5, 1.9, cos(a) * 6.5)
+		var dist := float(OS.get_environment("GV_DIST")) if OS.get_environment("GV_DIST") != "" else 6.5
+		cam.position = Vector3(sin(a) * dist, 1.9, cos(a) * dist)
 		cam.look_at(Vector3(0, 1.4, 0))
 		layer.visible = false
 		return

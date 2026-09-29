@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dukl2wwcq8kei"
-path="res://.godot/imported/golem.glb-103a5888a9dadcbc7ecad71adee368a2.scn"
+uid="uid://t48e2thlgbp2"
+path="res://.godot/imported/golem_v1.glb-e597b80bd8fc89d014e1d3943526b139.scn"
 
 [deps]
 
-source_file="res://assets/characters/golem.glb"
-dest_files=["res://.godot/imported/golem.glb-103a5888a9dadcbc7ecad71adee368a2.scn"]
+source_file="res://assets/characters/golem_v1.glb"
+dest_files=["res://.godot/imported/golem_v1.glb-e597b80bd8fc89d014e1d3943526b139.scn"]
 
 [params]
 
@@ -24,7 +24,7 @@ nodes/import_as_skeleton_bones=false
 nodes/use_name_suffixes=true
 nodes/use_node_type_suffixes=true
 meshes/ensure_tangents=true
-meshes/generate_lods=false
+meshes/generate_lods=true
 meshes/create_shadow_meshes=true
 meshes/light_baking=1
 meshes/lightmap_texel_size=0.2

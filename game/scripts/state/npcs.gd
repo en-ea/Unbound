@@ -28,10 +28,10 @@ const NPCS := {
 	},
 	"brakk": {
 		"name": "Brakk", "title": "Blacksmith", "at": Vector2(-13.5, 11.0), "scale": Vector3.ONE * 1.6,
-		"body": "res://assets/characters/golem.glb", "shoulders": 0.14,
+		"body": "res://assets/characters/golem.glb",
 		"theme": {"bg": Color(0.1, 0.09, 0.11, 0.95), "accent": Color(1.0, 0.52, 0.16), "text": Color(1.0, 0.94, 0.86),
 			"font": "res://assets/fonts/Cinzel-Variable.ttf", "name_font": "res://assets/fonts/Cinzel-Variable.ttf", "voice": "brakk"},
-		"portrait": {"look_at": Vector3(0, 2.25, 0), "cam": Vector3(0.5, 2.7, 4.7), "fov": 34.0, "turn": -6.0},
+		"portrait": {"look_at": Vector3(0, 2.05, 0), "cam": Vector3(0.35, 2.35, 3.3), "fov": 34.0, "turn": -6.0},
 		"prop": "golem_hammer", "prop_grip": Vector3(0, 0, 0),
 		"scenery": [{"model": "anvil", "at": Vector2(-1.7, 0.4), "turn": 90.0, "scale": 1.15}],
 		"route": [{"at": Vector2(0, 0), "work": "TreeChopping"}],

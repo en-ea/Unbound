@@ -173,3 +173,10 @@ in make_trees.py; a patch by Wren in `scatter._tobacco_patch`) and `cigarette` (
   `{text, options:[{label, do}]}` (`do` returns the next screen, or `{}` to end). Saved with the game.
 - UI: `ui/dialogue_panel.gd` (bottom card, typed text), `ui/quest_tracker.gd` (top-left). Dev: `--talk`, `--talk=quest`.
 - First quest: Wren's Smokes (pick 4 tobacco, roll 3 cigarettes at a campfire, hand them in for 60 coins and 5 tobacco).
+
+## Brakk the golem blacksmith
+Model: `tools-src/blender/make_golem.py` → `assets/characters/golem.glb`, on the UAL rig (all UAL animations work). Built from
+chiselled stone blocks (`rock()`), each fixed to one bone so nothing stretches; glowing parts use the "Glow" material. LOD
+generation is off in `golem.glb.import` (it broke the blocks). Villager entry "brakk" in `state/npcs.gd` (scale 1.6, hammer,
+anvil, portrait). Sonnet's first version is kept: `make_golem_v1.py` / `golem_v1.glb`. Preview: `GV_NPC=brakk GV_MODE=body
+GV_ANGLE=-20 GV_DIST=5.5 ... res://scenes/tmp_view.tscn` (writes /tmp/claude-0/s/gv.png); without GV_MODE it shows his talk screen.

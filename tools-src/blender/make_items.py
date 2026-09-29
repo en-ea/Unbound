@@ -207,10 +207,11 @@ def golem_hammer():
     """Brakk's big hammer: a long wooden haft from the grip (origin) along +Z, a heavy stone-and-iron head at the far end."""
     b = Builder(["Item", "Glow"])
     tube_faces(b, [V((0, 0, -0.12)), V((0, 0, 0.72))], [(0.032, 0.032)] * 2, (0.5, 0.34, 0.2), seg=5, ref=V((1, 0, 0)))
-    box(b, V((0, 0, 0.86)), (0.2, 0.15, 0.26), (0.62, 0.6, 0.62))
-    for z in (0.75, 0.97):
-        box(b, V((0, 0, z)), (0.235, 0.18, 0.05), (0.5, 0.52, 0.58))
-    box(b, V((0, -0.08, 0.86)), (0.06, 0.02, 0.1), (1.0, 0.62, 0.2), "Glow")
+    box(b, V((0, 0, 0.9)), (0.26, 0.2, 0.36), (0.56, 0.53, 0.5))                  # a big chiselled head
+    for z in (0.76, 1.04):
+        box(b, V((0, 0, z)), (0.29, 0.23, 0.06), (0.34, 0.33, 0.35))
+    for y in (-0.105, 0.105):
+        box(b, V((0, y, 0.9)), (0.08, 0.02, 0.08), (0.34, 0.33, 0.35))
     return b
 
 
