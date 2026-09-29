@@ -26,11 +26,14 @@ export function syncEvents(V) {
     if (!st) throw new Error('pending act without staging');
     const windows = st.phases.filter(p => p.rescue);
     const type = r.hearings.includes(a) ? 'hearing' : r.rites.includes(a) ? 'rite' : 'public';
+    // The first irreversible ending, including a crowd release, owns the decision boundary.
+    const decision = st.beats.filter(b => (b.who === a.victim && ['fall','leave'].includes(b.do)) || (b.do === 'release' && b.target === a.victim));
+    const publicDeadline = Math.min(st.phases.find(p=>p.name==='end')?.from ?? st.end, ...decision.map(b=>b.at));
     const e = { id: st.id, revision: 0, type, victim: a.victim, place: st.place,
       from: st.day * 1440 + Math.min(st.start, ...windows.map(p => p.from)),
-      deadline: st.day * 1440 + (a.deadline ?? (windows.length ? Math.max(...windows.map(p => p.to)) : st.end)),
+      deadline: st.day * 1440 + (a.deadline ?? publicDeadline),
       end: st.day * 1440 + st.end, phase: 'prepared', outcome: '', shields: [],
-      witnesses: (a.attend ?? st.roles.crowd).slice(), actors: [...new Set([a.victim, st.roles.authority, st.roles.accuser].filter(id => id >= 0))],
+      witnesses: [...new Set([...(a.attend ?? st.roles.crowd), st.roles.accuser].filter(id=>id>=0))], actors: [...new Set([a.victim, st.roles.authority, st.roles.accuser].filter(id => id >= 0))],
       testimony: [], bribe: '', challenge: 0, source: type === 'public' ? null : a.s };
     // Reserve the victim and venue; shift the whole plan in stable staging order.
     for (const prior of r.events) {
@@ -42,6 +45,7 @@ export function syncEvents(V) {
       for (const b of st.beats) b.at += shift;
     }
     r.events.push(e);
+    if (type === 'public') st.phases = [{name:'intervene',from:e.from-st.day*1440,to:e.deadline-st.day*1440,rescue:true},{name:'end',from:e.deadline-st.day*1440,to:st.end,rescue:false}];
   }
 }
 export function advance(V, target) {
@@ -52,10 +56,12 @@ export function advance(V, target) {
     const due = r.events.filter(e => !terminal(e)).sort((a,b) => a.deadline - b.deadline || a.id - b.id)[0];
     const dawn = V.day * 1440;
     const traceAt = Math.min(Infinity,...r.traces.filter(t=>!t.discovered).map(t=>t.discover_at));
-    const next = Math.min(dawn, due?.deadline ?? Infinity,traceAt);
+    const opening = r.events.filter(e=>e.phase==='prepared').sort((a,b)=>a.from-b.from||a.id-b.id)[0];
+    const next = Math.min(dawn, due?.deadline ?? Infinity,traceAt,opening?.from??Infinity);
     if (next > target) break;
     r.now = Math.max(r.now, next);
-    if (traceAt <= dawn && traceAt <= (due?.deadline ?? Infinity)) discoverTraces(V);
+    if (opening && opening.from === next) activate(V,opening);
+    else if (traceAt <= dawn && traceAt <= (due?.deadline ?? Infinity)) discoverTraces(V);
     else if (due && due.deadline <= dawn) resolve(V, due);
     else {
       stepDay(V); syncEvents(V);
@@ -77,13 +83,18 @@ export function advance(V, target) {
     if (terminal(e)) continue;
     const p = V.people[e.victim];
     if (!validParticipants(V,e)) cancel(V, e, 'participant unavailable');
-    else if (r.now >= e.from) { e.phase = 'active'; if (e.type !== 'hearing') { p.locked = true; p.lockedAt = e.place; } }
+    else if (r.now >= e.from) activate(V,e);
   }
   r.events = r.events.filter(e => !terminal(e) || e.end > r.now - 7 * 1440);
 }
 function validParticipants(V,e) {
   return e.actors.every(id => V.people[id]?.alive && V.people[id].present)
     && (e.type !== 'rite' || (V.storms[e.source.storm]?.active && V.runtime.now < V.storms[e.source.storm].until * 1440));
+}
+function activate(V,e) {
+  if (!validParticipants(V,e)) return cancel(V,e,'participant unavailable');
+  e.phase = 'active';
+  if (e.type !== 'hearing') { const p=V.people[e.victim]; p.locked=true; p.lockedAt=e.place; }
 }
 function resolve(V, e) {
   const p = V.people[e.victim];
@@ -196,7 +207,7 @@ export function act(V, request, context = {}) {
   if (verb === 'shield') {
     if (e.type !== 'public' || !Number.isInteger(params.beat) || e.shields.includes(params.beat)) return fail('contact already resolved');
     const st = V.stagings.find(s=>s.id===e.id), beat = st.beats[params.beat];
-    if (!beat || beat.do !== 'throw' || !context.intercepted || Math.abs(r.now-(st.day*1440+beat.at)) > 5) return fail('no contact');
+    if (!beat || beat.do !== 'throw' || !context.intercepted || r.now < st.day*1440+beat.at) return fail('no contact');
     e.shields.push(params.beat); player.standing += 2;
     // One contact affects that exposure only. All lethal stones must be intercepted to prevent a planned stone death.
     const a = V.pending.find(a=>a.staging===e.id);
@@ -227,20 +238,33 @@ export function act(V, request, context = {}) {
   p.present = true; p.locked = false; p.lockedAt = undefined;
   V.outlaws = V.outlaws.filter(x => x !== p.id);
   V.schedule = V.schedule.filter(s => !((s.kind === 'return' && s.who === p.id) || (s.case !== undefined && V.cases[s.case]?.accused === p.id)));
-  r.residents[p.id] = { refuge_until: r.now + 2880, rescued_by: request.player_id, destination: 'far_woods' };
+  r.residents[p.id] = { refuge_until: r.now + 2880, rescued_by: request.player_id, destination: 'far_woods', departed:r.now, from:e.place };
   for (const other of r.events) if (other !== e && other.victim === p.id && !terminal(other)) cancel(V, other, 'rescued');
   e.phase = 'resolved'; e.outcome = ritualOffer ? 'spared' : 'rescued'; e.revision++;
   planDay(V);
   return accept(e.outcome, ritualOffer ? { wood:1 } : {});
 }
 
+export function routine(V, id) {
+  const p=V.people[id], now=V.runtime.now, memory=V.runtime.residents[id];
+  if(memory?.refuge_until>now) return {from:memory.from??memory.destination, place:memory.destination, start:memory.departed??now-120, end:(memory.departed??now-120)+120};
+  const minute=now%1440, i=p.plan.findIndex(([a,b])=>minute>=a&&minute<b);
+  if(i<0) return {from:'',place:'',start:now,end:now};
+  const [a,b,place]=p.plan[i], from=i ? p.plan[i-1][2] : place, start=now-minute+a;
+  return {from,place,start,end:start+(from===place?0:Math.min(90,Math.floor((b-a)/2)))};
+}
+function settledAt(V,p,place) {
+  const trip=routine(V,p.id);
+  if(trip.place!==place || trip.end>V.runtime.now) return false;
+  return !V.runtime.events.some(e=>e.phase!=='cancelled'&&e.from<=V.runtime.now&&e.end>V.runtime.now&&V.stagings.find(s=>s.id===e.id)?.people.some(a=>a.id===p.id));
+}
 function discoverTraces(V) {
   for (const t of V.runtime.traces) {
     if (t.discovered || t.discover_at > V.runtime.now) continue;
     const e = eventById(V,t.event);
     if (!e || terminal(e)) { t.discovered = true; continue; }
     // Discovery needs a local resident, never an omniscient update of every mind.
-    const finder = V.people.find(p=>p.alive&&p.present&&p.id!==t.culprit&&ageOf(V,p)>=14&&placeAt(p,V.runtime.now%1440)===t.place)?.id;
+    const finder = V.people.find(p=>p.alive&&p.present&&p.id!==t.culprit&&ageOf(V,p)>=14&&settledAt(V,p,t.place))?.id;
     if (finder === undefined) { t.discover_at = V.runtime.now + 15; continue; }
     t.discovered = true;
     if (t.observers.length) {

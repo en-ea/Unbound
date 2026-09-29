@@ -74,11 +74,19 @@ func save_game() -> void:
 
 
 func _read() -> Dictionary:
+	var fallback := {}
 	for path in SafeFile.candidates(_path):      # the save, or what a crash mid-save left behind
 		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 		if data is Dictionary and data.get("version", 0) == VERSION:
+			var village: Variant = data.get("village", {})
+			if not village is Dictionary or (not village.is_empty() and not VillageSession.Save.valid(village)):
+				if fallback.is_empty():
+					fallback = data.duplicate(true)
+					fallback.erase("village")
+					fallback["village_recovery"] = true
+				continue
 			return data
-	return {}
+	return fallback
 
 
 ## The region the save was made in, so main can build it before loading (real runs only).
@@ -100,6 +108,9 @@ func load_game() -> void:
 	Projects.load_data(data.get("projects", []))
 	Home.load_data(data.get("home", {}))
 	VillageSession.load_data(data.get("village", {}))
+	VillageSession.initial_minute = int(float(data.get("time_of_day", 0.3)) * 1440.0)
+	if data.get("village_recovery", false):
+		VillageSession.recovery_notice = "Village record damaged; your belongings were restored."
 	Quests.load_data(data.get("quests", {}))
 	_regions = data.get("regions", {})
 	if not data.has("regions") and data.has("world"):       # a save from before regions: the meadow

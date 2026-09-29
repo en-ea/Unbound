@@ -109,7 +109,13 @@ static func report() -> PackedStringArray:
 		if receipt.get("wood", -1) != 1: return ["FAIL actions: plant cost"]
 		for i in p_v.people.size():
 			if p_v.people[i].beliefs.size() != beliefs[i]: return ["FAIL actions: instant plant discovery"]
-		p_v.people[judge_id].plan = PackedInt32Array([0, 1440, p_v.place_ids[home]])
+		var finder := -1
+		for person in p_v.people:
+			if person.alive and person.present and person.id != int(pe.victim) and person.id != judge_id and Runtime.Village.age_of(p_v, person) >= 14:
+				finder = person.id; break
+		p_v.people[finder].plan = PackedInt32Array([0, 1440, p_v.place_ids[home]])
+		var pst := Runtime.staging(p_v, int(pe.id))
+		pst.people = pst.people.filter(func(person: Dictionary) -> bool: return int(person.id) != finder)
 		Runtime.advance(p_v, int(p_v.runtime.now) + 16)
 		if not p_v.runtime.traces[0].discovered: return ["FAIL actions: local discovery"]
 		var player: Dictionary = p_v.runtime.players["player:local"]

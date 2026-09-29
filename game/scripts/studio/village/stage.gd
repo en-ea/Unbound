@@ -182,6 +182,7 @@ class Actor:
 
 ## A thrown prop, from the hand to the head, then to the ground.
 class Shot:
+	var beat := -1
 	var node: Node3D
 	var prop := ""
 	var thrower: Actor
@@ -272,6 +273,8 @@ func _ready() -> void:
 ## Plays a staging with its people (staging.gd formats). Needs the stage in the tree, at the origin.
 func play(staging: Dictionary, people: Array, speed: float = 1.0) -> void:
 	for problem in Staging.validate(staging, people):
+		if external_clock and problem.begins_with("beat for unknown person"):
+			continue # departed noncritical participants are intentionally absent from live presentation
 		push_warning("stage: " + problem)
 	clear()
 	if _real.is_empty():
@@ -308,6 +311,12 @@ func play(staging: Dictionary, people: Array, speed: float = 1.0) -> void:
 	_order_beats()
 	_build_slots()
 	_pair_hits()
+	if external_clock:
+		# Predicted endings are suggestions only. Live outcomes arrive from the persisted authority.
+		for i in _beats.size():
+			var b: Dictionary = _beats[i]
+			if _victim != null and ((b.who == _victim.id and b["do"] in ["fall", "leave"]) or (b["do"] == "release" and b.target == _victim.id)):
+				_skip[i] = true
 	_screen_throws()
 	_plan_fire()
 	_player = get_tree().get_first_node_in_group("player") as Node3D if is_inside_tree() else null
@@ -619,7 +628,7 @@ func _imply_leaves() -> void:
 ## A trial with no gesture gets a verdict: the elder pronounces as the verdict phase opens (before anyone
 ## leaves), and the accused answers.
 func _imply_verdict() -> void:
-	if _kind != "trial" or _authority == null or _victim == null:
+	if _outcome == "pending" or _kind != "trial" or _authority == null or _victim == null:
 		return
 	var first_leave := INF
 	for b: Dictionary in _beats:
@@ -1263,6 +1272,7 @@ func _throw(a: Actor, victim: Actor, beat: int, anim: String, prop: String) -> v
 	a.body.rotation.y = a.yaw
 	_once(a, anim)
 	var s := Shot.new()
+	s.beat = beat
 	s.prop = prop if prop != "" else "stone"
 	s.thrower = a
 	s.victim = victim
@@ -1344,6 +1354,8 @@ func _launch(s: Shot) -> void:
 func _shields(thrower: Actor, victim: Actor) -> bool:
 	if _player == null or not is_instance_valid(_player) or victim != _victim or not rescue_open():
 		return false
+	if external_clock and not _player.can_be_targeted():
+		return false
 	var p := Vector2(_player.global_position.x, _player.global_position.z)
 	var line := victim.pos - thrower.pos
 	var u := (p - thrower.pos).dot(line) / maxf(line.length_squared(), 0.0001)
@@ -1354,10 +1366,14 @@ func _shields(thrower: Actor, victim: Actor) -> bool:
 
 func _land_on_head(s: Shot) -> void:
 	if s.shielded:
-		var visual := _player.get_node_or_null("Visual")
-		if visual != null and visual.has_method("flash"):
-			visual.call("flash")          # a hit shown, no damage taken
-		player_intervened.emit("shield", int(minute()))
+		var contact := is_instance_valid(_player) and (_player.global_position + Vector3(0, PLAYER_CHEST, 0)).distance_to(s.to) < 0.8
+		if contact and action_authority.is_valid() and _player.can_be_targeted():
+			var result: Dictionary = action_authority.call("shield", {"beat": s.beat, "intercepted": true})
+			if result.get("accepted", false):
+				_player.visual.flash()
+		elif contact and not external_clock:
+			_player.visual.flash()
+			player_intervened.emit("shield", int(minute()))
 	else:
 		_hit(s.victim, s.react, s.thrower)
 	# Then it carries on in the throw's direction and drops to the ground.
@@ -1498,6 +1514,48 @@ func show_rescue() -> void:
 			_rest(a)
 	_notes.append("rescue: the player freed %s at minute %d" % [_victim.person.get("name", "?"), now])
 	player_intervened.emit("free", now)
+
+
+func show_outcome(outcome: String, alive: bool, present: bool) -> void:
+	if _victim == null:
+		return
+	_outcome = outcome
+	_rescued = true # suppress remaining predicted victim beats and incoming throws
+	_victim.pending.clear()
+	_victim.path.clear()
+	_victim.busy = 0.0
+	_victim.back_to = Vector2.INF
+	for a in _actors:
+		a.freeing = null
+	for shot in _shots:
+		if is_instance_valid(shot.node):
+			shot.node.queue_free()
+	_shots.clear()
+	if alive:
+		_fire_at = -1.0
+		if is_instance_valid(_fire):
+			_fire.queue_free()
+			_fire = null
+		_unlock(_victim)
+		if not present:
+			_victim.door = Vector2(-70.0, -40.0)
+		_go(_victim, _victim.door, "Walk", Vector2.INF)
+		_victim.going_home = true
+	else:
+		inject({"at": int(ceil(minute())), "who": _victim.id, "do": "fall", "anim": "Death01"})
+		_begin(_victim, _beats.size() - 1) # visible fall begins with the committed consequence
+
+
+func show_verdict(outcome: String) -> void:
+	if _authority == null or _victim == null:
+		return
+	_outcome = outcome
+	var now := int(ceil(minute()))
+	inject({"at": now, "who": _authority.id, "do": "gesture", "target": _victim.id, "anim": "Idle_No" if outcome == "acquitted" else "Yes"})
+	if outcome == "fell":
+		inject({"at": now, "who": _victim.id, "do": "fall", "anim": "Death01"})
+	else:
+		inject({"at": now + 2, "who": _victim.id, "do": "leave", "anim": "Walk"})
 
 
 ## Where a body stands at p: the ground, or a device's floor (platform, steps) when it is on one.

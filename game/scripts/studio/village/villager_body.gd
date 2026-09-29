@@ -68,15 +68,23 @@ static var _library: AnimationLibrary
 static var _loops: AnimationLibrary
 static var _metals := {}        # tool metal: colour -> StandardMaterial3D (shared by tier colour)
 static var _made := 0           # bodies made so far, to spread tier-1 steps over frames
+static var _rig_template: PackedScene
 
 
 func _ready() -> void:
-	_rig = (load(CharacterVisual.RIG) as PackedScene).instantiate()
+	# Strip the shared mannequin once. Re-instantiating and deleting all its meshes for every
+	# resident made cold arrivals much more expensive than the measured steady-state animation.
+	if _rig_template == null:
+		var source := (load(CharacterVisual.RIG) as PackedScene).instantiate()
+		for mi in source.find_children("*", "MeshInstance3D", true, false):
+			mi.free()
+		_rig_template = PackedScene.new()
+		_rig_template.pack(source)
+		source.free()
+	_rig = _rig_template.instantiate()
 	add_child(_rig)
 	_skeleton = _rig.find_children("*", "Skeleton3D", true, false)[0]
 	_anim = _rig.find_children("*", "AnimationPlayer", true, false)[0]
-	for mi in _skeleton.find_children("*", "MeshInstance3D", true, false):
-		mi.free()   # the grey mannequin
 	_load_parts()
 	_body = MeshInstance3D.new()
 	_body.name = "Body"

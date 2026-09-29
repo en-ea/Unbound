@@ -6,6 +6,8 @@ const S := preload("res://scripts/studio/village/sim/state.gd")
 var village: S.Village
 var active := false
 var background := false
+var initial_minute := 432
+var recovery_notice := ""
 
 func _ready() -> void:
 	process_priority = -50
@@ -15,7 +17,8 @@ func attach(scene: Node) -> void:
 		if arg.begins_with("--studio=") and arg != "--studio=village/live":
 			return
 	if village == null:
-		village = Runtime.create()
+		village = Runtime.Village.create_village(1, {"pace": 10, "focus": true, "live": true})
+		Runtime.attach(village, initial_minute)
 		if "--village-soon" in OS.get_cmdline_user_args():
 			for _i in 150:
 				Runtime.advance(village, village.day * 1440)

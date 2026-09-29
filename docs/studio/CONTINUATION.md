@@ -50,3 +50,11 @@ Godot `--headless --path game --quit-after 600 -- --studio=village/live --villag
 Godot runtime recovered by helper at the documented UnboundStudio path, official 4.7.2. Baseline village: three cases × 20 checkpoints × six columns, 10 live villages and 20 storms PASS. Kernel: 420/420 checkpoints and all scenarios PASS. S10 `R58N53475EH` detected; measurements pending.
 
 `origin/main` through `b9618d6` integrated into studio before normal-game hooks, retaining Wren, Brakk, Morrow and quests. Existing fixes imported without rewriting their branches: safe saves `d9cc90c`, safe area `1c4611c`, swipe exit `9b7ecf3`.
+
+## M2 integration [repo/run]
+
+`2f0b94e` fixes the reference contracts for undecided hearings and rites, bounded influence, original-source evidence and local trace discovery. `fce94d0` imports Sol's matching GDScript port and raw baseline/action/kernel results in `evidence/continuation/parity-m2/`.
+
+The next integration commit supplies nearby action buttons, lineage/rescue barks, physical traces, storm props, logical-time resident routes, explicit live endings, cold rig-template reuse and typed village recovery. Public acts decide at the first irreversible ending; lethal stoning cannot resolve before its throws. Live stages suppress predicted endings and show the authoritative result. Trace discovery excludes travelling residents and residents currently embodied in an event elsewhere.
+
+Rendered normal rescue with `--village-soon --village-rescue-test --test-save=rescue-m3` passed real input, immediate save/load, midnight, region reload and return with no engine warnings/errors (`evidence/continuation/integration-m2/rescue-rendered.txt`). Runtime codec/continuation and JS/GDScript action tests pass. Broader integrated acceptance, captures and S10 measurements remain pending; this is not yet the final candidate.

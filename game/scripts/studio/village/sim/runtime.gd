@@ -61,6 +61,14 @@ static func sync_events(v: S.Village) -> void:
 		if deadline == -2147483648:
 			deadline = int(st.end)
 		var type := "public"
+		# The first irreversible ending owns the decision boundary, including a crowd release.
+		deadline = int(st.end)
+		for phase: Dictionary in st.phases:
+			if phase.name == "end":
+				deadline = mini(deadline, int(phase.from))
+		for beat: Dictionary in st.beats:
+			if (int(beat.who) == int(a.victim) and beat["do"] in ["fall", "leave"]) or (beat["do"] == "release" and int(beat.target) == int(a.victim)):
+				deadline = mini(deadline, int(beat.at))
 		if a is Dictionary:
 			type = "hearing" if r.hearings.has(a) else "rite"
 			deadline = int(a.deadline)
@@ -98,6 +106,9 @@ static func sync_events(v: S.Village) -> void:
 			for b: Dictionary in st.beats:
 				b.at += shift
 		v.runtime.events.append(e)
+		if type == "public":
+			st.phases = [{"name": "intervene", "from": int(e.from) - int(st.day) * 1440, "to": int(e.deadline) - int(st.day) * 1440, "rescue": true},
+				{"name": "end", "from": int(e.deadline) - int(st.day) * 1440, "to": st.end, "rescue": false}]
 
 static func advance(v: S.Village, target: int) -> void:
 	var r := v.runtime
@@ -405,7 +416,7 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 	v.schedule = v.schedule.filter(func(s: S.Sched) -> bool:
 		return not ((s.kind == "return" and s.who == p.id) or
 			(s.case_id >= 0 and v.cases[s.case_id].accused == p.id)))
-	r.residents[str(p.id)] = {"refuge_until": int(r.now) + 2880, "rescued_by": request.player_id, "destination": "far_woods"}
+	r.residents[str(p.id)] = {"refuge_until": int(r.now) + 2880, "rescued_by": request.player_id, "destination": "far_woods", "departed": r.now, "from": e.place}
 	for other: Dictionary in r.events:
 		if other.id != e.id and other.victim == p.id and not terminal(other):
 			cancel(v, other, "rescued")
@@ -432,6 +443,36 @@ static func has_clue(knowledge: Array, clue: Dictionary, compare_culprit: bool =
 			return true
 	return false
 
+static func routine(v: S.Village, id: int) -> Dictionary:
+	var p := v.people[id]
+	var now := int(v.runtime.now)
+	var memory: Dictionary = v.runtime.residents.get(str(id), {})
+	if int(memory.get("refuge_until", 0)) > now:
+		var start := int(memory.get("departed", now - 120))
+		return {"from": memory.get("from", memory.destination), "place": memory.destination, "start": start, "end": start + 120}
+	var minute := now % 1440
+	for i in range(0, p.plan.size(), 3):
+		if minute < p.plan[i] or minute >= p.plan[i + 1]:
+			continue
+		var place := p.plan[i + 2]
+		var origin := p.plan[i - 1] if i > 0 else place
+		var start := now - minute + p.plan[i]
+		return {"from": v.place_names[origin], "place": v.place_names[place], "start": start,
+			"end": start + (mini(90, (p.plan[i + 1] - p.plan[i]) / 2) if origin != place else 0)}
+	return {"from": "", "place": "", "start": now, "end": now}
+
+static func settled_at(v: S.Village, p: S.Person, place: String) -> bool:
+	var trip := routine(v, p.id)
+	if trip.place != place or int(trip.end) > int(v.runtime.now):
+		return false
+	for e: Dictionary in v.runtime.events:
+		if e.phase == "cancelled" or int(e.from) > int(v.runtime.now) or int(e.end) <= int(v.runtime.now):
+			continue
+		for person: Dictionary in staging(v, int(e.id)).get("people", []):
+			if int(person.id) == p.id:
+				return false
+	return true
+
 static func discover_traces(v: S.Village) -> void:
 	var r := v.runtime
 	for t: Dictionary in r.traces:
@@ -443,7 +484,7 @@ static func discover_traces(v: S.Village) -> void:
 		var finder := -1
 		var target_place: int = v.place_ids.get(t.place, -1)
 		for person in v.people:
-			if person.alive and person.present and person.id != t.culprit and Village.age_of(v, person) >= 14 and Village.place_at(person, int(r.now) % 1440) == target_place:
+			if person.alive and person.present and person.id != t.culprit and Village.age_of(v, person) >= 14 and settled_at(v, person, t.place):
 				finder = person.id; break
 		if finder < 0:
 			t.discover_at = int(r.now) + 15; continue

@@ -118,7 +118,7 @@ function riteToday(V, st) {
   }
   if (victim < 0) return;
   const q = V.people[victim];
-  q.locked = true; q.lockedAt = "stake";
+  q.locked = !V.runtime; q.lockedAt = "stake"; // live seizure commits at the persisted night boundary
   const ev = logEvent(V, "rite", leader, victim, { rite: "seized", storm: st.id }, [st.event],
     `${nameOf(V, victim)} dragged towards the stake at dusk by strangers in furs, drums starting`);
   V.fear = clamp(V.fear + 150, 0, 1000);

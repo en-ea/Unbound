@@ -47,7 +47,9 @@ for(const watched of [true,false]) {
   const beliefs=P.people.map(p=>p.beliefs.length);
   assert.equal(request(P,pe,'plant',{place:home},{witnesses:watched?[judge]:[]}).wood,1);
   assert.deepEqual(P.people.map(p=>p.beliefs.length),beliefs,'plant is not instantly known');
-  P.people[judge].plan = [[0,1440,home]];
+  const finder=P.people.find(p=>p.alive&&p.present&&p.id!==pe.victim&&p.id!==judge&&P.day-p.born>=14*60).id;
+  P.people[finder].plan = [[0,1440,home]];
+  P.stagings.find(s=>s.id===pe.id).people=P.stagings.find(s=>s.id===pe.id).people.filter(p=>p.id!==finder);
   // Discovery happens on a semantic boundary even between day plans.
   advance(P,P.runtime.now+16);
   assert.equal(P.runtime.traces[0].discovered,true);
