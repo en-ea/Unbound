@@ -1,0 +1,228 @@
+extends RefCounted
+## Conformance and timing for the village simulation port.
+## Runs every golden case (golden_data.gd, written by tools-src/studio/village-reference/golden.mjs) and
+## compares every 30-day checkpoint on all six columns: day, village hash, event-log hash, events so far,
+## the hash of the stagings made since the last checkpoint, and how many. Reports the first mismatch per
+## case (or PASS) and the time the simulation took (ms per village-year and per village-day).
+##   godot --headless --path game --script res://scripts/studio/run.gd -- village/sim/conformance
+## On a phone: the dev argument --studio=village/sim/conformance (on_device), report saved to
+## user://studio-village-conformance.txt.
+
+const R := preload("res://scripts/studio/village/sim/rng.gd")
+const S := preload("res://scripts/studio/village/sim/state.gd")
+const Village := preload("res://scripts/studio/village/sim/village.gd")
+const C := preload("res://scripts/studio/village/sim/content.gd")
+const E := preload("res://scripts/studio/village/sim/events.gd")
+const Justice := preload("res://scripts/studio/village/sim/justice.gd")
+const Golden := preload("res://scripts/studio/village/sim/golden_data.gd")
+
+const COLUMNS := ["day", "village hash", "event-log hash", "events", "staging hash", "stagings"]
+
+
+## golden.mjs hashStagings: the stagings made since the last checkpoint (strings through str_key).
+static func hash_stagings(list: Array) -> String:
+	var h := R.FNV
+	for st: Dictionary in list:
+		h = R.key(h, st["id"]); h = R.key(h, R.str_key(st["kind"])); h = R.key(h, R.str_key(st["place"])); h = R.key(h, st["start"]); h = R.key(h, st["end"]); h = R.key(h, R.str_key(st["outcome"]))
+		for b: Dictionary in st["beats"]:
+			h = R.key(h, b["at"]); h = R.key(h, b["who"]); h = R.key(h, R.str_key(b["do"])); h = R.key(h, b["slot"]); h = R.key(h, b["target"]); h = R.key(h, R.str_key(b["anim"])); h = R.key(h, R.str_key(b["prop"]))
+		for p: Dictionary in st["people"]:
+			h = R.key(h, p["id"]); h = R.key(h, p["outfit"])
+	return "%08x" % h
+
+
+## One golden case: returns {"ok", "mismatch", "usec", "days", "final"}.
+static func run_case(c: Dictionary) -> Dictionary:
+	var V := Village.create_village(c["seed"], {"pace": c["pace"]})
+	var days: int = c["years"] * Village.YEAR
+	var checks: Array = c["checks"]
+	var ci := 0
+	var last_staging := -1
+	var mismatch := ""
+	var usec := 0
+	var matched := 0
+	for d in range(1, days + 1):
+		var t0 := Time.get_ticks_usec()
+		Village.step_day(V)
+		usec += Time.get_ticks_usec() - t0
+		if d % Golden.EVERY != 0:
+			continue
+		var fresh := []
+		for st in V.stagings:
+			if st["id"] > last_staging:
+				fresh.append(st)
+		if fresh.size() > 0:
+			last_staging = fresh[fresh.size() - 1]["id"]
+		var got := [V.day, Village.hash_village(V), "%08x" % V.ev_hash, V.events.size(), hash_stagings(fresh), fresh.size()]
+		var want: Array = checks[ci] if ci < checks.size() else []
+		ci += 1
+		if mismatch == "" and want.size() == got.size():
+			for col in got.size():
+				if str(got[col]) != str(want[col]):
+					mismatch = "day %d, %s: expected %s, got %s" % [V.day, COLUMNS[col], str(want[col]), str(got[col])]
+					break
+			if mismatch == "":
+				matched += 1
+	var final := {"people": V.people.size(), "events": V.events.size(), "crimes": V.crimes.size(), "cases": V.cases.size(), "stagings": V.staging_count}
+	if mismatch == "" and ci != checks.size():
+		mismatch = "%d checkpoints, the reference has %d" % [ci, checks.size()]
+	if mismatch == "":
+		var want_final: Dictionary = c["final"]
+		for key: String in want_final:
+			if int(want_final[key]) != int(final[key]):
+				mismatch = "final %s: expected %d, got %d" % [key, want_final[key], final[key]]
+				break
+	return {"ok": mismatch == "", "mismatch": mismatch, "usec": usec, "days": days, "final": final, "matched": matched, "checks": checks.size()}
+
+
+@warning_ignore("integer_division")
+static func conform(say: Callable) -> bool:
+	var ok := true
+	var by_pace := {}
+	for c: Dictionary in Golden.CASES:
+		var r := run_case(c)
+		var years: int = c["years"]
+		var ms_year: float = r["usec"] / 1000.0 / years
+		var ms_day: float = r["usec"] / 1000.0 / r["days"]
+		var f: Dictionary = r["final"]
+		say.call("seed %d pace %d, %d years: %s (%d of %d checkpoints x 6 columns)  [%.1f ms per village-year, %.3f ms per village-day; %d people, %d events, %d crimes, %d cases, %d stagings]" % [
+			c["seed"], c["pace"], years, "PASS" if r["ok"] else "FAIL, first mismatch at " + r["mismatch"], r["matched"], r["checks"], ms_year, ms_day,
+			f["people"], f["events"], f["crimes"], f["cases"], f["stagings"]])
+		ok = ok and r["ok"]
+		var pace: int = c["pace"]
+		if not by_pace.has(pace):
+			by_pace[pace] = [0, 0]
+		by_pace[pace][0] += r["usec"]
+		by_pace[pace][1] += years
+	for pace: int in by_pace:
+		say.call("pace %d: %.1f ms per village-year (all cases at this pace)" % [pace, by_pace[pace][0] / 1000.0 / by_pace[pace][1]])
+	say.call("CONFORMANCE: %s" % ("PASS" if ok else "FAIL"))
+	return ok
+
+
+## Twin of live-test.mjs: in the player's village (live) public acts wait for the stage. (1) Two live runs
+## with the same resolutions give the same world; (2) a player who frees everyone condemned to a lethal act
+## saves them all (and shields every pillory), and the village remembers the stranger.
+static func live_check(say: Callable, seeds: int = 10) -> bool:
+	var fails := PackedStringArray()
+	var freed := 0
+	var saved := 0
+	var shielded := 0
+	var t0 := Time.get_ticks_usec()
+	for s in seeds:
+		var seed := 11000 + s * 7919
+		var A := Village.create_village(seed, {"pace": C.LIVE_PACE, "live": true})
+		var B := Village.create_village(seed, {"pace": C.LIVE_PACE, "live": true})
+		for d in 3 * Village.YEAR:
+			Village.step_day(A)
+			Village.step_day(B)
+			for a in A.pending.duplicate():
+				Justice.resolve_public(A, a.staging, "")
+			for a in B.pending.duplicate():
+				Justice.resolve_public(B, a.staging, "")
+		if Village.hash_village(A) != Village.hash_village(B) or A.ev_hash != B.ev_hash:
+			fails.append("seed %d: two live runs with the same resolutions differ" % seed)
+		# the rescuer: frees everyone about to die, shields everyone in a pillory
+		var Rv := Village.create_village(seed, {"pace": C.LIVE_PACE, "live": true})
+		var freed_before := freed
+		for d in 3 * Village.YEAR:
+			Village.step_day(Rv)
+			for a in Rv.pending.duplicate():
+				var lethal: bool = C.PUBLIC[a.kind]["lethal"]
+				var who: int = a.victim
+				Justice.resolve_public(Rv, a.staging, "free" if lethal else ("shield" if a.kind == "pillory" else ""))
+				if lethal:
+					freed += 1
+					if Rv.people[who].alive:
+						saved += 1
+					else:
+						fails.append("seed %d: freed %d died anyway" % [seed, who])
+				if a.kind == "pillory":
+					shielded += 1
+		if freed > freed_before and Rv.stranger.standing >= 0 and Rv.stranger.enemies.size() == 0:
+			fails.append("seed %d: the stranger left no mark" % seed)
+	say.call("live: freed %d (all %d alive), shielded %d  [%.0f ms]" % [freed, saved, shielded, (Time.get_ticks_usec() - t0) / 1000.0])
+	for f in fails:
+		say.call("  " + f)
+	say.call("LIVE: %s" % ("FAIL" if fails.size() > 0 else "PASS: %d villages; live villages deterministic; every freed person lives; the village remembers the stranger" % seeds))
+	return fails.size() == 0
+
+
+## Twin of storm-test.mjs's checks: a storm folds one household back to its ancestors for a season (day 90,
+## 120 days, pace 10, 4 years). Determinism, no child seized for a rite, the ancestors gone and the lost home
+## after the storm, cues on notable events, and an anchored village never struck.
+static func storm_check(say: Callable, seeds: int = 20) -> bool:
+	var fails := PackedStringArray()
+	var tally := {}
+	var t0 := Time.get_ticks_usec()
+	for s in seeds:
+		var seed := 3000 + s * 7919
+		var V := _storm_village(seed, false)
+		if Village.hash_village(_storm_village(seed, false)) != Village.hash_village(V):
+			fails.append("seed %d: two runs differ" % seed)
+		if V.storms.size() == 0:
+			fails.append("seed %d: no storm" % seed)
+			continue
+		var st := V.storms[0]
+		tally["ancestors"] = tally.get("ancestors", 0) + st.ancestors.size()
+		tally["lost"] = tally.get("lost", 0) + st.lost.size()
+		for e in V.events:
+			if e.type == "rite":
+				var what: String = e.data.get("outcome", e.data.get("rite", ""))
+				tally["rite:" + what] = tally.get("rite:" + what, 0) + 1
+				if e.data.get("rite", "") == "seized" and Village.age_of(V, V.people[e.other]) < 16:
+					fails.append("seed %d: a child seized" % seed)
+			if E.NOTABLE.has(e.type) and e.cue == "":
+				fails.append("seed %d: %s without a cue" % [seed, e.type])
+		for id in st.ancestors:
+			if V.people[id].alive and V.people[id].present:
+				fails.append("seed %d: ancestor %d still present" % [seed, id])
+		for id in st.lost:
+			if V.people[id].alive and not V.people[id].present and not V.outlaws.has(id):
+				fails.append("seed %d: lost %d not home" % [seed, id])
+		if _storm_village(seed, true).storms.size() > 0:
+			fails.append("seed %d: anchored village struck" % seed)
+	var parts := PackedStringArray()
+	var keys := tally.keys()
+	keys.sort()
+	for k: String in keys:
+		parts.append("%s %d" % [k, tally[k]])
+	say.call("storms: %s  [%.0f ms]" % [", ".join(parts), (Time.get_ticks_usec() - t0) / 1000.0])
+	for f in fails.slice(0, 20):
+		say.call("  " + f)
+	say.call("STORMS: %s" % ("FAIL" if fails.size() > 0 else "PASS: %d villages, determinism, no child offerings, recede, anchored exempt" % seeds))
+	return fails.size() == 0
+
+
+static func _storm_village(seed: int, anchored: bool) -> S.Village:
+	var V := Village.create_village(seed, {"pace": C.LIVE_PACE, "anchored": anchored, "stormPlan": [{"day": 90, "household": seed % 6, "days": 120}]})
+	Village.run(V, 4 * Village.YEAR)
+	return V
+
+
+static func report() -> PackedStringArray:
+	var lines := PackedStringArray()
+	var say := func(s: String) -> void: lines.append(s)
+	conform(say)
+	live_check(say)
+	storm_check(say)
+	return lines
+
+
+## The phone entry point (dev argument --studio=village/sim/conformance): every line goes to the log and to
+## user://studio-village-conformance.txt, then the game quits.
+static func on_device(tree: SceneTree) -> void:
+	var lines := PackedStringArray()
+	var say := func(s: String) -> void:
+		lines.append(s)
+		print("VILLAGE ", s)
+	say.call("device: %s, %s, %s, %d cores" % [OS.get_model_name(), OS.get_name(), OS.get_processor_name(), OS.get_processor_count()])
+	say.call("engine: Godot %s, %s build" % [Engine.get_version_info()["string"], "debug" if OS.is_debug_build() else "release"])
+	conform(say)
+	live_check(say)
+	storm_check(say)
+	var f := FileAccess.open("user://studio-village-conformance.txt", FileAccess.WRITE)
+	if f:
+		f.store_string("\n".join(lines) + "\n")
+		f.close()
+	tree.quit()
