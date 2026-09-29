@@ -6,7 +6,7 @@ extends RefCounted
 
 const NPCS := {
 	"wren": {
-		"name": "Wren", "title": "Tobacco grower", "at": Vector2(-1.8, 24.5), "scale": Vector3(0.9, 1.1, 0.9),
+		"name": "Wren", "title": "Tobacco grower", "at": Vector2(-2.6, 18.0), "scale": Vector3(0.9, 1.1, 0.9),
 		"look": {
 			"parts": {"eyes": "narrow", "brows": "stern", "mouth": "flat", "nose": "long", "hair": "messy", "beard": "stubble",
 				"head": "sunhat", "top": "tunic", "waist": "none", "chest": "none", "shoulders": "none", "back": "leafcloak", "feet": "shoes"},

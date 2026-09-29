@@ -17,7 +17,7 @@ const DEFS := {
 			{"kind": "have", "text": "Pick wild tobacco", "items": {"tobacco": 4}, "or": {"cigarette": 1},
 				"say": "Four leaves, that's all. They grow out in the open. Keep an eye out for the tall ones with the pink flowers."},
 			{"kind": "have", "text": "Roll cigarettes at a campfire", "items": {"cigarette": 3},
-				"say": "You've got the leaf. Any campfire will do, there's one right behind me. Two leaves and a bit of wood make three. Roll three and bring them here."},
+				"say": "You've got the leaf. Any campfire will do, there is one down past the round house. Two leaves and a bit of wood make three. Roll three and bring them here."},
 			{"kind": "turn_in", "text": "Bring the cigarettes to Wren", "items": {"cigarette": 3},
 				"say": "Well now. Three of them, and rolled properly. Let me see."},
 		],
