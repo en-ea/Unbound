@@ -24,9 +24,9 @@ const LOAD_WAIT := 5.0        # seconds for the game to load and the start posit
 const SLOW_LEAD := 2.0        # game minutes before a timed shot that the stage slows to speed 1
 const CLOSE_SIZE := Vector2(480, 270)   # pixels around the place, saved at twice the size
 const GIVE_UP := 30.0        # game minutes after its mark that a shot is taken anyway (a probe line says so)
-const VANTAGE := Vector2(0.0, 4.5)      # where the player stands from the place, on the camera's side
+const VANTAGE := Vector2(1.8, 5.5)      # where the player stands from the place: the camera's side, off the exile road
 ## Shot waits that need the stage at speed 1 to catch their moment.
-const TIMED := ["flying", "released", "falling", "locked", "rescued", "shielded"]
+const TIMED := ["flying", "released", "falling", "locked", "rescued", "shielded", "beat"]
 
 var _stage: StageScript
 var _t := 0.0
@@ -59,6 +59,7 @@ var _full_us := PackedFloat32Array()
 var _shot_t := -100.0
 var _out := 0
 var _uncapped := false
+var _begun := false
 
 
 static func on_device(tree: SceneTree) -> void:
@@ -97,6 +98,11 @@ func _process(delta: float) -> void:
 	_t += delta
 	if _stage == null:
 		if _t >= LOAD_WAIT:
+			if _begun:             # _begin failed (a script error): stop rather than retry every frame
+				print("WITNESS could not start the stage; quitting")
+				get_tree().quit(1)
+				return
+			_begun = true
 			_begin()
 		return
 	_watch()
@@ -111,7 +117,7 @@ func _process(delta: float) -> void:
 	var shot := _shots[0]
 	var minute: float = _stage.minute()
 	var wait: String = shot["wait"]
-	if wait in TIMED and not _slowed and minute >= float(shot["at"]) - SLOW_LEAD:
+	if not _slowed and _timed_soon(minute):
 		_stage.set_speed(1.0)
 		_slowed = true
 	var ready := _ready_for(shot, minute)
@@ -121,11 +127,20 @@ func _process(delta: float) -> void:
 	if ready:
 		_shoot(shot["name"])
 		_shots.pop_front()
-		if _slowed and (_shots.is_empty() or not (_shots[0]["wait"] in TIMED) or float(_shots[0]["at"]) - SLOW_LEAD > minute):
+		if _slowed and not _timed_soon(minute):
 			_stage.set_speed(_speed)
 			_slowed = false
 		if _shots.is_empty():
 			_finish()
+
+
+## Whether any shot that needs speed 1 is due within SLOW_LEAD (not only the next one: two shots can share
+## a minute).
+func _timed_soon(minute: float) -> bool:
+	for s in _shots:
+		if s["wait"] in TIMED and minute >= float(s["at"]) - SLOW_LEAD:
+			return true
+	return false
 
 
 ## Whether a shot's moment has come: its minute, plus what it waits for on the stage.
@@ -138,8 +153,8 @@ func _ready_for(shot: Dictionary, minute: float) -> bool:
 			return _stage.released_minute() >= 0.0 and minute >= _stage.released_minute() + 1.6
 		"locked":
 			return minute >= at and _stage.is_locked(_victim) and minute >= _stage.locked_minute() + 1.0
-		"falling":      # mid-fall: the animation half done
-			return _stage.fell_minute() >= 0.0 and minute >= _stage.fell_minute() + 1.2
+		"falling":      # just into the fall (a drop through a trapdoor is over in under a game minute)
+			return _stage.fell_minute() >= 0.0 and minute >= _stage.fell_minute() + 0.3
 		"rescued":
 			return _intervened.size() > 0 and minute >= float(shot.get("since", at)) + 2.0
 		"shielded":
@@ -189,7 +204,9 @@ func _begin() -> void:
 		var t0 := Time.get_ticks_usec()
 		_stage.skip_to(float(_staging["start"]) + _skip)
 		print("WITNESS skipped to minute %.1f in %d ms: %s" % [_stage.minute(), (Time.get_ticks_usec() - t0) / 1000, _stage.probe()])
-	for b: Dictionary in _staging["beats"]:
+	for note in _stage.notes():
+		print("WITNESS stage note: ", note)
+	for b: Dictionary in _stage.beats():
 		if b["do"] == "fall" and b["who"] == _victim and _fall_at < 0.0:
 			_fall_at = b["at"]
 	if _rescue != "":
@@ -208,7 +225,10 @@ func _plan_shots() -> void:
 	var release := -1
 	var lock := -1
 	var crowd_leaves := -1
-	for b: Dictionary in _staging["beats"]:
+	var shots: Array[Dictionary] = []
+	for b: Dictionary in _stage.beats():
+		if b.get("implied", false) and b["do"] == "gesture":
+			shots.append({"name": "implied-%s-%s" % [b["who"], b["anim"]], "at": float(b["at"]) + 0.6, "wait": "beat"})
 		match String(b["do"]):
 			"throw":
 				if first_throw < 0:
@@ -224,7 +244,6 @@ func _plan_shots() -> void:
 			"leave":
 				if crowd_leaves < 0 and b["who"] != _victim:
 					crowd_leaves = b["at"]
-	var shots: Array[Dictionary] = []
 	shots.append({"name": "arriving", "at": start + 16, "wait": ""})
 	var phases: Array = _staging["phases"]
 	for i in phases.size():
@@ -246,6 +265,13 @@ func _plan_shots() -> void:
 		shots.append({"name": "after-fall", "at": _fall_at + 6.0, "wait": ""})
 	if crowd_leaves >= 0:
 		shots.append({"name": "leaving", "at": crowd_leaves + 8, "wait": ""})
+	if _staging["kind"] == "exile":          # the condemned's last walk: out along the road
+		var out := -1
+		for b: Dictionary in _stage.beats():
+			if b["who"] == _victim and b["do"] == "walk_to":
+				out = b["at"]
+		if out >= 0:
+			shots.append({"name": "walking-out", "at": out + 7, "wait": ""})
 	if _rescue != "":
 		shots.append({"name": "rescue-" + _rescue, "at": _rescuer["at"], "since": _rescuer["at"],
 			"wait": "rescued" if _rescue == "free" else "shielded"})
@@ -373,6 +399,8 @@ func _watch() -> void:
 
 func _finish() -> void:
 	print("WITNESS over the run: inside a house %s; standing on each other %s" % [_in_house.keys(), _crowded.keys()])
+	for note in _stage.notes():
+		print("WITNESS stage note: ", note)
 	print("WITNESS stage cost and lateness: ", _stage.stats())
 	print("WITNESS with (nearly) all %d out, %d frames (median / mean): draws %s, frame ms %s%s, stage _process us %s" % [_people,
 		_full_draws.size(), _middle(_full_draws), _middle(_full_ms), " uncapped" if _uncapped else " (30 fps cap)", _middle(_full_us)])
