@@ -35,6 +35,7 @@ const TOOL_OFFSET := Vector3(0.0, 0.07, 0.0)       # from the wrist into the pal
 const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw", "sunhat"]
 
 var hero_look := CharacterLook.load_saved()
+var body_model := ""            # a different body on the same rig (Brakk the golem), instead of the hero
 var is_player_look := true      # the player takes height/build from the look; NPCs set their own scale
 var wear_gear := false          # show the player's worn armour over the look (off in the look picker)
 var _metal_tint := Color(0, 0, 0, 0)
@@ -85,6 +86,27 @@ func _process(delta: float) -> void:
 		_flash = maxf(_flash - delta * 5.0, 0.0)
 		for m: ShaderMaterial in _slot_materials.values():
 			m.set_shader_parameter("flash", _flash)
+
+
+## Moves both shoulders (and so the whole arms) outward, for a body wider than the rig (Brakk the golem).
+func widen_shoulders(amount: float) -> void:
+	for side in ["l", "r"]:
+		var i := _skeleton.find_bone("clavicle_" + side)
+		if i < 0:
+			continue
+		var out := Vector3(amount if side == "l" else -amount, 0, 0)
+		var parent_global := _skeleton.get_bone_global_rest(_skeleton.get_bone_parent(i))
+		_skeleton.set_bone_pose_position(i, _skeleton.get_bone_rest(i).origin + parent_global.basis.inverse() * out)
+
+
+## Talking (a portrait): the gesturing idle while `on`, the plain idle otherwise.
+func talk(on: bool) -> void:
+	var anim_name := "Idle_Talking" if on else IDLE
+	if not _anim.has_animation(anim_name):
+		return
+	_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
+	_current = anim_name
+	_anim.play(anim_name, 0.25)
 
 
 ## Ends a one-shot action now (an NPC stopping its work to talk).
@@ -158,6 +180,14 @@ func show_tool(tool_name: String) -> void:
 func apply_hero_look() -> void:
 	if is_player_look:
 		scale = Vector3(hero_look.build, hero_look.height, hero_look.build)
+	if body_model != "":                    # a ready-made body: every part shows, only the materials need setting
+		for mi in _parts:
+			mi.visible = true
+			for s in mi.mesh.get_surface_count():
+				var src := mi.mesh.surface_get_material(s)
+				if src:
+					mi.set_surface_override_material(s, _slot_material(src))
+		return
 	var p := _worn_parts()
 	var covered: bool = p["head"] in COVERING
 	for mi in _parts:
@@ -216,6 +246,8 @@ func _slot_material(src: Material) -> ShaderMaterial:
 		var m := ShaderMaterial.new()
 		m.shader = SOLID_SHADER
 		m.set_shader_parameter("sway", 0.0)
+		if slot == "Glow":
+			m.set_shader_parameter("glow", 1.2)
 		_slot_materials[slot] = m
 	var mat: ShaderMaterial = _slot_materials[slot]
 	if CharacterLook.PALETTES.has(slot):
@@ -228,7 +260,7 @@ func _slot_material(src: Material) -> ShaderMaterial:
 
 
 func _attach_hero() -> void:
-	var scene := (load(HERO) as PackedScene).instantiate()
+	var scene := (load(body_model if body_model != "" else HERO) as PackedScene).instantiate()
 	for mi: MeshInstance3D in scene.find_children("*", "MeshInstance3D", true, false):
 		mi.owner = null
 		mi.get_parent().remove_child(mi)

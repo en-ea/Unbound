@@ -188,12 +188,47 @@ def shears():
     steel, wood = (0.8, 0.83, 0.87), (0.55, 0.36, 0.2)
     for s in (1, -1):
         tube_faces(b, [V((s * 0.012, 0, 0.02)), V((-s * 0.03, 0, 0.5))], [(0.008, 0.05), (0.004, 0.016)], steel, seg=4, ref=V((1, 0, 0)))
-        tube_faces(b, [V((s * 0.012, 0, 0.02)), V((s * 0.05, 0, -0.16))], [(0.016, 0.016), (0.02, 0.02)], wood, seg=5)
+        tube_faces(b, [V((s * 0.012, 0, 0.02)), V((s * 0.05, 0, -0.16))], [(0.016, 0.016), (0.02, 0.02)], wood, seg=5, ref=V((0, 1, 0)))
     tube_faces(b, [V((0, -0.02, 0.02)), V((0, 0.02, 0.02))], [(0.014, 0.014)] * 2, (0.35, 0.35, 0.38), seg=5)
     return b
 
 
+def box(b, c, size, color, mat="Item", top=1.0):
+    """A rough block; `top` narrows its top face (a tapered block)."""
+    def make():
+        g = bmesh.ops.create_cube(b.bm, size=1.0)
+        for v in g["verts"]:
+            k = top if v.co.z > 0 else 1.0
+            v.co = V((v.co.x * size[0] * k, v.co.y * size[1] * k, v.co.z * size[2])) + c
+    b.paint(b.new_faces(make), mat, color)
+
+
+def golem_hammer():
+    """Brakk's big hammer: a long wooden haft from the grip (origin) along +Z, a heavy stone-and-iron head at the far end."""
+    b = Builder(["Item", "Glow"])
+    tube_faces(b, [V((0, 0, -0.12)), V((0, 0, 0.72))], [(0.032, 0.032)] * 2, (0.5, 0.34, 0.2), seg=5, ref=V((1, 0, 0)))
+    box(b, V((0, 0, 0.86)), (0.2, 0.15, 0.26), (0.62, 0.6, 0.62))
+    for z in (0.75, 0.97):
+        box(b, V((0, 0, z)), (0.235, 0.18, 0.05), (0.5, 0.52, 0.58))
+    box(b, V((0, -0.08, 0.86)), (0.06, 0.02, 0.1), (1.0, 0.62, 0.2), "Glow")
+    return b
+
+
+def anvil():
+    """A big anvil for Brakk (about 0.9 m long), with a glowing blade on top: a stone base, iron top and a horn."""
+    b = Builder(["Item", "Glow"])
+    box(b, V((0, 0, 0.13)), (0.5, 0.3, 0.26), (0.43, 0.39, 0.4), top=0.9)
+    box(b, V((0, 0, 0.36)), (0.3, 0.2, 0.2), (0.5, 0.5, 0.54), top=0.7)
+    box(b, V((0, 0, 0.5)), (0.72, 0.3, 0.1), (0.58, 0.6, 0.66))
+    tube_faces(b, [V((0.34, 0, 0.5)), V((0.5, 0, 0.5)), V((0.62, 0, 0.5))], [(0.12, 0.05), (0.08, 0.035), (0.01, 0.01)], (0.58, 0.6, 0.66), seg=4, ref=V((0, 1, 0)))
+    tube_faces(b, [V((-0.28, 0, 0.58)), V((0.1, 0, 0.58)), V((0.34, 0, 0.58))], [(0.03, 0.035), (0.045, 0.03), (0.005, 0.01)], (1.0, 0.6, 0.2), seg=4, ref=V((0, 1, 0)), mat="Glow")
+    tube_faces(b, [V((-0.4, 0, 0.58)), V((-0.28, 0, 0.58))], [(0.03, 0.03)] * 2, (0.5, 0.34, 0.2), seg=5)
+    return b
+
+
 export("wood", log(), OUT)
+export("golem_hammer", golem_hammer(), OUT)
+export("anvil", anvil(), OUT)
 export("shears", shears(), OUT)
 export("tobacco", tobacco_leaf(), OUT)
 export("cigarette", cigarette(), OUT)

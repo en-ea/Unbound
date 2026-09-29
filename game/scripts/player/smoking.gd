@@ -11,6 +11,10 @@ const SIZE := 0.42                       # model scale: a real cigarette is abou
 const MOUTH := Vector3(0.028, 0.075, 0.108)
 
 var left := 0.0
+var visual: CharacterVisual       # whose head it is (the player's, unless set: villagers who always smoke)
+var endless := false
+var smoke_on := true
+var puff_scale := 1.0             # smaller puffs for a villager seen close up (portraits)
 var _prop: Node3D
 var _mesh: MeshInstance3D
 var _wisp: CPUParticles3D
@@ -39,6 +43,16 @@ func start() -> bool:
 	return true
 
 
+## For villagers: a cigarette that never burns down (world/npc.gd).
+func start_endless() -> void:
+	endless = true
+	_build()
+	left = 1.0
+	_prop.visible = true
+	_wisp.emitting = smoke_on
+	_next_puff = randf_range(1.0, 4.0)
+
+
 func stop(quiet := false) -> void:
 	left = 0.0
 	if _prop:
@@ -50,21 +64,25 @@ func stop(quiet := false) -> void:
 
 func _ready() -> void:
 	var player := get_parent()
-	if player.has_signal("knocked_out"):
+	if player.has_signal("knocked_out") and visual == null:
 		player.knocked_out.connect(stop.bind(true))
 
 
 func _process(delta: float) -> void:
 	if left <= 0.0:
 		return
-	left -= delta
-	if left <= 0.0:
-		stop()
-		return
+	if not endless:
+		left -= delta
+		if left <= 0.0:
+			stop()
+			return
 	_next_puff -= delta
 	if _next_puff <= 0.0:
 		_next_puff = PUFF_EVERY + randf_range(-1.0, 1.5)
-		_puff.restart()
+		if smoke_on:
+			_puff.restart()
+	if endless:
+		return
 	# It burns down: the paper shortens towards the filter (which stays at the mouth end).
 	var s := lerpf(0.3, 1.0, left / Balance.SMOKE_SECS)
 	_mesh.scale.x = s
@@ -75,7 +93,8 @@ func _process(delta: float) -> void:
 func _build() -> void:
 	if _prop:
 		return
-	var visual := get_parent().get_node("Visual") as CharacterVisual
+	if visual == null:
+		visual = get_parent().get_node("Visual") as CharacterVisual
 	_prop = Node3D.new()
 	_prop.position = MOUTH + Vector3(0, 0, HALF * SIZE)
 	_prop.rotation_degrees = Vector3(-8.0, 90.0, 0.0)     # the glowing tip (-X in the model) points forward
@@ -95,6 +114,10 @@ func _build() -> void:
 	_puff.explosiveness = 0.85
 	_puff.position = Vector3(HALF, 0, 0)         # the mouth end
 	_puff.direction = Vector3(-1.0, 1.4, 0.0)
+	_puff.scale_amount_min *= puff_scale
+	_puff.scale_amount_max *= puff_scale
+	_wisp.scale_amount_min *= puff_scale
+	_wisp.scale_amount_max *= puff_scale
 	_prop.add_child(_puff)
 	_prop.visible = false
 

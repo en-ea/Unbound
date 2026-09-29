@@ -118,6 +118,7 @@ func _ready() -> void:
 	add_child(_buffs)
 	Food.changed.connect(_show_buffs)
 
+	Quests.completed.connect(show_quest_complete)
 	_tracker = PanelContainer.new()
 	_tracker.set_script(preload("res://scripts/ui/quest_tracker.gd"))
 	_tracker.position = MARGIN + Vector2(0, 140)
@@ -326,6 +327,14 @@ func start_build_mode(room := false) -> void:
 		ui.origin = get_tree().get_first_node_in_group("home_interior").global_position
 	add_child(ui)
 	ui.closed.connect(func() -> void: _set_play_ui(true))
+
+
+## The reward banner when a quest is handed in (Quests.completed).
+func show_quest_complete(id: String) -> void:
+	var banner := Control.new()
+	banner.set_script(preload("res://scripts/ui/quest_complete.gd"))
+	banner.quest = id
+	add_child(banner)
 
 
 ## Talking to a villager (world/npc.gd).

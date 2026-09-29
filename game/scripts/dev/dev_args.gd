@@ -140,6 +140,11 @@ func _ready() -> void:
 			if arg == "--talk=quest":
 				Quests.accept("wren_smokes")
 				Inventory.add("tobacco", 2)
+			if arg == "--talk=done":                      # hand it in after a moment, to see the reward banner
+				Quests.accept("wren_smokes")
+				Inventory.add("cigarette", 3)
+				get_tree().create_timer(1.0).timeout.connect(func() -> void: Quests.turn_in("wren_smokes"))
+				return
 			get_node("../HUD").open_dialogue.call_deferred("wren")
 		elif arg == "--smoke":                            # some cigarettes, and light one
 			Inventory.add("cigarette", 5)

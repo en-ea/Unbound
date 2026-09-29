@@ -862,9 +862,11 @@ def straw_band(bm):
 def sun_hat(bm):
     """A huge flat straw hat: a broad brim that droops a little at the edge and a low round crown."""
     n = 16
-    z0 = Z + 0.07
-    rings = [(0.05, 0.0), (0.2, 0.012), (0.36, 0.0), (0.53, -0.05)]         # (radius, height offset)
-    verts = [[bm.verts.new(V((math.cos(k * math.tau / n) * r, math.sin(k * math.tau / n) * r * 0.97, z0 + dz))) for k in range(n)] for r, dz in rings]
+    z0 = Z + 0.135
+    rings = [(0.05, 0.0), (0.2, 0.012), (0.36, 0.0), (0.5, -0.03)]         # (radius, height offset)
+    # The hat sits tipped back: the front of the brim lifts (so the face shows under it), the back dips.
+    verts = [[bm.verts.new(V((math.cos(k * math.tau / n) * r, math.sin(k * math.tau / n) * r * 0.97,
+                              z0 + dz - 0.13 * math.sin(k * math.tau / n) * (r / 0.53)))) for k in range(n)] for r, dz in rings]
     under = [[bm.verts.new(V((v.co.x, v.co.y, v.co.z - 0.014))) for v in ring] for ring in verts]
     for i in range(len(rings) - 1):
         for k in range(n):
@@ -879,9 +881,9 @@ def sun_hat(bm):
 
 
 def sun_hat_band(bm):
-    rk.tube(bm, [V((0, 0.0, Z + 0.1)), V((0, 0.0, Z + 0.15))], [(0.168, 0.163), (0.16, 0.155)], seg=8, caps=False)
+    rk.tube(bm, [V((0, 0.0, Z + 0.15)), V((0, 0.0, Z + 0.21))], [(0.168, 0.163), (0.16, 0.155)], seg=8, caps=False)
     for s in (1, -1):                                               # chin strap
-        rk.tube(bm, [V((s * 0.15, -0.01, Z + 0.09)), V((s * 0.11, -0.07, Z - 0.08)), V((0, -0.13, Z - 0.16))], [(0.006, 0.006)] * 3, seg=4)
+        rk.tube(bm, [V((s * 0.15, -0.01, Z + 0.14)), V((s * 0.11, -0.07, Z - 0.06)), V((0, -0.13, Z - 0.16))], [(0.006, 0.006)] * 3, seg=4)
 
 
 LEAF_RINGS = [(1.5, 0.17, 0.145, 10, 0.17), (1.4, 0.25, 0.2, 12, 0.2), (1.27, 0.31, 0.25, 14, 0.22),

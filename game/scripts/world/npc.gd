@@ -13,6 +13,8 @@ var _marker: Label3D
 var _def: Dictionary
 var _greeted := false
 var _time := 0.0
+var _clang: AudioStreamPlayer3D
+var _marker_y := 2.9
 var _shape: WorldShape
 var _home := Vector2.ZERO
 var _stop := 0                   # index of the route spot he is at or heading for
@@ -31,33 +33,55 @@ func setup(id: String, shape: WorldShape) -> void:
 	var at: Vector2 = _def["at"]
 	_home = at
 	global_position = Vector3(at.x, shape.height_at(at.x, at.y), at.y)
-	_visual = CharacterVisual.new()
-	var look := CharacterLook.new()
-	for slot: String in _def["look"]["parts"]:
-		look.parts[slot] = _def["look"]["parts"][slot]
-	for slot: String in _def["look"]["colors"]:
-		look.colors[slot] = _def["look"]["colors"][slot]
-	_visual.hero_look = look
-	_visual.is_player_look = false
+	_visual = Npcs.make_visual(id)
 	add_child(_visual)
-	_visual.scale = _def["scale"]
-	if _def.has("prop"):
-		_visual.hold_prop.call_deferred(_def["prop"], Vector3(0, 0, 0), Vector3(0, 0.05, 0.0))
+	Npcs.dress_visual(id, _visual)
 	var body := StaticBody3D.new()
 	var col := CollisionShape3D.new()
 	var shape3 := CylinderShape3D.new()
-	shape3.radius = 0.4
+	shape3.radius = 0.4 * maxf(_def["scale"].x, 1.0)
 	shape3.height = 1.8
 	col.shape = shape3
 	col.position = Vector3(0, 0.9, 0)
 	body.add_child(col)
 	add_child(body)
-	_bubble = _label(44, 2.55)
-	_marker = _label(80, 2.95)
+	for thing: Dictionary in _def.get("scenery", []):        # things that stand beside him (an anvil)
+		var mesh := MeshInstance3D.new()
+		mesh.mesh = Items.mesh(thing["model"])
+		var spot: Vector2 = _home + thing["at"]
+		mesh.top_level = true
+		mesh.scale = Vector3.ONE * thing.get("scale", 1.0)
+		mesh.position = Vector3(spot.x, shape.height_at(spot.x, spot.y), spot.y)
+		mesh.rotation_degrees.y = thing.get("turn", 0.0)
+		add_child(mesh)
+		var block := StaticBody3D.new()
+		var box_col := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = Vector3(0.9, 0.9, 0.5) * thing.get("scale", 1.0)
+		box_col.shape = box
+		box_col.position = Vector3(0, 0.45, 0)
+		block.top_level = true
+		block.position = mesh.position
+		block.rotation_degrees.y = mesh.rotation_degrees.y
+		block.add_child(box_col)
+		add_child(block)
+	if _def.has("work_sound"):
+		_clang = AudioStreamPlayer3D.new()
+		_clang.stream = load(_def["work_sound"])
+		_clang.unit_size = 8.0
+		_clang.max_distance = 30.0
+		_clang.volume_db = -3.0
+		add_child(_clang)
+	_marker_y = 2.75 * _def["scale"].y
+	_bubble = _label(44, 2.4 * _def["scale"].y)
+	_marker = _label(80, _marker_y)
 	_marker.modulate = Color(1.0, 0.85, 0.3)
 	_marker.outline_modulate = Color(0.2, 0.12, 0.02)
 	_marker.modulate.a = 0.0
 	Quests.changed.connect(_update_marker)
+	Quests.completed.connect(func(quest: String) -> void:      # a nod when you finish their quest
+		if Quests.DEFS[quest]["giver"] == _id:
+			_visual.play_action("Yes"))
 	_update_marker()
 
 
@@ -108,7 +132,7 @@ func _process(delta: float) -> void:
 	var m := 1.0 if _marker.text != "" else 0.0
 	_marker.modulate.a = move_toward(_marker.modulate.a, m, delta * 4.0)
 	_marker.outline_modulate.a = _marker.modulate.a * 0.9
-	_marker.position.y = 2.95 + sin(_time * 3.0) * 0.06
+	_marker.position.y = _marker_y + sin(_time * 3.0) * 0.06
 
 
 ## His round: wait a moment, walk to the next spot, do his work there, and on. He stops and turns to you
@@ -143,6 +167,10 @@ func _go_about(delta: float, busy: bool) -> void:
 					_mode = "work"
 					_timer = _visual.animation_length(work)
 					_visual.play_action(work)
+					if _clang:                                   # the blow lands about half way through the swing
+						get_tree().create_timer(_timer * 0.5).timeout.connect(func() -> void:
+							if _mode == "work":
+								_clang.play())
 				return
 			var dir := step.normalized()
 			here += dir * minf(WALK_SPEED * delta, step.length())

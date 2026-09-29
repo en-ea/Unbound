@@ -118,7 +118,9 @@ func talk(npc: String) -> Dictionary:
 				return _screen(_step(id)["say"], [
 					{"label": "Hand them over", "do": func() -> Dictionary:
 						turn_in(id)
-						return _screen(DEFS[id]["thanks"], [{"label": "Thanks", "do": func() -> Dictionary: return {}}])},
+						var thanks := _screen(DEFS[id]["thanks"], [{"label": "Thanks", "do": func() -> Dictionary: return {}}])
+						thanks["emote"] = "Yes"
+						return thanks},
 					{"label": "Later", "do": func() -> Dictionary: return {}}])
 	return _screen(def["chatter"].pick_random(), [{"label": "Bye", "do": func() -> Dictionary: return {}}])
 
