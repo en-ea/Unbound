@@ -148,6 +148,7 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 			finish_case(V, cs, c, "trial_by_combat", "carried_out", causes, false)
 			Village.die(V, cs.accused, "combat", causes, "a body carried from the ring")
 			earn(V, champ, "champion")
+			make_trial_staging(V, cs, judge, via, "fell", champ)
 			return
 	else:
 		# judged on the witnesses: a law-minded elder needs more
@@ -161,6 +162,7 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 		E.log_event(V, "verdict", V.authority, cs.accused, {"case": cs.id, "verdict": verdict, "via": via}, causes, "%s walking free, the accuser staring after" % E.name_of(V, cs.accused))
 		Village.set_opinion(V, cs.accused, cs.accuser, Village.opinion(V, cs.accused, cs.accuser) - 40)
 		c.closed = true
+		make_trial_staging(V, cs, judge, via, "acquitted", champion(V, cs.accuser, cs.accused) if via == "combat" else -1)
 		return
 	# the law's list for this act and age, lenient to harsh
 	var list: Array = C.LAW[c.act][V.age]
@@ -199,6 +201,100 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 	if hold:
 		accused.locked = true
 		accused.locked_at = V.pl_pillory
+	make_trial_staging(V, cs, judge, via, "guilty", -1)
+
+
+# The hearing, shown (the verdict is already known; the stage plays how it was reached): the bench in the
+# square, the accused before it, the accuser pointing, the village around. An ordeal goes to the millpond
+# (the well); a combat is fought in a ring in the square, the loser falling.
+static func make_trial_staging(V: S.Village, cs: S.Case, judge: int, via: String, verdict: String, champ: int) -> Dictionary:
+	var accused := cs.accused
+	var accuser := cs.accuser
+	var place := "well" if via == "ordeal" else "square"
+	var to := Village.place_id(V, place)
+	var start := 600 if (via == "combat" or via == "ordeal") else 540
+	var beats: Array[Dictionary] = []
+	if judge >= 0:
+		_beat(beats, start, judge, "walk_to", -1, accused, "Walk_Formal")
+		_beat(beats, start + _walk_home(V, judge, to), judge, "stand", -1, accused, "Idle_FoldArms")
+	_beat(beats, start, accused, "walk_to", -1, -1, "Walk")
+	var hear := start + maxi(_walk_home(V, accused, to), _walk_home(V, judge, to) if judge >= 0 else 0) + 2
+	_beat(beats, hear, accused, "stand", -1, -1, "Idle")
+	_beat(beats, start + 2, accuser, "walk_to", 0, -1, "Walk")
+	_beat(beats, hear + 5, accuser, "gesture", 0, accused, "Idle_No")
+	# the village comes to hear it (grown people; the closest two dozen by id order), each showing where they stand
+	var crowd: Array[int] = []
+	for q in V.people:
+		if crowd.size() < 24 and q.alive and q.present and not q.locked and Village.age_of(V, q) >= 14 \
+				and q.id != accused and q.id != accuser and q.id != judge and q.id != champ:
+			crowd.append(q.id)   # (people are in id order: the reference's sort and slice)
+	var gathered := hear
+	for i in crowd.size():
+		var id := crowd[i]
+		var t0 := start + 4 + i
+		var t1 := t0 + _walk_home(V, id, to) + 1
+		var o := Village.opinion(V, id, accused)
+		_beat(beats, t0, id, "walk_to", i + 1, -1, "Walk")
+		_beat(beats, t1, id, "stand", i + 1, accused, "Idle_No" if o < -20 else ("Idle_Talking" if o > 20 else "Idle_FoldArms"))
+		gathered = maxi(gathered, t1)
+	var t := maxi(hear + 15, gathered + 5)
+	if via == "confession":
+		_beat(beats, t, accused, "gesture", -1, judge, "Fixing_Kneeling")
+	if via == "ordeal":
+		_beat(beats, t, accused, "lock", -1, -1, "Crouch_Idle")
+		_beat(beats, t + 20, judge if judge >= 0 else accuser, "release", -1, accused, "Interact")
+		t += 25
+	if via == "combat" and champ >= 0:
+		_beat(beats, start + 2, champ, "walk_to", 0, -1, "Walk")
+		for r in 3:
+			_beat(beats, t + r * 4, champ, "gesture", 0, accused, "Push")
+			_beat(beats, t + r * 4 + 1, accused, "react", -1, champ, "Hit_Chest")
+			_beat(beats, t + r * 4 + 2, accused, "gesture", -1, champ, "Push")
+			_beat(beats, t + r * 4 + 3, champ, "react", 0, accused, "Hit_Chest")
+		t += 14
+		if verdict == "fell":
+			_beat(beats, t, accused, "fall", -1, -1, "Death01")
+	if judge >= 0:
+		_beat(beats, t + 5, judge, "gesture", -1, accused, "Idle_No" if verdict == "acquitted" else "Yes")
+	var end := t + 15
+	if verdict != "fell":
+		_beat(beats, end, accused, "leave", -1, -1, "Walk")
+	# (not de-duplicated: the accuser can also be the judge or the champion, as in the reference)
+	var leaving: Array[int] = [accuser, judge, champ]
+	leaving.append_array(crowd)
+	for id in leaving:
+		if id >= 0:
+			_beat(beats, end + 2 + (crowd.find(id) + 1), id, "leave", -1, -1, "Walk")
+	_sort_beats(beats)
+	var people := []
+	var listed: Array[int] = []
+	var ids: Array[int] = [accused, accuser, judge, champ]
+	ids.append_array(crowd)
+	for id in ids:
+		if id >= 0 and not listed.has(id):
+			listed.append(id)
+			people.append(person_entry(V, id))
+	var outcome := "carried_out" if verdict == "fell" else ("acquitted" if verdict == "acquitted" else ("confessed_spared" if via == "confession" else "carried_out"))
+	var cue := "the millpond, and a crowd along its bank" if via == "ordeal" else ("a ring marked in the dust of the square" if via == "combat" else "the elder's bench carried into the square")
+	var staging := {
+		"id": V.staging_count, "kind": "trial_by_combat" if via == "combat" else "trial", "place": place, "start": start, "end": end + crowd.size() + 5,
+		"phases": [{"name": "hearing", "from": start, "to": t, "rescue": false}, {"name": "verdict", "from": t, "to": end, "rescue": false},
+			{"name": "end", "from": end, "to": end + crowd.size() + 5, "rescue": false}],
+		"roles": {"victim": accused, "accuser": accuser, "authority": judge, "crowd": crowd},
+		"beats": beats, "outcome": outcome, "cause": ["accusation: %s" % V.events[cs.event].cue], "cue": cue,
+		"day": V.day, "people": people, "via": via, "verdict": verdict,
+	}
+	V.staging_count += 1
+	V.stagings.append(staging)
+	if V.stagings.size() > 300:
+		V.stagings.remove_at(0)
+	return staging
+
+
+## makeTrialStaging's walk: from the person's home (locked or not), 26 dm a minute.
+static func _walk_home(V: S.Village, id: int, to: int) -> int:
+	var from := V.households[V.people[id].household].home_place
+	return 2 + R.idiv(absi(V.place_x[from] - V.place_x[to]) + absi(V.place_z[from] - V.place_z[to]), 26)
 
 
 static func _might(V: S.Village, k: int, id: int) -> int:
@@ -369,8 +465,78 @@ static func public_act(V: S.Village, s: S.Sched) -> void:
 		outcome = "crowd_turned"
 	var lethal_by_stones := (kind == "pillory" or kind == "stocks") and level == 3 and Director.lethal_allowed(V) and R.chance(R.key(k, 5), 250000)
 	var staging := make_staging(V, cs, c, kind, attend, throwing, level, outcome, lethal_by_stones, anger, sympathy, k)
-	var ev := E.log_event(V, "public_act", victim.id, cs.accuser, {"kind": kind, "outcome": outcome, "case": cs.id, "level": level, "throwers": throwing.size(), "crowd": n, "staging": staging["id"]},
-		causes, staging["cue"])
+	var act := S.PublicAct.new()
+	act.cue = staging["cue"]; act.s = s; act.cs = cs.id; act.kind = kind; act.victim = victim.id; act.attend = attend
+	act.anger = anger; act.sympathy = sympathy; act.throwing = throwing; act.level = level; act.outcome = outcome
+	act.lethal_by_stones = lethal_by_stones; act.n = n; act.causes = causes; act.staging = staging["id"]
+	# the live game plays the act on the stage and resolves it when it ends (the player may step in); away
+	# from the player (and in every headless run) it resolves at once
+	if V.live:
+		V.pending.append(act)
+		return
+	apply_public(V, act, "")
+
+
+# The player's part in a public act, reported by the stage when the act ends: "" (watched, or not there),
+# "free" (cut the condemned loose in a rescue window) or "shield" (stood between the stones and them).
+static func resolve_public(V: S.Village, staging_id: int, intervention: String = "") -> bool:
+	var i := -1
+	for j in V.pending.size():
+		if V.pending[j].staging == staging_id:
+			i = j
+			break
+	if i < 0:
+		return false
+	var act := V.pending[i]
+	V.pending.remove_at(i)
+	apply_public(V, act, intervention)
+	return true
+
+
+# what the player's rescue costs and earns: the accuser and the elder remember a stranger's face
+const STRANGER := -2
+
+
+static func apply_public(V: S.Village, act: S.PublicAct, intervention: String) -> void:
+	var kind := act.kind
+	var attend := act.attend
+	var throwing := act.throwing
+	var n := act.n
+	var causes := act.causes
+	var level := act.level
+	var outcome := act.outcome
+	var lethal_by_stones := act.lethal_by_stones
+	var cs := V.cases[act.cs]
+	var c := V.crimes[cs.crime]
+	var victim := V.people[act.victim]
+	var anger := act.anger
+	var sympathy := act.sympathy
+	var def: Dictionary = C.PUBLIC[kind]
+	var lethal: bool = def["lethal"]
+	if not victim.alive:
+		c.closed = true
+		return
+	if intervention == "free" and outcome != "crowd_turned":
+		var rev := E.log_event(V, "public_act", victim.id, STRANGER, {"kind": kind, "outcome": "rescued", "case": cs.id, "level": level, "throwers": throwing.size(), "crowd": n, "staging": act.staging, "by": "stranger"},
+			causes, "a stranger cutting %s loose in front of the whole village, and the two of them running" % E.name_of(V, victim.id))
+		var r_acts: Dictionary = V.stats["acts"]
+		r_acts[kind] = r_acts.get(kind, 0) + 1
+		var r_outcomes: Dictionary = V.stats["outcomes"]
+		r_outcomes["rescued"] = r_outcomes.get("rescued", 0) + 1
+		V.stranger.standing -= int(def["shame"]) * 10
+		for id: int in [cs.accuser, V.authority]:
+			if id >= 0 and not V.stranger.enemies.has(id):
+				V.stranger.enemies.append(id)
+		exile(V, victim.id, PackedInt32Array([rev]), true, c.id)
+		finish_case(V, cs, c, kind, "rescued", PackedInt32Array([rev]), false)
+		return
+	if intervention == "shield":
+		lethal_by_stones = false
+		if level > 2:
+			level = 2
+		V.stranger.standing += 10
+	var ev := E.log_event(V, "public_act", victim.id, cs.accuser, {"kind": kind, "outcome": outcome, "case": cs.id, "level": level, "throwers": throwing.size(), "crowd": n, "staging": act.staging},
+		causes, act.cue)
 	var acts: Dictionary = V.stats["acts"]
 	acts[kind] = acts.get(kind, 0) + 1
 	var outcomes: Dictionary = V.stats["outcomes"]

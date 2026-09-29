@@ -63,7 +63,7 @@ const MEADOW := {
 }
 
 
-## opts: {"pace": int, "age": int, "tier": String, "layout": Dictionary, "name": String, "anchored": bool,
+## opts: {"pace": int, "age": int, "tier": String, "layout": Dictionary, "name": String, "anchored": bool, "live": bool,
 ##   "stormPlan": [{"day": int, "household": int, "days": int}]}
 static func create_village(seed: int, opts: Dictionary = {}) -> S.Village:
 	var V := S.Village.new()
@@ -81,6 +81,8 @@ static func create_village(seed: int, opts: Dictionary = {}) -> S.Village:
 	for sp: Dictionary in opts.get("stormPlan", []):
 		V.storm_plan.append_array([sp["day"], sp["household"], sp["days"]])
 	V.anchored = opts.get("anchored", false)
+	# the live game (live.gd): public acts wait on the stage for the player (justice.gd resolve_public)
+	V.live = opts.get("live", false)
 	make_places(V, opts.get("layout", MEADOW))
 	V.culture = (C.CULTURE[V.age] as Dictionary).duplicate()
 	# six founding lineages, one household each
@@ -323,6 +325,9 @@ static func living(V: S.Village) -> Array[S.Person]:
 
 # ---------- one day ----------
 static func step_day(V: S.Village) -> void:
+	# anything the stage did not finish yesterday resolves as it was going to
+	while V.pending.size() > 0:
+		Justice.resolve_public(V, V.pending[0].staging, "")
 	var doy := V.day % YEAR
 	if doy == 0:
 		year_start(V)

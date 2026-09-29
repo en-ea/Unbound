@@ -165,6 +165,32 @@ class Sched:
 		return s
 
 
+## A public act made and staged, waiting to be applied (justice.gd public_act, resolve_public, apply_public).
+## In the live village it waits in V.pending for the stage; headless it is applied at once.
+class PublicAct:
+	var cue := ""
+	var s: Sched = null
+	var cs := 0   # case id
+	var kind := ""
+	var victim := -1
+	var attend: Array[int] = []
+	var anger := {}   # person -> anger, insertion ordered
+	var sympathy := {}   # person -> sympathy
+	var throwing: Array[int] = []
+	var level := 0
+	var outcome := ""
+	var lethal_by_stones := false
+	var n := 0
+	var causes := PackedInt32Array()
+	var staging := -1   # staging id
+
+
+## How the village remembers the player (a stranger, id -2 in events).
+class Stranger:
+	var standing := 0
+	var enemies: Array[int] = []
+
+
 ## A time storm (storm.gd).
 class Storm:
 	var id := 0
@@ -240,3 +266,7 @@ class Village:
 	var storms: Array[Storm] = []
 	var storm_plan := PackedInt32Array()
 	var anchored := false
+	# the live game (live.gd): public acts wait on the stage for the player (justice.gd resolve_public)
+	var live := false
+	var pending: Array[PublicAct] = []
+	var stranger := Stranger.new()

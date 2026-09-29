@@ -66,4 +66,6 @@ static func full_name(V: S.Village, id: int) -> String:
 
 
 static func name_of(V: S.Village, id: int) -> String:
+	if id == -2:
+		return "a stranger"  # the player, as the village sees them
 	return V.people[id].name if id >= 0 and id < V.people.size() else "someone"
