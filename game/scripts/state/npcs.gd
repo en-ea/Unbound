@@ -6,7 +6,7 @@ extends RefCounted
 
 const NPCS := {
 	"wren": {
-		"name": "Wren", "title": "Tobacco grower", "at": Vector2(-2.6, 18.0), "scale": Vector3(0.9, 1.1, 0.9),
+		"name": "Wren", "title": "Tobacco grower", "at": Vector2(-2.6, 18.0), "scale": Vector3(0.84, 1.14, 0.84),
 		"look": {
 			"parts": {"eyes": "narrow", "brows": "stern", "mouth": "flat", "nose": "long", "hair": "messy", "beard": "stubble",
 				"head": "sunhat", "top": "tunic", "waist": "none", "chest": "none", "shoulders": "none", "back": "leafcloak", "feet": "shoes"},
@@ -25,6 +25,20 @@ const NPCS := {
 			"A slow smoke and a long look at the hills. That's all a day needs.",
 			"Wild leaf, they call it. Nothing wild about it. I planted every one.",
 			"Boars leave the plants alone. Wolves too. It's the rabbits I can't forgive."],
+	},
+	"morrow": {
+		"name": "Morrow", "title": "Wanderer", "at": Vector2(-1.5, 25.5), "scale": Vector3(0.88, 1.2, 0.88),
+		"body": "res://assets/characters/morrow.glb",
+		"theme": {"bg": Color(0.06, 0.06, 0.09, 0.95), "accent": Color(0.86, 0.8, 0.66), "text": Color(0.93, 0.91, 0.86),
+			"font": "res://assets/fonts/Cinzel-Variable.ttf", "name_font": "res://assets/fonts/Cinzel-Variable.ttf", "voice": "morrow"},
+		"portrait": {"look_at": Vector3(0, 2.02, 0), "cam": Vector3(0.3, 2.12, 1.6), "fov": 34.0, "turn": -8.0},
+		"prop": "skull_staff",
+		"route": [{"at": Vector2(0, 0), "work": ""}, {"at": Vector2(2.5, 1.5), "work": ""}, {"at": Vector2(-1.5, 2.0), "work": ""}],
+		"greetings": ["...", "Hm.", "You see me.", "The wind turned."],
+		"chatter": ["Everything that falls is gathered in the end. I only walk ahead of it.",
+			"The birds knew the old roads. I follow what they left behind.",
+			"Keep your lantern lit past the stones. Not everything out there is asleep.",
+			"I was here before the village. I will be here after the rain."],
 	},
 	"brakk": {
 		"name": "Brakk", "title": "Blacksmith", "at": Vector2(-13.5, 11.0), "scale": Vector3.ONE * 1.6,

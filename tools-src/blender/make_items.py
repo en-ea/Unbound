@@ -215,6 +215,23 @@ def golem_hammer():
     return b
 
 
+def skull_staff():
+    """Morrow's staff: a long, slightly crooked branch with a bird skull on top. The grip is at the origin;
+    the skull end is towards -Z (a held prop hangs +Z down along the hand, so the skull ends up on top)."""
+    b = Builder(["Item", "Glow"])
+    wood, bone, dark = (0.42, 0.3, 0.22), (0.9, 0.85, 0.74), (0.14, 0.11, 0.1)
+    tube_faces(b, [V((0, 0, 0.85)), V((0.02, 0, 0.3)), V((-0.015, 0.01, -0.3)), V((0.01, 0, -0.8)), V((0, 0, -1.06))],
+               [(0.022, 0.022), (0.026, 0.026), (0.024, 0.024), (0.028, 0.028), (0.04, 0.04)], wood, seg=6, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, 0, -0.78)), V((0, 0, -0.86))], [(0.034, 0.034)] * 2, (0.3, 0.2, 0.14), seg=6, ref=V((1, 0, 0)))  # a wrap
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, 0.02, -1.16)), (0.075, 0.09, 0.08), 7, 5)), "Item", bone)       # the cranium
+    tube_faces(b, [V((0, -0.05, -1.15)), V((0, -0.16, -1.12)), V((0, -0.3, -1.06))], [(0.045, 0.03), (0.028, 0.02), (0.004, 0.004)],
+               bone, seg=5, ref=V((1, 0, 0)))                                                                     # the long beak
+    for s in (1, -1):
+        b.paint(b.new_faces(lambda s=s: rk.blob(b.bm, V((s * 0.05, -0.04, -1.18)), (0.02, 0.025, 0.022), 6, 4)), "Item", dark)
+        b.paint(b.new_faces(lambda s=s: rk.blob(b.bm, V((s * 0.058, -0.045, -1.18)), (0.006, 0.006, 0.006), 4, 3)), "Glow", (1.0, 0.9, 0.62))
+    return b
+
+
 def anvil():
     """A big anvil for Brakk (about 0.9 m long), with a glowing blade on top: a stone base, iron top and a horn."""
     b = Builder(["Item", "Glow"])
@@ -230,6 +247,7 @@ def anvil():
 export("wood", log(), OUT)
 export("golem_hammer", golem_hammer(), OUT)
 export("anvil", anvil(), OUT)
+export("skull_staff", skull_staff(), OUT)
 export("shears", shears(), OUT)
 export("tobacco", tobacco_leaf(), OUT)
 export("cigarette", cigarette(), OUT)

@@ -37,7 +37,9 @@ COLORS = {  # defaults (sRGB); the game overrides the slot colours
     "Gold": (0.95, 0.74, 0.3), "Leaf": (0.36, 0.58, 0.28), "Petal": (0.97, 0.78, 0.84), "Bloom": (0.98, 0.9, 0.5),
     "Straw": (0.9, 0.77, 0.46), "Fur": (0.5, 0.4, 0.3), "Feather": (0.95, 0.94, 0.9), "Potion": (0.35, 0.82, 0.72),
     "Potion2": (0.9, 0.36, 0.42), "Wood": (0.55, 0.38, 0.24),
-    "Tobacco": (0.8, 0.56, 0.24), "Tobacco2": (0.66, 0.42, 0.17),
+    "Tobacco": (0.74, 0.52, 0.29), "Tobacco2": (0.6, 0.4, 0.22),
+    "MaskWhite": (0.95, 0.93, 0.89), "MaskRed": (0.82, 0.1, 0.12), "Oni": (0.6, 0.07, 0.08), "OniDark": (0.3, 0.03, 0.05),
+    "Ivory": (0.93, 0.88, 0.76), "Void": (0.06, 0.06, 0.08), "MaskGlow": (0.45, 0.95, 1.0), "Steel": (0.62, 0.64, 0.68),
 }
 
 HC = V((0.0, -0.01, 1.72))      # head centre
@@ -863,10 +865,10 @@ def sun_hat(bm):
     """A huge flat straw hat: a broad brim that droops a little at the edge and a low round crown."""
     n = 16
     z0 = Z + 0.135
-    rings = [(0.05, 0.0), (0.2, 0.012), (0.38, -0.004), (0.5, -0.03), (0.58, -0.07)]   # (radius, height offset)
+    rings = [(0.05, 0.0), (0.2, 0.012), (0.4, -0.004), (0.54, -0.03), (0.64, -0.075)]   # (radius, height offset)
     # The hat sits tipped back: the front of the brim lifts (so the face shows under it), the back dips.
     verts = [[bm.verts.new(V((math.cos(k * math.tau / n) * r, math.sin(k * math.tau / n) * r * 0.97,
-                              z0 + dz - 0.13 * math.sin(k * math.tau / n) * (r / 0.6)))) for k in range(n)] for r, dz in rings]
+                              z0 + dz - 0.04 * math.sin(k * math.tau / n) * (r / 0.64)))) for k in range(n)] for r, dz in rings]
     under = [[bm.verts.new(V((v.co.x, v.co.y, v.co.z - 0.014))) for v in ring] for ring in verts]
     for i in range(len(rings) - 1):
         for k in range(n):
@@ -876,8 +878,8 @@ def sun_hat(bm):
     for k in range(n):                                          # the thin rim
         k2 = (k + 1) % n
         bm.faces.new((verts[-1][k], under[-1][k], under[-1][k2], verts[-1][k2]))
-    rk.tube(bm, [V((0, 0.0, z0 - 0.02)), V((0, 0.0, z0 + 0.06)), V((0, 0.0, z0 + 0.12)), V((0, 0.0, z0 + 0.14))],
-            [(0.165, 0.16), (0.158, 0.152), (0.13, 0.125), (0.05, 0.05)], seg=n // 2)   # a low, flat-topped crown
+    rk.tube(bm, [V((0, 0.0, z0 - 0.02)), V((0, 0.0, z0 + 0.08)), V((0, 0.0, z0 + 0.15)), V((0, 0.0, z0 + 0.19)), V((0, 0.0, z0 + 0.205))],
+            [(0.165, 0.16), (0.16, 0.155), (0.148, 0.143), (0.11, 0.106), (0.03, 0.03)], seg=n // 2)   # a rounded crown
 
 
 def sun_hat_band(bm):
@@ -886,32 +888,48 @@ def sun_hat_band(bm):
         rk.tube(bm, [V((s * 0.15, -0.01, Z + 0.14)), V((s * 0.11, -0.07, Z - 0.06)), V((0, -0.13, Z - 0.16))], [(0.006, 0.006)] * 3, seg=4)
 
 
-# Four rows of big leaves (height, radius x, radius y, count, length), each row overlapping the one below.
-LEAF_RINGS = [(1.5, 0.18, 0.15, 7, 0.27), (1.34, 0.28, 0.23, 8, 0.33), (1.15, 0.34, 0.28, 9, 0.37), (0.95, 0.37, 0.3, 10, 0.38)]
+# Five rows of big pointed leaves (height, radius x, radius y, count, length), each row overlapping the one
+# below and flaring out a little more, like the owner's reference (a poncho of tobacco leaves).
+LEAF_RINGS = [(1.57, 0.2, 0.17, 7, 0.3), (1.4, 0.25, 0.21, 8, 0.36), (1.25, 0.31, 0.26, 9, 0.4),
+              (1.09, 0.35, 0.29, 10, 0.42), (0.93, 0.37, 0.31, 11, 0.4)]
 
 
 def leaf(bm, base, tip, out, width):
-    """One big pointed leaf: narrow at the stem, widest a third of the way down, pointed tip."""
+    """One big pointed leaf, folded a little along its middle: narrow at the stem, widest a third of the way down."""
     d = tip - base
     side = d.cross(out).normalized()
-    mid1, mid2 = base + d * 0.35 + out * 0.012, base + d * 0.7 + out * 0.02
-    rk.tube(bm, [base, mid1, mid2, tip], [(width * 0.35, 0.006), (width, 0.008), (width * 0.55, 0.008), (0.004, 0.004)], ref=side, seg=4)
+    mid1, mid2 = base + d * 0.35 + out * 0.02, base + d * 0.7 + out * 0.03
+    rk.tube(bm, [base, mid1, mid2, tip], [(width * 0.3, 0.012), (width, 0.02), (width * 0.6, 0.016), (0.004, 0.004)], ref=side, seg=4)
+
+
+def leaf_spots():
+    """Where every leaf goes: (row, base, tip, out, width), the same for leaves and their midribs."""
+    import random
+    r = random.Random(12)
+    out_list = []
+    for row, (z, rx, ry, n, length) in enumerate(LEAF_RINGS):
+        for k in range(n):
+            a = (k + 0.5 * (row % 2) + r.uniform(-0.1, 0.1)) / n * math.tau
+            out = V((math.sin(a), -math.cos(a), 0)).normalized()
+            base = V((math.sin(a) * rx, 0.018 - math.cos(a) * ry, z))
+            tip = base + out * (0.07 + row * 0.02) + V((0, 0, -length * r.uniform(0.9, 1.1)))
+            out_list.append((row, base, tip, out, 0.14 + row * 0.012))
+    return out_list
 
 
 def leaf_cloak(bm, dark):
-    """A poncho of overlapping tobacco leaves, in rows from the shoulders to the thighs (each row a
-    little wider and lower than the last, like shingles). `dark` picks every other row."""
-    import random
-    r = random.Random(12)
-    for row, (z, rx, ry, n, length) in enumerate(LEAF_RINGS):
-        if (row % 2 == 1) != dark:
-            continue
-        for k in range(n):
-            a = (k + 0.5 * (row % 2) + r.uniform(-0.12, 0.12)) / n * math.tau
-            out = V((math.sin(a), -math.cos(a), 0)).normalized()
-            base = V((math.sin(a) * rx, 0.018 - math.cos(a) * ry, z))
-            tip = base + out * (0.06 + row * 0.012) + V((0, 0, -length * r.uniform(0.88, 1.12)))
-            leaf(bm, base, tip, out, 0.13 + row * 0.012)
+    """A poncho of overlapping tobacco leaves in rows from the shoulders to the thighs. `dark` picks every other row."""
+    for row, base, tip, out, width in leaf_spots():
+        if (row % 2 == 1) == dark:
+            leaf(bm, base, tip, out, width)
+
+
+def leaf_ribs(bm):
+    """A darker vein down the middle of each leaf."""
+    for row, base, tip, out, width in leaf_spots():
+        d = tip - base
+        pts = [base + out * 0.012, base + d * 0.35 + out * 0.034, base + d * 0.7 + out * 0.04, tip + out * 0.008]
+        rk.tube(bm, pts, [(0.007, 0.007), (0.006, 0.006), (0.005, 0.005), (0.002, 0.002)], seg=4)
 
 
 def shoulder(bm, s, size):
@@ -1034,6 +1052,84 @@ def build(arm):
             ring = [c + V((0, math.cos(a) * 0.014, math.sin(a) * 0.014 - 0.012)) for a in (k * math.tau / 10 for k in range(10))]
             rk.tube(bm, ring, [(0.0045, 0.0045)] * 10, ref=V((1, 0, 0)), seg=4, closed=True)
 
+    # --- masks: a plate over the face (following the head), plus each mask's own pieces ----------
+    def plate(bm, lo, hi, lift=0.02, thick=0.014, yaw=80):
+        """A face plate from yaw -`yaw` to `yaw` (degrees round the head) and pitch lo(yaw) to hi(yaw)."""
+        cols, rows = 12, 7
+        grid = []
+        for i in range(cols + 1):
+            yw = -yaw + 2 * yaw * i / cols
+            col = []
+            for j in range(rows + 1):
+                pt = lo(yw) + (hi(yw) - lo(yw)) * j / rows
+                a, _ = around(yw, pt, lift)
+                b, _ = around(yw, pt, lift + thick)
+                col.append((bm.verts.new(a), bm.verts.new(b)))
+            grid.append(col)
+        for i in range(cols):
+            for j in range(rows):
+                q = [grid[i][j], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j + 1]]
+                bm.faces.new([v[1] for v in q])
+                bm.faces.new([v[0] for v in reversed(q)])
+        for i in range(cols):                       # top and bottom edges
+            for j in (0, rows):
+                a, b = grid[i][j], grid[i + 1][j]
+                bm.faces.new((a[0], b[0], b[1], a[1]))
+        for i in (0, cols):                         # side edges
+            for j in range(rows):
+                a, b = grid[i][j], grid[i][j + 1]
+                bm.faces.new((a[0], b[0], b[1], a[1]))
+
+    def on(yaw, pitch, lift):
+        return around(yaw, pitch, lift)[0]
+
+    def line(bm, pts, r, flat_r=None):
+        rk.tube(bm, pts, [(r, flat_r or r)] * len(pts), seg=4)
+
+    # Kitsune: a white fox face with a pointed snout, tall ears, red swirls and slanted black eyes.
+    kit_lo = lambda yw: -50 + abs(yw) * 0.15
+    kit_hi = lambda yw: 44 - abs(yw) * 0.1
+    part("H_mask_kitsune", "MaskWhite", headw, lambda bm: (
+        plate(bm, kit_lo, kit_hi),
+        rk.tube(bm, [on(0, -8, 0.03), V((0, HC.y - HR.y - 0.07, Z - 0.035)), V((0, HC.y - HR.y - 0.12, Z - 0.05))],
+                [(0.05, 0.04), (0.03, 0.025), (0.008, 0.008)], ref=V((0, 0, 1)), seg=6),
+        [rk.tube(bm, [on(s * 38, 50, 0.0), V((s * 0.12, -0.05, Z + 0.24)), V((s * 0.14, -0.04, Z + 0.33))],
+                 [(0.055, 0.025), (0.035, 0.018), (0.004, 0.004)], ref=V((1, 0, 0)), seg=4) for s in (1, -1)]), **flat)
+    part("H_mask_kitsune_red", "MaskRed", headw, lambda bm: [(
+        line(bm, [on(s * 6, 22, 0.036), on(s * 20, 30, 0.036), on(s * 38, 25, 0.036)], 0.008),
+        line(bm, [on(s * 34, -6, 0.036), on(s * 52, -12, 0.036)], 0.007),
+        line(bm, [on(s * 36, -16, 0.036), on(s * 54, -22, 0.036)], 0.007),
+        rk.tube(bm, [V((s * 0.105, -0.06, Z + 0.22)), V((s * 0.13, -0.052, Z + 0.3))], [(0.02, 0.008), (0.003, 0.003)], ref=V((1, 0, 0)), seg=4),
+        rk.blob(bm, on(0, 34, 0.036), (0.012, 0.006, 0.016), 6, 4)) for s in (1, -1)], **flat)
+    part("H_mask_kitsune_eyes", "Void", headw, lambda bm: (
+        [line(bm, [on(s * 10, 4, 0.036), on(s * 20, 7, 0.037), on(s * 32, 13, 0.036)], 0.012, 0.006) for s in (1, -1)],
+        rk.blob(bm, V((0, HC.y - HR.y - 0.12, Z - 0.05)), (0.016, 0.014, 0.012), 6, 4)), **flat)
+
+    # Oni: a crimson demon face, heavy dark brows, a snarl with ivory fangs, curling horns.
+    part("H_mask_oni", "Oni", headw, lambda bm: (
+        plate(bm, lambda yw: -62 + abs(yw) * 0.2, lambda yw: 42 - abs(yw) * 0.1),
+        rk.blob(bm, on(0, -12, 0.045), (0.034, 0.03, 0.028), 6, 4)), **flat)
+    part("H_mask_oni_brow", "OniDark", headw, lambda bm: [
+        rk.tube(bm, [on(s * 4, 14, 0.036), on(s * 20, 24, 0.05), on(s * 42, 20, 0.036)], [(0.02, 0.02), (0.026, 0.026), (0.01, 0.01)], seg=5)
+        for s in (1, -1)], **flat)
+    part("H_mask_oni_mouth", "Void", headw, lambda bm: (
+        [line(bm, [on(s * 11, 6, 0.036), on(s * 28, 11, 0.036)], 0.016, 0.008) for s in (1, -1)],
+        line(bm, [on(-30, -34, 0.036), on(-14, -40, 0.04), on(0, -41, 0.042), on(14, -40, 0.04), on(30, -34, 0.036)], 0.02, 0.01)), **flat)
+    part("H_mask_oni_horns", "Ivory", headw, lambda bm: (
+        [rk.tube(bm, [on(s * 30, 42, 0.0), V((s * 0.15, -0.05, Z + 0.18)), V((s * 0.21, -0.05, Z + 0.22)), V((s * 0.24, -0.07, Z + 0.3))],
+                 [(0.04, 0.04), (0.03, 0.03), (0.016, 0.016), (0.003, 0.003)], seg=6) for s in (1, -1)],
+        [rk.tube(bm, [on(s * 12, -33, 0.042), on(s * 12, -44, 0.05)], [(0.012, 0.01), (0.002, 0.002)], seg=4) for s in (1, -1)],
+        [rk.tube(bm, [on(s * 24, -44, 0.042), on(s * 24, -34, 0.05)], [(0.011, 0.009), (0.002, 0.002)], seg=4) for s in (1, -1)]), **flat)
+
+    # Hollow: a smooth black face with thin glowing slits and a steel line down the middle.
+    part("H_mask_hollow", "Void", headw, lambda bm: plate(bm, lambda yw: -58 + abs(yw) * 0.18, lambda yw: 46 - abs(yw) * 0.1, yaw=84), **flat)
+    part("H_mask_hollow_eyes", "MaskGlow", headw, lambda bm: [
+        rk.tube(bm, [on(s * 8, 5, 0.036), on(s * 20, 5, 0.037), on(s * 34, 8, 0.036)], [(0.005, 0.008)] * 3, ref=V((0, 0, 1)), seg=4)
+        for s in (1, -1)], **flat)
+    part("H_mask_hollow_lines", "Steel", headw, lambda bm: (
+        line(bm, [on(0, 44, 0.036), on(0, 10, 0.037), on(0, -30, 0.037), on(0, -58, 0.036)], 0.004),
+        [line(bm, [on(s * 40, -10, 0.036), on(s * 26, -36, 0.036)], 0.003) for s in (1, -1)]), **flat)
+
     part("H_extra_glasses", "Metal", headw, glasses, **flat)
     part("H_extra_eyepatch", "Leather", headw, eyepatch, **flat)
     part("H_extra_earrings", "Metal", headw, earrings, **flat)
@@ -1131,6 +1227,7 @@ def build(arm):
     part("H_head_sunhat_band", "Leather", headw, sun_hat_band, **flat)
     part("H_back_leafcloak", "Tobacco", torso_weights, lambda bm: leaf_cloak(bm, False), **flat)
     part("H_back_leafcloak_dark", "Tobacco2", torso_weights, lambda bm: leaf_cloak(bm, True), **flat)
+    part("H_back_leafcloak_ribs", "Wood", torso_weights, leaf_ribs, **flat)
     part("H_head_straw", "Straw", headw, straw_hat, **flat)
     part("H_head_straw_band", "Accent", headw, straw_band, **flat)
     return parts

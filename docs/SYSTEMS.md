@@ -180,3 +180,11 @@ chiselled stone blocks (`rock()`), each fixed to one bone so nothing stretches; 
 generation is off in `golem.glb.import` (it broke the blocks). Villager entry "brakk" in `state/npcs.gd` (scale 1.6, hammer,
 anvil, portrait). Sonnet's first version is kept: `make_golem_v1.py` / `golem_v1.glb`. Preview: `GV_NPC=brakk GV_MODE=body
 GV_ANGLE=-20 GV_DIST=5.5 ... res://scenes/tmp_view.tscn` (writes /tmp/claude-0/s/gv.png); without GV_MODE it shows his talk screen.
+
+## Morrow the wanderer, masks
+- Morrow: `tools-src/blender/make_morrow.py` → `assets/characters/morrow.glb` (UAL rig; long split coat whose tails follow the
+  thighs, tall open collar, pale mask face with glowing eyes). Staff: `skull_staff` in make_items.py. Villager entry "morrow" in
+  `state/npcs.gd` (by the spawn, wanders a little, no quest yet; voice "morrow" in make_voices.py).
+- Masks: the "mask" slot in `CharacterLook.PARTS` (Face tab): kitsune, oni, hollow, built in make_hero.py (`plate()` follows the
+  head; pieces `H_mask_<name>[_extra]` with fixed colours). Materials ending in "Glow" shine. Random looks get a mask 20% of the time.
+- Wren: `sun_hat` (level, wide brim, rounded crown), `leaf_cloak` (five rows of big leaves) + `leaf_ribs`.

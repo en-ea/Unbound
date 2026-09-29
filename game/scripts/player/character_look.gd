@@ -15,6 +15,7 @@ const PARTS := {
 	"cheeks": ["none", "blush"],
 	"marks": ["none", "freckles", "scar", "eyestripe", "warpaint", "mask", "tears", "claws", "dots", "chin", "noseband"],
 	"extra": ["none", "glasses", "eyepatch", "earrings"],
+	"mask": ["none", "kitsune", "oni", "hollow"],
 	"hair": ["short", "messy", "swept", "curly", "long", "ponytail", "pigtails", "braid", "bun", "topknot", "mohawk", "none"],
 	"beard": ["none", "stubble", "short", "full", "braided", "goatee", "mustache", "chinstrap"],
 	"head": ["none", "hat", "hood", "helm", "cap", "straw", "crown", "band", "bandana", "circlet", "sunhat"],
@@ -25,7 +26,7 @@ const PARTS := {
 	"back": ["none", "scarf", "backpack", "cape", "quiver", "shield", "leafcloak"],
 	"feet": ["boots", "shoes", "wraps"],
 }
-const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "nose": "Nose", "ears": "Ears", "cheeks": "Cheeks", "marks": "Markings", "extra": "Extras", "hair": "Hair",
+const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "nose": "Nose", "ears": "Ears", "cheeks": "Cheeks", "marks": "Markings", "extra": "Extras", "mask": "Mask", "hair": "Hair",
 	"beard": "Beard", "head": "Headwear", "top": "Top", "waist": "Waist", "chest": "Chest", "shoulders": "Shoulders", "back": "Back",
 	"feet": "Feet"}
 ## Nicer names for some choices in the picker (the rest are just capitalised).
@@ -33,7 +34,7 @@ const CHOICE_NAMES := {"armor": "Armour", "jerkin": "Jerkin", "straw": "Straw ha
 	"cap": "Feathered cap", "pauldron": "Pauldron", "fur": "Fur mantle", "bandolier": "Potions", "eyestripe": "Eye stripe",
 	"warpaint": "War paint", "mask": "Painted mask", "tears": "Tear lines", "claws": "Claw marks", "dots": "Cheek dots",
 	"chin": "Chin stripes", "noseband": "Nose band", "plates": "Steel plates", "pads": "Leather pads", "long": "Long",
-	"strap": "Satchel", "none": "None"}
+	"strap": "Satchel", "none": "None", "kitsune": "Kitsune", "oni": "Oni", "hollow": "Hollow"}
 ## Body shape ranges (the picker's sliders): height and build scale the whole character.
 const HEIGHT_RANGE := Vector2(0.9, 1.1)
 const BUILD_RANGE := Vector2(0.88, 1.14)
@@ -162,6 +163,8 @@ func randomize_look(rng: RandomNumberGenerator) -> void:
 	for slot in ["marks", "extra", "waist", "shoulders", "ears"]:      # keep extras occasional
 		if rng.randf() < 0.6:
 			parts[slot] = PARTS[slot][0]
+	if rng.randf() < 0.8:                    # masks are rare on a random look
+		parts["mask"] = "none"
 	height = snappedf(rng.randf_range(0.95, 1.05), 0.01)
 	build = snappedf(rng.randf_range(0.94, 1.08), 0.01)
 

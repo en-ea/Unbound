@@ -9,7 +9,7 @@ signal closed
 
 const TABS := ["face", "hair", "body", "outfit", "gear", "colours"]
 const TAB_NAMES := {"face": "Face", "hair": "Hair", "body": "Body", "outfit": "Outfit", "gear": "Gear", "colours": "Colours"}
-const SLOTS := {"face": ["eyes", "brows", "mouth", "nose", "ears", "marks", "cheeks", "extra"], "hair": ["hair", "beard"],
+const SLOTS := {"face": ["eyes", "brows", "mouth", "nose", "ears", "marks", "cheeks", "extra", "mask"], "hair": ["hair", "beard"],
 	"outfit": ["top", "waist", "feet"], "gear": ["head", "back", "shoulders", "chest"]}
 const SWATCHES := {"hair": ["Hair"], "face": ["Eyes", "Marks"], "body": ["Skin"], "outfit": ["Main", "Second"], "gear": ["Accent", "Leather"],
 	"colours": ["Main", "Second", "Cloth", "Accent", "Leather"]}

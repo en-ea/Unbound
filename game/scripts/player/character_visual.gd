@@ -246,7 +246,7 @@ func _slot_material(src: Material) -> ShaderMaterial:
 		var m := ShaderMaterial.new()
 		m.shader = SOLID_SHADER
 		m.set_shader_parameter("sway", 0.0)
-		if slot == "Glow":
+		if slot.ends_with("Glow"):
 			m.set_shader_parameter("glow", 1.2)
 		_slot_materials[slot] = m
 	var mat: ShaderMaterial = _slot_materials[slot]
