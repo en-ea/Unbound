@@ -59,19 +59,25 @@ func _update_safe() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible or not event is InputEventScreenTouch:
+	# Own the complete gesture even when pressing opens a panel and hides this button.
+	# Touch emulation sends a mouse press afterwards; it must not hit the new panel.
+	if _held != -1 and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		get_viewport().set_input_as_handled()
+		return
+	if not event is InputEventScreenTouch:
 		return
 	var touch := event as InputEventScreenTouch
-	if touch.pressed and touch.position.distance_to(_center()) < radius * 1.25:
+	if not touch.pressed and touch.index == _held:
+		released.emit()           # (held_for() still answers here)
+		_held = -1
+		get_viewport().set_input_as_handled()
+		queue_redraw()
+	elif visible and touch.pressed and touch.position.distance_to(_center()) < radius * 1.25:
 		_held = touch.index
 		_held_for = 0.0
 		_pulse = 1.0
 		pressed.emit()
 		get_viewport().set_input_as_handled()
-		queue_redraw()
-	elif not touch.pressed and touch.index == _held:
-		released.emit()           # (held_for() still answers here)
-		_held = -1
 		queue_redraw()
 
 

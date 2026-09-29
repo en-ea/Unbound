@@ -19,6 +19,8 @@ func run() -> void:
 		get_tree().quit(1)
 		return
 	await get_tree().create_timer(2.0).timeout
+	get_tree().get_first_node_in_group("hud").start_game(true)
+	await get_tree().process_frame
 	VillageSession.active = false
 	VillageSession.background = false
 	var player := get_tree().get_first_node_in_group("player")
@@ -100,14 +102,39 @@ func run() -> void:
 	Controls.locked = false
 	# Accepted payment through the actual live adapter, twice, then the normal disk load.
 	player.fighter.verb = ""
+	# The preceding combat check deliberately swings; let its normal combo window expire.
+	await get_tree().create_timer(2.0).timeout
 	for station in get_tree().get_nodes_in_group("interactable"):
 		if station.verb == "Trade":
 			player.global_position = station.global_position + Vector3(0, 0, 0.5)
-			player.act()
-			check(Controls.locked, "ordinary merchant opens from the real action button")
 			var hud := get_tree().get_first_node_in_group("hud")
+			await get_tree().physics_frame
+			await get_tree().physics_frame
+			# Reproduce a real touch followed by its emulated mouse press. The opening
+			# gesture must neither dismiss the new panel nor activate a purchase.
+			var touch := InputEventScreenTouch.new()
+			touch.index = 5
+			touch.position = hud._action._center()
+			touch.pressed = true
+			get_viewport().push_input(touch, true)
+			var mouse := InputEventMouseButton.new()
+			mouse.button_index = MOUSE_BUTTON_LEFT
+			mouse.position = touch.position
+			mouse.pressed = true
+			get_viewport().push_input(mouse, true)
+			await get_tree().process_frame
+			check(Controls.locked and Money.coins == 31, "touch and emulated mouse open merchant once without click-through")
+			touch = touch.duplicate()
+			touch.pressed = false
+			get_viewport().push_input(touch, true)
+			mouse = mouse.duplicate()
+			mouse.pressed = false
+			get_viewport().push_input(mouse, true)
+			check(not hud._action.is_held(), "hidden action button releases its opening finger")
+			var found_shop := false
 			for child in hud.get_children():
 				if child.get_script() != null and child.get_script().resource_path.ends_with("shop_panel.gd"):
+					found_shop = true
 					var bought := false
 					for button in child.find_children("*", "Button", true, false):
 						if button.text.begins_with("Buy  ·") and not button.disabled:
@@ -117,6 +144,7 @@ func run() -> void:
 							break
 					check(bought, "merchant Buy button completes an actual payment")
 					child._close()
+			check(found_shop, "touch opened the actual merchant panel")
 			check(not Controls.locked, "merchant closes back into play")
 			break
 	for accepts in [true, false]:
