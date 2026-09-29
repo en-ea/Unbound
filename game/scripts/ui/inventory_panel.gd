@@ -289,6 +289,10 @@ func _show_detail() -> void:
 		var eat := UIStyle.button(h, "Eat", Vector2(110, 56), 20)
 		eat.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		eat.pressed.connect(func() -> void: get_tree().call_group("player", "eat", item))
+	elif item == "cigarette":
+		var smoke := UIStyle.button(h, "Smoke", Vector2(110, 56), 20)
+		smoke.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		smoke.pressed.connect(func() -> void: get_tree().call_group("player", "smoke"))
 
 
 ## The item's rendered picture, or a colour dot while it is still being drawn.

@@ -233,6 +233,18 @@ func _attach_hero() -> void:
 	scene.free()
 
 
+## A spot on the head bone for small props (a cigarette). Made once.
+func head_attachment() -> BoneAttachment3D:
+	var found := _skeleton.get_node_or_null("HeadProps") as BoneAttachment3D
+	if found:
+		return found
+	var head := BoneAttachment3D.new()
+	head.name = "HeadProps"
+	head.bone_name = "Head"
+	_skeleton.add_child(head)
+	return head
+
+
 func _make_tools() -> void:
 	var hand := BoneAttachment3D.new()
 	hand.bone_name = "hand_r"

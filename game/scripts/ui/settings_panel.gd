@@ -123,7 +123,7 @@ func _cheat_page() -> void:
 		["Food ×5", func() -> void:
 			for i: String in ["roast_meat", "skewer", "apple_tart", "stew"]:
 				Inventory.add(i, 5)
-			for i: String in ["raw_meat", "mushroom", "apple", "flower", "glowcap"]:
+			for i: String in ["raw_meat", "mushroom", "apple", "flower", "glowcap", "tobacco", "cigarette"]:
 				Inventory.add(i, 10)],
 		["Every item ×10", func() -> void:
 			for i: String in Items.DEFS:

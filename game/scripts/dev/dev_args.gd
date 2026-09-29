@@ -134,8 +134,12 @@ func _ready() -> void:
 			get_node("../HUD").start_build_mode.call_deferred()
 		elif arg == "--rich":                             # coins and a pile of materials for testing
 			Money.earn(500)
-			for item: String in ["raw_meat", "mushroom", "apple", "flower", "wood", "glowcap", "stone", "pinewood", "iron", "stew", "roast_meat"]:
+			for item: String in ["raw_meat", "mushroom", "apple", "flower", "wood", "glowcap", "stone", "pinewood", "iron", "stew", "roast_meat", "tobacco", "cigarette"]:
 				Inventory.add(item, 25)
+		elif arg == "--smoke":                            # some cigarettes, and light one
+			Inventory.add("cigarette", 5)
+			Inventory.add("tobacco", 6)
+			get_tree().create_timer(1.0).timeout.connect(func() -> void: get_tree().call_group("player", "smoke"))
 		elif arg == "--picker":
 			get_node("../HUD").open_look_picker.call_deferred()
 		elif arg.begins_with("--pickertab="):              # e.g. hair:braid,marks:freckles,extra:glasses

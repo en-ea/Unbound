@@ -104,7 +104,8 @@ func _refresh() -> void:
 			_note.text = "Cook food here. Eat it from your Bag: it heals, and some food gives a short boost."
 			for r: Dictionary in Food.RECIPES:
 				var out: String = r["out"]
-				_offer(out, Items.name_of(out), Food.describe(out), r["cost"], 0, "Cook",
+				var title := Items.name_of(out) + (" × %d" % r["n"] if r.has("n") else "")
+				_offer(out, title, Food.describe(out), r["cost"], 0, "Roll" if out == "cigarette" else "Cook",
 					Food.cook.bind(r).unbind(0))
 		"trade":
 			var names := ["Buy", "Sell"]

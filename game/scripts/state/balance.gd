@@ -128,6 +128,8 @@ const RESOURCES := {
 		"drops": [["mushroom", 1, 1, 1.0], ["glowcap", 1, 1, 0.06]]},
 	"flower": {"hits": 1, "respawn": 60.0, "radius": 0.3, "tool": "", "verb": "Pick",
 		"drops": [["flower", 1, 2, 1.0]]},
+	"tobacco": {"hits": 1, "respawn": 90.0, "radius": 0.3, "tool": "", "verb": "Pick",
+		"drops": [["tobacco", 1, 2, 1.0]]},
 	"chest": {"hits": 1, "respawn": 600.0, "radius": 0.5, "tool": "", "verb": "Open",
 		"drops": [["flint", 2, 4, 1.0], ["resin", 1, 2, 0.8], ["shard", 1, 2, 0.7], ["glowcap", 1, 1, 0.5], ["fang", 1, 1, 0.3]]},
 }
@@ -163,7 +165,9 @@ const COOKING := [
 	{"out": "skewer", "cost": {"mushroom": 3, "wood": 1}},
 	{"out": "apple_tart", "cost": {"apple": 2, "flower": 1, "wood": 1}},
 	{"out": "stew", "cost": {"raw_meat": 1, "mushroom": 2, "glowcap": 1, "wood": 1}},
+	{"out": "cigarette", "n": 3, "cost": {"tobacco": 2, "wood": 1}},
 ]
+const SMOKE_SECS := 24.0          # one cigarette, start to stub
 const STRONG_DAMAGE := 1          # extra sword damage
 const SWIFT_SPEED := 1.2          # run speed multiplier
 const NIMBLE_SPEED := 1.25        # gathering speed multiplier
@@ -175,11 +179,11 @@ const MEAT_CHANCE := {"boar": 1.0, "wolf": 0.5}
 const VALUES := {
 	"wood": 1, "stone": 1, "apple": 2, "mushroom": 2, "flower": 1, "flint": 3, "resin": 8, "glowcap": 10,
 	"shard": 12, "hide": 4, "tusk": 8, "copper": 3, "iron": 5, "pelt": 6, "fang": 12, "pinewood": 3,
-	"shadow_pelt": 25, "raw_meat": 3, "roast_meat": 6, "skewer": 6, "apple_tart": 8, "stew": 15,
+	"shadow_pelt": 25, "tobacco": 2, "cigarette": 3, "raw_meat": 3, "roast_meat": 6, "skewer": 6, "apple_tart": 8, "stew": 15,
 }
 ## What the trader may stock: [item, amount, price]. "tool" = a found tool with a bonus.
 const STOCK_POOL := [["flint", 3, 18], ["raw_meat", 2, 15], ["glowcap", 1, 40], ["resin", 1, 30],
-	["shard", 1, 50], ["stew", 1, 55], ["iron", 4, 40], ["copper", 5, 25], ["tool", 1, 150]]
+	["shard", 1, 50], ["stew", 1, 55], ["iron", 4, 40], ["copper", 5, 25], ["cigarette", 5, 20], ["tool", 1, 150]]
 const STOCK_SIZE := 4
 const RESTOCK_EVERY := 900
 

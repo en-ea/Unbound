@@ -278,6 +278,26 @@ def fern(seed):
     return b
 
 
+def tobacco(seed):
+    """Wild tobacco: a tall stalk with big broad leaves in a spiral and a few pink flowers on top."""
+    rnd = random.Random(seed)
+    b = Builder(["Plant"])
+    h = 0.85
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, -0.02)), V((0, 0, h))], [(0.03, 0.03), (0.02, 0.02)], seg=4)), "Plant", (0.42, 0.6, 0.26))
+    leaf = [(0.36, 0.55, 0.22), (0.42, 0.62, 0.25), (0.5, 0.68, 0.28)]
+    for i in range(9):
+        z = 0.06 + i * 0.075
+        ang = i * 2.4 + rnd.uniform(-0.2, 0.2)
+        reach = 0.34 - i * 0.02
+        tip = V((math.cos(ang) * reach, math.sin(ang) * reach, z + 0.12 - i * 0.008))
+        faces = b.new_faces(lambda z=z, tip=tip: blade(b.bm, V((0, 0, z)), tip, 0.13 - z * 0.05))
+        b.paint(faces, "Plant", leaf[i % 3])
+    for k in range(3):
+        a = k * math.tau / 3
+        clump(b, V((math.cos(a) * 0.05, math.sin(a) * 0.05, h + 0.03)), 0.04, 1, rnd, (0.95, 0.5, 0.62), "Plant", 0.6)
+    return b
+
+
 def stump(seed):
     b = Builder(["Trunk", "Stump"])
     b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, -0.1)), V((0, 0, 0.25)), V((0, 0, 0.42))],
@@ -330,3 +350,4 @@ for i in range(5):
 export("mushroom_1", mushroom(150, (0.82, 0.24, 0.18)))
 export("mushroom_2", mushroom(151, (0.72, 0.5, 0.32)))
 export("fern_1", fern(160))
+export("tobacco_1", tobacco(170))

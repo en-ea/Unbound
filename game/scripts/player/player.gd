@@ -28,6 +28,7 @@ const INVULNERABLE := 1.2      # after a hit, enemies can't hurt you again for a
 
 var verb := ""
 var stamina: Stamina
+var smoking: Smoking
 var sprinting := false
 var _roll := 0.0
 var _roll_rest := 0.0
@@ -75,6 +76,9 @@ func _ready() -> void:
 	stamina.name = "Stamina"
 	add_child(stamina)
 	_ready_drops()
+	smoking = Smoking.new()
+	smoking.name = "Smoking"
+	add_child(smoking)
 	visual.wear_gear = true               # worn armour shows over your look
 	Armor.changed.connect(visual.apply_hero_look)
 	visual.apply_hero_look.call_deferred()
@@ -151,6 +155,12 @@ func eat(item: String) -> void:
 	if hearts > 0 and _down <= 0.0:
 		health = mini(health + hearts, MAX_HEALTH)
 		health_changed.emit(health, MAX_HEALTH)
+
+
+## The action: light a cigarette from the Bag (the look and a bit of calm; no stats).
+func smoke() -> void:
+	if _down <= 0.0:
+		smoking.start()
 
 
 func heal(hearts: int) -> void:

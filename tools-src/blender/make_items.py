@@ -163,7 +163,28 @@ def tart():
     return b
 
 
+def tobacco_leaf():
+    rnd = random.Random(7)
+    b = Builder(["Item"])
+    green = [(0.42, 0.58, 0.22), (0.5, 0.66, 0.26)]
+    for k, ang in enumerate((-0.35, 0.0, 0.35)):
+        tip = V((math.cos(ang) * 0.2, math.sin(ang) * 0.2, 0.02 * k))
+        b.paint(b.new_faces(lambda tip=tip: blade(b.bm, V((-0.12, 0, 0)), tip, 0.09)), "Item", green[k % 2])
+    tube_faces(b, [V((-0.14, 0, 0)), V((0.12, 0, 0.005))], [(0.008, 0.006)] * 2, (0.72, 0.66, 0.36), seg=3)
+    return b
+
+
+def cigarette():
+    b = Builder(["Item", "Glow"])
+    tube_faces(b, [V((-0.1, 0, 0)), V((0.05, 0, 0))], [(0.014, 0.014)] * 2, (0.96, 0.94, 0.88), seg=6)
+    tube_faces(b, [V((0.05, 0, 0)), V((0.1, 0, 0))], [(0.014, 0.014)] * 2, (0.9, 0.55, 0.22), seg=6)
+    tube_faces(b, [V((-0.105, 0, 0)), V((-0.1, 0, 0))], [(0.015, 0.015)] * 2, (1.0, 0.5, 0.15), seg=6, mat="Glow")
+    return b
+
+
 export("wood", log(), OUT)
+export("tobacco", tobacco_leaf(), OUT)
+export("cigarette", cigarette(), OUT)
 export("stone", stone(), OUT)
 export("apple", apple(), OUT)
 export("mushroom", mushroom((0.82, 0.3, 0.2)), OUT)

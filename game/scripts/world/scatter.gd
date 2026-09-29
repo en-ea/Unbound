@@ -242,7 +242,8 @@ func _plant_at(p: Vector2) -> void:
 	elif m > 0.45 and r < 0.54 + m * 0.2:
 		_place(_pick(["flower_1", "flower_2", "flower_3", "flower_4", "flower_5"]), "small", p, _rng.randf_range(0.85, 1.15), 0.2, "flower")
 	elif r < 0.66:
-		pass                          # open ground
+		if r > 0.63:                # wild tobacco, now and then, in the open
+			_place("tobacco_1", "small", p, _rng.randf_range(0.9, 1.15), 0.08, "tobacco")
 	elif r < 0.665:
 		_place(_pick(["bush_1", "bush_2", "bush_flower_1"]), "bush", p, _rng.randf_range(0.7, 1.0), 0.1)
 
