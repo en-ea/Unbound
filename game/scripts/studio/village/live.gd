@@ -302,7 +302,9 @@ func _update_cue(now: int) -> void:
 		var cue: String = "Approach the restraint to Free; stand in a throw's path to shield."
 		if e.type == "hearing":
 			var cs = v.cases[e.source.case_id]
-			cue = "Accused of %s. Hear witnesses; inspect the doorstep trace; speak to the elder before judgment." % v.crimes[cs.crime].act
+			var crime = v.crimes[cs.crime]
+			var trace := "inspect the doorstep trace; " if crime.trace_at >= 0 else ""
+			cue = "Accused of %s. Hear witnesses; %sspeak to the elder before judgment." % [crime.act, trace]
 		elif e.type == "rite":
 			cue = "A captive at the old stone. Cut the rope before dawn, or offer wood by gesture."
 		_label.text = "%s · %s" % [name, cue if not Runtime.terminal(e) else e.outcome.capitalize()]
