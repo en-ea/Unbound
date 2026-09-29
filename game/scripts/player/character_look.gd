@@ -17,19 +17,19 @@ const PARTS := {
 	"extra": ["none", "glasses", "eyepatch", "earrings"],
 	"hair": ["short", "messy", "swept", "curly", "long", "ponytail", "pigtails", "braid", "bun", "topknot", "mohawk", "none"],
 	"beard": ["none", "stubble", "short", "full", "braided", "goatee", "mustache", "chinstrap"],
-	"head": ["none", "hat", "hood", "helm", "cap", "straw", "crown", "band", "bandana", "circlet"],
+	"head": ["none", "hat", "hood", "helm", "cap", "straw", "crown", "band", "bandana", "circlet", "sunhat"],
 	"top": ["tunic", "jacket", "coat", "robe", "armor", "jerkin"],
 	"waist": ["none", "kilt", "apron", "tabard"],
 	"chest": ["none", "strap", "vest", "sash", "bandolier"],
 	"shoulders": ["none", "pads", "plates", "fur", "pauldron"],
-	"back": ["none", "scarf", "backpack", "cape", "quiver", "shield"],
+	"back": ["none", "scarf", "backpack", "cape", "quiver", "shield", "leafcloak"],
 	"feet": ["boots", "shoes", "wraps"],
 }
 const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "nose": "Nose", "ears": "Ears", "cheeks": "Cheeks", "marks": "Markings", "extra": "Extras", "hair": "Hair",
 	"beard": "Beard", "head": "Headwear", "top": "Top", "waist": "Waist", "chest": "Chest", "shoulders": "Shoulders", "back": "Back",
 	"feet": "Feet"}
 ## Nicer names for some choices in the picker (the rest are just capitalised).
-const CHOICE_NAMES := {"armor": "Armour", "jerkin": "Jerkin", "straw": "Straw hat", "crown": "Flower crown",
+const CHOICE_NAMES := {"armor": "Armour", "jerkin": "Jerkin", "straw": "Straw hat", "sunhat": "Sun hat", "leafcloak": "Leaf cloak", "crown": "Flower crown",
 	"cap": "Feathered cap", "pauldron": "Pauldron", "fur": "Fur mantle", "bandolier": "Potions", "eyestripe": "Eye stripe",
 	"warpaint": "War paint", "mask": "Painted mask", "tears": "Tear lines", "claws": "Claw marks", "dots": "Cheek dots",
 	"chin": "Chin stripes", "noseband": "Nose band", "plates": "Steel plates", "pads": "Leather pads", "long": "Long",

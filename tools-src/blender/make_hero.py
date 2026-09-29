@@ -37,6 +37,7 @@ COLORS = {  # defaults (sRGB); the game overrides the slot colours
     "Gold": (0.95, 0.74, 0.3), "Leaf": (0.36, 0.58, 0.28), "Petal": (0.97, 0.78, 0.84), "Bloom": (0.98, 0.9, 0.5),
     "Straw": (0.9, 0.77, 0.46), "Fur": (0.5, 0.4, 0.3), "Feather": (0.95, 0.94, 0.9), "Potion": (0.35, 0.82, 0.72),
     "Potion2": (0.9, 0.36, 0.42), "Wood": (0.55, 0.38, 0.24),
+    "Tobacco": (0.8, 0.56, 0.24), "Tobacco2": (0.66, 0.42, 0.17),
 }
 
 HC = V((0.0, -0.01, 1.72))      # head centre
@@ -858,6 +859,59 @@ def straw_band(bm):
         rk.tube(bm, [V((s * 0.12, -0.02, Z + 0.07)), V((s * 0.1, -0.06, Z - 0.1)), V((0, -0.14, Z - 0.17))], [(0.006, 0.006)] * 3, seg=4)
 
 
+def sun_hat(bm):
+    """A huge flat straw hat: a broad brim that droops a little at the edge and a low round crown."""
+    n = 16
+    z0 = Z + 0.07
+    rings = [(0.05, 0.0), (0.2, 0.012), (0.36, 0.0), (0.53, -0.05)]         # (radius, height offset)
+    verts = [[bm.verts.new(V((math.cos(k * math.tau / n) * r, math.sin(k * math.tau / n) * r * 0.97, z0 + dz))) for k in range(n)] for r, dz in rings]
+    under = [[bm.verts.new(V((v.co.x, v.co.y, v.co.z - 0.014))) for v in ring] for ring in verts]
+    for i in range(len(rings) - 1):
+        for k in range(n):
+            k2 = (k + 1) % n
+            bm.faces.new((verts[i][k], verts[i + 1][k], verts[i + 1][k2], verts[i][k2]))
+            bm.faces.new((under[i][k2], under[i + 1][k2], under[i + 1][k], under[i][k]))
+    for k in range(n):                                          # the thin rim
+        k2 = (k + 1) % n
+        bm.faces.new((verts[-1][k], under[-1][k], under[-1][k2], verts[-1][k2]))
+    rk.tube(bm, [V((0, 0.0, z0 - 0.02)), V((0, 0.0, z0 + 0.06)), V((0, 0.0, z0 + 0.12)), V((0, 0.0, z0 + 0.14))],
+            [(0.165, 0.16), (0.155, 0.15), (0.11, 0.105), (0.02, 0.02)], seg=n // 2)
+
+
+def sun_hat_band(bm):
+    rk.tube(bm, [V((0, 0.0, Z + 0.1)), V((0, 0.0, Z + 0.15))], [(0.168, 0.163), (0.16, 0.155)], seg=8, caps=False)
+    for s in (1, -1):                                               # chin strap
+        rk.tube(bm, [V((s * 0.15, -0.01, Z + 0.09)), V((s * 0.11, -0.07, Z - 0.08)), V((0, -0.13, Z - 0.16))], [(0.006, 0.006)] * 3, seg=4)
+
+
+LEAF_RINGS = [(1.5, 0.17, 0.145, 10, 0.17), (1.4, 0.25, 0.2, 12, 0.2), (1.27, 0.31, 0.25, 14, 0.22),
+              (1.13, 0.35, 0.28, 14, 0.24), (0.99, 0.37, 0.3, 16, 0.24), (0.86, 0.37, 0.3, 16, 0.24)]
+
+
+def leaf(bm, base, tip, out, width):
+    """One big pointed leaf: narrow at the stem, widest a third of the way down, pointed tip."""
+    d = tip - base
+    side = d.cross(out).normalized()
+    mid1, mid2 = base + d * 0.35 + out * 0.012, base + d * 0.7 + out * 0.02
+    rk.tube(bm, [base, mid1, mid2, tip], [(width * 0.35, 0.006), (width, 0.008), (width * 0.55, 0.008), (0.004, 0.004)], ref=side, seg=4)
+
+
+def leaf_cloak(bm, dark):
+    """A poncho of overlapping tobacco leaves, in rows from the shoulders to the thighs (each row a
+    little wider and lower than the last, like shingles). `dark` picks every other row."""
+    import random
+    r = random.Random(12)
+    for row, (z, rx, ry, n, length) in enumerate(LEAF_RINGS):
+        if (row % 2 == 1) != dark:
+            continue
+        for k in range(n):
+            a = (k + 0.5 * (row % 2) + r.uniform(-0.12, 0.12)) / n * math.tau
+            out = V((math.sin(a), -math.cos(a), 0)).normalized()
+            base = V((math.sin(a) * rx, 0.018 - math.cos(a) * ry, z))
+            tip = base + out * (0.03 + row * 0.006) + V((0, 0, -length * r.uniform(0.92, 1.1)))
+            leaf(bm, base, tip, out, 0.085 + row * 0.006)
+
+
 def shoulder(bm, s, size):
     rk.blob(bm, V((s * 0.2, 0.05, 1.46)), size, 8, 6, keep=lambda p: p.z > 1.42)
 
@@ -1071,6 +1125,10 @@ def build(arm):
     part("H_head_crown", "Leaf", headw, crown_leaves, **flat)
     part("H_head_crown_petals", "Petal", headw, lambda bm: crown_flowers(bm, 0), **flat)
     part("H_head_crown_blooms", "Bloom", headw, lambda bm: crown_flowers(bm, 1), **flat)
+    part("H_head_sunhat", "Straw", headw, sun_hat, **flat)
+    part("H_head_sunhat_band", "Leather", headw, sun_hat_band, **flat)
+    part("H_back_leafcloak", "Tobacco", torso_weights, lambda bm: leaf_cloak(bm, False), **flat)
+    part("H_back_leafcloak_dark", "Tobacco2", torso_weights, lambda bm: leaf_cloak(bm, True), **flat)
     part("H_head_straw", "Straw", headw, straw_hat, **flat)
     part("H_head_straw_band", "Accent", headw, straw_band, **flat)
     return parts

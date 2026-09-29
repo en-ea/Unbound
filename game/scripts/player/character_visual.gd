@@ -32,7 +32,7 @@ const TOOL_GRIP := {
 }
 const TOOL_OFFSET := Vector3(0.0, 0.07, 0.0)       # from the wrist into the palm
 ## Headwear that covers the top of the head: hair switches to its cut-down "_hat" version.
-const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw"]
+const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw", "sunhat"]
 
 var hero_look := CharacterLook.load_saved()
 var is_player_look := true      # the player takes height/build from the look; NPCs set their own scale
@@ -231,6 +231,20 @@ func _attach_hero() -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		_parts.append(mi)
 	scene.free()
+
+
+## Puts a model in the right hand (an NPC's prop: shears). `grip` turns it, `offset` moves it from the wrist.
+func hold_prop(item: String, grip: Vector3, offset := TOOL_OFFSET) -> Node3D:
+	var hand := BoneAttachment3D.new()
+	hand.name = "PropHand"
+	hand.bone_name = "hand_r"
+	_skeleton.add_child(hand)
+	var prop := MeshInstance3D.new()
+	prop.mesh = Items.mesh(item)
+	prop.rotation_degrees = grip
+	prop.position = offset
+	hand.add_child(prop)
+	return prop
 
 
 ## A spot on the head bone for small props (a cigarette). Made once.

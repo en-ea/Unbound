@@ -158,3 +158,18 @@ reach a save. Add a building: `BUILDINGS`; add a spawnable: `GATHERABLES` or `sp
 ## Testing without the phone
 Dev arguments (after `--`), see `game/scripts/dev/dev_args.gd`: `--gathertest`, `--fighttest`,
 `--lineup`, `--showcase`, `--shot=path.png`, `--at=x,z`, `--view=d,pitch`, `--time=0.5`.
+
+## Smoking
+`player/smoking.gd` (child of the player, `player.smoke()`): a cigarette on the head bone (`CharacterVisual.head_attachment()`),
+glowing tip, wisp and puffs, burns down over `Balance.SMOKE_SECS`; cosmetic only. Items `tobacco` (a gatherable plant, `tobacco_1`
+in make_trees.py; a patch by Wren in `scatter._tobacco_patch`) and `cigarette` (campfire recipe with `"n": 3`, trader stock). Dev: `--smoke`.
+
+## Villagers and quests
+- `state/npcs.gd`: each villager (name, title, spot, `look` = CharacterLook parts + colour indices, body scale, hand `prop`, greetings, chatter).
+  `world/npc.gd` builds one (an "interactable": the action button says Talk), turns to face you, shows a bubble and a "!" / "?" marker.
+  Add one: an entry in `Npcs.NPCS`; the village builds them all. New looks come from make_hero.py (Wren: `sunhat`, `leafcloak`, prop `shears` in make_items.py).
+- `state/quests.gd` (autoload `Quests`): `DEFS` (giver, the words for each moment, steps, reward). A step is `have` (finishes itself when you
+  carry the items) or `turn_in` (handed over when you talk). Actions `accept()`, `turn_in()`; `talk(npc)` gives the talk screen as
+  `{text, options:[{label, do}]}` (`do` returns the next screen, or `{}` to end). Saved with the game.
+- UI: `ui/dialogue_panel.gd` (bottom card, typed text), `ui/quest_tracker.gd` (top-left). Dev: `--talk`, `--talk=quest`.
+- First quest: Wren's Smokes (pick 4 tobacco, roll 3 cigarettes at a campfire, hand them in for 60 coins and 5 tobacco).

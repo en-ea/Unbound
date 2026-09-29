@@ -182,7 +182,19 @@ def cigarette():
     return b
 
 
+def shears():
+    """Big garden shears for Wren: handles at the origin, blades along +Z (crossed, so they read as shears)."""
+    b = Builder(["Item"])
+    steel, wood = (0.8, 0.83, 0.87), (0.55, 0.36, 0.2)
+    for s in (1, -1):
+        tube_faces(b, [V((s * 0.012, 0, 0.02)), V((-s * 0.03, 0, 0.5))], [(0.008, 0.05), (0.004, 0.016)], steel, seg=4, ref=V((1, 0, 0)))
+        tube_faces(b, [V((s * 0.012, 0, 0.02)), V((s * 0.05, 0, -0.16))], [(0.016, 0.016), (0.02, 0.02)], wood, seg=5)
+    tube_faces(b, [V((0, -0.02, 0.02)), V((0, 0.02, 0.02))], [(0.014, 0.014)] * 2, (0.35, 0.35, 0.38), seg=5)
+    return b
+
+
 export("wood", log(), OUT)
+export("shears", shears(), OUT)
 export("tobacco", tobacco_leaf(), OUT)
 export("cigarette", cigarette(), OUT)
 export("stone", stone(), OUT)

@@ -53,7 +53,22 @@ func build(shape: WorldShape) -> void:
 	_scatter_rocks()
 	_scatter_ores()
 	_scatter_plants()
+	if WorldShape.region == "meadow":
+		_tobacco_patch(Vector2(-13.0, 28.0))
 	_flush()
+
+
+## Wren's tobacco patch, so the first quest can always be done: a handful of plants in a loose group.
+func _tobacco_patch(center: Vector2) -> void:
+	var placed := 0
+	for i in 60:
+		if placed >= 9:
+			break
+		var p := center + Vector2.from_angle(_rng.randf() * TAU) * _rng.randf_range(0.5, 4.0)
+		if not _clear_of_features(p, 1.5, 3.0) or _near_tree(p, 1.5):
+			continue
+		_place("tobacco_1", "small", p, _rng.randf_range(1.0, 1.3), 0.06, "tobacco")
+		placed += 1
 
 
 # --- placement rules ---------------------------------------------------------

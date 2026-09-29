@@ -36,6 +36,7 @@ var _buff_tick := 0.0
 var _hearts: Control
 var _map: Control
 var _hint: Label
+var _tracker: Control
 var _down_cover: ColorRect
 var _skill_box: VBoxContainer          # "Woodcutting  Lv 3" with a bar, shown briefly on gaining xp
 var _skill_label: Label
@@ -116,6 +117,11 @@ func _ready() -> void:
 	_buffs.add_theme_constant_override("separation", 8)
 	add_child(_buffs)
 	Food.changed.connect(_show_buffs)
+
+	_tracker = PanelContainer.new()
+	_tracker.set_script(preload("res://scripts/ui/quest_tracker.gd"))
+	_tracker.position = MARGIN + Vector2(0, 140)
+	add_child(_tracker)
 
 	_feed = Control.new()
 	_feed.set_script(PICKUP_FEED)
@@ -320,6 +326,11 @@ func start_build_mode(room := false) -> void:
 		ui.origin = get_tree().get_first_node_in_group("home_interior").global_position
 	add_child(ui)
 	ui.closed.connect(func() -> void: _set_play_ui(true))
+
+
+## Talking to a villager (world/npc.gd).
+func open_dialogue(npc: String) -> void:
+	_modal(preload("res://scripts/ui/dialogue_panel.gd"), {"npc": npc})
 
 
 func open_bag() -> void:
