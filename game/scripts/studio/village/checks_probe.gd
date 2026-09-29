@@ -99,6 +99,18 @@ func run() -> void:
 	check(not player.fighter.is_busy(), "locked controls cannot act")
 	Controls.locked = false
 	# Accepted payment through the actual live adapter, twice, then the normal disk load.
+	player.fighter.verb = ""
+	for station in get_tree().get_nodes_in_group("interactable"):
+		if station.verb == "Trade":
+			player.global_position = station.global_position + Vector3(0, 0, 0.5)
+			player.act()
+			check(Controls.locked, "ordinary merchant opens from the real action button")
+			var hud := get_tree().get_first_node_in_group("hud")
+			for child in hud.get_children():
+				if child.get_script() != null and child.get_script().resource_path.ends_with("shop_panel.gd"):
+					child._close()
+			check(not Controls.locked, "merchant closes back into play")
+			break
 	for accepts in [true, false]:
 		var live := get_tree().current_scene.get_node("VillageLive")
 		live._close()

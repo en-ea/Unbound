@@ -26,7 +26,13 @@ func run(live: Node) -> void:
 	player.global_position = Vector3(victim.pos.x, victim.y, victim.pos.y + 0.9)
 	Controls.locked = false
 	live._stage._offer_free()
+	player.fighter.verb = "Attack" # a nearby combat opportunity must not steal an offered rescue
+	player.fighter._busy = 0.0
 	player.act()
+	if player.fighter.is_busy():
+		finish(false, "combat stole the rescue action")
+		return
+	player.fighter.verb = ""
 	player.act()
 	if e.outcome != "rescued" or v.people[target].locked or victim.locked:
 		finish(false, "button did not immediately release the same resident")

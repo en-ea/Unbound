@@ -97,7 +97,7 @@ static func validate(staging: Dictionary, people: Array) -> PackedStringArray:
 	var ids := {}
 	for p: Dictionary in people:
 		ids[p["id"]] = true
-	var last := -1
+	var last := -2147483648 # night preparation may belong to the preceding calendar day
 	for b: Dictionary in staging["beats"]:
 		if not ACTIONS.has(b["do"]):
 			problems.append("unknown action " + str(b["do"]))

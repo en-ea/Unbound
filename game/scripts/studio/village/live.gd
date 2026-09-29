@@ -70,8 +70,8 @@ func _process(_delta: float) -> void:
 		else:
 			var st := Runtime.staging(v, _event)
 			for actor in _stage._actors:
-				if actor == _stage._victim and e.outcome == "died":
-					continue # the committed fall remains visible briefly
+				if actor == _stage._victim and Runtime.terminal(e):
+					continue # the committed fall or departure remains visible briefly
 				if not v.people[actor.id].alive or not v.people[actor.id].present:
 					actor.gone = true
 					actor.pending.clear()

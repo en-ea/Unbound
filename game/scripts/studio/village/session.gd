@@ -44,6 +44,10 @@ func attach(scene: Node) -> void:
 		probe.name = "RescueProbe"
 		add_child(probe)
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--village-capture=") and not has_node("CaptureProbe"):
+			var capture: Node = load("res://scripts/studio/village/capture_probe.gd").new()
+			capture.name = "CaptureProbe"
+			add_child(capture)
 		if arg == "--village-checks" and not has_node("ChecksProbe"):
 			var checks: Node = load("res://scripts/studio/village/checks_probe.gd").new()
 			checks.name = "ChecksProbe"

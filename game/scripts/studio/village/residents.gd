@@ -83,6 +83,8 @@ func _process(delta: float) -> void:
 		frame_usec.pop_front()
 
 func place(name: String) -> Vector2:
+	if Sites.DOORS.has(name):
+		return Sites.DOORS[name] # simulation homes name buildings; bodies and clues use their accessible doors
 	var v = VillageSession.village
 	var index: int = v.place_ids.get(name, -1)
 	return Vector2(v.place_x[index], v.place_z[index]) / 10.0 if index >= 0 else Sites.at(name)
