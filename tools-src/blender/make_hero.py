@@ -29,7 +29,7 @@ RIG = os.path.join(ROOT, "game", "assets", "quaternius_characters", "UAL1_Standa
 OUT = os.path.join(ROOT, "game", "assets", "characters", "hero.glb")
 
 COLORS = {  # defaults (sRGB); the game overrides the slot colours
-    "Skin": (0.93, 0.72, 0.56), "Hair": (0.24, 0.15, 0.10), "Face": (0.1, 0.07, 0.07),
+    "Skin": (0.93, 0.72, 0.56), "Hair": (0.24, 0.15, 0.10), "Face": (0.1, 0.07, 0.07), "Eyes": (0.1, 0.07, 0.07),
     "Shine": (1.0, 1.0, 1.0), "Blush": (0.93, 0.6, 0.54), "Main": (0.42, 0.48, 0.32),
     "Second": (0.3, 0.29, 0.3), "Cloth": (0.85, 0.8, 0.68), "Accent": (0.72, 0.25, 0.2),
     "Leather": (0.5, 0.33, 0.2), "Metal": (0.72, 0.7, 0.66), "Marks": (0.36, 0.22, 0.16),
@@ -148,6 +148,27 @@ MOUTHS = {
     "flat": lambda bm: decal_strip(bm, arc(0, MOUTH_Z, 0.02, 0.0), 0.008),
     "smirk": lambda bm: decal_strip(bm, [(-0.018, MOUTH_Z + 0.001), (0.0, MOUTH_Z - 0.002), (0.022, MOUTH_Z + 0.007)], 0.008),
 }
+
+
+NOSES = {
+    "straight": lambda bm: rk.tube(bm, [on_head(0, Z - 0.012, -0.005)[0], on_head(0, Z - 0.038, 0.022)[0]],
+                                   [(0.018, 0.012), (0.014, 0.01)], ref=V((1, 0, 0)), seg=4),
+    "button": lambda bm: rk.blob(bm, on_head(0, Z - 0.034, 0.012)[0], (0.017, 0.014, 0.014), 6, 4),
+    "long": lambda bm: rk.tube(bm, [on_head(0, Z - 0.005, -0.005)[0], on_head(0, Z - 0.03, 0.02)[0], on_head(0, Z - 0.05, 0.034)[0]],
+                               [(0.016, 0.012), (0.015, 0.011), (0.006, 0.006)], ref=V((1, 0, 0)), seg=4),
+    "broad": lambda bm: rk.tube(bm, [on_head(0, Z - 0.014, -0.005)[0], on_head(0, Z - 0.04, 0.024)[0]],
+                                [(0.024, 0.014), (0.026, 0.013)], ref=V((1, 0, 0)), seg=5),
+}
+
+
+def elf_ears(bm, length, back, out):
+    """Pointed ears: a leaf shape from the side of the head, sweeping out, up and back to a tip,
+    far enough out to show past the hair."""
+    for s in (1, -1):
+        base = V((s * (HR.x - 0.004), 0.004, Z - 0.02))
+        mid = base + V((s * out * 0.55, back * 0.4, length * 0.4))
+        tip = base + V((s * out, back, length))
+        rk.tube(bm, [base, mid, tip], [(0.012, 0.03), (0.011, 0.024), (0.003, 0.004)], ref=V((1, 0, 0)), seg=4)
 
 
 # --- hair ------------------------------------------------------------------------------------
@@ -852,9 +873,11 @@ def build(arm):
 
     # --- always-on body ------------------------------------------------------------------
     part("H_base_head", "Skin", headw, head, smooth=False, shade_var=0.03)
-    part("H_base_nose", "Skin", headw, lambda bm: rk.tube(bm, [on_head(0, Z - 0.012, -0.005)[0], on_head(0, Z - 0.038, 0.022)[0]],
-                                                           [(0.018, 0.012), (0.014, 0.01)], ref=V((1, 0, 0)), seg=4), smooth=False)
+    for name, fn in NOSES.items():
+        part(f"H_nose_{name}", "Skin", headw, fn, smooth=False)
     part("H_ears", "Skin", headw, lambda bm: [rk.blob(bm, V((s * (HR.x - 0.002), 0.0, Z - 0.01)), (0.024, 0.032, 0.042), 6, 4) for s in (1, -1)], smooth=False)
+    part("H_ears_pointed", "Skin", headw, lambda bm: elf_ears(bm, 0.06, 0.03, 0.06), smooth=False)
+    part("H_ears_long", "Skin", headw, lambda bm: elf_ears(bm, 0.09, 0.06, 0.11), smooth=False)
     part("H_base_neck", "Skin", rk.weights_by_distance(["spine_03", "neck_01", "Head"]),
          lambda bm: rk.tube(bm, [V((0, 0.005, 1.45)), V((0, 0.0, 1.62))], [(0.052, 0.05)] * 2, seg=6), smooth=False)
     part("H_base_shirt", "Cloth", torso_weights, shirt, **flat)
@@ -903,7 +926,7 @@ def build(arm):
 
     # --- faces ------------------------------------------------------------------------------
     for name, fn in EYES.items():
-        part(f"H_eyes_{name}", "Face", headw, fn, **decal)
+        part(f"H_eyes_{name}", "Eyes", headw, fn, **decal)
         if name in SHINE:
             part(f"H_eyes_{name}_shine", "Shine", headw, SHINE[name], **decal)
     for name, fn in BROWS.items():
@@ -917,18 +940,17 @@ def build(arm):
                             decal_strip(bm, [(0.058, EYE_Z - 0.066), (0.076, EYE_Z - 0.05)], 0.008, DECAL + 0.003)],   # a cheek scar with a stitch
         "warpaint": lambda bm: [decal_strip(bm, [(s * 0.03, EYE_Z - 0.03 - k * 0.022), (s * 0.085, EYE_Z - 0.045 - k * 0.022)], 0.013, DECAL + 0.002)
                                 for s in (1, -1) for k in (0, 1)],
-        "tribal": lambda bm: [decal_strip(bm, [(s * 0.045, EYE_Z - 0.03), (s * 0.08, EYE_Z - 0.04), (s * 0.1, EYE_Z - 0.065), (s * 0.085, EYE_Z - 0.085),
-                                               (s * 0.065, EYE_Z - 0.075), (s * 0.07, EYE_Z - 0.06)], 0.009, DECAL + 0.002) for s in (1, -1)]
-                  + [decal_strip(bm, [(-0.02, BROW_Z + 0.03), (0.0, BROW_Z + 0.05), (0.02, BROW_Z + 0.03)], 0.009, DECAL + 0.002)],
-        "dots": lambda bm: [decal_ellipse(bm, s * (0.035 + k * 0.017), EYE_Z - 0.04 - k * 0.004, 0.006, 0.006, 6, DECAL + 0.002)
-                            for s in (1, -1) for k in range(3)] + [decal_ellipse(bm, 0, BROW_Z + 0.035, 0.008, 0.008, 6, DECAL + 0.002)],
-        "rune": lambda bm: [decal_strip(bm, [(0.0, BROW_Z + 0.075), (0.0, BROW_Z + 0.02)], 0.008, DECAL + 0.002),
-                            decal_strip(bm, [(-0.022, BROW_Z + 0.06), (0.0, BROW_Z + 0.045), (0.022, BROW_Z + 0.06)], 0.007, DECAL + 0.002),
-                            decal_strip(bm, [(-0.016, BROW_Z + 0.028), (0.0, BROW_Z + 0.036), (0.016, BROW_Z + 0.028)], 0.006, DECAL + 0.002)],
-        "kohl": lambda bm: [decal_strip(bm, [(s * 0.034, EYE_Z + 0.012), (s * 0.058, EYE_Z + 0.02), (s * 0.08, EYE_Z + 0.012), (s * 0.094, EYE_Z + 0.022)], 0.007, DECAL + 0.003)
-                            for s in (1, -1)],
-        "moon": lambda bm: decal_strip(bm, [(0.02, BROW_Z + 0.07), (-0.004, BROW_Z + 0.064), (-0.018, BROW_Z + 0.048), (-0.01, BROW_Z + 0.03), (0.012, BROW_Z + 0.024)], 0.01, DECAL + 0.002),
-        "mole": lambda bm: decal_ellipse(bm, -0.052, MOUTH_Z + 0.02, 0.006, 0.006, 6, DECAL + 0.002),
+        "eyestripe": lambda bm: decal_strip(bm, [(-0.05, BROW_Z + 0.04), (-0.05, EYE_Z - 0.06)], 0.02, DECAL + 0.001),
+        "mask": lambda bm: decal_strip(bm, [(-0.11, EYE_Z + 0.002), (-0.075, EYE_Z + 0.012), (-0.04, EYE_Z + 0.012), (0.0, EYE_Z + 0.004),
+                                            (0.04, EYE_Z + 0.012), (0.075, EYE_Z + 0.012), (0.11, EYE_Z + 0.002)], 0.052, DECAL - 0.003),
+        "tears": lambda bm: [decal_strip(bm, [(s * dx, EYE_Z - 0.026), (s * (dx + 0.002), EYE_Z - 0.026 - ln)], 0.01, DECAL + 0.002)
+                             for s in (1, -1) for dx, ln in ((0.043, 0.06), (0.06, 0.04))],
+        "claws": lambda bm: [decal_strip(bm, [(0.032 + k * 0.02, EYE_Z - 0.012), (0.05 + k * 0.02, EYE_Z - 0.05), (0.062 + k * 0.02, EYE_Z - 0.09)], 0.009, DECAL + 0.002)
+                             for k in range(3)],
+        "dots": lambda bm: [decal_ellipse(bm, s * (0.045 + k * 0.021), EYE_Z - 0.04 - k * 0.006, 0.009, 0.009, 6, DECAL + 0.002)
+                            for s in (1, -1) for k in range(3)],
+        "chin": lambda bm: [decal_strip(bm, [(x, MOUTH_Z - 0.018), (x * 1.2, MOUTH_Z - 0.075)], 0.011, DECAL + 0.002) for x in (-0.024, 0.0, 0.024)],
+        "noseband": lambda bm: decal_strip(bm, [(-0.11, EYE_Z - 0.04), (-0.055, EYE_Z - 0.03), (0.0, EYE_Z - 0.027), (0.055, EYE_Z - 0.03), (0.11, EYE_Z - 0.04)], 0.02, DECAL + 0.001),
     }
     for name, fn in marks.items():
         part(f"H_marks_{name}", "Marks", headw, fn, **decal)

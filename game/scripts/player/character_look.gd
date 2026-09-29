@@ -10,8 +10,10 @@ const PARTS := {
 	"eyes": ["calm", "happy", "bright", "narrow", "sleepy", "fierce"],
 	"brows": ["soft", "arched", "raised", "stern", "thick"],
 	"mouth": ["smile", "grin", "open", "flat", "smirk"],
+	"nose": ["straight", "button", "long", "broad"],
+	"ears": ["round", "pointed", "long"],
 	"cheeks": ["none", "blush"],
-	"marks": ["none", "freckles", "scar", "warpaint", "tribal", "dots", "rune", "kohl", "moon", "mole"],
+	"marks": ["none", "freckles", "scar", "eyestripe", "warpaint", "mask", "tears", "claws", "dots", "chin", "noseband"],
 	"extra": ["none", "glasses", "eyepatch", "earrings"],
 	"hair": ["short", "messy", "swept", "curly", "long", "ponytail", "pigtails", "braid", "bun", "topknot", "mohawk", "none"],
 	"beard": ["none", "stubble", "short", "full", "braided", "goatee", "mustache", "chinstrap"],
@@ -23,13 +25,14 @@ const PARTS := {
 	"back": ["none", "scarf", "backpack", "cape", "quiver", "shield"],
 	"feet": ["boots", "shoes", "wraps"],
 }
-const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "cheeks": "Cheeks", "marks": "Markings", "extra": "Extras", "hair": "Hair",
+const PART_LABELS := {"eyes": "Eyes", "brows": "Brows", "mouth": "Mouth", "nose": "Nose", "ears": "Ears", "cheeks": "Cheeks", "marks": "Markings", "extra": "Extras", "hair": "Hair",
 	"beard": "Beard", "head": "Headwear", "top": "Top", "waist": "Waist", "chest": "Chest", "shoulders": "Shoulders", "back": "Back",
 	"feet": "Feet"}
 ## Nicer names for some choices in the picker (the rest are just capitalised).
 const CHOICE_NAMES := {"armor": "Armour", "jerkin": "Jerkin", "straw": "Straw hat", "crown": "Flower crown",
-	"cap": "Feathered cap", "pauldron": "Pauldron", "fur": "Fur mantle", "bandolier": "Potions", "kohl": "Eyeliner",
-	"moon": "Moon mark", "mole": "Beauty mark", "rune": "Rune", "tribal": "Tribal", "plates": "Steel plates", "pads": "Leather pads",
+	"cap": "Feathered cap", "pauldron": "Pauldron", "fur": "Fur mantle", "bandolier": "Potions", "eyestripe": "Eye stripe",
+	"warpaint": "War paint", "mask": "Painted mask", "tears": "Tear lines", "claws": "Claw marks", "dots": "Cheek dots",
+	"chin": "Chin stripes", "noseband": "Nose band", "plates": "Steel plates", "pads": "Leather pads", "long": "Long",
 	"strap": "Satchel", "none": "None"}
 ## Body shape ranges (the picker's sliders): height and build scale the whole character.
 const HEIGHT_RANGE := Vector2(0.9, 1.1)
@@ -43,6 +46,8 @@ const EARTHY: Array[Color] = [
 ]
 ## Colour slots (material names in hero.glb) and the palette each picks from.
 const PALETTES := {
+	"Eyes": [Color(0.1, 0.07, 0.07), Color(0.3, 0.17, 0.09), Color(0.14, 0.3, 0.6), Color(0.16, 0.42, 0.24), Color(0.66, 0.42, 0.1),
+		Color(0.42, 0.46, 0.52), Color(0.42, 0.22, 0.62), Color(0.66, 0.12, 0.14)],
 	"Skin": [Color(1.0, 0.86, 0.76), Color(0.98, 0.8, 0.66), Color(0.93, 0.72, 0.56), Color(0.8, 0.58, 0.42), Color(0.62, 0.42, 0.3), Color(0.45, 0.3, 0.22), Color(0.34, 0.22, 0.17)],
 	"Hair": [Color(0.24, 0.15, 0.1), Color(0.1, 0.08, 0.08), Color(0.85, 0.62, 0.3), Color(0.96, 0.84, 0.58), Color(0.62, 0.26, 0.14), Color(0.74, 0.18, 0.16),
 		Color(0.88, 0.88, 0.86), Color(0.54, 0.58, 0.66), Color(0.38, 0.28, 0.2), Color(0.3, 0.24, 0.48), Color(0.2, 0.44, 0.46),
@@ -57,7 +62,7 @@ const PALETTES := {
 	"Marks": [Color(0.36, 0.22, 0.16), Color(0.72, 0.18, 0.16), Color(0.16, 0.16, 0.2), Color(0.92, 0.92, 0.9), Color(0.24, 0.42, 0.72), Color(0.9, 0.7, 0.3),
 		Color(0.3, 0.66, 0.46), Color(0.58, 0.34, 0.78)],
 }
-const COLOR_LABELS := {"Skin": "Skin", "Hair": "Hair", "Main": "Top", "Second": "Trousers", "Cloth": "Shirt",
+const COLOR_LABELS := {"Eyes": "Eye colour", "Skin": "Skin", "Hair": "Hair", "Main": "Top", "Second": "Trousers", "Cloth": "Shirt",
 	"Accent": "Hood, cape, trim", "Leather": "Leather", "Marks": "Markings"}
 
 ## Ready-made outfits: each its own silhouette. Pick one, then change anything.
@@ -72,7 +77,7 @@ const OUTFITS := {
 		"colors": {"Main": 10, "Second": 6, "Cloth": 1, "Accent": 11, "Leather": 1}},
 	"Ranger": {"parts": {"hair": "long", "beard": "none", "head": "hood", "top": "tunic", "waist": "none", "chest": "strap", "shoulders": "pads", "back": "quiver", "feet": "wraps"},
 		"colors": {"Main": 11, "Second": 1, "Cloth": 4, "Accent": 2, "Leather": 0}},
-	"Mage": {"parts": {"hair": "long", "beard": "none", "head": "circlet", "top": "robe", "waist": "none", "chest": "none", "shoulders": "none", "back": "cape", "feet": "shoes", "marks": "rune"},
+	"Mage": {"parts": {"hair": "long", "beard": "none", "head": "circlet", "top": "robe", "waist": "none", "chest": "none", "shoulders": "none", "back": "cape", "feet": "shoes", "marks": "eyestripe"},
 		"colors": {"Main": 8, "Second": 6, "Cloth": 1, "Accent": 10, "Leather": 1, "Marks": 5}},
 	"Smith": {"parts": {"hair": "short", "beard": "full", "head": "bandana", "top": "jerkin", "waist": "apron", "chest": "none", "shoulders": "none", "back": "none", "feet": "boots"},
 		"colors": {"Main": 5, "Second": 1, "Cloth": 4, "Accent": 0, "Leather": 1}},
@@ -90,10 +95,19 @@ const OUTFITS := {
 		"colors": {"Main": 13, "Second": 9, "Cloth": 1, "Accent": 6, "Leather": 1}},
 }
 
+## One line about each ready-made outfit, shown under its name.
+const OUTFIT_BLURBS := {"Wanderer": "Light travelling clothes and a long scarf.", "Explorer": "Wide hat, vest and a full backpack.",
+	"Merchant": "Long coat, hat and a trader's satchel.", "Knight": "Steel armour, plumed helm, tabard and shield.",
+	"Ranger": "Hooded, light on the feet, a quiver of arrows.", "Mage": "A purple robe trimmed in gold, and a cape.",
+	"Smith": "Bare arms, fur collar and a leather apron.", "Northlander": "Fur mantle, kilt, braids and war paint.",
+	"Fisher": "Straw hat, rolled sleeves and a pack.", "Bard": "Feathered cap, a red jacket and a sash.",
+	"Alchemist": "A robe, round glasses and a belt of potions.", "Druid": "Flower crown, fur and a forest robe.",
+	"Guardian": "Armour, a great pauldron and a flowing cape."}
+
 var outfit := "Wanderer"
-var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "cheeks": "none", "marks": "none", "extra": "none", "hair": "short", "beard": "none",
+var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "nose": "straight", "ears": "round", "cheeks": "none", "marks": "none", "extra": "none", "hair": "short", "beard": "none",
 	"head": "none", "top": "tunic", "waist": "none", "chest": "strap", "shoulders": "none", "back": "scarf", "feet": "boots"}
-var colors := {"Skin": 2, "Hair": 0, "Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0, "Marks": 0}   # palette indices
+var colors := {"Eyes": 0, "Skin": 2, "Hair": 0, "Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0, "Marks": 0}   # palette indices
 var height := 1.0
 var build := 1.0
 
@@ -145,9 +159,9 @@ func randomize_look(rng: RandomNumberGenerator) -> void:
 		parts[slot] = PARTS[slot][rng.randi() % PARTS[slot].size()]
 	for slot in PALETTES:
 		colors[slot] = rng.randi() % PALETTES[slot].size()
-	for slot in ["marks", "extra", "waist", "shoulders"]:      # keep extras occasional
+	for slot in ["marks", "extra", "waist", "shoulders", "ears"]:      # keep extras occasional
 		if rng.randf() < 0.6:
-			parts[slot] = "none"
+			parts[slot] = PARTS[slot][0]
 	height = snappedf(rng.randf_range(0.95, 1.05), 0.01)
 	build = snappedf(rng.randf_range(0.94, 1.08), 0.01)
 

@@ -31,6 +31,7 @@ var _gather_test := false
 var _fight_test := false
 var _tell_test := false
 var _lineup_from := 0
+var _lineup_marks := false
 var _gather_offset := Vector3(0, 0.3, -1.3)
 
 
@@ -152,7 +153,9 @@ func _ready() -> void:
 			pv.hero_look.set_outfit(arg.trim_prefix("--outfit="))
 			pv.apply_hero_look.call_deferred()
 		elif arg.begins_with("--lineup"):                # --lineup, or --lineup=7 to start at the 8th outfit
-			if arg.begins_with("--lineup="):
+			if arg == "--lineup=marks":                    # one character per marking, faces close
+				_lineup_marks = true
+			elif arg.begins_with("--lineup="):
 				_lineup_from = int(arg.trim_prefix("--lineup="))
 			_lineup = true
 		elif arg == "--showcase":
@@ -313,10 +316,22 @@ func _build_lineup() -> void:
 	var player := get_node("../Player") as Node3D
 	player.visible = false
 	var names := CharacterLook.OUTFITS.keys().slice(_lineup_from, _lineup_from + 7)
+	var marks: Array = CharacterLook.PARTS["marks"].slice(1)
+	if _lineup_marks:
+		names = []
+		for m: String in marks:
+			names.append("Wanderer")
 	for i in names.size():
 		var v := CharacterVisual.new()
 		v.hero_look = CharacterLook.new()
 		v.hero_look.set_outfit(names[i])
 		v.hero_look.parts["eyes"] = ["calm", "happy", "fierce", "bright", "sleepy"][i % 5]
+		if _lineup_marks:
+			v.hero_look.parts["marks"] = marks[i]
+			v.hero_look.parts["eyes"] = "calm"
+			v.hero_look.colors["Marks"] = 1
 		add_child(v)
-		v.global_position = player.global_position + Vector3((i - (names.size() - 1) / 2.0) * 1.1, 0, 0)
+		var gap := 0.5 if _lineup_marks else 1.1
+		v.global_position = player.global_position + Vector3((i - (names.size() - 1) / 2.0) * gap, 0, 0)
+	if _lineup_marks:
+		get_node("../CameraRig").set_view(3.6, -3.0, Vector3(0, 1.1, 0), 0.01)

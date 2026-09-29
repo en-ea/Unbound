@@ -160,8 +160,9 @@ func apply_hero_look() -> void:
 			mi.visible = p["top"] != "jerkin"
 		elif n.begins_with("H_base_"):
 			mi.visible = true
-		elif n == "H_ears":
-			mi.visible = not p["head"] in ["hood", "helm"]
+		elif n.begins_with("H_ears"):          # round (plain H_ears), pointed or long; hidden under a hood or helm
+			var ears := String(p.get("ears", "round"))
+			mi.visible = not p["head"] in ["hood", "helm"] and n == ("H_ears" if ears == "round" else "H_ears_" + ears)
 		elif n.begins_with("H_hair_"):
 			# Under a hat or bandana the "_hat" cut of the style shows (nothing pokes through);
 			# otherwise the full style (with the messy style's spiky "_top" locks).

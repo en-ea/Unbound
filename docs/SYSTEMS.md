@@ -135,6 +135,12 @@ Menu → Settings → Codes → "Paladin": buttons that give coins, items, food,
 skill levels, build every village project (or undo them all), give the home back (`Home.reset()`), heal, or travel. In `ui/settings_panel.gd` (`_cheat_page`);
 add a button there whenever a new system needs quick testing. Dev: `--cheats` opens it.
 
+## Build lab (testing in the game)
+`dev/build_lab.gd`: a walled floor far below the world with one building on a showcase pad; the Lab board opens
+`dev/lab_menu.gd` (switch building, spawn enemies/trees/rocks/ores/chests/loot in front of you, clear). Spawns are
+removed on leaving (`WorldResources.truncate`, `ResourceVisuals.forget`, `treasure.remove_chest`), so they never
+reach a save. Add a building: `BUILDINGS`; add a spawnable: `GATHERABLES` or `spawn()`. Dev: `--lab`, `--labmenu`, `--labtest`.
+
 ## Testing without the phone
 Dev arguments (after `--`), see `game/scripts/dev/dev_args.gd`: `--gathertest`, `--fighttest`,
 `--lineup`, `--showcase`, `--shot=path.png`, `--at=x,z`, `--view=d,pitch`, `--time=0.5`.
