@@ -14,9 +14,9 @@ const NPCS := {
 		},
 		"theme": {"bg": Color(0.08, 0.11, 0.07, 0.95), "accent": Color(0.96, 0.74, 0.32), "text": Color(1.0, 0.96, 0.84),
 			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "wren"},
-		"portrait": {"look_at": Vector3(0, 1.66, 0), "cam": Vector3(0.3, 1.88, 1.75), "fov": 34.0, "turn": -6.0},
+		"portrait": {"look_at": Vector3(0.05, 1.74, 0), "cam": Vector3(0.22, 1.92, 2.05), "fov": 34.0, "turn": -10.0},
 		"smokes": true,
-		"prop": "shears",
+		"prop": "shears", "prop_scale": 1.5,
 		# A daily round: spots to walk between (metres from where he stands), and what he does at each.
 		"route": [{"at": Vector2(0, 0), "work": "Farm_Harvest"}, {"at": Vector2(-3.0, 0.8), "work": "Farm_Watering"},
 			{"at": Vector2(-1.8, -1.6), "work": "Farm_PlantSeed"}, {"at": Vector2(1.4, -0.6), "work": ""}],
@@ -73,7 +73,8 @@ static func dress_visual(id: String, visual: CharacterVisual, portrait := false)
 	if def.has("shoulders"):
 		visual.widen_shoulders(def["shoulders"])
 	if def.has("prop"):
-		visual.hold_prop(def["prop"], def.get("prop_grip", Vector3.ZERO), Vector3(0, 0.05, 0.0))
+		var prop := visual.hold_prop(def["prop"], def.get("prop_grip", Vector3.ZERO), Vector3(0, 0.05, 0.0))
+		prop.scale = Vector3.ONE * def.get("prop_scale", 1.0)
 	if def.get("smokes", false):
 		var smoke := Smoking.new()
 		smoke.visual = visual

@@ -863,10 +863,10 @@ def sun_hat(bm):
     """A huge flat straw hat: a broad brim that droops a little at the edge and a low round crown."""
     n = 16
     z0 = Z + 0.135
-    rings = [(0.05, 0.0), (0.2, 0.012), (0.36, 0.0), (0.5, -0.03)]         # (radius, height offset)
+    rings = [(0.05, 0.0), (0.2, 0.012), (0.38, -0.004), (0.5, -0.03), (0.58, -0.07)]   # (radius, height offset)
     # The hat sits tipped back: the front of the brim lifts (so the face shows under it), the back dips.
     verts = [[bm.verts.new(V((math.cos(k * math.tau / n) * r, math.sin(k * math.tau / n) * r * 0.97,
-                              z0 + dz - 0.13 * math.sin(k * math.tau / n) * (r / 0.53)))) for k in range(n)] for r, dz in rings]
+                              z0 + dz - 0.13 * math.sin(k * math.tau / n) * (r / 0.6)))) for k in range(n)] for r, dz in rings]
     under = [[bm.verts.new(V((v.co.x, v.co.y, v.co.z - 0.014))) for v in ring] for ring in verts]
     for i in range(len(rings) - 1):
         for k in range(n):
@@ -877,7 +877,7 @@ def sun_hat(bm):
         k2 = (k + 1) % n
         bm.faces.new((verts[-1][k], under[-1][k], under[-1][k2], verts[-1][k2]))
     rk.tube(bm, [V((0, 0.0, z0 - 0.02)), V((0, 0.0, z0 + 0.06)), V((0, 0.0, z0 + 0.12)), V((0, 0.0, z0 + 0.14))],
-            [(0.165, 0.16), (0.155, 0.15), (0.11, 0.105), (0.02, 0.02)], seg=n // 2)
+            [(0.165, 0.16), (0.158, 0.152), (0.13, 0.125), (0.05, 0.05)], seg=n // 2)   # a low, flat-topped crown
 
 
 def sun_hat_band(bm):
@@ -886,8 +886,8 @@ def sun_hat_band(bm):
         rk.tube(bm, [V((s * 0.15, -0.01, Z + 0.14)), V((s * 0.11, -0.07, Z - 0.06)), V((0, -0.13, Z - 0.16))], [(0.006, 0.006)] * 3, seg=4)
 
 
-LEAF_RINGS = [(1.5, 0.17, 0.145, 10, 0.17), (1.4, 0.25, 0.2, 12, 0.2), (1.27, 0.31, 0.25, 14, 0.22),
-              (1.13, 0.35, 0.28, 14, 0.24), (0.99, 0.37, 0.3, 16, 0.24), (0.86, 0.37, 0.3, 16, 0.24)]
+# Four rows of big leaves (height, radius x, radius y, count, length), each row overlapping the one below.
+LEAF_RINGS = [(1.5, 0.18, 0.15, 7, 0.27), (1.34, 0.28, 0.23, 8, 0.33), (1.15, 0.34, 0.28, 9, 0.37), (0.95, 0.37, 0.3, 10, 0.38)]
 
 
 def leaf(bm, base, tip, out, width):
@@ -910,8 +910,8 @@ def leaf_cloak(bm, dark):
             a = (k + 0.5 * (row % 2) + r.uniform(-0.12, 0.12)) / n * math.tau
             out = V((math.sin(a), -math.cos(a), 0)).normalized()
             base = V((math.sin(a) * rx, 0.018 - math.cos(a) * ry, z))
-            tip = base + out * (0.03 + row * 0.006) + V((0, 0, -length * r.uniform(0.92, 1.1)))
-            leaf(bm, base, tip, out, 0.085 + row * 0.006)
+            tip = base + out * (0.06 + row * 0.012) + V((0, 0, -length * r.uniform(0.88, 1.12)))
+            leaf(bm, base, tip, out, 0.13 + row * 0.012)
 
 
 def shoulder(bm, s, size):

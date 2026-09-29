@@ -339,7 +339,9 @@ func show_quest_complete(id: String) -> void:
 
 ## Talking to a villager (world/npc.gd).
 func open_dialogue(npc: String) -> void:
-	_modal(preload("res://scripts/ui/dialogue_panel.gd"), {"npc": npc})
+	_tracker.visible = false                               # it would sit behind the portrait
+	var panel := _modal(preload("res://scripts/ui/dialogue_panel.gd"), {"npc": npc})
+	panel.closed.connect(func() -> void: _tracker.visible = true)
 
 
 func open_bag() -> void:

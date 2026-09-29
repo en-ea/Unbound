@@ -144,7 +144,7 @@ func _ready() -> void:
 				Quests.accept("wren_smokes")
 				Inventory.add("cigarette", 3)
 				get_tree().create_timer(1.0).timeout.connect(func() -> void: Quests.turn_in("wren_smokes"))
-				return
+				continue
 			get_node("../HUD").open_dialogue.call_deferred("wren")
 		elif arg == "--smoke":                            # some cigarettes, and light one
 			Inventory.add("cigarette", 5)

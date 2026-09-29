@@ -1,13 +1,14 @@
 extends Control
-## Talking to a villager (see state/npcs.gd, Quests.talk): a big live portrait of them beside a card in
-## their own colours and lettering. Their words type out with their own little voice (blips), tap to
+## Talking to a villager (see state/npcs.gd, Quests.talk): a live portrait of them in a framed window
+## (a warm glow behind them, in their colour) beside a card in their own colours and lettering. Their words type out with their own little voice (blips), tap to
 ## show it all; the answer buttons appear when the words are done. Set `npc` before adding it.
 
 signal closed
 
 const CHARS_PER_SEC := 46.0
 const PAUSES := {",": 0.14, ".": 0.28, "!": 0.28, "?": 0.28, ":": 0.2, ";": 0.2}
-const PORTRAIT_SIZE := Vector2(470, 560)
+const PORTRAIT_SIZE := Vector2(300, 340)
+const EDGE := 24.0                   # gap to the screen edges
 
 var npc := ""
 
@@ -58,16 +59,16 @@ func _build_card(accent: Color) -> void:
 	box.border_width_bottom = 5
 	box.shadow_color = Color(0, 0, 0, 0.5)
 	box.shadow_size = 18
-	box.content_margin_left = 190
+	box.content_margin_left = 44
 	box.content_margin_right = 30
 	box.content_margin_top = 18
 	box.content_margin_bottom = 20
 	_card.add_theme_stylebox_override("panel", box)
 	_card.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	_card.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_card.offset_left = 290
-	_card.offset_right = -24
-	_card.offset_bottom = -22
+	_card.offset_left = EDGE + PORTRAIT_SIZE.x - 18
+	_card.offset_right = -EDGE
+	_card.offset_bottom = -EDGE
 	_card.gui_input.connect(_on_card_input)
 	add_child(_card)
 	var column := VBoxContainer.new()
@@ -87,9 +88,11 @@ func _build_card(accent: Color) -> void:
 	head.add_child(name_label)
 	var title := Label.new()
 	title.text = String(_def["title"]).to_upper()
-	title.add_theme_font_size_override("font_size", 15)
-	title.add_theme_color_override("font_color", Color(accent, 0.7))
+	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_color_override("font_color", Color(accent, 0.75))
 	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	if _name_font:
+		title.add_theme_font_override("font", _name_font)
 	head.add_child(title)
 	var fade := Gradient.new()
 	fade.set_color(0, accent)
@@ -118,44 +121,99 @@ func _build_card(accent: Color) -> void:
 	column.add_child(_buttons)
 
 
-## A live picture of them from the chest up, standing out of the top-left of the card.
+## A live picture of them from the chest up in a rounded window: their colour glowing behind them, a
+## thin frame in their accent, and a darker edge so they stand out.
 func _build_portrait() -> void:
 	var port: Dictionary = _def.get("portrait", {})
+	var accent: Color = _theme.get("accent", Color(1.0, 0.86, 0.5))
+	var bg: Color = _theme.get("bg", Color(0.06, 0.08, 0.13))
+	var holder := Control.new()
+	holder.name = "Portrait"
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	holder.offset_left = EDGE
+	holder.offset_right = EDGE + PORTRAIT_SIZE.x
+	holder.offset_top = -PORTRAIT_SIZE.y - EDGE
+	holder.offset_bottom = -EDGE
+	add_child(holder)
+	var window := Panel.new()                              # its rounded shape clips everything inside
+	window.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
+	window.set_anchors_preset(Control.PRESET_FULL_RECT)
+	window.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var shape := StyleBoxFlat.new()
+	shape.bg_color = Color(bg, 1.0)
+	shape.set_corner_radius_all(28)
+	window.add_theme_stylebox_override("panel", shape)
+	holder.add_child(window)
+	var glow := Gradient.new()                             # warm light behind them, dark at the edges
+	glow.set_color(0, accent.lerp(Color(1, 1, 1), 0.15))
+	glow.set_color(1, Color(bg, 1.0).darkened(0.2))
+	glow.add_point(0.45, accent.darkened(0.45))
+	var glow_tex := GradientTexture2D.new()
+	glow_tex.gradient = glow
+	glow_tex.fill = GradientTexture2D.FILL_RADIAL
+	glow_tex.fill_from = Vector2(0.5, 0.38)
+	glow_tex.fill_to = Vector2(1.15, 1.0)
+	var back := TextureRect.new()
+	back.texture = glow_tex
+	back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	back.set_anchors_preset(Control.PRESET_FULL_RECT)
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	window.add_child(back)
 	var container := SubViewportContainer.new()
 	container.stretch = true
 	container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	container.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	container.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	container.offset_left = 0
-	container.offset_right = PORTRAIT_SIZE.x
-	container.offset_top = -PORTRAIT_SIZE.y - 22
-	container.offset_bottom = -22
-	add_child(container)
-	container.name = "Portrait"
+	container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	window.add_child(container)
 	var view := SubViewport.new()
 	view.transparent_bg = true
 	view.own_world_3d = true
 	view.size = Vector2i(PORTRAIT_SIZE)
 	view.msaa_3d = Viewport.MSAA_2X
 	container.add_child(view)
+	var shade := Gradient.new()                            # a soft dark fade at the bottom of the window
+	shade.set_color(0, Color(0, 0, 0, 0))
+	shade.set_color(1, Color(0, 0, 0, 0.55))
+	var shade_tex := GradientTexture2D.new()
+	shade_tex.gradient = shade
+	shade_tex.fill_from = Vector2(0.5, 0.62)
+	shade_tex.fill_to = Vector2(0.5, 1.0)
+	var bottom := TextureRect.new()
+	bottom.texture = shade_tex
+	bottom.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bottom.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	window.add_child(bottom)
+	var frame := Panel.new()
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var line := StyleBoxFlat.new()
+	line.draw_center = false
+	line.set_corner_radius_all(28)
+	line.border_color = accent
+	line.set_border_width_all(3)
+	line.shadow_color = Color(0, 0, 0, 0.45)
+	line.shadow_size = 16
+	frame.add_theme_stylebox_override("panel", line)
+	holder.add_child(frame)
 	var env := Environment.new()
 	env.background_mode = Environment.BG_CLEAR_COLOR
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.72, 0.74, 0.86)
-	env.ambient_light_energy = 0.65
+	env.ambient_light_color = Color(0.74, 0.74, 0.84)
+	env.ambient_light_energy = 0.7
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	var world_env := WorldEnvironment.new()
 	world_env.environment = env
 	view.add_child(world_env)
 	var key := DirectionalLight3D.new()
-	key.rotation_degrees = Vector3(-30, 40, 0)
-	key.light_energy = 1.25
-	key.light_color = Color(1, 0.94, 0.82)
+	key.rotation_degrees = Vector3(-24, 32, 0)
+	key.light_energy = 1.3
+	key.light_color = Color(1, 0.93, 0.8)
 	view.add_child(key)
-	var rim := DirectionalLight3D.new()                    # a cool edge light from behind
+	var rim := DirectionalLight3D.new()                    # an edge light from behind, in their colour
 	rim.rotation_degrees = Vector3(-15, 200, 0)
-	rim.light_energy = 0.8
-	rim.light_color = Color(0.7, 0.8, 1.0)
+	rim.light_energy = 1.1
+	rim.light_color = accent.lerp(Color.WHITE, 0.4)
 	view.add_child(rim)
 	_portrait = Npcs.make_visual(npc)
 	view.add_child(_portrait)
@@ -166,16 +224,16 @@ func _build_portrait() -> void:
 	view.add_child(cam)
 	cam.position = port.get("cam", Vector3(0.7, 1.7, 2.6))
 	cam.look_at(port.get("look_at", Vector3(0, 1.6, 0)))
-	container.pivot_offset = Vector2(0, PORTRAIT_SIZE.y)
+	holder.pivot_offset = Vector2(0, PORTRAIT_SIZE.y)
 
 
 func _slide_in() -> void:
 	var portrait := get_node("Portrait") as Control
 	portrait.modulate.a = 0.0
-	portrait.position.x = -80.0
+	portrait.scale = Vector2(0.85, 0.85)
 	_card.modulate.a = 0.0
 	var t := create_tween().set_parallel(true)
-	t.tween_property(portrait, "position:x", 0.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	t.tween_property(portrait, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	t.tween_property(portrait, "modulate:a", 1.0, 0.25)
 	t.tween_property(_card, "modulate:a", 1.0, 0.25)
 
