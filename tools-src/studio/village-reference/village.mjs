@@ -47,7 +47,9 @@ export function createVillage(seed, opts = {}) {
     storms: [], stormPlan: opts.stormPlan ?? [], anchored: opts.anchored ?? false,
     // the live game (live.gd): public acts wait on the stage for the player (justice.mjs resolvePublic)
     live: opts.live ?? false, pending: [], stranger: { standing: 0, enemies: [] },
-    director: { on: false, until: 0, lethal: 0, cooldown: 0, last: [], cycles: 0 },
+    director: { on: false, until: 0, lethal: 0, cooldown: 0, last: [], cycles: 0, lastAct: 0, pressure: 0 },
+    // focus: this is the village the player is in (the live game's director paces it by play time, director.mjs)
+    focus: opts.focus ?? false,
     stats: { crimes: 0, cases: 0, trials: 0, acts: {}, outcomes: {}, deaths: 0, violentDeaths: 0, births: 0, famines: 0, omens: 0, festivals: 0, exonerations: 0, mobs: 0 },
   };
   V.culture = { ...C.CULTURE[V.age] };

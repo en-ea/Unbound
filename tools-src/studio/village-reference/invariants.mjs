@@ -1,10 +1,11 @@
 // Long-run invariants: many villages for a long time (with a storm now and then), checking the rules that
-// must never break. Usage: node invariants.mjs [seeds=20] [years=1000] [pace=1]
+// must never break. Usage: node invariants.mjs [seeds=20] [years=1000] [pace=1] [focus]
 import { createVillage, stepDay, hashVillage, ageOf, YEAR } from "./village.mjs";
 import { NOTABLE } from "./events.mjs";
 import { performance } from "node:perf_hooks";
 
 const seeds = Number(process.argv[2] ?? 20), years = Number(process.argv[3] ?? 1000), pace = Number(process.argv[4] ?? 1);
+const focus = process.argv[5] === "focus"; // the player's village, paced by play time
 const EXEMPT = new Set(["omen", "storm", "feud"]); // things that simply happen (the kernel's, the sky's, the grudge's sum)
 const fails = [];
 const F = (seed, msg) => { if (fails.length < 40) fails.push(`seed ${seed}: ${msg}`); };
@@ -13,7 +14,7 @@ const village = (seed) => {
   // a storm every century or so, on a keyed household, for a season
   const stormPlan = [];
   for (let y = 50; y < years; y += 97) stormPlan.push({ day: y * YEAR + 20, household: (seed + y) % 6, days: 90 });
-  return createVillage(seed, { pace, stormPlan });
+  return createVillage(seed, { pace, stormPlan, focus });
 };
 for (let s = 0; s < seeds; s++) {
   const seed = 5000 + s * 7919;
@@ -29,7 +30,7 @@ for (let s = 0; s < seeds; s++) {
       for (const h of V.households) if (!Number.isInteger(h.food)) F(seed, `household ${h.id} food ${h.food}`);
       for (const c of V.cases) if (V.crimes[c.crime].caseOpen && !V.crimes[c.crime].closed && V.day - c.day > 120) F(seed, `case ${c.id} (${V.crimes[c.crime].act}) open for ${V.day - c.day} days`);
       const open = V.crimes.filter((c) => !c.closed).length;
-      if (open > 60) F(seed, `year ${d / YEAR}: ${open} crimes open`);
+      if (open > 40 + 10 * pace) F(seed, `year ${d / YEAR}: ${open} crimes open`); // bounded (cold cases close after 60 days)
     }
   }
   totalMs += performance.now() - t0;
@@ -59,5 +60,5 @@ for (let s = 0; s < seeds; s++) {
 const a = village(5000), b = village(5000);
 for (let d = 0; d < 100 * YEAR; d++) { stepDay(a); stepDay(b); }
 if (hashVillage(a) !== hashVillage(b)) F(5000, "two runs of one seed differ");
-console.log(`${seeds} villages x ${years} years (pace ${pace}): ${(totalMs / seeds / years).toFixed(2)} ms per village-year; alive ${minAlive}-${maxAlive}; ${events} events`);
+ console.log(`${seeds} villages x ${years} years (pace ${pace}${focus ? ", focus" : ""}): ${(totalMs / seeds / years).toFixed(2)} ms per village-year; alive ${minAlive}-${maxAlive}; ${events} events`);
 console.log(fails.length ? "FAIL\n" + fails.join("\n") : "PASS: causes and cues, no child victims or throwers, integer state, no stuck cases, population, violence budget, determinism");
