@@ -37,3 +37,4 @@ for (let s = 0; s < seeds; s++) {
 }
 console.log(`freed ${freed} (all ${saved} alive), shielded ${shielded}`);
 console.log(fails.length ? "FAIL\n" + fails.join("\n") : `PASS: ${seeds} villages; live villages deterministic; every freed person lives; the village remembers the stranger`);
+if (fails.length) process.exitCode = 1;

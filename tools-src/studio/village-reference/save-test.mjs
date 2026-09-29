@@ -26,3 +26,4 @@ for (let s = 0; s < seeds; s++) {
 }
 console.log(`largest save ${(bytes / 1024).toFixed(0)} KB (${years} years)`);
 console.log(fails.length ? "FAIL\n" + fails.join("\n") : `PASS: ${seeds} villages saved and loaded ${Math.floor(years * YEAR / 97)} times each end where unbroken runs end; save(load(save)) = save`);
+if (fails.length) process.exitCode = 1;

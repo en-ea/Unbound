@@ -42,3 +42,4 @@ for (let s = 0; s < seeds; s++) {
 }
 console.log(Object.entries(tally).sort().map(([k, v]) => `${k.padEnd(34)} ${v}`).join("\n"));
 console.log(fail.length ? "FAIL\n" + fail.slice(0, 20).join("\n") : `PASS: ${seeds} villages, determinism, no child offerings, recede, anchored exempt`);
+if (fail.length) process.exitCode = 1;

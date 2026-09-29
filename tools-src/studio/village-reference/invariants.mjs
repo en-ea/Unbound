@@ -62,3 +62,4 @@ for (let d = 0; d < 100 * YEAR; d++) { stepDay(a); stepDay(b); }
 if (hashVillage(a) !== hashVillage(b)) F(5000, "two runs of one seed differ");
  console.log(`${seeds} villages x ${years} years (pace ${pace}${focus ? ", focus" : ""}): ${(totalMs / seeds / years).toFixed(2)} ms per village-year; alive ${minAlive}-${maxAlive}; ${events} events`);
 console.log(fails.length ? "FAIL\n" + fails.join("\n") : "PASS: causes and cues, no child victims or throwers, integer state, no stuck cases, population, violence budget, determinism");
+if (fails.length) process.exitCode = 1;

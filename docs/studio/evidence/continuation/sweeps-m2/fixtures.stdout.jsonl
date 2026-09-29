@@ -1,0 +1,6 @@
+{"label":"pillory/mud","seed":48514,"day":156,"stagingId":46,"eventId":303,"eventType":"public_act","outcome":"carried_out","causeIds":[298]}
+{"label":"pillory/crowd_turned","seed":24757,"day":415,"stagingId":63,"eventId":313,"eventType":"public_act","outcome":"crowd_turned","causeIds":[311]}
+{"label":"bonfire/carried_out","seed":32676,"day":105,"stagingId":7,"eventId":22,"eventType":"public_act","outcome":"carried_out","causeIds":[18]}
+{"label":"hanging/carried_out","seed":40595,"day":65,"stagingId":11,"eventId":57,"eventType":"public_act","outcome":"carried_out","causeIds":[52]}
+{"label":"exile","seed":16838,"day":110,"stagingId":12,"eventId":66,"eventType":"public_act","outcome":"carried_out","causeIds":[65]}
+{"label":"rite/carried_out","seed":16838,"day":52,"stagingId":2,"eventId":16,"eventType":"rite","outcome":"carried_out","causeIds":[15]}

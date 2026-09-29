@@ -1,0 +1,2 @@
+freed 5 (all 5 alive), shielded 38
+PASS: 10 villages; live villages deterministic; every freed person lives; the village remembers the stranger
