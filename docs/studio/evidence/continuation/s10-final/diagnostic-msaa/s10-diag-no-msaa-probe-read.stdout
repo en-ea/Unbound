@@ -1,0 +1,158 @@
+{
+  "cap": 0,
+  "cold_first_20s_ms": {
+    "count": 1052,
+    "max": 324.08,
+    "p50": 18.105,
+    "p95": 29.491
+  },
+  "device": "SM-G973F",
+  "draw_calls": {
+    "count": 7,
+    "max": 401.0,
+    "p50": 397.0,
+    "p95": 401.0
+  },
+  "events": {
+    "2": {
+      "minute": 4801,
+      "real_seconds": 0.436885
+    }
+  },
+  "godot": "4.7.2-stable (official)",
+  "label": "s10-diag-no-msaa",
+  "render_method": "gl_compatibility",
+  "resident_build_us": {
+    "count": 31,
+    "max": 177421,
+    "p50": 6889,
+    "p95": 22406
+  },
+  "resident_frame_us": {
+    "count": 3415,
+    "max": 177591,
+    "p50": 276,
+    "p95": 500
+  },
+  "samples": [
+    {
+      "background": false,
+      "bodies": 0,
+      "draws": 0,
+      "event": -1,
+      "minute": 4800,
+      "msaa": 0,
+      "nodes": 2870.0,
+      "objects": 7928.0,
+      "resources": 686.0,
+      "seconds": 0.112805,
+      "static_bytes": 98448191.0,
+      "video_bytes": 61657236.0,
+      "viewport": "(1520.0, 720.0)"
+    },
+    {
+      "background": false,
+      "bodies": 31,
+      "draws": 397,
+      "event": 2,
+      "minute": 4820,
+      "msaa": 0,
+      "nodes": 3092.0,
+      "objects": 8451.0,
+      "resources": 709.0,
+      "seconds": 10.011577,
+      "static_bytes": 115742461.0,
+      "video_bytes": 114439798.0,
+      "viewport": "(1520.0, 720.0)"
+    },
+    {
+      "background": false,
+      "bodies": 31,
+      "draws": 396,
+      "event": 2,
+      "minute": 4840,
+      "msaa": 0,
+      "nodes": 3092.0,
+      "objects": 8453.0,
+      "resources": 709.0,
+      "seconds": 20.004395,
+      "static_bytes": 116567489.0,
+      "video_bytes": 114439798.0,
+      "viewport": "(1520.0, 720.0)"
+    },
+    {
+      "background": false,
+      "bodies": 31,
+      "draws": 396,
+      "event": 2,
+      "minute": 4860,
+      "msaa": 0,
+      "nodes": 3092.0,
+      "objects": 8454.0,
+      "resources": 709.0,
+      "seconds": 30.002588,
+      "static_bytes": 116646669.0,
+      "video_bytes": 114439798.0,
+      "viewport": "(1520.0, 720.0)"
+    },
+    {
+      "background": false,
+      "bodies": 31,
+      "draws": 398,
+      "event": 2,
+      "minute": 4880,
+      "msaa": 0,
+      "nodes": 3092.0,
+      "objects": 8452.0,
+      "resources": 709.0,
+      "seconds": 40.011331,
+      "static_bytes": 116688597.0,
+      "video_bytes": 114438502.0,
+      "viewport": "(1520.0, 720.0)"
+    },
+    {
+      "background": false,
+      "bodies": 31,
+      "draws": 401,
+      "event": 2,
+      "minute": 4900,
+      "msaa": 0,
+      "nodes": 3092.0,
+      "objects": 8455.0,
+      "resources": 709.0,
+      "seconds": 50.005725,
+      "static_bytes": 116795685.0,
+      "video_bytes": 114439798.0,
+      "viewport": "(1520.0, 720.0)"
+    },
+    {
+      "background": false,
+      "bodies": 31,
+      "draws": 398,
+      "event": 2,
+      "minute": 4920,
+      "msaa": 0,
+      "nodes": 3092.0,
+      "objects": 8453.0,
+      "resources": 709.0,
+      "seconds": 60.053203,
+      "static_bytes": 116795185.0,
+      "video_bytes": 114439798.0,
+      "viewport": "(1520.0, 720.0)"
+    }
+  ],
+  "seconds": 60.053203,
+  "stage_including_acquisition_ms": {
+    "count": 3415,
+    "max": 13.929,
+    "p50": 0.184,
+    "p95": 0.491
+  },
+  "static_memory_bytes": 116801309.0,
+  "steady_frame_ms": {
+    "count": 2364,
+    "max": 122.206,
+    "p50": 17.202,
+    "p95": 21.738
+  }
+}
