@@ -1,0 +1,14 @@
+Unbound world kernel (GDScript) - Godot 4.7.2-stable (official), Windows, AMD Ryzen 7 5800U with Radeon Graphics
+checkpoint hashes: 420 / 420 match the reference (20 seeds x 21 checkpoints) [4522.4 ms]
+scenario warn-of-flood: 0e0086f2  ok
+scenario two-players-merged: ab8be013 / other arrival order ab8be013  ok
+scenario storm-16838: 5ea1c13e  ok
+scenario storm-88109: d7fe7b4f  ok
+chronicle text, seed 1000: 4276 lines, 55482ed8  ok
+CONFORMANCE: PASS
+500 years of history: median 171.7 ms, worst 335.0 ms over 20 seeds (29 settlements, 4601 events, median)
+checkpoints: 20, 125 KB in total
+the world at year 287 (a storm's view): 4.5 ms, 29 settlements
+edit year 240, re-simulate to year 500 from the checkpoint: 95.8 ms (dbaba0c8)
+catch-up, 30 years: 10.4 ms (29 settlements)
+a storm scenario, 525 years from scratch: 172.5 ms

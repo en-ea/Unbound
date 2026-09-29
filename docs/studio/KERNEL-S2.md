@@ -1,0 +1,118 @@
+---
+title: "S2 - the world kernel inside Godot: correct, repeatable across devices, and fast enough in GDScript"
+created: 2026-09-29
+type: agent-draft
+voice: agent-draft
+author: Claude (claude-opus-5-5), lead agent in Hilmi's studio
+status: done - step 1 of NEXT.md (W2-1 in DEVELOPMENT-PLAN.md)
+next_step: Enea reads it (no decision needed from him); W3, the deep village, builds on this kernel in GDScript
+---
+
+# S2 - the world kernel inside Godot
+
+**Question.** Can the S1 world kernel run inside Enea's game, in GDScript, on the weakest phone we have, and give the same world on every device?
+
+**Answer** `[run]`: yes on all three counts.
+
+| | Result |
+|---|---|
+| **Correct** | The GDScript kernel matches an independent integer reference, written in JavaScript, at every 25-year checkpoint: 420 of 420 hashes, 4 of 4 scenarios, and the 4,276-line chronicle byte for byte |
+| **The same on every device** | The same hashes from JavaScript on the PC, GDScript on the PC (x86-64) and GDScript on the Galaxy S10 (ARM64) |
+| **Fast enough** | S10: 500 years in **367 ms** median (worst 679 ms). The decision line was 2 s |
+| **Invisible to the game** | Run non-stop on a worker thread during gameplay on the S10, it held 30 fps: median frame 33.2 ms vs 33.4 ms without it, and no frame over 50 ms |
+
+## 1. What was built
+
+```
+ tools-src/studio/kernel-reference/        game/scripts/studio/kernel/
+ ┌──────────────────────────┐              ┌───────────────────────────────────────────┐
+ │ kernel.mjs  the spec     │  golden.mjs  │ world.gd     state + one year (pure)      │
+ │ (integers only)          │─────────────►│ history.gd   action log, checkpoints,     │
+ │ experiments.mjs          │  golden.gd   │              the past on demand           │
+ │ (S1 re-run on integers)  │              │ chronicle.gd events → text                │
+ └──────────────────────────┘              │ bench.gd     conformance + timings        │
+                                           │ run.gd       headless runner (PC)         │
+                                           │ thread_probe.gd  frame times, kernel on a │
+                                           │              worker thread (phone)        │
+                                           └───────────────────────────────────────────┘
+ dev_args.gd (Enea's): --kernel-bench, --kernel-thread (debug builds only); load() on demand
+```
+
+**Design choices** `[design]`:
+- **Integers only.** Chances are parts per million, multipliers per mille, positions tenths of a map unit, and square roots come from an integer table. Floats drift between phone chips; integers can't.
+- **Keyed randomness**, kept from S1. The multiply inside the hash is split so no product leaves 63 bits (GDScript ints are signed 64-bit).
+- **State as packed arrays**, one per field. Snapshots are array copies (20 checkpoints = 125 KB).
+- **The chronicle is structured.** Each event is codes and numbers, and text is rendered only when read. Events feed a running hash, so two phones that disagree about a single chronicle line are caught.
+- **Storms derive their past themselves.** The logged action is only (target, share, year). The kernel recomputes that year from the nearest checkpoint, so the log stays tiny and can't be forged with made-up past state.
+- **Actions sort on every field**, so the order is total and arrival order can never matter. S1 sorted player names with a locale-dependent compare; S2 uses integer player ids.
+- **No engine calls, no shared mutable state**, so it runs safely on a worker thread (proven in section 3).
+
+## 2. Two implementations, not one `[design]`
+
+The same code on two phones proves only that it repeats itself. A port bug repeats just as faithfully. The check here is **differential**:
+- an independent reference implementation;
+- golden hashes at every checkpoint;
+- the first 25-year window where the two diverge.
+
+That turned the port into a mechanical task: it passed on the first run. It also makes every future change safe, including a move to C++ (section 4).
+
+**The integer reference behaves like the float prototype** `[run]` (`tools-src/studio/kernel-reference/experiments-results.txt`):
+- A player's edit to the past changes 21% of villages noticeably, the same as S1.
+- Storm enclaves still turn on their origin without a script: fighting in 25-60% of storms.
+- The prototype's own storm (Holtorfen, seed 16838) replays almost line for line: 333 folded into year 350, and "Old Holtorfen raids Holtorfen for 58 grain; 18 fall" in year 524.
+
+## 3. Numbers `[run]` (29 Sep 2026)
+
+| | PC (Ryzen 7 5800U) | Galaxy S10 (Exynos 9820), debug build |
+|---|---|---|
+| 500 years of history, median of 20 seeds | 172 ms | **367 ms** |
+| worst seed | 335 ms | 679 ms |
+| a storm's view: the world at any past year | 4.5 ms | 9.5 ms |
+| edit year 240, re-simulate to 500 | 96 ms | 209 ms |
+| catch-up after 30 days away (30 world-years) | 10 ms | 23 ms |
+| a time storm plus 25 years after it, from scratch | 173 ms | 377 ms |
+| the same work in JavaScript (Node, PC) | 12 ms | - |
+
+**The kernel on a worker thread while the game plays** (S10, gameplay camera, raw frame timestamps; `evidence/s10/kernel-gdscript-thread.txt`; the phone run: `evidence/s10/kernel-gdscript-bench.txt`; the PC run: `evidence/pc-kernel-gdscript-bench.txt`):
+
+| | frames | median | 95th percentile | worst | over 50 ms |
+|---|---|---|---|---|---|
+| without the kernel (10 s) | 300 | 33.4 ms | 37.3 ms | 39.8 ms | 0 |
+| kernel running non-stop (20 s) | 600 | 33.2 ms | 38.0 ms | 46.0 ms | 0 |
+
+On the thread, the kernel completed 41 histories: **20,500 simulated years in 20 seconds**, at 488 ms per 500 years. The phone's processor rose from 35 °C to 50 °C in that run. Real play would run the kernel in short bursts, not flat out.
+
+**Optimisations, each checked by conformance:**
+1. First port: 413 ms on the PC.
+2. Cached pairwise geometry (settlements never move).
+3. Per-settlement neighbour lists.
+4. Skip the knowledge loop once a village knows everything.
+5. The hash inlined in the trade pass.
+
+Result: 172 ms, all four exact. Most of the rest is GDScript's function-call cost (~0.23 µs a call on the PC, measured).
+
+## 4. The decision `[design]`
+
+**Keep the kernel in GDScript for W3.**
+- **The decision line was 2 s per 500 years on the S10.** The worst seed takes a third of that, so the kernel can get about 5x heavier before the line fires.
+- **The line that matters next is W3's.** A0 simulates about 30 villagers per village with values, practices and rumours. A rough budget:
+  - if one villager-tick costs about 15 µs in GDScript on the S10, a village-year at daily ticks is about 30 × 365 × 15 µs ≈ 160 ms on the thread;
+  - a storm's view that resumes from a checkpoint up to 25 years back then costs about 4 s.
+  - That is workable, but only just.
+- **The trigger for W3:** if a village-year costs more than about 50 ms on the S10's worker thread, the villager loop moves to C++ as a GDExtension. That needs no custom engine build. On iOS it is linked statically, which we must verify on a real build before relying on it.
+- **Moving is safe.** The conformance harness carries over unchanged: the C++ version must reproduce the same golden hashes.
+
+## 5. Tools made on the way (game-agnostic, in `tools-src/studio/device-lab/`)
+
+- **`lab_args apk <args>`** bakes dev arguments into a built APK by rewriting `assets/_cl_`, then re-aligns and re-signs it.
+  - In our test, launch extras (`am start --esa command_line_params`) never reached Godot 4.7.2.
+  - Setting the preset's `command_line/extra_args` works, but it means editing the project, and it put the arguments before Godot's own flags.
+- **`lab_wake`** wakes the phone and reports a PIN lock plainly.
+  - The first phone run did nothing silently: the screen had locked, and Android paused the game.
+- **`lab_userfile pkg path`** reads what a debug build wrote to `user://` (through `run-as`).
+
+## 6. What it does not show
+
+- **It is still the toy world.** It has villages, not villagers. W3 is where the real cost appears (section 4).
+- **The S10 numbers come from a debug build.** GDScript runs at about the same speed in release, but not identically. The iPhone is unmeasured (it has no device lab); being much faster than the S10, it should do better.
+- **The frame-time test ran on the gameplay camera, today's framing.** Horizon framings draw more, and they're W4's to measure.

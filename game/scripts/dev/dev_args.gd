@@ -18,6 +18,9 @@ extends Node
 ##   --craft / --bag   open the workbench / Bag screen with a few items to show
 ##   --lab             go straight to the build lab
 ##   --kernel-bench    (studio branch) world-kernel conformance and timings, saved to user://studio-kernel.txt, then quit
+##   --kernel-thread   (studio branch) the game's frame times with and without the kernel running on a worker thread
+##   --frame=explore   (studio branch) a camera framing: explore, fight, build (today's), vantage
+##   --fog=60,400      (studio branch) fog begin and end in metres
 
 @export var day_night: Node
 
@@ -136,6 +139,17 @@ func _ready() -> void:
 			_touch_test = true
 		elif arg == "--kernel-bench":                   # studio branch: the world kernel's conformance and timings, then quit
 			load("res://scripts/studio/kernel/bench.gd").on_device(get_tree())
+		elif arg == "--kernel-thread":                  # studio branch: frame times with the kernel on a worker thread, then quit
+			add_child(load("res://scripts/studio/kernel/thread_probe.gd").new())
+		elif arg.begins_with("--frame="):                 # studio branch: a camera framing (explore, fight, build, vantage)
+			var rig := get_node("../CameraRig")
+			var frame := arg.trim_prefix("--frame=")
+			(func() -> void: load("res://scripts/studio/camera/framings.gd").apply(rig, frame)).call_deferred()
+		elif arg.begins_with("--fog="):                   # studio branch: fog begin,end in metres (horizon tests)
+			var v := arg.trim_prefix("--fog=").split(",")
+			(func() -> void:
+				day_night.environment.fog_depth_begin = float(v[0])
+				day_night.environment.fog_depth_end = float(v[1])).call_deferred()
 	if _shot_path == "" and not _touch_test and not _gather_test and not _fight_test:
 		set_process(false)
 

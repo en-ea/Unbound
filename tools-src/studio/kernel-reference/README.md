@@ -4,8 +4,8 @@ created: 2026-09-29
 type: agent-draft
 voice: agent-draft
 author: Claude (claude-opus-5-5), lead agent in Hilmi's studio
-status: working; the GDScript kernel passes on the PC, the phone run is pending
-next_step: the same conformance run on the Galaxy S10 (dev argument --kernel-bench), then the GDScript-or-C++ decision in docs/studio
+status: done; the GDScript kernel passes on the PC and on the Galaxy S10
+next_step: W3 (the deep village) builds on the kernel; any rule change goes through kernel.mjs and golden.mjs first
 ---
 
 # The world kernel: reference and conformance
@@ -51,7 +51,7 @@ The world is a pure function of (seed, years, action log). Two implementations m
 | The integer reference against the float prototype (`experiments-results.txt`) | The same behaviour: an edit to the past changes 21% of villages noticeably, the same as the prototype. The prototype's Holtorfen storm replays almost line for line |
 | GDScript against the reference, PC (Windows, Ryzen 7 5800U) | 420 / 420 checkpoint hashes; 4 / 4 scenarios; the chronicle identical line for line (4,276 lines) |
 | Speed, PC | 500 years: ~172 ms median in GDScript, 12 ms in JavaScript (Node) |
-| Galaxy S10 | pending: `--kernel-bench` on a debug build writes `user://studio-kernel.txt` |
+| Galaxy S10 (ARM64), debug build | 420 / 420, 4 / 4, chronicle hash identical; 500 years in 367 ms median (worst 679 ms). Run non-stop on a worker thread during play, the game held 30 fps (details: `docs/studio/KERNEL-S2.md`) |
 
 ## Files
 

@@ -57,8 +57,13 @@ Hi Enea, and Enea's agents. This branch comes from Hilmi's studio: Hilmi, and Cl
 | `docs/studio/DEVELOPMENT-PLAN.md` | How the work runs: workstreams, gates, the daily loop |
 | `docs/studio/BUILDING-SHEETS.md` | What your AI building sheets imply: families by function and growth stage, plus a ruin family |
 | `docs/studio/evidence/` | Screenshots and readings: the camera frames, and the S10 runs (web vs native) |
-| `tools-src/studio/kernel-prototype/` | The world-simulation prototype (JavaScript, no dependencies). `node run.mjs` and `node enclave.mjs` |
-| `tools-src/studio/device-lab/android.sh` | Builds, signs, installs and measures the game on a USB-connected Android phone |
+| `docs/studio/KERNEL-S2.md` | **Step 1 done (29 Sep):** the world kernel inside your game, in GDScript. It gives the same world on the PC and the Galaxy S10, 500 years takes 0.37 s on the S10, and it held 30 fps running on its own thread during play |
+| `game/scripts/studio/kernel/` | The world kernel (GDScript): no nodes, no engine calls, safe on a worker thread. `run.gd` checks it headless |
+| `game/scripts/studio/camera/framings.gd` | The proposed camera framings as presets, for look boards |
+| `tools-src/studio/kernel-reference/` | The kernel's spec in JavaScript (integers only) and the expected hashes the GDScript kernel must reproduce |
+| `tools-src/studio/kernel-prototype/` | The first world-simulation prototype (JavaScript, floats; kept as the record). `node run.mjs` and `node enclave.mjs` |
+| `tools-src/studio/device-lab/` | Builds, signs, installs and measures the game on a USB-connected Android phone; bakes dev arguments into a debug APK |
+| `game/scripts/dev/dev_args.gd` | Four dev arguments added, all marked "studio branch", debug builds only: `--kernel-bench`, `--kernel-thread`, `--frame=`, `--fog=` |
 | `game/export_presets.cfg` | One addition: an "Android" export preset (debug, arm64, test package `com.unboundstudio.unbound.dev`) |
 | `CLAUDE.md` | One added line pointing agents here |
 

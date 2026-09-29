@@ -1,0 +1,5 @@
+device: SM-G973F, 8 cores; Godot 4.7.2-stable (official)
+frames without the kernel: 300 frames, median 33.4 ms, 95th 37.3 ms, worst 39.8 ms, over 50 ms: 0
+frames with the kernel on a worker thread: 600 frames, median 33.2 ms, 95th 38.0 ms, worst 46.0 ms, over 50 ms: 0
+kernel on the thread meanwhile: 41 histories of 500 years, 488 ms each on average
+slowest loaded frame: #516 of 600 (the thread started at #0)
