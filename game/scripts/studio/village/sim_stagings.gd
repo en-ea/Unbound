@@ -4,7 +4,7 @@ extends RefCounted
 
 const STAGINGS := [
 	{
-		"id": 188,
+		"id": 247,
 		"kind": "pillory",
 		"place": "pillory",
 		"start": 480,
@@ -1229,7 +1229,7 @@ const STAGINGS := [
 		"story": "That season people saw a two-headed calf, and began to watch one another. Whispers started that Agnes had cursed the village - charms of twisted straw found by a doorway. Osric named Oswin before the elder. Osric, the elder, judged it too. They put Oswin in the millpond. They floated. Guilty. The sentence was a day in the pillory. In the pillory, the cabbages became mud, and the mud became stones. Oswin lived, but was never the same. They are remembered as Oswin the Stone-Spared."
 	},
 	{
-		"id": 25,
+		"id": 46,
 		"kind": "pillory",
 		"place": "pillory",
 		"start": 480,
@@ -2562,7 +2562,7 @@ const STAGINGS := [
 		"story": "That season people saw lights over the marsh, and began to watch one another. Whispers started that Isolde had cursed the village - charms of twisted straw found by a doorway. Sybil named Isolde before the elder. Merric, the elder, heard it in the square. They put Isolde in the millpond. They floated. Guilty. The sentence was a day in the pillory. They pelted Isolde with mud in the pillory until dusk."
 	},
 	{
-		"id": 68,
+		"id": 109,
 		"kind": "pillory",
 		"place": "pillory",
 		"start": 480,
@@ -3463,7 +3463,7 @@ const STAGINGS := [
 		"story": "It was the year the grain rotted in the ear. Bettony, half-starved, took grain from the Cooper house while they were at work. Tobin found the grain sacks lighter than yesterday. Oswin named Bettony before the elder. Tobin, the elder, heard it in the square. The sentence was a day in the pillory. They put Bettony in the pillory."
 	},
 	{
-		"id": 88,
+		"id": 145,
 		"kind": "bonfire",
 		"place": "stake",
 		"start": 720,
@@ -4535,7 +4535,7 @@ const STAGINGS := [
 		"story": "Then came a red moon. The old women said it meant a curse among them. Whispers started that Gwen had cursed the village - charms of twisted straw found by a doorway. Edith went to Tobin: it was Gwen. Tobin named Gwen before the elder. Tobin, the elder, judged it too. They put Gwen in the millpond. They floated. Guilty. The sentence was the fire. They burned Gwen at the stake at dusk; the smoke was seen from the next valley. They are remembered as Gwen the Burned."
 	},
 	{
-		"id": 127,
+		"id": 209,
 		"kind": "hanging",
 		"place": "gallows",
 		"start": 480,
@@ -5526,7 +5526,7 @@ const STAGINGS := [
 		"story": "One evening a fight at the loaf house went too far: Hugh struck Simkin, and Simkin did not get up. Godric came to Edith: it was Hugh. Edith named Hugh before the elder. Tobin, the elder, heard it in the square. The sentence was the rope. They hanged Hugh at dawn from a gallows built by lantern light. They are remembered as Hugh the Hanged."
 	},
 	{
-		"id": 8,
+		"id": 12,
 		"kind": "exile",
 		"place": "gate_south",
 		"start": 480,
@@ -6678,683 +6678,399 @@ const STAGINGS := [
 		"story": "One evening a fight by the well went too far: Colm struck Gwen, and Gwen did not get up. Tobin named Colm before the elder. Tobin, the elder, judged it too. The sentence was exile."
 	},
 	{
-		"id": 5,
+		"id": 3,
 		"kind": "trial",
 		"place": "square",
-		"start": 480,
-		"end": 574,
+		"start": 540,
+		"end": 610,
 		"phases": [
 			{
-				"name": "gather",
-				"from": 480,
-				"to": 540,
-				"rescue": true
+				"name": "hearing",
+				"from": 540,
+				"to": 575,
+				"rescue": false
 			},
 			{
-				"name": "fine",
-				"from": 540,
-				"to": 530,
-				"rescue": true
+				"name": "verdict",
+				"from": 575,
+				"to": 590,
+				"rescue": false
 			},
 			{
 				"name": "end",
-				"from": 530,
-				"to": 574,
+				"from": 590,
+				"to": 610,
 				"rescue": false
 			}
 		],
 		"roles": {
-			"victim": 27,
-			"accuser": 13,
+			"victim": 38,
+			"accuser": 15,
 			"authority": 6,
 			"crowd": [
 				7,
-				8,
-				9,
-				10,
 				13,
-				14,
-				15,
-				16,
 				17,
 				18,
 				19,
 				20,
 				21,
-				22,
-				23,
+				24,
 				25,
 				26,
 				28,
-				29,
 				30,
 				31,
 				32,
-				33,
-				35,
-				36,
-				37,
-				39,
-				40,
-				41
+				39
 			]
 		},
 		"beats": [
 			{
-				"at": 480,
+				"at": 540,
 				"who": 6,
 				"do": "walk_to",
 				"slot": -1,
-				"target": 27,
+				"target": 38,
 				"anim": "Walk_Formal",
 				"prop": ""
 			},
 			{
-				"at": 480,
-				"who": 27,
-				"do": "walk_to",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 485,
-				"who": 7,
-				"do": "walk_to",
-				"slot": 0,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 486,
-				"who": 8,
-				"do": "walk_to",
-				"slot": 1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 487,
-				"who": 9,
-				"do": "walk_to",
-				"slot": 2,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 488,
-				"who": 10,
-				"do": "walk_to",
-				"slot": 3,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 489,
-				"who": 13,
-				"do": "walk_to",
-				"slot": 4,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 490,
-				"who": 14,
-				"do": "walk_to",
-				"slot": 5,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 491,
-				"who": 15,
-				"do": "walk_to",
-				"slot": 6,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 492,
-				"who": 7,
-				"do": "stand",
-				"slot": 0,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 492,
-				"who": 16,
-				"do": "walk_to",
-				"slot": 7,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 493,
-				"who": 8,
-				"do": "stand",
-				"slot": 1,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 493,
-				"who": 17,
-				"do": "walk_to",
-				"slot": 8,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 494,
-				"who": 9,
-				"do": "stand",
-				"slot": 2,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 494,
-				"who": 18,
-				"do": "walk_to",
-				"slot": 9,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 495,
-				"who": 10,
-				"do": "stand",
-				"slot": 3,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 495,
-				"who": 19,
-				"do": "walk_to",
-				"slot": 10,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 496,
-				"who": 20,
-				"do": "walk_to",
-				"slot": 11,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 497,
-				"who": 13,
-				"do": "stand",
-				"slot": 4,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 497,
-				"who": 15,
-				"do": "stand",
-				"slot": 6,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 497,
-				"who": 21,
-				"do": "walk_to",
-				"slot": 12,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 498,
-				"who": 14,
-				"do": "stand",
-				"slot": 5,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 498,
-				"who": 22,
-				"do": "walk_to",
-				"slot": 13,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 499,
-				"who": 23,
-				"do": "walk_to",
-				"slot": 14,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 500,
-				"who": 16,
-				"do": "stand",
-				"slot": 7,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 500,
-				"who": 18,
-				"do": "stand",
-				"slot": 9,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 500,
-				"who": 25,
-				"do": "walk_to",
-				"slot": 15,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 17,
-				"do": "stand",
-				"slot": 8,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 19,
-				"do": "stand",
-				"slot": 10,
-				"target": -1,
-				"anim": "Idle_FoldArms",
-				"prop": ""
-			},
-			{
-				"at": 501,
-				"who": 26,
-				"do": "walk_to",
-				"slot": 16,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 502,
-				"who": 20,
-				"do": "stand",
-				"slot": 11,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 502,
-				"who": 28,
-				"do": "walk_to",
-				"slot": 17,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 503,
-				"who": 21,
-				"do": "stand",
-				"slot": 12,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 503,
-				"who": 29,
-				"do": "walk_to",
-				"slot": 18,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 504,
-				"who": 22,
-				"do": "stand",
-				"slot": 13,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 504,
-				"who": 30,
-				"do": "walk_to",
-				"slot": 19,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 505,
-				"who": 23,
-				"do": "stand",
-				"slot": 14,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 505,
-				"who": 31,
-				"do": "walk_to",
-				"slot": 20,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 506,
-				"who": 32,
-				"do": "walk_to",
-				"slot": 21,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 507,
-				"who": 33,
-				"do": "walk_to",
-				"slot": 22,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 508,
-				"who": 35,
-				"do": "walk_to",
-				"slot": 23,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 509,
-				"who": 25,
-				"do": "stand",
-				"slot": 15,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 509,
-				"who": 36,
-				"do": "walk_to",
-				"slot": 24,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 510,
-				"who": 26,
-				"do": "stand",
-				"slot": 16,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 510,
-				"who": 37,
-				"do": "walk_to",
-				"slot": 25,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 511,
-				"who": 28,
-				"do": "stand",
-				"slot": 17,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 511,
-				"who": 39,
-				"do": "walk_to",
-				"slot": 26,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 512,
-				"who": 29,
-				"do": "stand",
-				"slot": 18,
-				"target": -1,
-				"anim": "Idle_Talking",
-				"prop": ""
-			},
-			{
-				"at": 512,
-				"who": 40,
-				"do": "walk_to",
-				"slot": 27,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 513,
-				"who": 41,
-				"do": "walk_to",
-				"slot": 28,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 516,
-				"who": 35,
-				"do": "stand",
-				"slot": 23,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 517,
-				"who": 30,
-				"do": "stand",
-				"slot": 19,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 517,
-				"who": 37,
-				"do": "stand",
-				"slot": 25,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 517,
-				"who": 39,
-				"do": "stand",
-				"slot": 26,
-				"target": -1,
-				"anim": "Idle_FoldArms",
-				"prop": ""
-			},
-			{
-				"at": 518,
-				"who": 31,
-				"do": "stand",
-				"slot": 20,
-				"target": -1,
-				"anim": "Idle_FoldArms",
-				"prop": ""
-			},
-			{
-				"at": 518,
-				"who": 40,
-				"do": "stand",
-				"slot": 27,
-				"target": -1,
-				"anim": "Idle_FoldArms",
-				"prop": ""
-			},
-			{
-				"at": 519,
-				"who": 32,
-				"do": "stand",
-				"slot": 21,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 520,
-				"who": 33,
-				"do": "stand",
-				"slot": 22,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 522,
-				"who": 36,
-				"do": "stand",
-				"slot": 24,
-				"target": -1,
-				"anim": "Idle_No",
-				"prop": ""
-			},
-			{
-				"at": 526,
-				"who": 41,
-				"do": "stand",
-				"slot": 28,
-				"target": -1,
-				"anim": "Idle_FoldArms",
-				"prop": ""
-			},
-			{
-				"at": 535,
-				"who": 27,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
 				"at": 540,
-				"who": 7,
-				"do": "leave",
+				"who": 38,
+				"do": "walk_to",
 				"slot": -1,
 				"target": -1,
 				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 540,
-				"who": 13,
-				"do": "throw",
-				"slot": 4,
-				"target": 27,
-				"anim": "OverhandThrow",
-				"prop": "cabbage"
-			},
-			{
-				"at": 541,
-				"who": 8,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 541,
-				"who": 27,
-				"do": "react",
-				"slot": -1,
-				"target": 13,
-				"anim": "Hit_Chest",
 				"prop": ""
 			},
 			{
 				"at": 542,
-				"who": 9,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 543,
-				"who": 10,
-				"do": "leave",
-				"slot": -1,
+				"who": 15,
+				"do": "walk_to",
+				"slot": 0,
 				"target": -1,
 				"anim": "Walk",
 				"prop": ""
 			},
 			{
 				"at": 544,
-				"who": 13,
-				"do": "leave",
-				"slot": -1,
+				"who": 7,
+				"do": "walk_to",
+				"slot": 1,
 				"target": -1,
 				"anim": "Walk",
 				"prop": ""
 			},
 			{
 				"at": 545,
-				"who": 14,
+				"who": 13,
+				"do": "walk_to",
+				"slot": 2,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 546,
+				"who": 6,
+				"do": "stand",
+				"slot": -1,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 546,
+				"who": 17,
+				"do": "walk_to",
+				"slot": 3,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 547,
+				"who": 18,
+				"do": "walk_to",
+				"slot": 4,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 548,
+				"who": 19,
+				"do": "walk_to",
+				"slot": 5,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 548,
+				"who": 38,
+				"do": "stand",
+				"slot": -1,
+				"target": -1,
+				"anim": "Idle",
+				"prop": ""
+			},
+			{
+				"at": 549,
+				"who": 20,
+				"do": "walk_to",
+				"slot": 6,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 550,
+				"who": 21,
+				"do": "walk_to",
+				"slot": 7,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 551,
+				"who": 7,
+				"do": "stand",
+				"slot": 1,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 551,
+				"who": 24,
+				"do": "walk_to",
+				"slot": 8,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 552,
+				"who": 25,
+				"do": "walk_to",
+				"slot": 9,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 553,
+				"who": 13,
+				"do": "stand",
+				"slot": 2,
+				"target": 38,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 553,
+				"who": 15,
+				"do": "gesture",
+				"slot": 0,
+				"target": 38,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 553,
+				"who": 18,
+				"do": "stand",
+				"slot": 4,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 553,
+				"who": 26,
+				"do": "walk_to",
+				"slot": 10,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 554,
+				"who": 17,
+				"do": "stand",
+				"slot": 3,
+				"target": 38,
+				"anim": "Idle_No",
+				"prop": ""
+			},
+			{
+				"at": 554,
+				"who": 19,
+				"do": "stand",
+				"slot": 5,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 554,
+				"who": 28,
+				"do": "walk_to",
+				"slot": 11,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 555,
+				"who": 20,
+				"do": "stand",
+				"slot": 6,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 555,
+				"who": 30,
+				"do": "walk_to",
+				"slot": 12,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 556,
+				"who": 21,
+				"do": "stand",
+				"slot": 7,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 556,
+				"who": 31,
+				"do": "walk_to",
+				"slot": 13,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 557,
+				"who": 32,
+				"do": "walk_to",
+				"slot": 14,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 558,
+				"who": 39,
+				"do": "walk_to",
+				"slot": 15,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 560,
+				"who": 24,
+				"do": "stand",
+				"slot": 8,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 561,
+				"who": 25,
+				"do": "stand",
+				"slot": 9,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 562,
+				"who": 26,
+				"do": "stand",
+				"slot": 10,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 563,
+				"who": 28,
+				"do": "stand",
+				"slot": 11,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 564,
+				"who": 39,
+				"do": "stand",
+				"slot": 15,
+				"target": 38,
+				"anim": "Idle_Talking",
+				"prop": ""
+			},
+			{
+				"at": 568,
+				"who": 30,
+				"do": "stand",
+				"slot": 12,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 569,
+				"who": 31,
+				"do": "stand",
+				"slot": 13,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 570,
+				"who": 32,
+				"do": "stand",
+				"slot": 14,
+				"target": 38,
+				"anim": "Idle_FoldArms",
+				"prop": ""
+			},
+			{
+				"at": 575,
+				"who": 38,
+				"do": "gesture",
+				"slot": -1,
+				"target": 6,
+				"anim": "Fixing_Kneeling",
+				"prop": ""
+			},
+			{
+				"at": 580,
+				"who": 6,
+				"do": "gesture",
+				"slot": -1,
+				"target": 38,
+				"anim": "Yes",
+				"prop": ""
+			},
+			{
+				"at": 590,
+				"who": 38,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -7362,7 +7078,16 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 546,
+				"at": 592,
+				"who": 6,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 592,
 				"who": 15,
 				"do": "leave",
 				"slot": -1,
@@ -7371,8 +7096,8 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 547,
-				"who": 16,
+				"at": 593,
+				"who": 7,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -7380,7 +7105,16 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 548,
+				"at": 594,
+				"who": 13,
+				"do": "leave",
+				"slot": -1,
+				"target": -1,
+				"anim": "Walk",
+				"prop": ""
+			},
+			{
+				"at": 595,
 				"who": 17,
 				"do": "leave",
 				"slot": -1,
@@ -7389,7 +7123,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 549,
+				"at": 596,
 				"who": 18,
 				"do": "leave",
 				"slot": -1,
@@ -7398,7 +7132,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 550,
+				"at": 597,
 				"who": 19,
 				"do": "leave",
 				"slot": -1,
@@ -7407,7 +7141,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 551,
+				"at": 598,
 				"who": 20,
 				"do": "leave",
 				"slot": -1,
@@ -7416,7 +7150,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 552,
+				"at": 599,
 				"who": 21,
 				"do": "leave",
 				"slot": -1,
@@ -7425,8 +7159,8 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 553,
-				"who": 22,
+				"at": 600,
+				"who": 24,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -7434,16 +7168,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 554,
-				"who": 23,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 555,
+				"at": 601,
 				"who": 25,
 				"do": "leave",
 				"slot": -1,
@@ -7452,7 +7177,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 556,
+				"at": 602,
 				"who": 26,
 				"do": "leave",
 				"slot": -1,
@@ -7461,7 +7186,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 557,
+				"at": 603,
 				"who": 28,
 				"do": "leave",
 				"slot": -1,
@@ -7470,16 +7195,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 558,
-				"who": 29,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 559,
+				"at": 604,
 				"who": 30,
 				"do": "leave",
 				"slot": -1,
@@ -7488,7 +7204,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 560,
+				"at": 605,
 				"who": 31,
 				"do": "leave",
 				"slot": -1,
@@ -7497,7 +7213,7 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 561,
+				"at": 606,
 				"who": 32,
 				"do": "leave",
 				"slot": -1,
@@ -7506,62 +7222,8 @@ const STAGINGS := [
 				"prop": ""
 			},
 			{
-				"at": 562,
-				"who": 33,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 563,
-				"who": 35,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 564,
-				"who": 36,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 565,
-				"who": 37,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 566,
+				"at": 607,
 				"who": 39,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 567,
-				"who": 40,
-				"do": "leave",
-				"slot": -1,
-				"target": -1,
-				"anim": "Walk",
-				"prop": ""
-			},
-			{
-				"at": 568,
-				"who": 41,
 				"do": "leave",
 				"slot": -1,
 				"target": -1,
@@ -7569,20 +7231,27 @@ const STAGINGS := [
 				"prop": ""
 			}
 		],
-		"outcome": "carried_out",
+		"outcome": "confessed_spared",
 		"cause": [
-			"crime: a scuffle at the well",
-			"accusation: Gwen pointing at Colm in the square"
+			"accusation: Orla pointing at Kell in the square"
 		],
-		"cue": "coins counted out on the elder's bench",
-		"day": 86,
+		"cue": "the elder's bench carried into the square",
+		"day": 53,
 		"people": [
 			{
-				"id": 27,
-				"name": "Colm",
-				"outfit": 0,
-				"home": "lodge",
-				"role": "child",
+				"id": 38,
+				"name": "Kell",
+				"outfit": 9,
+				"home": "cottage",
+				"role": "gatherer",
+				"marks": []
+			},
+			{
+				"id": 15,
+				"name": "Orla",
+				"outfit": 2,
+				"home": "round",
+				"role": "miller",
 				"marks": []
 			},
 			{
@@ -7594,43 +7263,11 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
-				"id": 24,
-				"name": "Jory",
-				"outfit": 11,
-				"home": "lodge",
-				"role": "priest",
-				"marks": []
-			},
-			{
 				"id": 7,
 				"name": "Alys",
 				"outfit": 11,
 				"home": "cabin",
 				"role": "farmer",
-				"marks": []
-			},
-			{
-				"id": 8,
-				"name": "Wat",
-				"outfit": 9,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 9,
-				"name": "Edith",
-				"outfit": 10,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 10,
-				"name": "Oswin",
-				"outfit": 12,
-				"home": "cabin",
-				"role": "child",
 				"marks": []
 			},
 			{
@@ -7642,35 +7279,11 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
-				"id": 14,
-				"name": "Tilda",
-				"outfit": 1,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 15,
-				"name": "Orla",
-				"outfit": 2,
-				"home": "hill",
-				"role": "miller",
-				"marks": []
-			},
-			{
-				"id": 16,
-				"name": "Elsbet",
-				"outfit": 9,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
 				"id": 17,
 				"name": "Merric",
 				"outfit": 11,
 				"home": "round",
-				"role": "midwife",
+				"role": "child",
 				"marks": []
 			},
 			{
@@ -7694,7 +7307,7 @@ const STAGINGS := [
 				"name": "Cecily",
 				"outfit": 2,
 				"home": "hill",
-				"role": "herder",
+				"role": "child",
 				"marks": []
 			},
 			{
@@ -7706,19 +7319,11 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
-				"id": 22,
-				"name": "Ilse",
-				"outfit": 5,
-				"home": "hill",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 23,
-				"name": "Wenna",
-				"outfit": 4,
-				"home": "hill",
-				"role": "child",
+				"id": 24,
+				"name": "Jory",
+				"outfit": 11,
+				"home": "lodge",
+				"role": "priest",
 				"marks": []
 			},
 			{
@@ -7746,14 +7351,6 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
-				"id": 29,
-				"name": "Rolf",
-				"outfit": 9,
-				"home": "lodge",
-				"role": "child",
-				"marks": []
-			},
-			{
 				"id": 30,
 				"name": "Piers",
 				"outfit": 2,
@@ -7778,65 +7375,19 @@ const STAGINGS := [
 				"marks": []
 			},
 			{
-				"id": 33,
-				"name": "Ansel",
-				"outfit": 6,
-				"home": "loaf",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 35,
-				"name": "Rafe",
-				"outfit": 10,
-				"home": "round",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 36,
-				"name": "Wystan",
-				"outfit": 2,
-				"home": "loaf",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 37,
-				"name": "Godric",
-				"outfit": 7,
-				"home": "cabin",
-				"role": "child",
-				"marks": []
-			},
-			{
 				"id": 39,
 				"name": "Tessa",
 				"outfit": 1,
 				"home": "cottage",
 				"role": "hunter",
 				"marks": []
-			},
-			{
-				"id": 40,
-				"name": "Dagny",
-				"outfit": 9,
-				"home": "cottage",
-				"role": "child",
-				"marks": []
-			},
-			{
-				"id": 41,
-				"name": "Hob",
-				"outfit": 10,
-				"home": "loaf",
-				"role": "child",
-				"marks": []
 			}
 		],
+		"via": "confession",
+		"verdict": "guilty",
 		"seed": 16838,
-		"title": "Colm's Fine",
-		"story": "One evening old grudges came to blows: Colm struck Gwen. Gwen named Colm before the elder. Tobin, the elder, heard it in the square. The sentence was a fine. Colm paid in grain."
+		"title": "trial",
+		"story": "the elder's bench carried into the square"
 	},
 	{
 		"id": 0,
