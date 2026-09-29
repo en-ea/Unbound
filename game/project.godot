@@ -30,6 +30,7 @@ Food="*res://scripts/state/food.gd"
 Money="*res://scripts/state/money.gd"
 Projects="*res://scripts/state/projects.gd"
 Home="*res://scripts/state/home.gd"
+Quests="*res://scripts/state/quests.gd"
 Region="*res://scripts/core/region.gd"
 
 [display]

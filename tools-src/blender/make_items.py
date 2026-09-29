@@ -182,7 +182,73 @@ def cigarette():
     return b
 
 
+def shears():
+    """Big garden shears for Wren: handles at the origin, blades along +Z (crossed, so they read as shears)."""
+    b = Builder(["Item"])
+    steel, wood = (0.8, 0.83, 0.87), (0.55, 0.36, 0.2)
+    for s in (1, -1):
+        tube_faces(b, [V((s * 0.012, 0, 0.02)), V((-s * 0.03, 0, 0.5))], [(0.008, 0.05), (0.004, 0.016)], steel, seg=4, ref=V((1, 0, 0)))
+        tube_faces(b, [V((s * 0.012, 0, 0.02)), V((s * 0.05, 0, -0.16))], [(0.016, 0.016), (0.02, 0.02)], wood, seg=5, ref=V((0, 1, 0)))
+    tube_faces(b, [V((0, -0.02, 0.02)), V((0, 0.02, 0.02))], [(0.014, 0.014)] * 2, (0.35, 0.35, 0.38), seg=5)
+    return b
+
+
+def box(b, c, size, color, mat="Item", top=1.0):
+    """A rough block; `top` narrows its top face (a tapered block)."""
+    def make():
+        g = bmesh.ops.create_cube(b.bm, size=1.0)
+        for v in g["verts"]:
+            k = top if v.co.z > 0 else 1.0
+            v.co = V((v.co.x * size[0] * k, v.co.y * size[1] * k, v.co.z * size[2])) + c
+    b.paint(b.new_faces(make), mat, color)
+
+
+def golem_hammer():
+    """Brakk's big hammer: a long wooden haft from the grip (origin) along +Z, a heavy stone-and-iron head at the far end."""
+    b = Builder(["Item", "Glow"])
+    tube_faces(b, [V((0, 0, -0.12)), V((0, 0, 0.72))], [(0.032, 0.032)] * 2, (0.5, 0.34, 0.2), seg=5, ref=V((1, 0, 0)))
+    box(b, V((0, 0, 0.9)), (0.26, 0.2, 0.36), (0.56, 0.53, 0.5))                  # a big chiselled head
+    for z in (0.76, 1.04):
+        box(b, V((0, 0, z)), (0.29, 0.23, 0.06), (0.34, 0.33, 0.35))
+    for y in (-0.105, 0.105):
+        box(b, V((0, y, 0.9)), (0.08, 0.02, 0.08), (0.34, 0.33, 0.35))
+    return b
+
+
+def skull_staff():
+    """Morrow's staff: a long, slightly crooked branch with a bird skull on top. The grip is at the origin;
+    the skull end is towards -Z (a held prop hangs +Z down along the hand, so the skull ends up on top)."""
+    b = Builder(["Item", "Glow"])
+    wood, bone, dark = (0.42, 0.3, 0.22), (0.9, 0.85, 0.74), (0.14, 0.11, 0.1)
+    tube_faces(b, [V((0, 0, 0.85)), V((0.02, 0, 0.3)), V((-0.015, 0.01, -0.3)), V((0.01, 0, -0.8)), V((0, 0, -1.06))],
+               [(0.022, 0.022), (0.026, 0.026), (0.024, 0.024), (0.028, 0.028), (0.04, 0.04)], wood, seg=6, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, 0, -0.78)), V((0, 0, -0.86))], [(0.034, 0.034)] * 2, (0.3, 0.2, 0.14), seg=6, ref=V((1, 0, 0)))  # a wrap
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, 0.02, -1.16)), (0.075, 0.09, 0.08), 7, 5)), "Item", bone)       # the cranium
+    tube_faces(b, [V((0, -0.05, -1.15)), V((0, -0.16, -1.12)), V((0, -0.3, -1.06))], [(0.045, 0.03), (0.028, 0.02), (0.004, 0.004)],
+               bone, seg=5, ref=V((1, 0, 0)))                                                                     # the long beak
+    for s in (1, -1):
+        b.paint(b.new_faces(lambda s=s: rk.blob(b.bm, V((s * 0.05, -0.04, -1.18)), (0.02, 0.025, 0.022), 6, 4)), "Item", dark)
+        b.paint(b.new_faces(lambda s=s: rk.blob(b.bm, V((s * 0.058, -0.045, -1.18)), (0.006, 0.006, 0.006), 4, 3)), "Glow", (1.0, 0.9, 0.62))
+    return b
+
+
+def anvil():
+    """A big anvil for Brakk (about 0.9 m long), with a glowing blade on top: a stone base, iron top and a horn."""
+    b = Builder(["Item", "Glow"])
+    box(b, V((0, 0, 0.13)), (0.5, 0.3, 0.26), (0.43, 0.39, 0.4), top=0.9)
+    box(b, V((0, 0, 0.36)), (0.3, 0.2, 0.2), (0.5, 0.5, 0.54), top=0.7)
+    box(b, V((0, 0, 0.5)), (0.72, 0.3, 0.1), (0.58, 0.6, 0.66))
+    tube_faces(b, [V((0.34, 0, 0.5)), V((0.5, 0, 0.5)), V((0.62, 0, 0.5))], [(0.12, 0.05), (0.08, 0.035), (0.01, 0.01)], (0.58, 0.6, 0.66), seg=4, ref=V((0, 1, 0)))
+    tube_faces(b, [V((-0.28, 0, 0.58)), V((0.1, 0, 0.58)), V((0.34, 0, 0.58))], [(0.03, 0.035), (0.045, 0.03), (0.005, 0.01)], (1.0, 0.6, 0.2), seg=4, ref=V((0, 1, 0)), mat="Glow")
+    tube_faces(b, [V((-0.4, 0, 0.58)), V((-0.28, 0, 0.58))], [(0.03, 0.03)] * 2, (0.5, 0.34, 0.2), seg=5)
+    return b
+
+
 export("wood", log(), OUT)
+export("golem_hammer", golem_hammer(), OUT)
+export("anvil", anvil(), OUT)
+export("skull_staff", skull_staff(), OUT)
+export("shears", shears(), OUT)
 export("tobacco", tobacco_leaf(), OUT)
 export("cigarette", cigarette(), OUT)
 export("stone", stone(), OUT)

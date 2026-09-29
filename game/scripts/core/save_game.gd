@@ -55,6 +55,7 @@ func save_game() -> void:
 		"coins": Money.coins,
 		"projects": Projects.to_data(),
 		"home": Home.to_data(),
+		"quests": Quests.to_data(),
 		"region": Region.current,
 		"regions": _regions,
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y, "indoors": _indoors()},
@@ -92,6 +93,7 @@ func load_game() -> void:
 	Money.load_data(data.get("coins", 0))
 	Projects.load_data(data.get("projects", []))
 	Home.load_data(data.get("home", {}))
+	Quests.load_data(data.get("quests", {}))
 	_regions = data.get("regions", {})
 	if not data.has("regions") and data.has("world"):       # a save from before regions: the meadow
 		_regions = {"meadow": {"world": data["world"], "layout": data.get("layout", ""), "saved_at": Time.get_unix_time_from_system()}}
@@ -128,5 +130,6 @@ func start_over() -> void:
 	Money.load_data(0)
 	Projects.load_data([])
 	Home.load_data({})
+	Quests.load_data({})
 	WorldResources.reset()
 	get_tree().reload_current_scene()

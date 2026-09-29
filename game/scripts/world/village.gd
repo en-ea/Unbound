@@ -56,6 +56,11 @@ func build(shape: WorldShape) -> void:
 		body.add_child(col)
 		house.add_child(body)
 	_add_merchant(shape)
+	for id: String in Npcs.NPCS:
+		var npc := Node3D.new()
+		npc.set_script(preload("res://scripts/world/npc.gd"))
+		add_child(npc)
+		npc.setup(id, shape)
 	var trade := Node3D.new()
 	trade.set_script(preload("res://scripts/world/station.gd"))
 	add_child(trade)

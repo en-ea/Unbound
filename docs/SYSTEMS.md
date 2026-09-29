@@ -158,3 +158,33 @@ reach a save. Add a building: `BUILDINGS`; add a spawnable: `GATHERABLES` or `sp
 ## Testing without the phone
 Dev arguments (after `--`), see `game/scripts/dev/dev_args.gd`: `--gathertest`, `--fighttest`,
 `--lineup`, `--showcase`, `--shot=path.png`, `--at=x,z`, `--view=d,pitch`, `--time=0.5`.
+
+## Smoking
+`player/smoking.gd` (child of the player, `player.smoke()`): a cigarette on the head bone (`CharacterVisual.head_attachment()`),
+glowing tip, wisp and puffs, burns down over `Balance.SMOKE_SECS`; cosmetic only. Items `tobacco` (a gatherable plant, `tobacco_1`
+in make_trees.py; a patch by Wren in `scatter._tobacco_patch`) and `cigarette` (campfire recipe with `"n": 3`, trader stock). Dev: `--smoke`.
+
+## Villagers and quests
+- `state/npcs.gd`: each villager (name, title, spot, `look` = CharacterLook parts + colour indices, body scale, hand `prop`, greetings, chatter).
+  `world/npc.gd` builds one (an "interactable": the action button says Talk), turns to face you, shows a bubble and a "!" / "?" marker.
+  Add one: an entry in `Npcs.NPCS`; the village builds them all. New looks come from make_hero.py (Wren: `sunhat`, `leafcloak`, prop `shears` in make_items.py).
+- `state/quests.gd` (autoload `Quests`): `DEFS` (giver, the words for each moment, steps, reward). A step is `have` (finishes itself when you
+  carry the items) or `turn_in` (handed over when you talk). Actions `accept()`, `turn_in()`; `talk(npc)` gives the talk screen as
+  `{text, options:[{label, do}]}` (`do` returns the next screen, or `{}` to end). Saved with the game.
+- UI: `ui/dialogue_panel.gd` (bottom card, typed text), `ui/quest_tracker.gd` (top-left). Dev: `--talk`, `--talk=quest`.
+- First quest: Wren's Smokes (pick 4 tobacco, roll 3 cigarettes at a campfire, hand them in for 60 coins and 5 tobacco).
+
+## Brakk the golem blacksmith
+Model: `tools-src/blender/make_golem.py` → `assets/characters/golem.glb`, on the UAL rig (all UAL animations work). Built from
+chiselled stone blocks (`rock()`), each fixed to one bone so nothing stretches; glowing parts use the "Glow" material. LOD
+generation is off in `golem.glb.import` (it broke the blocks). Villager entry "brakk" in `state/npcs.gd` (scale 1.6, hammer,
+anvil, portrait). Sonnet's first version is kept: `make_golem_v1.py` / `golem_v1.glb`. Preview: `GV_NPC=brakk GV_MODE=body
+GV_ANGLE=-20 GV_DIST=5.5 ... res://scenes/tmp_view.tscn` (writes /tmp/claude-0/s/gv.png); without GV_MODE it shows his talk screen.
+
+## Morrow the wanderer, masks
+- Morrow: `tools-src/blender/make_morrow.py` → `assets/characters/morrow.glb` (UAL rig; long split coat whose tails follow the
+  thighs, tall open collar, pale mask face with glowing eyes). Staff: `skull_staff` in make_items.py. Villager entry "morrow" in
+  `state/npcs.gd` (by the spawn, wanders a little, no quest yet; voice "morrow" in make_voices.py).
+- Masks: the "mask" slot in `CharacterLook.PARTS` (Face tab): kitsune, oni, hollow, built in make_hero.py (`plate()` follows the
+  head; pieces `H_mask_<name>[_extra]` with fixed colours). Materials ending in "Glow" shine. Random looks get a mask 20% of the time.
+- Wren: `sun_hat` (level, wide brim, rounded crown), `leaf_cloak` (five rows of big leaves) + `leaf_ribs`.

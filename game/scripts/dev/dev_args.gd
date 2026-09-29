@@ -142,6 +142,16 @@ func _ready() -> void:
 			Money.earn(500)
 			for item: String in ["raw_meat", "mushroom", "apple", "flower", "wood", "glowcap", "stone", "pinewood", "iron", "stew", "roast_meat", "tobacco", "cigarette"]:
 				Inventory.add(item, 25)
+		elif arg.begins_with("--talk"):                   # --talk: Wren's talk screen; --talk=quest: with his quest taken
+			if arg == "--talk=quest":
+				Quests.accept("wren_smokes")
+				Inventory.add("tobacco", 2)
+			if arg == "--talk=done":                      # hand it in after a moment, to see the reward banner
+				Quests.accept("wren_smokes")
+				Inventory.add("cigarette", 3)
+				get_tree().create_timer(1.0).timeout.connect(func() -> void: Quests.turn_in("wren_smokes"))
+				continue
+			get_node("../HUD").open_dialogue.call_deferred("wren")
 		elif arg == "--smoke":                            # some cigarettes, and light one
 			Inventory.add("cigarette", 5)
 			Inventory.add("tobacco", 6)

@@ -48,6 +48,6 @@ The owner doesn't code: they direct and playtest, and Claude builds. Keep replie
 ## Code conventions
 - GDScript with static types. One system per script, small files.
 - Game state (inventory, world, characters) is separate from visuals and input, and changes go through clear action functions. This keeps co-op possible later.
-- Only CC0 assets (so no OFL fonts unless the owner agrees; Kenney fonts looked too techy, so UI uses Godot's default font). Kenney audio is fine (only its models were rejected): `game/assets/kenney_impact/` (footsteps, wood/mining impacts). Keep each pack's licence file next to its models under `game/assets/<pack>/`.
+- Only CC0 assets, plus OFL fonts (the owner agreed): Almendra and Cinzel in `game/assets/fonts/` with their licences, for the talk screen and banners. Kenney fonts looked too techy; the rest of the UI uses Godot's default font. Kenney audio is fine (only its models were rejected): `game/assets/kenney_impact/` (footsteps, wood/mining impacts). Keep each pack's licence file next to its models under `game/assets/<pack>/`.
 - Commit after each working step (branch off main for bigger work).
 - Godot garbled Blender vertex colours on import: put per-face colours in UVs instead (see make_trees.py and foliage_solid.gdshader).
