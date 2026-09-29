@@ -199,7 +199,7 @@ function makeRiteStaging(V, leader, victim, worshippers, outcome, rescuer, ev) {
   const ids = [victim, leader, ...ring, ...onlookers, ...(rescuer >= 0 ? [rescuer] : [])];
   const staging = {
     id: V.stagingCount++, kind: "sacrifice", place: "stake", start, end: end + ring.length + onlookers.length + 10,
-    phases: [{ name: "night", from: start - 480, to: start, rescue: true }, { name: "rite", from: start, to: start + 60, rescue: true }, { name: "end", from: start + 60, to: end + ring.length + 5, rescue: false }],
+    phases: [{ name: "night", from: start - 480, to: start, rescue: true }, { name: "rite", from: start, to: start + 60, rescue: true }, { name: "end", from: start + 60, to: end + ring.length + onlookers.length + 10, rescue: false }],
     roles: { victim, accuser: leader, authority: leader, crowd: [...ring, ...onlookers] },
     beats, outcome, cause: [`rite: ${V.events[ev].cue}`], cue: V.events[ev].cue, day: V.day, people: ids.map((id) => personEntry(V, id)),
   };

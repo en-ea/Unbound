@@ -130,7 +130,7 @@ function trial(V, s) {
   while (!hold && C.PUBLIC[act].lethal && !lethalAllowed(V) && idx > 0) { act = list[--idx]; vetoed = true; }
   if (!hold && C.PUBLIC[act].lethal && !lethalAllowed(V)) { act = "exile"; vetoed = true; }
   const vEv = logEvent(V, "verdict", V.authority, cs.accused, { case: cs.id, verdict, via, act, vetoed, asked: vetoed ? asked : "" }, causes,
-    vetoed ? "the elder, weary of blood, names a lesser sentence" : `the elder naming the sentence: ${act.replace("_", " ")}`);
+    vetoed ? "the elder, weary of blood, names a lesser sentence" : `the elder naming the sentence: ${act.replaceAll("_", " ")}`);
   if (vetoed) earn(V, V.authority, "merciful");
   if (C.PUBLIC[act].lethal && !hold) V.director.lethal++; // a death sentence takes the cycle's one death now (not two in a day)
   accused.offences++;
@@ -173,7 +173,7 @@ function makeTrialStaging(V, cs, judge, via, verdict, champ) {
   if (via === "confession") B(t, accused, "gesture", -1, judge, "Fixing_Kneeling");
   if (via === "ordeal") { B(t, accused, "lock", -1, -1, "Crouch_Idle"); B(t + 20, judge >= 0 ? judge : accuser, "release", -1, accused, "Interact"); t += 25; }
   if (via === "combat" && champ >= 0) {
-    B(start + 2, champ, "walk_to", 0, -1, "Walk");
+    if (champ !== accuser) B(start + 2, champ, "walk_to", 0, -1, "Walk"); // (the accuser often fights their own cause)
     for (let r = 0; r < 3; r++) {
       B(t + r * 4, champ, "gesture", 0, accused, "Push"); B(t + r * 4 + 1, accused, "react", -1, champ, "Hit_Chest");
       B(t + r * 4 + 2, accused, "gesture", -1, champ, "Push"); B(t + r * 4 + 3, champ, "react", 0, accused, "Hit_Chest");
@@ -184,7 +184,8 @@ function makeTrialStaging(V, cs, judge, via, verdict, champ) {
   if (judge >= 0) B(t + 5, judge, "gesture", -1, accused, verdict === "acquitted" ? "Idle_No" : "Yes");
   const end = t + 15;
   if (verdict !== "fell") B(end, accused, "leave", -1, -1, "Walk");
-  for (const id of [accuser, judge, champ, ...crowd]) if (id >= 0) B(end + 2 + (crowd.indexOf(id) + 1), id, "leave", -1, -1, "Walk");
+  const leaving = [accuser, judge, champ, ...crowd].filter((id, i, arr) => id >= 0 && id !== accused && arr.indexOf(id) === i);
+  for (const id of leaving) B(end + 2 + (crowd.indexOf(id) + 1), id, "leave", -1, -1, "Walk");
   beats.forEach((b, i) => { b.seq = i; });
   beats.sort((a, b) => a.at - b.at || a.who - b.who || a.seq - b.seq);
   for (const b of beats) delete b.seq;
@@ -237,6 +238,7 @@ function publicAct(V, s) {
   // held for the day the director allows (at most two months; then the sentence is commuted to exile)
   if (s.hold && def0(kind).lethal && !lethalAllowed(V)) {
     if (s.waited < 60) { V.schedule.push({ ...s, day: V.day + 1, waited: s.waited + 1 }); return; }
+    victim.locked = false;
     s = { ...s, act: "exile", vetoed: true, hold: false };
     return publicAct(V, s);
   }
@@ -569,7 +571,8 @@ function makeStaging(V, cs, c, kind, attend, throwing, level, outcome, lethalByS
   } else if (dies) {
     B(end - 10, victim, "fall", -1, -1, "Death01");
   } else {
-    if (["pillory", "stocks"].includes(kind)) B(end - 10, elder >= 0 ? elder : crowd[0], "release", -1, victim, "Interact");
+    const releaser = elder >= 0 ? elder : crowd.length ? crowd[0] : -1;
+    if (["pillory", "stocks"].includes(kind) && releaser >= 0) B(end - 10, releaser, "release", -1, victim, "Interact");
     B(end - 5, victim, kind === "exile" || kind === "scapegoat" ? "walk_to" : "leave", -1, -1, "Walk");
   }
   crowd.forEach((id, i) => B(end + i, id, "leave", -1, -1, "Walk"));
@@ -616,6 +619,7 @@ function makeFestivalStaging(V, folk, name, k) {
   V.stagings.push({ id: V.stagingCount++, kind: "festival", place: "square", start: 1080, end: 1340, phases: [{ name: "feast", from: 1080, to: 1300, rescue: false }],
     roles: { victim: -1, accuser: -1, authority: V.authority, crowd }, beats, outcome: "carried_out", cause: [name], cue: "dancing in the square", day: V.day,
     people: crowd.map((id) => personEntry(V, id)) });
+  if (V.stagings.length > 300) V.stagings.shift();
 }
 
 export function personEntry(V, id) {

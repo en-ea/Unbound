@@ -59,7 +59,7 @@ function hoardingAnger(V, dk) {
   let open = V.crimes.find((c) => c.act === "hoarding" && c.culprit === head && !c.closed);
   for (const q of V.people) {
     if (!q.alive || !q.present || q.hunger < 400 || isKin(V, q.id, head) || ageOf(V, q) < 16) continue;
-    if (!chance(key(dk, 90000 + q.id), 20000 + q.traits[C.TEMPER] * 400)) continue;
+    if (!chance(key(dk, 90000 + q.id), (20000 + q.traits[C.TEMPER] * 400) * V.pace)) continue;
     if (!open) open = addCrime(V, "hoarding", head, -1, -1, 720, V.households[rich].home, "grain", famineCause(V, q),
       "full sacks glimpsed through a barn door in a hungry year", { motive: "hunger", falseAccusation: false });
     open.discovered = true;
@@ -158,7 +158,7 @@ function tryMurder(V, p, k) {
     let place = "", minute = -1;
     for (const m of [390, 900, 920, 1290]) {
       const at = placeAt(q, m);
-      if (!at || ["home", "square", "shrine"].includes(at) || at.startsWith("pen")) continue;
+      if (!at || ["square", "shrine"].includes(at) || V.layout.homes.includes(at) || at.startsWith("pen")) continue; // never in a house
       if (witnessesAt(V, at, m, p.id).filter((w) => w !== o).length > 1) continue; // one pair of eyes may be missed
       place = at; minute = m; break;
     }
