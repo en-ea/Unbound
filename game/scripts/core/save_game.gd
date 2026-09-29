@@ -3,6 +3,7 @@ extends Node
 ## the time of day, and your tools. It saves by itself every few seconds and whenever the app goes to the
 ## background, so you can stop anywhere. (Your look is saved by CharacterLook; settings by Settings.)
 
+const SafeFile := preload("res://scripts/core/safe_file.gd")
 const PATH := "user://save.json"
 const VERSION := 1
 const AUTOSAVE_EVERY := 15.0
@@ -59,18 +60,15 @@ func save_game() -> void:
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y},
 		"time_of_day": _day_night.time_of_day,
 	}
-	var file := FileAccess.open(PATH, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(data))
+	SafeFile.write_text(PATH, JSON.stringify(data))   # beside the old save, then swapped in: a crash can't wipe it
 
 
 func _read() -> Dictionary:
-	if not FileAccess.file_exists(PATH):
-		return {}
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
-	if not data is Dictionary or data.get("version", 0) != VERSION:
-		return {}
-	return data
+	for path in SafeFile.candidates(PATH):      # the save, or what a crash mid-save left behind
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+		if data is Dictionary and data.get("version", 0) == VERSION:
+			return data
+	return {}
 
 
 ## The region the save was made in, so main can build it before loading (real runs only).
@@ -108,7 +106,7 @@ func load_game() -> void:
 
 ## Wipes the save and restarts the world from scratch.
 func start_over() -> void:
-	DirAccess.remove_absolute(PATH)
+	SafeFile.remove(PATH)   # and its backup, or the next launch would bring the old world back
 	_enabled = false        # don't save the old world on the way out
 	_regions = {}
 	Region.current = "meadow"
