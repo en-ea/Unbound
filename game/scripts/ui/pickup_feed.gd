@@ -15,7 +15,7 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_box = VBoxContainer.new()
-	_box.position = TOP_LEFT
+	_box.position = TOP_LEFT + preload("res://scripts/ui/safe_area.gd").push(get_viewport())   # clear of a notch
 	_box.add_theme_constant_override("separation", 6)
 	_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_box)
