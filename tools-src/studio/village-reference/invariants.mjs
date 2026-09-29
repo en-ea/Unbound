@@ -40,6 +40,15 @@ for (let s = 0; s < seeds; s++) {
     if (!e.causes.length && !e.data.motive && !EXEMPT.has(e.type)) F(seed, `${e.type} ${e.id} (day ${e.day}) without a cause`);
     if (e.type === "crime" && ["murder", "sacrifice"].includes(e.data.act) && e.other >= 0 && ageOf(V, V.people[e.other]) < 16 && V.people[e.other].died === e.day) F(seed, `a child killed (${e.data.act})`);
   }
+  // the violence budget: a lethal public act (or rite) sets a 15-day cooldown, so no two fall closer
+  let lastLethal = -1e9;
+  for (const e of V.events) {
+    const lethal = (e.type === "public_act" && ["hanging", "bonfire", "stoning", "mob", "sacrifice"].includes(e.data.kind) && e.data.outcome === "carried_out")
+      || (e.type === "rite" && e.data.outcome === "carried_out");
+    if (!lethal) continue;
+    if (e.day - lastLethal < 15) F(seed, `two lethal public acts ${e.day - lastLethal} days apart (day ${e.day})`);
+    lastLethal = e.day;
+  }
   for (const st of V.stagings) for (const b of st.beats) if (b.do === "throw") {
     const p = V.people[b.who];
     if (p.born > st.day * 1 - 14 * YEAR) F(seed, `a child threw (${st.kind}, day ${st.day})`);
@@ -51,4 +60,4 @@ const a = village(5000), b = village(5000);
 for (let d = 0; d < 100 * YEAR; d++) { stepDay(a); stepDay(b); }
 if (hashVillage(a) !== hashVillage(b)) F(5000, "two runs of one seed differ");
 console.log(`${seeds} villages x ${years} years (pace ${pace}): ${(totalMs / seeds / years).toFixed(2)} ms per village-year; alive ${minAlive}-${maxAlive}; ${events} events`);
-console.log(fails.length ? "FAIL\n" + fails.join("\n") : "PASS: causes and cues, no child victims or throwers, integer state, no stuck cases, population, determinism");
+console.log(fails.length ? "FAIL\n" + fails.join("\n") : "PASS: causes and cues, no child victims or throwers, integer state, no stuck cases, population, violence budget, determinism");

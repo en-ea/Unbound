@@ -97,6 +97,7 @@ function trial(V, s) {
       finishCase(V, cs, c, "trial_by_combat", "carried_out", causes, false);
       const dv = die(V, cs.accused, "combat", causes, "a body carried from the ring");
       earn(V, champ, "champion");
+      makeTrialStaging(V, cs, judge, via, "fell", champ);
       return;
     }
   } else {
@@ -109,6 +110,7 @@ function trial(V, s) {
     logEvent(V, "verdict", V.authority, cs.accused, { case: cs.id, verdict, via }, causes, `${nameOf(V, cs.accused)} walking free, the accuser staring after`);
     setOpinion(V, cs.accused, cs.accuser, opinion(V, cs.accused, cs.accuser) - 40);
     c.closed = true;
+    makeTrialStaging(V, cs, judge, via, "acquitted", via === "combat" ? champion(V, cs.accuser, cs.accused) : -1);
     return;
   }
   // the law's list for this act and age, lenient to harsh
@@ -134,6 +136,69 @@ function trial(V, s) {
   // a kinsman may try a rescue the night before a killing (headless stand-in for the player's rescue window)
   V.schedule.push({ day: V.day + 1, kind: "public", act, case: cs.id, causes: [vEv], confessed, vetoed, hold, waited: 0 });
   if (hold) { accused.locked = true; accused.lockedAt = "pillory"; }
+  makeTrialStaging(V, cs, judge, via, "guilty", -1);
+}
+
+// The hearing, shown (the verdict is already known; the stage plays how it was reached): the bench in the
+// square, the accused before it, the accuser pointing, the village around. An ordeal goes to the millpond
+// (the well); a combat is fought in a ring in the square, the loser falling.
+function makeTrialStaging(V, cs, judge, via, verdict, champ) {
+  const accused = cs.accused, accuser = cs.accuser;
+  const place = via === "ordeal" ? "well" : "square";
+  const start = via === "combat" || via === "ordeal" ? 600 : 540;
+  const beats = [];
+  const B = (at, who, d, slot = -1, target = -1, anim = "", prop = "") => beats.push({ at, who, do: d, slot, target, anim, prop });
+  const home = (id) => V.layout.pos[V.households[V.people[id].household].home] ?? [0, 0];
+  const to = V.layout.pos[place] ?? [0, 0];
+  const walkMin = (id) => 2 + idiv(Math.abs(home(id)[0] - to[0]) + Math.abs(home(id)[1] - to[1]), 26);
+  if (judge >= 0) { B(start, judge, "walk_to", -1, accused, "Walk_Formal"); B(start + walkMin(judge), judge, "stand", -1, accused, "Idle_FoldArms"); }
+  B(start, accused, "walk_to", -1, -1, "Walk");
+  const hear = start + Math.max(walkMin(accused), judge >= 0 ? walkMin(judge) : 0) + 2;
+  B(hear, accused, "stand", -1, -1, "Idle");
+  B(start + 2, accuser, "walk_to", 0, -1, "Walk");
+  B(hear + 5, accuser, "gesture", 0, accused, "Idle_No");
+  // the village comes to hear it (grown people; the closest two dozen by id order), each showing where they stand
+  const crowd = V.people.filter((q) => q.alive && q.present && !q.locked && ageOf(V, q) >= 14 && ![accused, accuser, judge, champ].includes(q.id))
+    .map((q) => q.id).sort((a, b) => a - b).slice(0, 24);
+  let gathered = hear;
+  crowd.forEach((id, i) => {
+    const t0 = start + 4 + i, t1 = t0 + walkMin(id) + 1;
+    const o = opinion(V, id, accused);
+    B(t0, id, "walk_to", i + 1, -1, "Walk");
+    B(t1, id, "stand", i + 1, accused, o < -20 ? "Idle_No" : o > 20 ? "Idle_Talking" : "Idle_FoldArms");
+    gathered = Math.max(gathered, t1);
+  });
+  let t = Math.max(hear + 15, gathered + 5);
+  if (via === "confession") B(t, accused, "gesture", -1, judge, "Fixing_Kneeling");
+  if (via === "ordeal") { B(t, accused, "lock", -1, -1, "Crouch_Idle"); B(t + 20, judge >= 0 ? judge : accuser, "release", -1, accused, "Interact"); t += 25; }
+  if (via === "combat" && champ >= 0) {
+    B(start + 2, champ, "walk_to", 0, -1, "Walk");
+    for (let r = 0; r < 3; r++) {
+      B(t + r * 4, champ, "gesture", 0, accused, "Push"); B(t + r * 4 + 1, accused, "react", -1, champ, "Hit_Chest");
+      B(t + r * 4 + 2, accused, "gesture", -1, champ, "Push"); B(t + r * 4 + 3, champ, "react", 0, accused, "Hit_Chest");
+    }
+    t += 14;
+    if (verdict === "fell") B(t, accused, "fall", -1, -1, "Death01");
+  }
+  if (judge >= 0) B(t + 5, judge, "gesture", -1, accused, verdict === "acquitted" ? "Idle_No" : "Yes");
+  const end = t + 15;
+  if (verdict !== "fell") B(end, accused, "leave", -1, -1, "Walk");
+  for (const id of [accuser, judge, champ, ...crowd]) if (id >= 0) B(end + 2 + (crowd.indexOf(id) + 1), id, "leave", -1, -1, "Walk");
+  beats.forEach((b, i) => { b.seq = i; });
+  beats.sort((a, b) => a.at - b.at || a.who - b.who || a.seq - b.seq);
+  for (const b of beats) delete b.seq;
+  const ids = [accused, accuser, judge, champ, ...crowd].filter((id, i, arr) => id >= 0 && arr.indexOf(id) === i);
+  const staging = {
+    id: V.stagingCount++, kind: via === "combat" ? "trial_by_combat" : "trial", place, start, end: end + crowd.length + 5,
+    phases: [{ name: "hearing", from: start, to: t, rescue: false }, { name: "verdict", from: t, to: end, rescue: false }, { name: "end", from: end, to: end + crowd.length + 5, rescue: false }],
+    roles: { victim: accused, accuser, authority: judge, crowd },
+    beats, outcome: verdict === "fell" ? "carried_out" : verdict === "acquitted" ? "acquitted" : via === "confession" ? "confessed_spared" : "carried_out",
+    cause: [`accusation: ${V.events[cs.event].cue}`], cue: via === "ordeal" ? "the millpond, and a crowd along its bank" : via === "combat" ? "a ring marked in the dust of the square" : "the elder's bench carried into the square",
+    day: V.day, people: ids.map((id) => personEntry(V, id)), via, verdict,
+  };
+  V.stagings.push(staging);
+  if (V.stagings.length > 300) V.stagings.shift();
+  return staging;
 }
 
 function champion(V, accuser, accused) {
@@ -238,8 +303,46 @@ function publicAct(V, s) {
   if (turned && kind !== "fine") outcome = "crowd_turned";
   const lethalByStones = (kind === "pillory" || kind === "stocks") && level === 3 && lethalAllowed(V) && chance(key(k, 5), 250000);
   const staging = makeStaging(V, cs, c, kind, attend, throwing, level, outcome, lethalByStones, anger, sympathy, k);
-  const ev = logEvent(V, "public_act", victim.id, cs.accuser, { kind, outcome, case: cs.id, level, throwers: throwing.length, crowd: n, staging: staging.id },
-    causes, staging.cue);
+  const act = { cue: staging.cue, s, cs: cs.id, kind, victim: victim.id, attend, anger: [...anger], sympathy: [...sympathy], throwing, level, outcome, lethalByStones, n, causes, staging: staging.id };
+  // the live game plays the act on the stage and resolves it when it ends (the player may step in); away
+  // from the player (and in every headless run) it resolves at once
+  if (V.live) { V.pending.push(act); return; }
+  applyPublic(V, act, "");
+}
+
+// The player's part in a public act, reported by the stage when the act ends: "" (watched, or not there),
+// "free" (cut the condemned loose in a rescue window) or "shield" (stood between the stones and them).
+export function resolvePublic(V, stagingId, intervention = "") {
+  const i = V.pending.findIndex((a) => a.staging === stagingId);
+  if (i < 0) return false;
+  applyPublic(V, V.pending.splice(i, 1)[0], intervention);
+  return true;
+}
+
+// what the player's rescue costs and earns: the accuser and the elder remember a stranger's face
+const STRANGER = -2;
+
+function applyPublic(V, act, intervention) {
+  const { s, kind, attend, throwing, n, causes } = act;
+  let { level, outcome, lethalByStones } = act;
+  const cs = V.cases[act.cs], c = V.crimes[cs.crime], victim = V.people[act.victim];
+  const anger = new Map(act.anger), sympathy = new Map(act.sympathy);
+  const def = C.PUBLIC[kind];
+  if (!victim.alive) { c.closed = true; return; }
+  if (intervention === "free" && outcome !== "crowd_turned") {
+    const ev = logEvent(V, "public_act", victim.id, STRANGER, { kind, outcome: "rescued", case: cs.id, level, throwers: throwing.length, crowd: n, staging: act.staging, by: "stranger" },
+      causes, `a stranger cutting ${nameOf(V, victim.id)} loose in front of the whole village, and the two of them running`);
+    V.stats.acts[kind] = (V.stats.acts[kind] ?? 0) + 1;
+    V.stats.outcomes.rescued = (V.stats.outcomes.rescued ?? 0) + 1;
+    V.stranger.standing -= def.shame * 10;
+    for (const id of [cs.accuser, V.authority]) if (id >= 0 && !V.stranger.enemies.includes(id)) V.stranger.enemies.push(id);
+    exile(V, victim.id, [ev], true, c.id);
+    finishCase(V, cs, c, kind, "rescued", [ev], false);
+    return;
+  }
+  if (intervention === "shield") { lethalByStones = false; if (level > 2) level = 2; V.stranger.standing += 10; }
+  const ev = logEvent(V, "public_act", victim.id, cs.accuser, { kind, outcome, case: cs.id, level, throwers: throwing.length, crowd: n, staging: act.staging },
+    causes, act.cue);
   V.stats.acts[kind] = (V.stats.acts[kind] ?? 0) + 1;
   V.stats.outcomes[outcome] = (V.stats.outcomes[outcome] ?? 0) + 1;
   noteAct(V, kind);
