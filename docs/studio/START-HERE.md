@@ -68,6 +68,7 @@ Hi Enea, and Enea's agents. This branch comes from Hilmi's studio: Hilmi, and Cl
 | `docs/studio/START-HERE.md` | This page |
 | `docs/studio/ROUTE-r4.md` | **The current route (29 Sep):** the game as settled, the vertical slice, the order of work, the multiplayer options, decisions and open questions |
 | `docs/studio/inputs/` | The owners' ideas as supplied (an AI summary, with Hilmi's own words) |
+| `docs/studio/VILLAGE-PLAN.md` | **The living village (29 Sep):** how the villages' crimes, trials, crowds, public acts, storms and ancestors are built, with the tradeoffs and what they cost on the S10 (`research/`, `evidence/s3/`) |
 | `docs/studio/NEXT.md` | Proposed next steps, and how to reply |
 | `docs/studio/ROUTE.md` | The proposal in full: the game, what it takes from other games, the behaviour system, storms, camera, cross-play between your iPhone and Hilmi's Android, sequencing |
 | `docs/studio/ROUTE-r2.md` | The earlier route. Still the reference for the world kernel, the villagers' minds, resets, and advice on your existing code |

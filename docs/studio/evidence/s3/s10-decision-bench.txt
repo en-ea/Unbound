@@ -1,0 +1,6 @@
+device: SM-G973F, ; Godot 4.7.2-stable (official)
+one decision (16 actions x 4 considerations, 4 targeted over 30 villagers, a rumour step, a heap reschedule): 69.95 us (median of 3 runs of 30,000)
+  -> 14 decisions per millisecond
+  a village day, 30 villagers deciding 24 times each: 50.4 ms; a village year: 18.38 s; 30 days away (catch-up): 1.51 s
+  a village day, 30 villagers deciding 96 times each: 201.5 ms; a village year: 73.54 s; 30 days away (catch-up): 6.04 s
+actions chosen (sanity - not one action always): 4068 98 6131 49770 791 713 338 184 99 81 76 4977 563 173 23292 1646

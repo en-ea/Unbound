@@ -352,6 +352,8 @@ Hilmi's domain runs on Cloudflare `[chat]`, so matchmaking, rooms and log storag
 | **M5** | **Multiplayer spike**: two phones, one boar, online. The S24 on 4G against the S10, on **two** backends (Cloudflare rooms and one other) | Latency and reliability measured; a backend chosen with evidence | Y3 (the S24); an Epic developer account only if EOS is one of the two |
 | **M6** | **Live together**: the chosen backend; host authority for enemies and hits; the world log in sync | 20 minutes on two phones with no divergence | M4, M5 |
 
+**M1 and M2 in detail** (the design, the tradeoffs, the S10 costs, and the build order M1a-M2c): `VILLAGE-PLAN.md`.
+
 **In parallel, Enea's layer:**
 - the lock-on and parry prototype, built to the multiplayer-ready rules (section 3.9);
 - the auto-use healing item and the loadout switch.

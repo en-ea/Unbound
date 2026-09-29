@@ -19,6 +19,7 @@ extends Node
 ##   --lab             go straight to the build lab
 ##   --kernel-bench    (studio branch) world-kernel conformance and timings, saved to user://studio-kernel.txt, then quit
 ##   --kernel-thread   (studio branch) the game's frame times with and without the kernel running on a worker thread
+##   --studio=name     (studio branch) run a studio spike on the device (scripts/studio/<name>.gd), then quit
 ##   --frame=explore   (studio branch) a camera framing: explore, fight, build (today's), vantage
 ##   --fog=60,400      (studio branch) fog begin and end in metres
 ##   --turntable[=90]  (studio branch) spin the camera a full turn twice (deg/s), record frame times, quit
@@ -140,6 +141,8 @@ func _ready() -> void:
 			_touch_test = true
 		elif arg == "--kernel-bench":                   # studio branch: the world kernel's conformance and timings, then quit
 			load("res://scripts/studio/kernel/bench.gd").on_device(get_tree())
+		elif arg.begins_with("--studio="):              # studio branch: run a studio spike on the device (e.g. village/decision_bench), then quit
+			load("res://scripts/studio/%s.gd" % arg.trim_prefix("--studio=")).on_device(get_tree())
 		elif arg == "--kernel-thread":                  # studio branch: frame times with the kernel on a worker thread, then quit
 			add_child(load("res://scripts/studio/kernel/thread_probe.gd").new())
 		elif arg.begins_with("--frame="):                 # studio branch: a camera framing (explore, fight, build, vantage)
