@@ -1,0 +1,8 @@
+command line: --xr_mode_regular --xr-mode off --fullscreen --background_color #000000 -- --studio=village/crowd_bench --crowd-body --crowd-short --frame=fight --at=2,24
+signed and verified: build/android/unbound-continuation-final-crowd-capped.apk
+command line: --xr_mode_regular --xr-mode off --fullscreen --background_color #000000 -- --studio=village/crowd_bench --crowd-body --crowd-short --crowd-uncapped --frame=fight --at=2,24
+signed and verified: build/android/unbound-continuation-final-crowd-uncapped.apk
+command line: --xr_mode_regular --xr-mode off --fullscreen --background_color #000000 -- --studio=village/sim/conformance
+signed and verified: build/android/unbound-continuation-final-conformance.apk
+command line: --xr_mode_regular --xr-mode off --fullscreen --background_color #000000 -- --studio=village/live --village-checks --test-save=s10-final-checks-unique
+signed and verified: build/android/unbound-continuation-final-checks.apk

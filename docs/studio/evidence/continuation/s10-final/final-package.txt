@@ -1,0 +1,1 @@
+package: name='com.unboundstudio.unbound.continuation' versionCode='1' versionName='0.0.1-studio' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'

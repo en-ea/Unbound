@@ -1,0 +1,4 @@
+device: SM-G973F; gl_compatibility; Godot 4.7.2-stable (official); VillagerBody (nearest 12 full, rest ~10 Hz without shadows); shadows on, animation on; fps cap 30
+ 0 walking villagers: 240 frames, median 33.4 ms, 95th 36.8 ms, worst 40.7 ms, over 50 ms: 0; draws 412, triangles 113k
+30 walking villagers: 239 frames, median 33.3 ms, 95th 37.3 ms, worst 79.5 ms, over 50 ms: 2; draws 413, triangles 178k
+45 walking villagers: 240 frames, median 33.4 ms, 95th 36.5 ms, worst 40.1 ms, over 50 ms: 0; draws 429, triangles 212k

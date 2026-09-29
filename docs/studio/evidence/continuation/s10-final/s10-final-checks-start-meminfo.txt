@@ -1,0 +1,51 @@
+Applications Memory Usage (in Kilobytes):
+Uptime: 75906616 Realtime: 84977437
+
+** MEMINFO in pid 30073 [com.unboundstudio.unbound.continuation] **
+                   Pss  Private  Private  SwapPss      Rss     Heap     Heap     Heap
+                 Total    Dirty    Clean    Dirty    Total     Size    Alloc     Free
+                ------   ------   ------   ------   ------   ------   ------   ------
+  Native Heap     5928     5892        0      144     6844    18984     8684     5375
+  Dalvik Heap      877      756        0      141     1896     4229     2181     2048
+ Dalvik Other     1534     1456        0       20     1812                           
+        Stack      340      340        0        0      348                           
+       Ashmem       34        0        0        0      692                           
+    Other dev       21        4       16        0      296                           
+     .so mmap     1421      112      184       29    25496                           
+    .jar mmap     1948        0      404        0    28764                           
+    .apk mmap       10        0        0        0      136                           
+    .dex mmap     6062     6052        0        0     6632                           
+    .oat mmap       59        0        0        0     2452                           
+    .art mmap     7571     7296        0       98    15820                           
+   Other mmap       10        8        0        0      624                           
+    GL mtrack        4        4        0        0        4                           
+      Unknown      319      292        0       10      700                           
+        TOTAL    26580    22212      604      442    92516    23213    10865     7423
+ 
+ App Summary
+                       Pss(KB)                        Rss(KB)
+                        ------                         ------
+           Java Heap:     8052                          17716
+         Native Heap:     5892                           6844
+                Code:     6752                          63528
+               Stack:      340                            348
+            Graphics:        4                              4
+       Private Other:     1776
+              System:     3764
+             Unknown:                                    4076
+ 
+           TOTAL PSS:    26580            TOTAL RSS:    92516       TOTAL SWAP PSS:      442
+ 
+ Objects
+               Views:        0         ViewRootImpl:        0
+         AppContexts:        5           Activities:        1
+              Assets:       16        AssetManagers:        0
+       Local Binders:        3        Proxy Binders:       38
+       Parcel memory:        4         Parcel count:       14
+    Death Recipients:        0      OpenSSL Sockets:        0
+            WebViews:        0
+ 
+ SQL
+         MEMORY_USED:        0
+  PAGECACHE_OVERFLOW:        0          MALLOC_SIZE:        0
+ 

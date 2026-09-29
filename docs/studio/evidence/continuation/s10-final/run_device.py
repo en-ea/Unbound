@@ -1,6 +1,7 @@
 """Bounded foreground Android measurements for the isolated Continuation package."""
 import argparse
 import json
+import re
 import subprocess
 import time
 from pathlib import Path
@@ -23,18 +24,22 @@ def snapshot(label, second):
     (OUT / f"{stem}-thermal.txt").write_text(adb("shell", "dumpsys", "thermalservice"), encoding="utf-8")
     (OUT / f"{stem}-window.txt").write_text(adb("shell", "dumpsys", "window"), encoding="utf-8")
     (OUT / f"{stem}-activity.txt").write_text(adb("shell", "dumpsys", "activity", "activities"), encoding="utf-8")
-    (OUT / f"{stem}-meminfo.txt").write_text(adb("shell", "dumpsys", "meminfo", PKG), encoding="utf-8")
+    mem = adb("shell", "dumpsys", "meminfo", PKG)
+    (OUT / f"{stem}-meminfo.txt").write_text(mem, encoding="utf-8")
+    match = re.search(r"Native Heap:\s*(\d+)", mem)
+    native_kb = int(match.group(1)) if match else -1
     print(f"sample {second}s captured", flush=True)
+    return native_kb
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("label", choices=["s10-arrival", "s10-normal"])
+    ap.add_argument("label", choices=["s10-arrival", "s10-normal", "s10-arrival-guard", "s10-normal-guard"])
     ap.add_argument("apk", type=Path)
     args = ap.parse_args()
     label = args.label
-    duration = 120 if label == "s10-arrival" else 900
-    points = [0, 40, 115] if duration == 120 else [0, 180, 360, 540, 720, 770, 895]
+    duration = 120 if "arrival" in label else 900
+    points = [0, 10, 30, 40, 55, 115] if duration == 120 else [0, 10, 30, 55, 180, 360, 540, 720, 770, 895]
     window = adb("shell", "dumpsys", "window")
     if "isKeyguardShowing=true" in window:
         raise RuntimeError("device keyguard is showing; unlock by hand before measurement")
@@ -45,7 +50,12 @@ def main():
     started = time.monotonic()
     for second in points:
         time.sleep(max(0, started + second - time.monotonic()))
-        snapshot(label, second)
+        native_kb = snapshot(label, second)
+        if native_kb > 2_000_000:
+            (OUT / f"{label}-abort.txt").write_text(f"native heap {native_kb} KB > 2,000,000 KB at {second}s\n", encoding="utf-8")
+            (OUT / f"{label}-logcat.txt").write_text(adb("logcat", "-d", "-v", "threadtime", timeout=120), encoding="utf-8")
+            adb("shell", "am", "force-stop", PKG)
+            raise RuntimeError(f"memory guard: native heap {native_kb} KB at {second}s")
     time.sleep(max(0, started + duration + 25 - time.monotonic()))
     (OUT / f"{label}-logcat.txt").write_text(adb("logcat", "-d", "-v", "threadtime", timeout=120), encoding="utf-8")
     probe_name = f"studio-measure-{label}.json"

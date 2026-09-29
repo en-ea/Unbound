@@ -1,0 +1,12 @@
+--------- beginning of main
+09-29 16:19:22.207 30467 30505 I godot   : Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+09-29 16:19:22.299 30467 30505 I godot   : OpenGL API OpenGL ES 3.2 v1.r32p1-01bet2-mbs2v39_0.131801e953429f661ecce1d5e1d2b3ef - Compatibility - Using Device: ARM - Mali-G76
+09-29 16:19:22.321 30467 30505 I godot   : 
+09-29 16:19:26.853 30467 30505 E godot   : WARNING: Image format RGBAFloat not supported by hardware, converting to RGBAHalf.
+09-29 16:19:26.853 30467 30505 E godot   :    at: _get_gl_image_and_format (drivers/gles3/storage/texture_storage.cpp:734)
+09-29 16:19:26.853 30467 30505 E godot   : WARNING: Image format RGBAFloat not supported by hardware, converting to RGBAHalf.
+09-29 16:19:26.853 30467 30505 E godot   :    at: _get_gl_image_and_format (drivers/gles3/storage/texture_storage.cpp:734)
+09-29 16:19:26.853 30467 30505 E godot   : WARNING: Image format RGBAFloat not supported by hardware, converting to RGBAHalf.
+09-29 16:19:26.853 30467 30505 E godot   :    at: _get_gl_image_and_format (drivers/gles3/storage/texture_storage.cpp:734)
+09-29 16:19:26.853 30467 30505 E godot   : WARNING: Image format RGBAFloat not supported by hardware, converting to RGBAHalf.
+09-29 16:19:26.853 30467 30505 E godot   :    at: _get_gl_image_and_format (drivers/gles3/storage/texture_storage.cpp:734)

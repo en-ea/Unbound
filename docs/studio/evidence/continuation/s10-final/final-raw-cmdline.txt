@@ -1,0 +1,6 @@
+--xr_mode_regular
+--xr-mode
+off
+--fullscreen
+--background_color
+#000000
