@@ -188,3 +188,11 @@ GV_ANGLE=-20 GV_DIST=5.5 ... res://scenes/tmp_view.tscn` (writes /tmp/claude-0/s
 - Masks: the "mask" slot in `CharacterLook.PARTS` (Face tab): kitsune, oni, hollow, built in make_hero.py (`plate()` follows the
   head; pieces `H_mask_<name>[_extra]` with fixed colours). Materials ending in "Glow" shine. Random looks get a mask 20% of the time.
 - Wren: `sun_hat` (level, wide brim, rounded crown), `leaf_cloak` (five rows of big leaves) + `leaf_ribs`.
+
+## Two-handed props, lab villagers
+- `player/two_hand_hold.gd`: a skeleton modifier that bends both arms (two-bone IK) so the hands grip a prop held low in
+  front (Wren's shears). NPC data: `"two_hands": true`; `CharacterVisual.set_two_hand(false)` while working. Prop models
+  from Blender come in with their long axis on +Y.
+- Build lab: the Lab board's VILLAGERS section shows any villager on a turntable, with Close-up / Whole body framing
+  (`build_lab.show_villager`). Dev: `--lab --villager=wren` (add `,far` for the whole body).
+- NPC walking (`world/npc.gd`): turns to face the next spot first, eases in and out; `"walk_speed"` per villager.
