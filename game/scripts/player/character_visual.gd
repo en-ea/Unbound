@@ -36,6 +36,8 @@ const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw"]
 
 var hero_look := CharacterLook.load_saved()
 var is_player_look := true      # the player takes height/build from the look; NPCs set their own scale
+var wear_gear := false          # show the player's worn armour over the look (off in the look picker)
+var _metal_tint := Color(0, 0, 0, 0)
 
 var _anim: AnimationPlayer
 var _skeleton: Skeleton3D
@@ -140,7 +142,7 @@ func show_tool(tool_name: String) -> void:
 func apply_hero_look() -> void:
 	if is_player_look:
 		scale = Vector3(hero_look.build, hero_look.height, hero_look.build)
-	var p := hero_look.parts
+	var p := _worn_parts()
 	var covered: bool = p["head"] in COVERING
 	for mi in _parts:
 		var n := String(mi.name)
@@ -167,6 +169,28 @@ func apply_hero_look() -> void:
 				mi.set_surface_override_material(s, _slot_material(src))
 
 
+## The look's parts, with worn armour on top when `wear_gear` is on: a helm (unless hidden), the
+## chestplate as the armour top, boots. Metal takes the colour of the armour's tier.
+## (Placeholder looks until each armour set gets its own model.)
+func _worn_parts() -> Dictionary:
+	var p := hero_look.parts.duplicate()
+	_metal_tint = Color(0, 0, 0, 0)
+	if not wear_gear:
+		return p
+	var chest := Armor.current("chest")
+	var helm := Armor.current("helm")
+	if not helm.is_empty() and Armor.show_helm:
+		p["head"] = "helm"
+	if not chest.is_empty():
+		p["top"] = "armor"
+	if not Armor.current("boots").is_empty():
+		p["feet"] = "boots"
+	var shown := chest if not chest.is_empty() else helm
+	if not shown.is_empty():
+		_metal_tint = Armor.TIERS[shown["tier"]]["color"]
+	return p
+
+
 ## One shared material per colour slot, using the world's faceted shader: the slot's colour times
 ## each face's small shade variation (stored in the model's UVs). Hit flashes use it too.
 func _slot_material(src: Material) -> ShaderMaterial:
@@ -179,6 +203,8 @@ func _slot_material(src: Material) -> ShaderMaterial:
 	var mat: ShaderMaterial = _slot_materials[slot]
 	if CharacterLook.PALETTES.has(slot):
 		mat.set_shader_parameter("albedo", hero_look.color(slot))
+	elif slot == "Metal" and _metal_tint.a > 0.0:
+		mat.set_shader_parameter("albedo", _metal_tint)
 	elif src is StandardMaterial3D:
 		mat.set_shader_parameter("albedo", (src as StandardMaterial3D).albedo_color)
 	return mat

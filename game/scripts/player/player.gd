@@ -75,11 +75,16 @@ func _ready() -> void:
 	stamina.name = "Stamina"
 	add_child(stamina)
 	_ready_drops()
+	visual.wear_gear = true               # worn armour shows over your look
+	Armor.changed.connect(visual.apply_hero_look)
+	visual.apply_hero_look.call_deferred()
 
 
 func _ready_drops() -> void:
 	Gear.tool_dropped.connect(func(slot: String, t: Dictionary) -> void:
 		TOOL_DROP.spawn(get_parent(), slot, t, global_position, self, false))
+	Armor.dropped.connect(func(slot: String, p: Dictionary) -> void:
+		TOOL_DROP.spawn(get_parent(), slot, p, global_position, self, false))
 
 
 ## The closest node in group "interactable" whose `reach` we are inside (it has `verb` and interact()).
@@ -148,6 +153,12 @@ func eat(item: String) -> void:
 		health_changed.emit(health, MAX_HEALTH)
 
 
+func heal(hearts: int) -> void:
+	if _down <= 0.0 and health < MAX_HEALTH:
+		health = mini(health + hearts, MAX_HEALTH)
+		health_changed.emit(health, MAX_HEALTH)
+
+
 func heal_full() -> void:
 	if _down <= 0.0:
 		health = MAX_HEALTH
@@ -156,6 +167,11 @@ func heal_full() -> void:
 
 func take_damage(amount: int) -> void:
 	if _roll > 0.0 or _down > 0.0 or _safe > 0.0:
+		return
+	if randf() < Armor.block_chance():        # armour took the whole hit
+		_safe = INVULNERABLE * 0.5
+		visual.flash()
+		get_tree().call_group("hud", "hint", "Blocked!")
 		return
 	if Food.has("sturdy"):
 		amount = maxi(amount - Balance.STURDY_BLOCK, 1)
@@ -178,7 +194,7 @@ func _physics_process(delta: float) -> void:
 		visual.visible = _safe <= 0.0 or fmod(_safe, 0.2) > 0.1      # blink while protected
 	if health < MAX_HEALTH and _since_hit > REGEN_DELAY and _down <= 0.0:
 		_regen += delta
-		if _regen >= REGEN_EVERY:
+		if _regen >= REGEN_EVERY / (1.0 + Armor.bonus_total("mending") / 100.0):
 			_regen = 0.0
 			health += 1
 			health_changed.emit(health, MAX_HEALTH)
@@ -221,6 +237,7 @@ func _physics_process(delta: float) -> void:
 		stamina.drain(delta)
 	if strength > 0.1:
 		var run := Balance.SPRINT_SPEED if sprinting else RUN_SPEED
+		run *= 1.0 + Armor.bonus_total("fleet") / 100.0
 		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
 	# The camera never rotates, so screen up is world -Z.
 	var dir := Vector3(move.x, 0.0, move.y).normalized()

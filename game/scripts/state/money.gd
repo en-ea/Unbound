@@ -54,7 +54,7 @@ func stock() -> Array:
 			var pick: Array = pool.pop_at(rng.randi() % pool.size())
 			var offer := {"item": pick[0], "amount": pick[1], "price": pick[2], "sold": false}
 			if pick[0] == "tool":
-				offer["tool"] = Gear.roll_found()
+				offer["tool"] = Gear.roll_found("trader")
 			_stock.append(offer)
 	return _stock
 
@@ -73,7 +73,7 @@ func buy(offer: Dictionary) -> bool:
 	spend(offer["price"])
 	offer["sold"] = true
 	if offer["item"] == "tool":
-		Gear.give(offer["tool"][0], offer["tool"][1])
+		Gear.take(offer["tool"][0], offer["tool"][1])
 	else:
 		Inventory.add(offer["item"], offer["amount"])
 	return true

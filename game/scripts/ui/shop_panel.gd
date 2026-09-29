@@ -173,7 +173,7 @@ func _offer(item: String, title: String, text: String, cost: Dictionary, coins: 
 	if item != "" and Items.DEFS.has(item) and Items.rarity_of(item) > 0:
 		edge = Items.RARITY_COLORS[Items.rarity_of(item)]
 	elif not tool.is_empty() and tool[1]["rarity"] > 0:
-		edge = Items.RARITY_COLORS[tool[1]["rarity"]]
+		edge = Loot.rarity_color(tool[1]["rarity"])
 	var v := _card(edge)
 	if item != "":
 		v.add_child(INVENTORY.item_icon(item, 64))

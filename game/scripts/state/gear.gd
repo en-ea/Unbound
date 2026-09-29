@@ -1,8 +1,8 @@
 extends Node
 ## Your tools, weapon and bag (game state, no visuals). Each tool is a small record: its tier
-## (Worn, Stone, Copper, Iron), its rarity (0 common = crafted, 1 uncommon, 2 rare = found) and
-## its bonuses. One per slot is equipped; with none you use your fists. Every change goes through
-## craft(), give(), equip(), drop_tool() and craft_bag().
+## (Worn, Stone, Copper, Iron, Steel), its rarity (Common = crafted, up to Mythic; see Loot) and its
+## bonuses {id: value}. One per slot is equipped; with none you use your fists. Every change goes
+## through craft(), give(), equip(), drop_tool() and craft_bag(). Armour lives in Armor.
 
 signal changed
 signal tool_dropped(slot: String, tool: Dictionary)
@@ -11,9 +11,9 @@ const SLOTS := {"axe": "Axe", "pickaxe": "Pickaxe", "sword": "Sword"}
 ## power: hits taken off a tree or rock per swing; damage: sword damage (boar 10, wolf 6);
 ## speed: swing speed multiplier. Every tier is a clear step up. Fists: power 1, damage 1.
 const TIERS := Balance.TIERS
-## Bonuses found tools can roll: Swift swings 15% faster, Mighty hits 1 harder, Lucky gives a
-## 20% chance of an extra drop. Rare tools have two. [adjective, noun] for the name.
-const BONUSES := {"swift": ["Swift", "Haste"], "mighty": ["Mighty", "Might"], "lucky": ["Lucky", "Luck"]}
+## Which loot kind each slot is (for bonuses).
+const KIND := {"axe": "tool", "pickaxe": "tool", "sword": "weapon"}
+const CRIT_MULT := 2.0
 ## What a tier unlocks for a tool, shown at the workbench.
 const PERKS := {"pickaxe": {1: "Mines copper ore", 2: "Mines iron ore"}}
 ## What each tool costs at the workbench, and the bags (numbers in Balance).
@@ -26,8 +26,13 @@ var bag := 0
 var unlocked := {"axe": 0, "pickaxe": 0, "sword": 0}   # best tier you have ever had
 
 
-static func _tool(tier_index: int, rarity := 0, bonuses: Array = []) -> Dictionary:
-	return {"tier": tier_index, "rarity": rarity, "bonuses": bonuses}
+static func _tool(tier_index: int, rarity := 0, bonuses := {}) -> Dictionary:
+	return {"tier": tier_index, "rarity": rarity, "bonuses": bonuses, "seed": randi() % 100000}
+
+
+## A bonus's value on the equipped tool (0 without it).
+func bonus(slot: String, id: String) -> int:
+	return current(slot).get("bonuses", {}).get(id, 0)
 
 
 ## The equipped tool's record, or {} when you have none.
@@ -44,25 +49,39 @@ func power(slot: String) -> int:
 	var t := current(slot)
 	if t.is_empty():
 		return 1
-	return TIERS[t["tier"]]["power"] + (1 if "mighty" in t["bonuses"] else 0)
+	return roundi(TIERS[t["tier"]]["power"] * Loot.stat(t["rarity"])) + bonus(slot, "mighty")
 
 
+## Weapon damage per hit: tier x rarity x Sharp, plus skill and food.
 func damage() -> int:
 	var t := current("sword")
-	var base: int = 1 if t.is_empty() else TIERS[t["tier"]]["damage"] + (1 if "mighty" in t["bonuses"] else 0)
+	var base := 1
+	if not t.is_empty():
+		base = roundi(TIERS[t["tier"]]["damage"] * Loot.stat(t["rarity"]) * (1.0 + bonus("sword", "sharp") / 100.0))
 	return base + Skills.damage_bonus() + (Balance.STRONG_DAMAGE if Food.has("strong") else 0)
+
+
+## One hit's damage, with Keen's chance of a critical: [damage, was_crit].
+func hit_damage(multiplier := 1.0) -> Array:
+	var crit := randf() < bonus("sword", "keen") / 100.0
+	return [ceili(damage() * multiplier * (CRIT_MULT if crit else 1.0)), crit]
+
+
+## Chance that a hit heals a heart (Vampiric).
+func lifesteal() -> float:
+	return bonus("sword", "vampiric") / 100.0
 
 
 func speed(slot: String) -> float:
 	var t := current(slot)
 	if t.is_empty():
 		return 1.0
-	return TIERS[t["tier"]]["speed"] * (1.15 if "swift" in t["bonuses"] else 1.0)
+	return TIERS[t["tier"]]["speed"] * (1.0 + bonus(slot, "swift") / 100.0)
 
 
-## Chance of an extra drop from the tool's Lucky bonus.
+## Chance of an extra drop: the tool's Lucky bonus plus any on your armour.
 func luck(slot: String) -> float:
-	return 0.2 if "lucky" in current(slot).get("bonuses", []) else 0.0
+	return (bonus(slot, "lucky") + Armor.bonus_total("lucky")) / 100.0
 
 
 func color(slot: String) -> Color:
@@ -70,17 +89,30 @@ func color(slot: String) -> Color:
 	return TIERS[t]["color"] if t >= 0 else Color.WHITE
 
 
-## "Swift Copper Axe", "Mighty Iron Sword of Luck", or "Fists".
+## "Swift Copper Axe", "Sharp Iron Sword of Haste", "Emberfang, Steel Sword", or "Fists".
+## Works for armour too (the slot says which).
 static func name_of(slot: String, t: Dictionary) -> String:
+	if Armor.SLOTS.has(slot):
+		return Armor.name_of(slot, t)
 	if t.is_empty():
 		return "Fists"
-	var base := "%s %s" % [TIERS[t["tier"]]["name"], SLOTS[slot]]
-	var b: Array = t["bonuses"]
-	if b.size() >= 1:
-		base = "%s %s" % [BONUSES[b[0]][0], base]
-	if b.size() >= 2:
-		base = "%s of %s" % [base, BONUSES[b[1]][1]]
-	return base
+	return Loot.name_for("%s %s" % [TIERS[t["tier"]]["name"], SLOTS[slot]], t)
+
+
+## One line per bonus, for the Bag and the pickup card.
+static func bonus_lines(t: Dictionary) -> Array[String]:
+	var out: Array[String] = []
+	for id: String in t.get("bonuses", {}):
+		out.append(Loot.bonus_text(id, t["bonuses"][id]))
+	return out
+
+
+## The action: a found piece of gear (a tool, the weapon or armour) joins your gear.
+func take(slot: String, t: Dictionary) -> void:
+	if Armor.SLOTS.has(slot):
+		Armor.give(slot, t)
+	else:
+		give(slot, t)
 
 
 static func tool_name(slot: String, tier_index: int) -> String:
@@ -142,9 +174,14 @@ func give(slot: String, t: Dictionary) -> void:
 	owned[slot].append(t)
 	unlocked[slot] = maxi(unlocked[slot], t["tier"])
 	var now := current(slot)
-	if now.is_empty() or t["tier"] > now["tier"] or (t["tier"] == now["tier"] and t["rarity"] > now["rarity"]):
+	if now.is_empty() or score(t) > score(now):
 		equipped[slot] = owned[slot].size() - 1
 	changed.emit()
+
+
+## How good a piece is overall, for "is this better?" (tier first, then rarity).
+static func score(t: Dictionary) -> float:
+	return t.get("tier", -1) * 1.0 + Loot.stat(t.get("rarity", 0)) - 1.0 + t.get("bonuses", {}).size() * 0.05
 
 
 ## The action: switch to another tool you own.
@@ -154,32 +191,39 @@ func equip(slot: String, index: int) -> void:
 		changed.emit()
 
 
-## The action: put down the equipped tool (it lands in the world, see tool_drop.gd); the best one
-## left takes its place, or fists.
-func drop_tool(slot: String) -> void:
-	var i: int = equipped[slot]
-	if i < 0:
+## The action: put down a tool (the equipped one unless `index` says another); it lands in the
+## world (see tool_drop.gd). If it was the equipped one, the best one left takes its place, or fists.
+func drop_tool(slot: String, index := -1) -> void:
+	var i: int = equipped[slot] if index < 0 else index
+	if i < 0 or i >= owned[slot].size():
 		return
 	var t: Dictionary = owned[slot][i]
 	owned[slot].remove_at(i)
 	tool_dropped.emit(slot, t)
+	if i != equipped[slot]:
+		if equipped[slot] > i:
+			equipped[slot] -= 1
+		changed.emit()
+		return
 	var best := -1
 	for k in owned[slot].size():
-		if best < 0 or owned[slot][k]["tier"] > owned[slot][best]["tier"]:
+		if best < 0 or score(owned[slot][k]) > score(owned[slot][best]):
 			best = k
 	equipped[slot] = best
 	changed.emit()
 
 
-## A random tool found in a chest or on an enemy: around the tiers you have, sometimes one
-## better; uncommon (one bonus) or rare (two). Returns [slot, tool].
-func roll_found() -> Array:
-	var slot: String = SLOTS.keys().pick_random()
+## A random piece of gear found in a chest, on an enemy or at the trader (`source` sets the rarity
+## odds, see Balance.LOOT_ODDS): a weapon, a gathering tool or armour, around the tiers you have,
+## sometimes one better. Returns [slot, record].
+func roll_found(source := "enemy") -> Array:
+	var kind := Loot.roll_kind()
+	var rarity := Loot.roll_rarity(source)
+	if kind == "armor":
+		return Armor.roll(rarity)
+	var slot: String = "sword" if kind == "weapon" else ["axe", "pickaxe"].pick_random()
 	var t := clampi(unlocked[slot] + (1 if randf() < Balance.FOUND_TIER_UP else -randi_range(0, 1)), 0, TIERS.size() - 1)
-	var rare := randf() < Balance.FOUND_RARE
-	var pool := BONUSES.keys()
-	pool.shuffle()
-	return [slot, _tool(t, 2 if rare else 1, pool.slice(0, 2 if rare else 1))]
+	return [slot, _tool(t, rarity, Loot.roll_bonuses(KIND[slot], rarity))]
 
 
 func bag_slots() -> int:
@@ -207,8 +251,10 @@ func load_data(data: Dictionary) -> void:
 		owned[slot] = []
 		for entry: Variant in list:
 			if entry is Dictionary:
-				var bonuses: Array = entry.get("bonuses", []).filter(func(b: Variant) -> bool: return BONUSES.has(b))
-				owned[slot].append(_tool(clampi(int(entry.get("tier", 0)), 0, TIERS.size() - 1), clampi(int(entry.get("rarity", 0)), 0, 2), bonuses))
+				var rarity := clampi(int(entry.get("rarity", 0)), 0, Loot.MYTHIC)
+				var t := _tool(clampi(int(entry.get("tier", 0)), 0, TIERS.size() - 1), rarity, Loot.clean_bonuses(entry.get("bonuses", {}), rarity))
+				t["seed"] = int(entry.get("seed", t["seed"]))
+				owned[slot].append(t)
 			else:
 				owned[slot].append(_tool(clampi(int(entry), 0, TIERS.size() - 1)))
 		var e := int(data.get("equipped", {}).get(slot, 0))

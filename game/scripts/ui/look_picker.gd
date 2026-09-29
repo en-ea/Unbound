@@ -35,6 +35,8 @@ func open(visual: CharacterVisual, camera_rig: Node3D) -> void:
 	_visual = visual
 	_camera_rig = camera_rig
 	Controls.locked = true
+	_visual.wear_gear = false        # show the outfit being edited, not the armour over it
+	_visual.apply_hero_look()
 	var turn := create_tween().set_trans(Tween.TRANS_SINE)
 	turn.tween_method(func(a: float) -> void: _visual.rotation.y = a, _visual.rotation.y, 0.0, 0.5)
 	_add_ring()
@@ -285,6 +287,8 @@ func _add_ring() -> void:
 
 func _close() -> void:
 	_visual.hero_look.save()
+	_visual.wear_gear = true
+	_visual.apply_hero_look()
 	if is_instance_valid(_ring):
 		_ring.queue_free()
 	Controls.locked = false

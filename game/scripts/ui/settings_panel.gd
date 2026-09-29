@@ -134,6 +134,16 @@ func _cheat_page() -> void:
 		["Steel tools", func() -> void:
 			for slot: String in Gear.SLOTS:
 				Gear.give(slot, Gear._tool(Gear.TIERS.size() - 1))],
+		["Random gear ×6", func() -> void:
+			for i in 6:
+				var found := Gear.roll_found("elite")
+				Gear.take(found[0], found[1])],
+		["One of each rarity", func() -> void:           # swords, Common to Mythic
+			for r in Loot.MYTHIC + 1:
+				Gear.take("sword", Gear._tool(3, r, Loot.roll_bonuses("weapon", r)))],
+		["Armour set (Epic)", func() -> void:
+			for slot: String in Armor.SLOTS:
+				Armor.give(slot, Armor.piece(3, Loot.EPIC, Loot.roll_bonuses("armor", Loot.EPIC)))],
 		["Build all projects", func() -> void:
 			for id: String in Projects.DEFS:
 				if not Projects.is_built(id):

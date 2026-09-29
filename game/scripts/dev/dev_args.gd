@@ -57,6 +57,17 @@ func _ready() -> void:
 				Inventory.add(item, 5)
 			var hud := get_node("../HUD")
 			(hud.open_crafting if arg == "--craft" else hud.open_bag).call_deferred()
+		elif arg == "--loot":                          # a sword of every rarity, an Epic armour set, and --bag opens on Gear
+			for r in Loot.MYTHIC + 1:
+				Gear.take("sword", Gear._tool(3, r, Loot.roll_bonuses("weapon", r)))
+			for slot: String in Armor.SLOTS:
+				Armor.give(slot, Armor.piece(3, Loot.EPIC, Loot.roll_bonuses("armor", Loot.EPIC)))
+			get_tree().create_timer(0.5).timeout.connect(func() -> void:
+				for panel in get_tree().root.find_children("*", "Control", true, false):
+					if panel.get("_filter") != null and panel.has_method("_refresh_gear_grid"):
+						panel._filter = "gear"
+						panel._selected = "gear:sword:0"
+						panel._refresh())
 		elif arg.begins_with("--time="):
 			day_night.time_of_day = float(arg.trim_prefix("--time="))
 		elif arg.begins_with("--walk="):

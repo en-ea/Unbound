@@ -1,13 +1,14 @@
 extends Control
-## The Bag. Left: your equipped tools (tap another one you own to switch; Drop) and your skills.
-## Right: your items as a tidy grid, filtered by All / Materials / Food / Loot. Tap an item to see
-## what it's for, what the trader pays, and (for food) eat it. Reads Inventory, Gear and Skills.
+## The Bag. Left: what you have on (weapon, tools, armour; tap one to see it), your defence and
+## your skills. Right: your items as a tidy grid, filtered by All / Materials / Food / Loot, or your
+## Gear (every weapon, tool and armour piece you own). Tap an item to see what it's for, what the
+## trader pays, and (for food) eat it; tap gear to compare, equip or drop it (see GearView).
+## Reads Inventory, Gear, Armor and Skills.
 
 signal closed
 
 const COLUMNS := 5
-const CRAFTING := preload("res://scripts/ui/crafting_panel.gd")
-const FILTERS := {"all": "All", "material": "Materials", "food": "Food", "loot": "Loot"}
+const FILTERS := {"all": "All", "material": "Materials", "food": "Food", "loot": "Loot", "gear": "Gear"}
 
 var _grid: GridContainer
 var _empty: Label
@@ -50,10 +51,16 @@ func _ready() -> void:
 	body.add_theme_constant_override("separation", 18)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(body)
+	var left := ScrollContainer.new()
+	left.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	left.scroll_deadzone = 8
+	left.custom_minimum_size.x = 300
+	body.add_child(left)
 	_gear = VBoxContainer.new()
-	_gear.add_theme_constant_override("separation", 8)
-	_gear.custom_minimum_size.x = 300
-	body.add_child(_gear)
+	_gear.add_theme_constant_override("separation", 6)
+	_gear.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_gear.mouse_filter = Control.MOUSE_FILTER_PASS
+	left.add_child(_gear)
 	var right := VBoxContainer.new()
 	right.add_theme_constant_override("separation", 10)
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -89,73 +96,32 @@ func _ready() -> void:
 	right.add_child(_detail)
 	Inventory.changed.connect(_on_changed)
 	ItemIcons.icon_ready.connect(_on_icon_ready)
-	Gear.changed.connect(_refresh_gear)
+	Gear.changed.connect(_on_gear_changed)
+	Armor.changed.connect(_on_gear_changed)
 	_refresh()
 	_refresh_gear()
 
 
-## "Equipped": a tile per tool (picture, full name, a frame in its rarity colour, a small Drop
-## button); your other tools sit under it as small pictures, tap one to switch. Then the skills.
+func _on_gear_changed() -> void:
+	_refresh_gear()
+	if _filter == "gear":
+		_refresh()
+
+
+## "On you": a row per slot (weapon, tools, armour) with its main number; tap one to see it in the
+## Gear tab. Then your defence and the skills.
 func _refresh_gear() -> void:
 	for c in _gear.get_children():
 		c.queue_free()
-	UIStyle.label(_gear, "EQUIPPED", 15, true)
-	var row := VBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	_gear.add_child(row)
-	for slot: String in Gear.SLOTS:
-		var tool := Gear.current(slot)
-		var tile := PanelContainer.new()
-		var box := StyleBoxFlat.new()
-		box.bg_color = Color(1, 1, 1, 0.07)
-		box.set_corner_radius_all(16)
-		box.border_color = Items.RARITY_COLORS[tool.get("rarity", 0)] if tool.get("rarity", 0) > 0 else Color(1, 1, 1, 0.25)
-		box.set_border_width_all(3)
-		box.set_content_margin_all(8)
-		tile.add_theme_stylebox_override("panel", box)
-		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tile.mouse_filter = Control.MOUSE_FILTER_PASS
-		row.add_child(tile)
-		var h := HBoxContainer.new()
-		h.add_theme_constant_override("separation", 8)
-		tile.add_child(h)
-		if tool.is_empty():
-			var fist := UIStyle.label(h, "Hands", 15, true)
-			fist.custom_minimum_size = Vector2(64, 64)
-			fist.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			fist.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		else:
-			h.add_child(CRAFTING.tool_picture(slot, tool["tier"], 56))
-		var info := VBoxContainer.new()
-		info.alignment = BoxContainer.ALIGNMENT_CENTER
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		h.add_child(info)
-		var name_label := UIStyle.label(info, Gear.name_of(slot, tool), 16)
-		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		name_label.custom_minimum_size.x = 120
-		var others := HBoxContainer.new()
-		others.add_theme_constant_override("separation", 4)
-		info.add_child(others)
-		for k in Gear.owned[slot].size():
-			if k == Gear.equipped[slot]:
-				continue
-			var o: Dictionary = Gear.owned[slot][k]
-			var b := Button.new()
-			b.flat = true
-			b.custom_minimum_size = Vector2(38, 38)
-			b.icon = ItemIcons.tool_icon(slot, o["tier"])
-			b.expand_icon = true
-			if o["rarity"] > 0:
-				b.modulate = Items.RARITY_COLORS[o["rarity"]].lightened(0.3)
-			b.pressed.connect(Gear.equip.bind(slot, k))
-			others.add_child(b)
-		if not tool.is_empty():
-			var drop := UIStyle.button(others, "Drop", Vector2(64, 34), 14)
-			drop.pressed.connect(func() -> void:
-				if drop.text == "Sure?":
-					Gear.drop_tool(slot)
-				else:
-					drop.text = "Sure?")
+	UIStyle.label(_gear, "ON YOU", 15, true)
+	for slot: String in GearView.SLOT_ORDER:
+		_gear.add_child(GearView.worn_row(slot, func() -> void:
+			_filter = "gear"
+			var i := GearView.equipped_index(slot)
+			_selected = "gear:%s:%d" % [slot, i] if i >= 0 else ""
+			_refresh()))
+	var def := UIStyle.label(_gear, "Defence %d  ·  blocks %d%% of hits" % [Armor.defence(), roundi(Armor.block_chance() * 100.0)], 14, true)
+	def.visible = Armor.defence() > 0
 	# Skills: name, level and a bar each.
 	UIStyle.label(_gear, "SKILLS", 15, true)
 	var skills := VBoxContainer.new()
@@ -184,7 +150,7 @@ func _refresh_gear() -> void:
 func _on_icon_ready(item: String) -> void:
 	if item.begins_with("tool:"):
 		_refresh_gear()
-	else:
+	if _filter == "gear" or not item.begins_with("tool:"):
 		_refresh()
 
 
@@ -205,11 +171,41 @@ func _refresh() -> void:
 			_refresh())
 	for c in _grid.get_children():
 		c.queue_free()
+	if _filter == "gear":
+		_refresh_gear_grid()
+		return
+	if _selected.begins_with("gear:"):
+		_selected = ""
 	var items := Inventory.items().filter(func(i: String) -> bool: return _filter == "all" or Items.kind_of(i) == _filter)
 	_empty.visible = items.is_empty()
 	for item: String in items:
 		_grid.add_child(_card(item))
 	if _selected != "" and Inventory.count(_selected) <= 0:
+		_selected = ""
+	_show_detail()
+
+
+## The Gear tab: every piece you own, slot by slot, what you have on first.
+func _refresh_gear_grid() -> void:
+	var any := false
+	for slot: String in GearView.SLOT_ORDER:
+		var list := GearView.owned(slot)
+		var order: Array[int] = []
+		for i in list.size():
+			order.append(i)
+		order.sort_custom(func(a: int, b: int) -> bool: return (a == GearView.equipped_index(slot)) and b != a)
+		for i in order:
+			var key := "gear:%s:%d" % [slot, i]
+			_grid.add_child(GearView.card(slot, i, key == _selected, func() -> void:
+				_selected = key
+				_refresh()))
+			any = true
+	_empty.visible = not any
+	if _selected.begins_with("gear:"):
+		var bits := _selected.split(":")
+		if int(bits[2]) >= GearView.owned(bits[1]).size():
+			_selected = ""
+	elif _selected != "":
 		_selected = ""
 	_show_detail()
 
@@ -254,8 +250,12 @@ func _show_detail() -> void:
 	for c in _detail.get_children():
 		c.queue_free()
 	if _selected == "":
-		var hint := UIStyle.label(_detail, "Tap an item to see what it's for.", 16, true)
+		var hint := UIStyle.label(_detail, "Tap gear to compare and equip it." if _filter == "gear" else "Tap an item to see what it's for.", 16, true)
 		hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		return
+	if _selected.begins_with("gear:"):
+		var bits := _selected.split(":")
+		GearView.fill_detail(_detail, bits[1], int(bits[2]))
 		return
 	var item := _selected
 	var h := HBoxContainer.new()
@@ -315,6 +315,7 @@ static func item_icon(item: String, size: float) -> Control:
 func _close() -> void:
 	Inventory.changed.disconnect(_on_changed)
 	ItemIcons.icon_ready.disconnect(_on_icon_ready)
-	Gear.changed.disconnect(_refresh_gear)
+	Gear.changed.disconnect(_on_gear_changed)
+	Armor.changed.disconnect(_on_gear_changed)
 	closed.emit()
 	queue_free()

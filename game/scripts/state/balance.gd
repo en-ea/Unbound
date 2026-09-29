@@ -61,10 +61,54 @@ const BAGS := [
 	{"name": "Leather Bag", "slots": 16, "cost": {"hide": 8, "wood": 8, "flint": 4}},
 	{"name": "Traveller's Pack", "slots": 22, "cost": {"pelt": 8, "hide": 8, "resin": 3, "fang": 2}},
 ]
-## Found tools: how often chests have one, how often it's a tier up, how often it's rare.
+## Found gear: how often chests have a piece, and how often it's a tier above the best you've had.
 const CHEST_TOOL := 0.4
 const FOUND_TIER_UP := 0.15
-const FOUND_RARE := 0.25
+
+# --- loot: rarities, what rolls where, bonuses, armour -----------------------------------------
+## stat: multiplies the piece's main number (damage, power, defence); bonuses: how many it rolls.
+const RARITIES := [
+	{"name": "Common", "color": Color(0.86, 0.86, 0.82), "bonuses": 0, "stat": 1.0},
+	{"name": "Uncommon", "color": Color(0.46, 0.86, 0.4), "bonuses": 1, "stat": 1.05},
+	{"name": "Rare", "color": Color(0.36, 0.62, 1.0), "bonuses": 2, "stat": 1.1},
+	{"name": "Epic", "color": Color(0.72, 0.42, 0.98), "bonuses": 2, "stat": 1.18},
+	{"name": "Legendary", "color": Color(1.0, 0.64, 0.18), "bonuses": 3, "stat": 1.28},
+	{"name": "Mythic", "color": Color(1.0, 0.3, 0.46), "bonuses": 3, "stat": 1.4},
+]
+## Once a source drops gear, the odds (weights) of each rarity, Common to Mythic.
+const LOOT_ODDS := {
+	"enemy": [55, 30, 11, 3.2, 0.7, 0.1],
+	"elite": [20, 34, 28, 13, 4.2, 0.8],        # shadow wolves (later: champions)
+	"chest": [28, 34, 24, 10, 3.4, 0.6],
+	"trader": [0, 55, 33, 12, 0, 0],
+}
+## Which kind of gear a find is (weights): weapon, gathering tool, armour.
+const LOOT_KINDS := {"weapon": 40, "tool": 25, "armor": 35}
+## Bonuses: which gear can roll them, the value range (low at Common, high at Mythic), and the text.
+## The numbers are plain stats, read by fighting, gathering and movement, whatever form those take.
+const BONUSES := {
+	"sharp": {"on": ["weapon"], "range": [6, 30], "text": "+%d%% damage", "adj": "Sharp", "noun": "Edges"},
+	"keen": {"on": ["weapon"], "range": [4, 20], "text": "%d%% critical hits", "adj": "Keen", "noun": "Precision"},
+	"vampiric": {"on": ["weapon"], "range": [3, 12], "text": "%d%% chance a hit heals", "adj": "Vampiric", "noun": "Hunger"},
+	"swift": {"on": ["weapon", "tool"], "range": [5, 22], "text": "+%d%% swing speed", "adj": "Swift", "noun": "Haste"},
+	"mighty": {"on": ["tool"], "range": [1, 3], "text": "+%d gathering power", "adj": "Mighty", "noun": "Might"},
+	"lucky": {"on": ["tool", "armor"], "range": [6, 25], "text": "+%d%% extra drops", "adj": "Lucky", "noun": "Luck"},
+	"sturdy": {"on": ["armor"], "range": [1, 4], "text": "+%d defence", "adj": "Sturdy", "noun": "Stone"},
+	"fleet": {"on": ["armor"], "range": [3, 12], "text": "+%d%% move speed", "adj": "Fleet", "noun": "Wind"},
+	"mending": {"on": ["armor"], "range": [10, 40], "text": "Hearts return %d%% faster", "adj": "Mending", "noun": "Life"},
+}
+## Armour: one tier list for helm, chest and boots; defence per piece is tier defence x the piece's share.
+const ARMOR_TIERS := [
+	{"name": "Padded", "defence": 1, "color": Color(0.72, 0.62, 0.46)},
+	{"name": "Hide", "defence": 2, "color": Color(0.5, 0.36, 0.26)},
+	{"name": "Copper", "defence": 3, "color": Color(0.9, 0.52, 0.3)},
+	{"name": "Iron", "defence": 4, "color": Color(0.82, 0.86, 0.92)},
+	{"name": "Steel", "defence": 6, "color": Color(0.55, 0.72, 0.95)},
+]
+const ARMOR_SHARE := {"helm": 1.0, "chest": 2.0, "boots": 1.0}
+## Defence turns into a chance that a hit costs no heart: defence / (defence + ARMOR_HALF).
+## (So 15 defence blocks 1 hit in 3.) Easy to swap for another rule if fighting changes.
+const ARMOR_HALF := 30.0
 
 # --- resources: hits, seconds to grow back, reach, tool, drops [item, min, max, chance] -------
 const RESOURCES := {

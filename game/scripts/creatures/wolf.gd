@@ -186,7 +186,7 @@ func _die() -> void:
 	var stats: Dictionary = Balance.SHADOW_WOLF if shadow else Balance.WOLF
 	Skills.add("combat", stats["xp"])
 	if randf() < stats["tool"]:                       # now and then it was carrying a tool
-		var found := Gear.roll_found()
+		var found := Gear.roll_found("elite" if shadow else "enemy")
 		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.5))

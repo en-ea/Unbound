@@ -49,10 +49,11 @@ const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 
 static var _meshes := {}
 
+## Materials use the same rarity colours as gear (Balance.RARITIES); common is a faint white.
 const RARITY_COLORS := {
 	Rarity.COMMON: Color(1, 1, 1, 0.25),
-	Rarity.UNCOMMON: Color(0.55, 0.9, 0.5),
-	Rarity.RARE: Color(1.0, 0.78, 0.3),
+	Rarity.UNCOMMON: Color(0.46, 0.86, 0.4),
+	Rarity.RARE: Color(0.36, 0.62, 1.0),
 }
 
 

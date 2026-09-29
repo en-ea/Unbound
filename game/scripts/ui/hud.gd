@@ -261,10 +261,9 @@ func _on_skill_leveled(skill: String, level: int) -> void:
 	_fanfare.play()
 
 
-## A tool turned up in a chest or on an enemy.
+## Gear turned up in a chest or on an enemy.
 func found_tool(slot: String, tool: Dictionary) -> void:
-	var rarity: String = ["Common", "Uncommon", "Rare"][tool["rarity"]]
-	hint("New tool: %s (%s)" % [Gear.name_of(slot, tool), rarity])
+	hint("Found: %s (%s)" % [Gear.name_of(slot, tool), Loot.rarity_name(tool["rarity"])])
 	_fanfare.pitch_scale = 0.9
 	_fanfare.play()
 
