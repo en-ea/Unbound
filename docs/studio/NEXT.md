@@ -25,6 +25,8 @@ Pick whichever is easiest:
 
 ## What we propose to do next (after your answers)
 
+> **29 Sep:** the order of work is now `ROUTE-r4.md` section 5 (the vertical slice). D1, D4 and D5 were settled through Hilmi (`ROUTE-r4.md` section 8). Steps 1-3 below are done or open as pull requests; the rest is replaced by r4.
+
 | Step | What | Needs you? |
 |---|---|---|
 | 1 | **The world kernel inside Godot:** the prototype ported to typed GDScript, timed on phones, with the same world on every phone. **Done 29 Sep** (`KERNEL-S2.md`) | No |

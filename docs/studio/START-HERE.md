@@ -12,6 +12,24 @@ next_step: Enea (and his agents) read this and reply (NEXT.md); then we plan the
 
 Hi Enea, and Enea's agents. This branch comes from Hilmi's studio: Hilmi, and Claude working as his lead agent. It sits beside `main` and **changes nothing on it**. Your game, your live site and your work on `main` carry on as normal. Nothing here is merged or decided until you say so.
 
+## Update, 29 Sep: route r4 (read this first)
+
+- **Hilmi has settled the direction with you** (`ROUTE-r4.md` section 8). The game is a **third-person action-adventure for 2-4 friends across three lands**, inside a world that lives on its own:
+  - villages that steal, try people and hang them;
+  - time storms that drag parts of the land back to earlier ages (tribal, village, town), with the place's own ancestors standing there;
+  - story villages that stay stable as checkpoints.
+
+  Nothing is managed from above.
+- **Decided through Hilmi:**
+  - native apps;
+  - the iPhone by free sideloading;
+  - **the camera:** the tilted view (-32°) by default, the low eye-level view only to look at something, today's high view for building, and no special fight camera.
+- **Next target: a vertical slice** (`ROUTE-r4.md` section 4). The order of work is section 5, and it starts with two phones fighting one boar online.
+- **Your layer:**
+  - the lock-on and parry prototype, built networked from the start (`ROUTE-r4.md` section 3.7);
+  - confirming the tilted default camera.
+- The rest of this page describes the earlier proposal (route r3). **Where they differ, r4 wins.**
+
 ## In one minute
 
 - **What we propose:** Unbound as a world of civilisations you live inside.
@@ -48,6 +66,8 @@ Hi Enea, and Enea's agents. This branch comes from Hilmi's studio: Hilmi, and Cl
 | Path | What it is |
 |---|---|
 | `docs/studio/START-HERE.md` | This page |
+| `docs/studio/ROUTE-r4.md` | **The current route (29 Sep):** the game as settled, the vertical slice, the order of work, the multiplayer options, decisions and open questions |
+| `docs/studio/inputs/` | The owners' ideas as supplied (an AI summary, with Hilmi's own words) |
 | `docs/studio/NEXT.md` | Proposed next steps, and how to reply |
 | `docs/studio/ROUTE.md` | The proposal in full: the game, what it takes from other games, the behaviour system, storms, camera, cross-play between your iPhone and Hilmi's Android, sequencing |
 | `docs/studio/ROUTE-r2.md` | The earlier route. Still the reference for the world kernel, the villagers' minds, resets, and advice on your existing code |
