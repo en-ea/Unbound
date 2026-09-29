@@ -104,6 +104,18 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 	if not accused.alive or not accused.present:
 		c.closed = true
 		return
+	if not V.runtime.is_empty() and not V.runtime.get("resolving", false):
+		var pending_judge := V.authority if V.authority != cs.accused else V.priest
+		var pending_stage := make_trial_staging(V, cs, pending_judge, "witnesses", "pending", -1)
+		var deadline := -1
+		for phase: Dictionary in pending_stage.phases:
+			if phase.name == "verdict":
+				deadline = phase.from
+				break
+		pending_stage.beats = pending_stage.beats.filter(func(beat: Dictionary) -> bool: return int(beat.at) < deadline or beat["do"] == "leave")
+		pending_stage.outcome = "pending"; pending_stage.verdict = "pending"
+		V.runtime.hearings.append({"staging": pending_stage.id, "s": s.copy(), "victim": cs.accused, "deadline": deadline})
+		return
 	var k := R.key(R.key(V.base, Village.P_TRIAL), cs.id)
 	V.stats["trials"] += 1
 	var guilty := cs.accused == c.culprit and not c.false_accusation
@@ -121,7 +133,9 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 		confess_odds = (accused.traits[C.HONESTY] + accused.traits[C.PIETY]) * 1500 + pressure * 2000
 	elif V.fear > 600 and accused.traits[C.BOLD] < 30:
 		confess_odds = (100 - accused.traits[C.BOLD]) * 1200
-	if R.chance(R.key(k, 1), confess_odds):
+	if not V.runtime.is_empty() and V.runtime.get("challenge", false):
+		via = "testimony"; verdict = "acquitted"
+	elif R.chance(R.key(k, 1), confess_odds):
 		confessed = true; via = "confession"
 		causes.append(E.log_event(V, "confession", cs.accused, V.authority, {"case": cs.id, "true": guilty}, PackedInt32Array([trial_ev]),
 			"%s on their knees before the elder" % E.name_of(V, cs.accused)))

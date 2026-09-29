@@ -203,6 +203,7 @@ class Storm:
 	var event := -1
 	var active := true
 	var offered := false
+	var kernel := {}   # provenance of the world-kernel transition
 
 
 class Director:

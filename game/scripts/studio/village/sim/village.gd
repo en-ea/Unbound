@@ -604,6 +604,11 @@ static func plan_day(V: S.Village) -> void:
 				p.plan = PackedInt32Array()
 			continue
 		var home := households[p.household].home_place
+		if not V.runtime.is_empty():
+			var refuge: Dictionary = V.runtime.residents.get(str(p.id), {})
+			if not refuge.is_empty() and int(refuge.refuge_until) > int(V.runtime.now):
+				p.plan = PackedInt32Array([0, DAY, place_id(V, str(refuge.destination))])
+				continue
 		if p.locked:
 			p.plan = PackedInt32Array([0, DAY, p.locked_at if p.locked_at >= 0 else V.pl_pillory])
 			continue

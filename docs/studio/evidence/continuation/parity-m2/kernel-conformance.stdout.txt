@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Unbound world kernel (GDScript) - Godot 4.7.2-stable (official), Windows, AMD Ryzen 7 5800U with Radeon Graphics
+checkpoint hashes: 420 / 420 match the reference (20 seeds x 21 checkpoints) [4462.7 ms]
+scenario warn-of-flood: 0e0086f2  ok
+scenario two-players-merged: ab8be013 / other arrival order ab8be013  ok
+scenario storm-16838: 5ea1c13e  ok
+scenario storm-88109: d7fe7b4f  ok
+chronicle text, seed 1000: 4276 lines, 55482ed8  ok
+CONFORMANCE: PASS

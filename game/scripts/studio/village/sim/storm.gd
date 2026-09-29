@@ -162,18 +162,35 @@ static func rite_today(V: S.Village, st: S.Storm) -> void:
 	if victim < 0:
 		return
 	var q := V.people[victim]
-	q.locked = true; q.locked_at = Village.place_id(V, "stake")
+	q.locked = V.runtime.is_empty(); q.locked_at = Village.place_id(V, "stake")
 	var ev := E.log_event(V, "rite", leader, victim, {"rite": "seized", "storm": st.id}, PackedInt32Array([st.event]),
 		"%s dragged towards the stake at dusk by strangers in furs, drums starting" % E.name_of(V, victim))
 	V.fear = clampi(V.fear + 150, 0, 1000)
 	var s := S.Sched.new()
 	s.day = V.day + 1; s.kind = "rite"; s.who = leader; s.other = victim; s.storm = st.id; s.causes = PackedInt32Array([ev])
-	V.schedule.append(s)
+	if not V.runtime.is_empty():
+		rite_act(V, s); st.offered = true
+	else:
+		V.schedule.append(s)
 
 
 static func rite_act(V: S.Village, s: S.Sched) -> void:
 	var L := V.people[s.who]
 	var q := V.people[s.other]
+	if not V.runtime.is_empty() and not V.runtime.get("resolving", false):
+		if not q.alive or not q.present or not L.alive or not L.present:
+			return
+		var pending_storm := V.storms[s.storm]
+		var worshippers_pending: Array[int] = []
+		for id in pending_storm.ancestors:
+			if V.people[id].alive and V.people[id].present:
+				worshippers_pending.append(id)
+		var pending_stage := make_rite_staging(V, L.id, q.id, worshippers_pending, "pending", -1, s.causes[0])
+		pending_stage.day = s.day
+		pending_stage.start = -180
+		pending_stage.beats[0].at = -180
+		V.runtime.rites.append({"staging": pending_stage.id, "s": s.copy(), "victim": q.id, "deadline": 360})
+		return
 	q.locked = false
 	if not q.alive or not q.present or not L.alive or not L.present:
 		return

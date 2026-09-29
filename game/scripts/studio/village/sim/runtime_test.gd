@@ -3,12 +3,12 @@ const Runtime := preload("res://scripts/studio/village/sim/runtime.gd")
 const Save := preload("res://scripts/studio/village/sim/save.gd")
 
 static func report() -> PackedStringArray:
-	var v := Runtime.create()
+	var v := Runtime.create(16838)
 	var event := {}
 	for _i in 150:
 		Runtime.advance(v, v.day * 1440)
 		for e: Dictionary in v.runtime.events:
-			if not Runtime.terminal(e) and e.deadline > v.runtime.now:
+			if e.type == "public" and not Runtime.terminal(e) and e.deadline > v.runtime.now:
 				event = e
 				break
 		if not event.is_empty():
