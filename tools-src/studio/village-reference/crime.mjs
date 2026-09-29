@@ -76,7 +76,7 @@ function tryTheft(V, p, k) {
   const motive = idiv(p.hunger, 7) + p.traits[C.GREED] + clamp(idiv(richest - mine, 3), 0, 70);
   const inhib = inhibition(V, p, "theft");
   if (motive <= inhib) return;
-  if (!chance(k, (motive - inhib) * 900)) return;
+  if (!chance(k, (motive - inhib) * 900 * V.pace)) return;
   // the target: a household with something worth taking, preferring those the thief dislikes
   let target = -1, best = -1000;
   for (const h of V.households) {
@@ -121,7 +121,7 @@ function tryBrawl(V, p, k) {
     if (!q.alive || !q.present || placeAt(q, 1150) !== evening || ageOf(V, q) < 14) continue;
     const inhib = inhibition(V, p, "assault");
     const motive = -v + p.traits[C.TEMPER];
-    if (motive <= inhib || !chance(key(k, o), (motive - inhib) * 800)) continue;
+    if (motive <= inhib || !chance(key(k, o), (motive - inhib) * 800 * V.pace)) continue;
     const why = p.grudges.get(o);
     // a brawl between deep enemies can end in a death (the blow that went too far), in the director's on-cycles
     const cold = p.traits[C.TEMPER] + p.traits[C.BOLD] - p.traits[C.HONESTY] - idiv(p.traits[C.COMPASSION], 2);
@@ -153,7 +153,7 @@ function tryMurder(V, p, k) {
     if (v > -70) continue;
     const q = V.people[o];
     if (!q.alive || !q.present || ageOf(V, q) < 16) continue; // never a child, in any tier
-    if (!chance(key(k, o), (cold + (-v - 70) * 3) * 300)) continue;
+    if (!chance(key(k, o), (cold + (-v - 70) * 3) * 300 * V.pace)) continue;
     // alone somewhere: at dawn, at work, or walking home at dusk, with no one near
     let place = "", minute = -1;
     for (const m of [390, 900, 920, 1290]) {
@@ -210,7 +210,7 @@ function witchFear(V, dk) {
   for (const q of V.people) {
     if (!q.alive || !q.present || q.id === target || ageOf(V, q) < 16 || isKin(V, q.id, target)) continue;
     const pull = idiv(V.fear, 8) + (100 - q.traits[C.COMPASSION]) + q.traits[C.PIETY] - opinion(V, q.id, target) - 150;
-    if (pull <= 0 || !chance(key(dk, 70000 + q.id), pull * 1500)) continue;
+    if (pull <= 0 || !chance(key(dk, 70000 + q.id), pull * 1500 * V.pace)) continue;
     if (!open) open = addCrime(V, "sorcery", target, -1, -1, 1200, V.households[V.people[target].household].home, "", V.omenEvent >= 0 ? [V.omenEvent] : [],
       "charms of twisted straw found by a doorway", { motive: "fear", falseAccusation: true });
     giveBelief(V, q.id, open.id, target, 450 + idiv(V.fear, 4), q.id, 3, -1);
@@ -351,8 +351,8 @@ export function gossip(V) {
 function mingle(V, a, b, k) {
   const sp = V.people[a], ls = V.people[b];
   const slight = sp.traits[C.TEMPER] * 60 + Math.max(0, -opinion(V, a, b)) * 450 - sp.traits[C.COMPASSION] * 20;
-  if (slight > 0 && chance(k, slight)) { setOpinion(V, b, a, opinion(V, b, a) - 4 - idiv(ls.traits[C.TEMPER], 12)); return; }
-  if (chance(key(k, 1), 20000 + sp.traits[C.SOCIABLE] * 300)) setOpinion(V, b, a, opinion(V, b, a) + 2);
+  if (slight > 0 && chance(k, slight * V.pace)) { setOpinion(V, b, a, opinion(V, b, a) - 4 - idiv(ls.traits[C.TEMPER], 12)); return; }
+  if (chance(key(k, 1), (20000 + sp.traits[C.SOCIABLE] * 300) * V.pace)) setOpinion(V, b, a, opinion(V, b, a) + 2);
 }
 
 function tell(V, a, b, k) {

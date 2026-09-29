@@ -27,4 +27,4 @@ export function strKey(s) {
 }
 
 export const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
-export const idiv = (a, b) => Math.floor(a / b); // only ever used with non-negative a and positive b
+export const idiv = (a, b) => Math.floor(a / b); // floor division (rounds towards minus infinity, also for negative a): ports must match

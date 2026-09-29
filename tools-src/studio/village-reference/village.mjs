@@ -34,6 +34,10 @@ export const MEADOW = {
 export function createVillage(seed, opts = {}) {
   const V = {
     seed: seed >>> 0, base: key(seed >>> 0, 0x5eed), day: 0, age: opts.age ?? C.VILLAGE,
+    // pace: how dense life is. 1 = the chronicle (history at a believable per-head rate); the live game runs
+    // faster (C.LIVE_PACE), as a named cast standing for a larger settlement. It scales how often people
+    // act on a motive, never whether they have one.
+    pace: opts.pace ?? 1,
     tier: opts.tier ?? "private", layout: opts.layout ?? MEADOW, name: opts.name ?? "Wenbrook",
     people: [], households: [], lineages: [], authority: -1, priest: -1,
     hardship: 0, fear: 0, harvest: 100, events: [], evHash: 2166136261,
@@ -76,6 +80,18 @@ export function createVillage(seed, opts = {}) {
   return V;
 }
 
+// A child is named for a dead forebear of the lineage when one is free (the old custom), else a name no one
+// living in the village holds; two living people never share a given name, so the tales can tell them apart.
+function nameChild(V, hh, given, sex, k) {
+  const held = new Set(V.people.filter((q) => q.alive).map((q) => q.name));
+  const lin = hh ? V.lineages[hh.lineage] : null;
+  const forebears = (lin?.pastNames ?? []).filter((nm) => given.includes(nm) && !held.has(nm));
+  if (forebears.length && chance(key(k, 1), 600000)) return forebears[pick(key(k, 2), forebears.length)];
+  const free = given.filter((nm) => !held.has(nm));
+  const pool = free.length ? free : given;
+  return pool[pick(k, pool.length)];
+}
+
 export function addPerson(V, household, sex, ageYears, father, mother, opts = {}) {
   const id = V.people.length;
   const k = key(key(V.base, 1000), id);
@@ -92,7 +108,7 @@ export function addPerson(V, household, sex, ageYears, father, mother, opts = {}
   const given = C.GIVEN[age][sex];
   const hh = V.households[household];
   const p = {
-    id, name: opts.name ?? given[pick(key(k, P.NAME), given.length)], lineage: hh ? hh.lineage : -1, household, sex,
+    id, name: opts.name ?? nameChild(V, hh, given, sex, key(k, P.NAME)), lineage: hh ? hh.lineage : -1, household, sex,
     born: V.day - ageYears * YEAR - pick(key(k, P.AGE), YEAR), alive: true, died: -1, deathCause: "", present: true, clearedDay: -1,
     role: "child", era: age, traits,
     values: { tradition: dev(cul.tradition, 0), faith: dev(cul.faith, 1), law: dev(cul.law, 2), mercy: dev(cul.mercy, 3) },
@@ -419,7 +435,7 @@ function minds(V) {
     // guilt for a crime someone else paid for grows with piety and compassion (it can break a person)
     // (a hard heart feels none: they carry it to the grave, unless the deathbed breaks them)
     if (p.guilt > 0 && p.traits[C.PIETY] + p.traits[C.COMPASSION] >= 100) {
-      p.guilt = clamp(p.guilt + idiv(p.traits[C.PIETY] + p.traits[C.COMPASSION] - 60, 40), 0, 400);
+      p.guilt = clamp(p.guilt + idiv(p.traits[C.PIETY] + p.traits[C.COMPASSION] - 60, 40) * V.pace, 0, 400);
       if (p.guilt >= 300) confessGuilt(V, p.id);
     }
     // beliefs fade; the weakest are forgotten

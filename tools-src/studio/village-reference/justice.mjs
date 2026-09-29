@@ -35,7 +35,9 @@ export function runScheduled(V) {
   // due today or overdue (a mob raised after today's schedule ran gathers the next day)
   const today = V.schedule.filter((s) => s.day <= V.day);
   V.schedule = V.schedule.filter((s) => s.day > V.day);
-  today.sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind) || (a.case ?? a.who ?? 0) - (b.case ?? b.who ?? 0));
+  // (the final tie-break is the order they were scheduled in: ports must not rely on a stable sort)
+  const seq = new Map(today.map((s, i) => [s, i]));
+  today.sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind) || (a.case ?? a.who ?? 0) - (b.case ?? b.who ?? 0) || seq.get(a) - seq.get(b));
   for (const s of today) {
     if (s.kind === "trial") trial(V, s);
     else if (s.kind === "public") publicAct(V, s);
@@ -58,7 +60,8 @@ function trial(V, s) {
   V.stats.trials++;
   const guilty = cs.accused === c.culprit && !c.falseAccusation;
   const judge = V.authority !== cs.accused ? V.authority : V.priest !== cs.accused ? V.priest : -1;
-  const trialEv = logEvent(V, "trial", judge, cs.accused, { case: cs.id, act: c.act }, [cs.event], "the elder's bench carried into the square");
+  const bench = judge >= 0 && judge === V.priest && judge !== V.authority ? "priest" : "elder";
+  const trialEv = logEvent(V, "trial", judge, cs.accused, { case: cs.id, act: c.act, bench }, [cs.event], `the ${bench}'s bench carried into the square`);
   const causes = [trialEv];
   let verdict = "guilty", confessed = false, via = "witnesses";
   // the confession trade (Salem): confess and be spared the worst; the guilty and the terrified confess
@@ -96,7 +99,7 @@ function trial(V, s) {
     }
   } else {
     // judged on the witnesses: a law-minded elder needs more
-    const need = 500 + V.people[V.authority]?.values.law * 8;
+    const need = 500 + (V.people[judge]?.values.law ?? 60) * 8;
     if (cs.evidence < need) verdict = "acquitted";
   }
   if (verdict === "acquitted") {
@@ -288,7 +291,7 @@ function finishCase(V, cs, c, kind, outcome, causes, grave) {
     c.wrongfulPunishment = true;
     // no one did it: the accuser may come to doubt what they 'saw' (Ann Putnam's apology, 1706)
     const acc = V.people[cs.accuser];
-    if (acc.alive && acc.present) { acc.guilt = Math.max(acc.guilt, 1); acc.secret.push(c.id); }
+    if (acc.alive && acc.present && acc.traits[C.COMPASSION] >= 55) { acc.guilt = Math.max(acc.guilt, 1); acc.secret.push(c.id); }
   }
   // kin resent a grave punishment: a feud between the lineages, passed down
   if (grave) {
@@ -450,7 +453,9 @@ function makeStaging(V, cs, c, kind, attend, throwing, level, outcome, lethalByS
     B(end - 5, victim, kind === "exile" || kind === "scapegoat" ? "walk_to" : "leave", -1, -1, "Walk");
   }
   crowd.forEach((id, i) => B(end + i, id, "leave", -1, -1, "Walk"));
-  beats.sort((a, b) => a.at - b.at || a.who - b.who);
+  beats.forEach((b, i) => { b.seq = i; });
+  beats.sort((a, b) => a.at - b.at || a.who - b.who || a.seq - b.seq);
+  for (const b of beats) delete b.seq;
   const people = [victim, elder, V.priest, ...crowd].filter((id, i, arr) => id >= 0 && arr.indexOf(id) === i).map((id) => personEntry(V, id));
   const cue = {
     pillory: level >= 3 ? `stones in the square, ${nameOf(V, victim)} bleeding in the pillory` : level >= 2 ? `mud and jeers at ${nameOf(V, victim)} in the pillory` : `${nameOf(V, victim)} in the pillory, the crowd muttering`,
@@ -485,7 +490,9 @@ function makeFestivalStaging(V, folk, name, k) {
     beats.push({ at: 1110 + i, who: id, do: "stand", slot: i, target: -1, anim: i % 3 === 0 ? "Idle_Talking" : "Dance", prop: "" });
     beats.push({ at: 1300 + i, who: id, do: "leave", slot: -1, target: -1, anim: "Walk", prop: "" });
   });
-  beats.sort((a, b) => a.at - b.at || a.who - b.who);
+  beats.forEach((b, i) => { b.seq = i; });
+  beats.sort((a, b) => a.at - b.at || a.who - b.who || a.seq - b.seq);
+  for (const b of beats) delete b.seq;
   V.stagings.push({ id: V.stagingCount++, kind: "festival", place: "square", start: 1080, end: 1340, phases: [{ name: "feast", from: 1080, to: 1300, rescue: false }],
     roles: { victim: -1, accuser: -1, authority: V.authority, crowd }, beats, outcome: "carried_out", cause: [name], cue: "dancing in the square", day: V.day,
     people: crowd.map((id) => personEntry(V, id)) });
@@ -499,7 +506,7 @@ function personEntry(V, id) {
 export function earn(V, id, epithetKey) {
   const p = V.people[id];
   const e = C.EPITHETS[epithetKey];
-  if (!e || p.epithets.includes(e)) return;
+  if (!e || !p || p.epithets.includes(e)) return;
   p.epithets.push(e);
   (p.epithetLog ??= []).push([e, V.day]);
   logEvent(V, "epithet", id, -1, { epithet: e }, [], "");

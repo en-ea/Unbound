@@ -95,6 +95,9 @@ export const CULTURE = [
 // The village's places (a reusable layout type: every generated village has these kinds). Positions
 // are in decimetres (integers). The meadow village (Enea's) maps onto this in its layout.
 export const PLACE_KINDS = ["home", "pen", "square", "well", "shrine", "field", "pasture", "mill", "forge", "woods", "pillory", "gallows", "stake", "gate_south", "road", "far_woods"];
+// The live game's pace (village.mjs): about ten times the chronicle's, so a village near the player has a
+// quarrel most days, a public act most weeks and a grave one every month or two of game days.
+export const LIVE_PACE = 10;
 export const SEE_DAY = 160; // dm: people see what happens within 16 m by day
 export const SEE_NIGHT = 60; // 6 m by night
 

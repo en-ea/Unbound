@@ -1,8 +1,8 @@
 // Tuning report: many seeds, rates per village-century against the design's targets.
-// Usage: node tune.mjs [seeds=20] [years=200]
+// Usage: node tune.mjs [seeds=20] [years=200] [pace=1]
 import { createVillage, run, YEAR } from "./village.mjs";
 
-const seeds = Number(process.argv[2] ?? 20), years = Number(process.argv[3] ?? 200);
+const seeds = Number(process.argv[2] ?? 20), years = Number(process.argv[3] ?? 200), pace = Number(process.argv[4] ?? 1);
 const TARGET = {
   "crime:theft": [15, 30], "crime:assault": [8, 20], "crime:murder": [1, 3], "crime:sorcery": [3, 10],
   "act:fine": [10, 25], "act:pillory": [5, 12], "act:exile": [3, 8], "act:branding": [2, 5], "act:hanging": [1, 2.5],
@@ -12,7 +12,7 @@ const TARGET = {
 const sum = {};
 const add = (k, n = 1) => { sum[k] = (sum[k] ?? 0) + n; };
 for (let s = 0; s < seeds; s++) {
-  const V = createVillage(1000 + s * 7919);
+  const V = createVillage(1000 + s * 7919, { pace });
   run(V, years * YEAR);
   for (const c of V.crimes) add("crime:" + c.act);
   for (const e of V.events) {
@@ -24,10 +24,12 @@ for (let s = 0; s < seeds; s++) {
   }
   for (const cs of V.cases) { const c = V.crimes[cs.crime]; add(cs.accused === c.culprit && !c.falseAccusation ? "cases:right" : "cases:wrongful"); }
 }
-const per = (k) => (sum[k] ?? 0) * 100 / (seeds * years);
+// chronicle pace: per village-century; live pace: per village-year (60 game days = 12 hours of play)
+const unit = pace === 1 ? 100 : 1;
+const per = (k) => (sum[k] ?? 0) * unit / (seeds * years);
 const keys = [...new Set([...Object.keys(TARGET), ...Object.keys(sum)])].sort();
 for (const k of keys) {
   const t = TARGET[k], v = per(k);
   const mark = !t ? "" : v < t[0] ? "  LOW" : v > t[1] ? "  HIGH" : "  ok";
-  console.log(`${k.padEnd(22)} ${v.toFixed(2).padStart(7)} per village-century${t ? ` (target ${t[0]}-${t[1]})` : ""}${mark}`);
+  console.log(`${k.padEnd(22)} ${v.toFixed(2).padStart(7)} per village-${pace === 1 ? "century" : "year"}${t && pace === 1 ? ` (target ${t[0]}-${t[1]})` : ""}${pace === 1 ? mark : ""}`);
 }
