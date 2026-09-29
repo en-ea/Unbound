@@ -81,7 +81,7 @@ static func hoarding_anger(V: S.Village, dk: int) -> void:
 	for q in V.people:
 		if not q.alive or not q.present or q.hunger < 400 or Village.is_kin(V, q.id, head) or Village.age_of(V, q) < 16:
 			continue
-		if not R.chance(R.key(dk, 90000 + q.id), 20000 + q.traits[C.TEMPER] * 400):
+		if not R.chance(R.key(dk, 90000 + q.id), (20000 + q.traits[C.TEMPER] * 400) * V.pace):
 			continue
 		if open == null:
 			open = add_crime(V, "hoarding", head, -1, -1, 720, V.households[rich].home_place, "grain", famine_cause(V, q),
@@ -228,12 +228,12 @@ static func try_murder(V: S.Village, p: S.Person, k: int) -> void:
 		if not R.chance(R.key(k, o), (cold + (-v - 70) * 3) * 300 * V.pace):
 			continue
 		# alone somewhere: at dawn, at work, or walking home at dusk, with no one near
-		# (the reference's "home" never names a place - homes are "cottage", "cabin"... - so homes pass)
+		# Houses in the layout are never murder sites.
 		var place := -1
 		var minute := -1
 		for mm: int in MURDER_MINUTES:
 			var at := Village.place_at(q, mm)
-			if at < 0 or at == V.pl_home_word or at == V.pl_square or at == V.pl_shrine or V.place_pen[at]:
+			if at < 0 or at == V.pl_square or at == V.pl_shrine or V.homes.has(V.place_names[at]) or V.place_pen[at]:
 				continue
 			var near := 0
 			for w in Village.witnesses_at(V, at, mm, p.id):

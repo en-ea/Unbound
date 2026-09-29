@@ -189,7 +189,7 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 	if not hold and C.PUBLIC[act]["lethal"] and not Director.lethal_allowed(V):
 		act = "exile"; vetoed = true
 	var v_ev := E.log_event(V, "verdict", V.authority, cs.accused, {"case": cs.id, "verdict": verdict, "via": via, "act": act, "vetoed": vetoed, "asked": asked if vetoed else ""}, causes,
-		"the elder, weary of blood, names a lesser sentence" if vetoed else "the elder naming the sentence: %s" % _replace_first(act, "_", " "))
+		"the elder, weary of blood, names a lesser sentence" if vetoed else "the elder naming the sentence: %s" % act.replace("_", " "))
 	if vetoed:
 		earn(V, V.authority, "merciful")
 	if C.PUBLIC[act]["lethal"] and not hold:
@@ -247,7 +247,8 @@ static func make_trial_staging(V: S.Village, cs: S.Case, judge: int, via: String
 		_beat(beats, t + 20, judge if judge >= 0 else accuser, "release", -1, accused, "Interact")
 		t += 25
 	if via == "combat" and champ >= 0:
-		_beat(beats, start + 2, champ, "walk_to", 0, -1, "Walk")
+		if champ != accuser:
+			_beat(beats, start + 2, champ, "walk_to", 0, -1, "Walk")
 		for r in 3:
 			_beat(beats, t + r * 4, champ, "gesture", 0, accused, "Push")
 			_beat(beats, t + r * 4 + 1, accused, "react", -1, champ, "Hit_Chest")
@@ -261,11 +262,12 @@ static func make_trial_staging(V: S.Village, cs: S.Case, judge: int, via: String
 	var end := t + 15
 	if verdict != "fell":
 		_beat(beats, end, accused, "leave", -1, -1, "Walk")
-	# (not de-duplicated: the accuser can also be the judge or the champion, as in the reference)
 	var leaving: Array[int] = [accuser, judge, champ]
 	leaving.append_array(crowd)
+	var left: Array[int] = []
 	for id in leaving:
-		if id >= 0:
+		if id >= 0 and id != accused and not left.has(id):
+			left.append(id)
 			_beat(beats, end + 2 + (crowd.find(id) + 1), id, "leave", -1, -1, "Walk")
 	_sort_beats(beats)
 	var people := []
@@ -367,6 +369,7 @@ static func public_act(V: S.Village, s: S.Sched) -> void:
 			again.waited = s.waited + 1
 			V.schedule.append(again)
 			return
+		victim.locked = false
 		var commuted := s.copy()
 		commuted.act = "exile"; commuted.vetoed = true; commuted.hold = false
 		public_act(V, commuted)
@@ -873,9 +876,9 @@ static func make_staging(V: S.Village, cs: S.Case, c: S.Crime, kind: String, att
 	elif dies:
 		_beat(beats, end - 10, victim, "fall", -1, -1, "Death01")
 	else:
-		if kind == "pillory" or kind == "stocks":
-			# (the reference's crowd[0] is undefined when there is no elder and no crowd; the port writes -1)
-			_beat(beats, end - 10, elder if elder >= 0 else (crowd[0] if crowd.size() > 0 else -1), "release", -1, victim, "Interact")
+		var releaser := elder if elder >= 0 else (crowd[0] if crowd.size() > 0 else -1)
+		if (kind == "pillory" or kind == "stocks") and releaser >= 0:
+			_beat(beats, end - 10, releaser, "release", -1, victim, "Interact")
 		_beat(beats, end - 5, victim, "walk_to" if (kind == "exile" or kind == "scapegoat") else "leave", -1, -1, "Walk")
 	for i in crowd.size():
 		_beat(beats, end + i, crowd[i], "leave", -1, -1, "Walk")
@@ -947,6 +950,8 @@ static func make_festival_staging(V: S.Village, folk: Array[S.Person], name: Str
 		"roles": {"victim": -1, "accuser": -1, "authority": V.authority, "crowd": crowd}, "beats": beats, "outcome": "carried_out", "cause": [name], "cue": "dancing in the square", "day": V.day,
 		"people": people})
 	V.staging_count += 1
+	if V.stagings.size() > 300:
+		V.stagings.remove_at(0)
 
 
 static func person_entry(V: S.Village, id: int) -> Dictionary:

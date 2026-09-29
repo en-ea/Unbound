@@ -271,7 +271,7 @@ static func make_rite_staging(V: S.Village, leader: int, victim: int, worshipper
 	var staging := {
 		"id": V.staging_count, "kind": "sacrifice", "place": "stake", "start": start, "end": end + ring.size() + onlookers.size() + 10,
 		"phases": [{"name": "night", "from": start - 480, "to": start, "rescue": true}, {"name": "rite", "from": start, "to": start + 60, "rescue": true},
-			{"name": "end", "from": start + 60, "to": end + ring.size() + 5, "rescue": false}],
+			{"name": "end", "from": start + 60, "to": end + ring.size() + onlookers.size() + 10, "rescue": false}],
 		"roles": {"victim": victim, "accuser": leader, "authority": leader, "crowd": ring + onlookers},
 		"beats": beats, "outcome": outcome, "cause": ["rite: %s" % cue], "cue": cue, "day": V.day, "people": people,
 	}

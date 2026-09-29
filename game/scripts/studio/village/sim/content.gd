@@ -123,6 +123,7 @@ const LANG_DISTANCE := [[0, 70, 90], [70, 0, 40], [90, 40, 0]]
 # The live game's pace (village.mjs): about ten times the chronicle's, so a village near the player has a
 # quarrel most days, a public act most weeks and a grave one every month or two of game days.
 const LIVE_PACE := 10
+# Poaching alone does not scale with pace: it is the woods' steady background, not a motive's drama.
 const SEE_DAY := 160  # dm: people see what happens within 16 m by day
 const SEE_NIGHT := 60  # 6 m by night
 
