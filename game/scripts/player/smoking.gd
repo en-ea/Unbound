@@ -85,11 +85,11 @@ func _build() -> void:
 	_mesh.mesh = Items.mesh("cigarette")
 	_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_prop.add_child(_mesh)
-	_wisp = _smoke(0.16, 2.4, 6, 0.09, 0.22)
+	_wisp = _smoke(0.1, 2.4, 6, 0.09, 0.22)
 	_wisp.position = Vector3(-HALF, 0, 0)
 	_wisp.emitting = false
 	_prop.add_child(_wisp)
-	_puff = _smoke(0.32, 2.0, 10, 0.5, 0.9)
+	_puff = _smoke(0.2, 2.0, 8, 0.5, 0.9)
 	_puff.one_shot = true
 	_puff.emitting = false
 	_puff.explosiveness = 0.85
