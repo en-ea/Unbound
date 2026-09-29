@@ -15,6 +15,8 @@ extends Node3D
 ## ~90 ms to make on a PC: twelve at once froze the game for a second); one needed sooner is made at once.
 
 signal finished
+## The player stepped in (kind "free" or "shield"), for the simulation to learn of later.
+signal player_intervened(kind: String, minute: int)
 
 const Sites := preload("res://scripts/studio/village/sites.gd")
 const Staging := preload("res://scripts/studio/village/staging.gd")
@@ -128,6 +130,8 @@ var _lying: Array[Shot] = []          # on the ground, oldest first
 var _anims: AnimationPlayer           # the rig's player, to ask which animations loop by themselves
 var _looping := {}
 var _released := -1.0                 # stage clock when the victim was freed
+var _locked_at := -1.0                # stage clock when the victim was locked in
+var _fell_at := -1.0                  # stage clock when the victim's fall began
 var _done := false
 var _throws := 0
 ## Costs and lateness, for the witness: stage _process time, and how late beats started.
@@ -135,6 +139,7 @@ var _cost_frames := 0
 var _cost_sum := 0
 var _cost_max := 0
 var _cost_max_at := 0.0               # the game minute of the dearest frame
+var _cost_last := 0                   # the last frame's
 var _made := 0                        # bodies made, and the time it took (the body's cost, kept apart)
 var _made_us := 0
 var _made_max_us := 0
@@ -190,6 +195,8 @@ func clear() -> void:
 	_clock = 0.0
 	_next = 0
 	_released = -1.0
+	_locked_at = -1.0
+	_fell_at = -1.0
 	_done = false
 	_throws = 0
 	_made = 0
@@ -244,6 +251,29 @@ func released_minute() -> float:
 	return -1.0 if _released < 0.0 else _start + _released / SECONDS_PER_MINUTE
 
 
+## The game minute the victim was locked in, and the one their fall began (-1 until then).
+func locked_minute() -> float:
+	return -1.0 if _locked_at < 0.0 else _start + _locked_at / SECONDS_PER_MINUTE
+
+
+func fell_minute() -> float:
+	return -1.0 if _fell_at < 0.0 else _start + _fell_at / SECONDS_PER_MINUTE
+
+
+## Whether the player can still step in (a phase whose rescue is true).
+func rescue_open() -> bool:
+	return false
+
+
+## Where a player stands to free the victim, and where to stand to take a thrower's throws.
+func rescue_spot() -> Vector2:
+	return _device_at + DEVICE_FACING * 1.0
+
+
+func shield_spot(_thrower: int) -> Vector2:
+	return _focus + DEVICE_FACING * 1.5
+
+
 ## How far along the furthest prop in flight at a head is (0..1), or -1 when none is.
 func flying() -> float:
 	var best := -1.0
@@ -286,6 +316,11 @@ func stats() -> Dictionary:
 		"latest_beat": str(_beats[_latest_beat]) if _latest_beat >= 0 else ""}
 
 
+## The last frame's stage _process time (microseconds, making bodies excluded).
+func last_cost_us() -> int:
+	return _cost_last
+
+
 func _process(delta: float) -> void:
 	_made_in_frame = 0
 	if not _unmade.is_empty():
@@ -296,6 +331,7 @@ func _process(delta: float) -> void:
 	_age_lying(delta)
 	var used := Time.get_ticks_usec() - t0 - _made_in_frame   # making a body is the body's cost, not the stage's
 	_cost_frames += 1
+	_cost_last = used
 	_cost_sum += used
 	if used > _cost_max:
 		_cost_max = used
@@ -481,6 +517,8 @@ func _begin(a: Actor, i: int) -> bool:
 				return false
 			if action == "fall":
 				a.rest_anim = ""           # stays down: the last frame holds
+				if a == _victim:
+					_fell_at = _clock
 			_once(a, anim)
 			return true
 		"throw":
@@ -496,6 +534,8 @@ func _begin(a: Actor, i: int) -> bool:
 			if not _reach(a, spot, spot + DEVICE_FACING):
 				return false
 			a.locked = true
+			if a == _victim:
+				_locked_at = _clock
 			a.rest_anim = anim
 			a.yaw = atan2(DEVICE_FACING.x, DEVICE_FACING.y)
 			a.yaw_goal = a.yaw
