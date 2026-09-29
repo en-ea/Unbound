@@ -6,7 +6,7 @@ import { key, ppm, pick, chance, clamp, idiv } from "./rng.mjs";
 import * as C from "./content.mjs";
 import { logEvent, nameOf } from "./events.mjs";
 import { crimesToday, discoverCrimes, gossip, checkCases } from "./crime.mjs";
-import { runScheduled, confessGuilt, remember } from "./justice.mjs";
+import { runScheduled, confessGuilt, remember, resolvePublic } from "./justice.mjs";
 import { directorDay } from "./director.mjs";
 import { stormDay } from "./storm.mjs";
 
@@ -45,6 +45,8 @@ export function createVillage(seed, opts = {}) {
     crimes: [], cases: [], schedule: [], stagings: [], stagingCount: 0, outlaws: [], shrines: [],
     // time storms (storm.mjs): an anchored story village is exempt; stormPlan is the kernel's stand-in for tests
     storms: [], stormPlan: opts.stormPlan ?? [], anchored: opts.anchored ?? false,
+    // the live game (live.gd): public acts wait on the stage for the player (justice.mjs resolvePublic)
+    live: opts.live ?? false, pending: [], stranger: { standing: 0, enemies: [] },
     director: { on: false, until: 0, lethal: 0, cooldown: 0, last: [], cycles: 0 },
     stats: { crimes: 0, cases: 0, trials: 0, acts: {}, outcomes: {}, deaths: 0, violentDeaths: 0, births: 0, famines: 0, omens: 0, festivals: 0, exonerations: 0, mobs: 0 },
   };
@@ -173,6 +175,8 @@ export const living = (V) => V.people.filter((p) => p.alive && p.present);
 
 // ---------- one day ----------
 export function stepDay(V) {
+  // anything the stage did not finish yesterday resolves as it was going to
+  while (V.pending.length) resolvePublic(V, V.pending[0].staging, "");
   const doy = V.day % YEAR;
   if (doy === 0) yearStart(V);
   food(V);

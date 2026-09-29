@@ -238,8 +238,46 @@ function publicAct(V, s) {
   if (turned && kind !== "fine") outcome = "crowd_turned";
   const lethalByStones = (kind === "pillory" || kind === "stocks") && level === 3 && lethalAllowed(V) && chance(key(k, 5), 250000);
   const staging = makeStaging(V, cs, c, kind, attend, throwing, level, outcome, lethalByStones, anger, sympathy, k);
-  const ev = logEvent(V, "public_act", victim.id, cs.accuser, { kind, outcome, case: cs.id, level, throwers: throwing.length, crowd: n, staging: staging.id },
-    causes, staging.cue);
+  const act = { cue: staging.cue, s, cs: cs.id, kind, victim: victim.id, attend, anger: [...anger], sympathy: [...sympathy], throwing, level, outcome, lethalByStones, n, causes, staging: staging.id };
+  // the live game plays the act on the stage and resolves it when it ends (the player may step in); away
+  // from the player (and in every headless run) it resolves at once
+  if (V.live) { V.pending.push(act); return; }
+  applyPublic(V, act, "");
+}
+
+// The player's part in a public act, reported by the stage when the act ends: "" (watched, or not there),
+// "free" (cut the condemned loose in a rescue window) or "shield" (stood between the stones and them).
+export function resolvePublic(V, stagingId, intervention = "") {
+  const i = V.pending.findIndex((a) => a.staging === stagingId);
+  if (i < 0) return false;
+  applyPublic(V, V.pending.splice(i, 1)[0], intervention);
+  return true;
+}
+
+// what the player's rescue costs and earns: the accuser and the elder remember a stranger's face
+const STRANGER = -2;
+
+function applyPublic(V, act, intervention) {
+  const { s, kind, attend, throwing, n, causes } = act;
+  let { level, outcome, lethalByStones } = act;
+  const cs = V.cases[act.cs], c = V.crimes[cs.crime], victim = V.people[act.victim];
+  const anger = new Map(act.anger), sympathy = new Map(act.sympathy);
+  const def = C.PUBLIC[kind];
+  if (!victim.alive) { c.closed = true; return; }
+  if (intervention === "free" && outcome !== "crowd_turned") {
+    const ev = logEvent(V, "public_act", victim.id, STRANGER, { kind, outcome: "rescued", case: cs.id, level, throwers: throwing.length, crowd: n, staging: act.staging, by: "stranger" },
+      causes, `a stranger cutting ${nameOf(V, victim.id)} loose in front of the whole village, and the two of them running`);
+    V.stats.acts[kind] = (V.stats.acts[kind] ?? 0) + 1;
+    V.stats.outcomes.rescued = (V.stats.outcomes.rescued ?? 0) + 1;
+    V.stranger.standing -= def.shame * 10;
+    for (const id of [cs.accuser, V.authority]) if (id >= 0 && !V.stranger.enemies.includes(id)) V.stranger.enemies.push(id);
+    exile(V, victim.id, [ev], true, c.id);
+    finishCase(V, cs, c, kind, "rescued", [ev], false);
+    return;
+  }
+  if (intervention === "shield") { lethalByStones = false; if (level > 2) level = 2; V.stranger.standing += 10; }
+  const ev = logEvent(V, "public_act", victim.id, cs.accuser, { kind, outcome, case: cs.id, level, throwers: throwing.length, crowd: n, staging: act.staging },
+    causes, act.cue);
   V.stats.acts[kind] = (V.stats.acts[kind] ?? 0) + 1;
   V.stats.outcomes[outcome] = (V.stats.outcomes[outcome] ?? 0) + 1;
   noteAct(V, kind);

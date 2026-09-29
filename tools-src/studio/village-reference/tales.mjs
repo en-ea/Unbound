@@ -192,6 +192,7 @@ const ACT_WORDS = { fine: "a fine", pillory: "a day in the pillory", stocks: "th
 
 function actSentence(V, e, n) {
   const d = e.data, v = n(e.who);
+  if (d.outcome === "rescued" && d.by === "stranger") return `But in front of the whole village a stranger cut ${v} loose, and the two of them ran, and no one there has forgotten that face.`;
   if (d.outcome === "rescued") return `But on the night before, ${v}'s cell was found empty and the ropes cut. Everyone knew it was ${n(e.other)}, and no one said so.`;
   if (d.outcome === "crowd_turned") return `They put ${v} in the ${d.kind === "stocks" ? "stocks" : d.kind}.`;
   switch (d.kind) {

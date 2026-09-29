@@ -47,5 +47,6 @@ export function fullName(V, id) {
   return p.name + ep;
 }
 export function nameOf(V, id) {
+  if (id === -2) return "a stranger"; // the player, as the village sees them
   return id >= 0 && id < V.people.length ? V.people[id].name : "someone";
 }
