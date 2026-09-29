@@ -7,7 +7,7 @@ author: Claude (claude-opus-5-5), lead agent in Hilmi's studio
 status: route; decisions of 29 Sep recorded in section 8; open questions in section 9
 supersedes: docs/studio/ROUTE.md (route r3, kept unchanged as the record; its kernel, misbehaviour catalogue, singled-out rules and storm research carry over)
 inputs: docs/studio/inputs/2026-09-29-owner-ideas-ai-summary.md (an AI summary Hilmi supplied, plus his own words)
-next_step: M0 - the multiplayer spike (two phones, one fight, online, on two candidate backends); in parallel M1 - the village's crimes, trials and storms, headless
+next_step: M1 - the village's crimes, trials and storms, headless, built to the multiplayer-ready rules (section 3.9); multiplayer itself comes after the slice
 ---
 
 # Unbound, route r4: a living world you play through, with friends
@@ -25,8 +25,8 @@ next_step: M0 - the multiplayer spike (two phones, one fight, online, on two can
    - **The world kernel.** It gives the identical world on every phone, and that is what keeps four players in one world. Its history is where a storm gets the older age from `[run]` (`KERNEL-S2.md`).
    - **The misbehaviour and "singled out" rules.** They are now staged physically, with the gallows in the square.
    - **Native apps, the device lab and the three phone fixes** (pull requests #2-#4).
-4. **The biggest engineering change is live multiplayer.** Fights and enemies must be networked in real time, not only the world. It has to be designed in now, because Enea's combat is single-player code today and adding multiplayer later is how projects stall.
-5. **The next target is a vertical slice** (Hilmi, 29 Sep `[chat]`): one land, two villages, one storm, one crime leading to a trial, and two phones playing live (section 4). Everything else waits until that slice is fun.
+4. **The biggest engineering change is live multiplayer, and it is left until after the slice.** Hilmi, 29 Sep `[chat]`: "multiplayer needs to have the capacity kept in mind but left until later". Fights and enemies will need live networking, and Enea's combat is single-player code today. So every system built before then follows the **multiplayer-ready rules** (section 3.9); retrofitting is how projects stall.
+5. **The next target is a vertical slice** (Hilmi, 29 Sep `[chat]`): one land, two villages, one storm and one crime leading to a trial, played on each phone (section 4). Everything else waits until that slice is fun.
 
 ---
 
@@ -57,7 +57,7 @@ next_step: M0 - the multiplayer spike (two phones, one fight, online, on two can
 | On-device AI voices for named villagers | Not needed for now | Template lines and barks. This removes the memory cost and the uncertain question of Apple's model in a free-signed app |
 | A storm folds a district into its own past, beside the present | A storm wave regresses a zone to an earlier age; the player stays as they are | One mechanism covers both (section 3.3). **New art cost: every age needs buildings, clothes and behaviours** |
 | Two players sharing a world, mostly asynchronously | 2-4 players, separate starting lands, live together in Land 3, secret traitor orders | Live netcode for fights and enemies, plus the kernel's action log for the world (section 3.9) |
-| A $99 Apple account as one option | No paid accounts; a small budget from Hilmi for services | iPhone through free sideloading. One small server becomes possible |
+| A $99 Apple account as one option | No money from Enea; Hilmi funds up to about £5 a month | iPhone through free sideloading. One small server becomes possible |
 | Negotiation as part of the social layer | No diplomacy minigames. Manipulation is a side dish, "a fun component to see how we can manipulate behaviour and stage events" (Hilmi `[chat]`) | Levers are actions and items in the world, never menus |
 
 ---
@@ -198,16 +198,29 @@ Hilmi, 29 Sep `[chat]`:
                a modified app could read them, which is acceptable here and not for a public release)
 ```
 
-**Backend options**. There is no choice yet: a spike (M0) measures them `[web]`.
+**When.** After the single-player slice (M5-M6). Players are never on the same Wi-Fi (Hilmi `[chat]`), so play is online only.
+
+**Multiplayer-ready rules, for everything built before then** `[design]`. They build on Enea's own convention: "Game state (inventory, world, characters) is separate from visuals and input, and changes go through clear action functions. This keeps co-op possible later." (`CLAUDE.md`) `[repo]`.
+1. **World changes go through the kernel's action log.** They are never written directly.
+2. **State is plain data with a stable ID.** Every player, enemy and nearby villager keeps its state as plain data, apart from its visuals.
+3. **Input becomes intents** (move, attack, parry, use), and one simulation step applies them. A remote player's intents can later enter the same path.
+4. **Gameplay randomness is keyed or seeded per event** (hits, loot, AI choices), never drawn from a global random stream. An authority can then reproduce it.
+5. **Nothing gameplay-relevant depends on the local camera or screen.** Lock-on uses world geometry; see-through fades are visual only.
+6. **Anything that must agree runs on the fixed simulation tick,** not the frame's delta.
+7. **Private per-player state lives apart from the shared state.** That is where the traitor orders will go later.
+
+Every milestone checks the rules with a **replay test**: the action log, replayed headless, must reproduce the world hash of the live run.
+
+**Backend options.** There is no choice yet: a spike (M5) measures them `[web]`.
 
 | Option | Cost | Strengths | Weaknesses |
 |---|---|---|---|
 | Epic Online Services via the EOSG plugin | £0 | Free relays for phones on mobile networks; lobbies; cloud storage; iOS arm64 and Android arm64 builds | Unofficial plugin; needs a free Epic developer account (a person signs up); one phone hosts |
 | A small server (e.g. Hetzner CX23, about €6/month) running a headless Godot server or Nakama | about £5/month | The server referees: fair fights, no phone has to host, it stores the logs | Someone maintains it; slightly over £5 |
-| WebRTC phone-to-phone, plus Cloudflare's free STUN and TURN (1,000 GB/month free), plus a small matchmaking service on Hilmi's domain | about £0 | Cheap and flexible | More plumbing; one phone hosts |
-| Home Wi-Fi only | £0 | Simplest | No online play |
+| **Cloudflare, on Hilmi's account** (dltreasures already runs there): a Durable Object "room" per match relays over WebSockets; storage for each land's world log; the JavaScript kernel reference can run there to hold the canonical world between sessions | Free plan: 100,000 requests a day (1 per 20 WebSocket messages received), about one room awake all day. Or Workers Paid, $5 a month | Already Hilmi's platform; the kernel's JavaScript version runs there; a few friends for a few hours fit the free plan (our estimate) | WebSockets run over TCP, so lag suffers on lossy mobile links, unlike UDP relays; one phone still simulates enemies unless the logic moves into the room |
+| WebRTC phone-to-phone, plus Cloudflare's free STUN and TURN (1,000 GB/month free), with matchmaking on Hilmi's Cloudflare | about £0 | Cheap; UDP | More plumbing; one phone hosts |
 
-What Hilmi's own domain runs on decides whether it can carry the matchmaking and log storage (section 9).
+Hilmi's domain runs on Cloudflare `[chat]`, so matchmaking, rooms and log storage can live there.
 
 ### 3.10 Platforms and tools
 
@@ -228,13 +241,13 @@ What Hilmi's own domain runs on decides whether it can carry the matchmaking and
 | Storm | One forecast storm. Part of the ordinary village regresses to the **tribal** age: ancestors, language distance 2 (barter or spears), border conflict, one of the four endings | Multiple storms, the town age |
 | Combat | Enea's combat plus a lock-on and parry prototype; edge markers | Radial wheel, spells, target cycling |
 | Camera | The tilted default, Look (eye level), Inside, Talk, Build (high) | - |
-| Together | **Two phones live in the same land:** the same enemies, the same trial, the same world | 3-4 players, traitor orders, disguise |
+| Together | **Not in the slice.** Every system follows the multiplayer-ready rules, and a replay test proves the log reproduces the world | Live play (M5-M6), 3-4 players, traitor orders, disguise |
 | Platforms | Native Android. iPhone sideloaded, if the macOS build route works | - |
 
 **Done when:**
-1. You and Enea play 20 minutes on two phones, and each tells a story the village made (a trial or a storm) that neither of you scripted.
+1. You and Enea each play 20 minutes on your own phone, and each tells a story the village made (a trial or a storm) that neither of you scripted.
 2. It holds 30 fps on the S10.
-3. There is no divergence between the phones over 20 minutes: the world hashes match and the live layer stays in sync.
+3. The replay test passes: the session's action log, replayed headless, reproduces the world hash. That shows the world would sync between phones.
 
 ---
 
@@ -242,15 +255,15 @@ What Hilmi's own domain runs on decides whether it can carry the matchmaking and
 
 | # | Milestone | Done when | Needs |
 |---|---|---|---|
-| **M0** | **Multiplayer spike**: two phones, one boar, online. The S24 on 4G against the S10 or the PC, on **two** backends | Latency and reliability measured; a backend chosen with evidence | A free Epic developer account if EOS is tested (someone signs up); a server if the server route is tested (Hilmi's budget); Y3 (the S24) |
 | **M1** | **The village, headless** (A0 reshaped): crimes → trials → punishments; storms → regression → ancestors; language distance; staged-event output; anchored villages | Thousands of simulated years pass the invariants: every notable act has a reason and a staged cue; no collapse loops; no single behaviour dominates; conformance against a JavaScript reference | Nothing |
-| **M2** | **The village on screen**: embodied villagers and stagings (gathering, trial, gallows) in Enea's game; the ordinary village built from building families, today's plus tribal | A trial plays out on the S10 at 30 fps, and you can read it without text | M1; tribal building and clothing sets (Blender scripts, Enea's pipeline) |
+| **M2** | **The village on screen**: embodied villagers and stagings (gathering, trial, gallows) in Enea's game; the ordinary village built from building families, today's plus tribal | A trial plays out on the S10 at 30 fps, and you can read it without text; the replay test passes | M1; tribal building and clothing sets (Blender scripts, Enea's pipeline) |
 | **M3** | **Camera**: the tilted default, Look, Inside, Talk, Build; edge markers; target-follow in Look; the shader warm-up extended; a Perfetto trace of the turning stutter | Smooth switching between modes; no stutter above 50 ms on the S10 after the warm-up | Enea confirms the tilted default |
-| **M4** | **Live together**: the chosen backend; host authority for enemies and hits; the world log in sync | 20 minutes on two phones with no divergence | M0, M2 |
-| **M5** | **Slice playtest** (owner play) | The "done when" of section 4 | M1-M4 |
+| **M4** | **Slice playtest** (owner play, each on your own phone) | The "done when" of section 4 | M1-M3 |
+| **M5** | **Multiplayer spike**: two phones, one boar, online. The S24 on 4G against the S10, on **two** backends (Cloudflare rooms and one other) | Latency and reliability measured; a backend chosen with evidence | Y3 (the S24); an Epic developer account only if EOS is one of the two |
+| **M6** | **Live together**: the chosen backend; host authority for enemies and hits; the world log in sync | 20 minutes on two phones with no divergence | M4, M5 |
 
 **In parallel, Enea's layer:**
-- the lock-on and parry prototype, built to the networking rules the studio gives him from M0;
+- the lock-on and parry prototype, built to the multiplayer-ready rules (section 3.9);
 - the auto-use healing item and the loadout switch.
 
 ---
@@ -272,7 +285,7 @@ What Hilmi's own domain runs on decides whether it can carry the matchmaking and
 
 | Risk | What we do |
 |---|---|
-| Live multiplayer arrives late and breaks single-player systems | M0 first. Enea's combat and every new system follow the networking rules from the start |
+| Multiplayer comes later (Hilmi's call), and retrofitting breaks single-player systems | The multiplayer-ready rules from day one, and a replay test in every milestone |
 | "Show, don't read" costs more animation and staging than expected | One crime chain in the slice. Reuse the Universal Animation Library animations; props do the talking |
 | Art per age multiplies | Three ages, and only tribal in the slice. Plot-by-plot swaps reuse the families |
 | Gesture combat feels worse than the current buttons | A prototype on both phones first; Enea decides |
@@ -286,23 +299,26 @@ What Hilmi's own domain runs on decides whether it can carry the matchmaking and
 
 | Date | Decision | Source |
 |---|---|---|
-| 29 Sep | The direction, native apps and the camera: settled | through Hilmi `[chat]` |
-| 29 Sep | No paid Apple account: the iPhone goes by free sideloading | Hilmi `[chat]` |
+| 29 Sep | The direction, native apps and the camera are accepted: "I think enea is forced to accept these things at this point" | Hilmi `[chat]` |
+| 29 Sep | No money from Enea (no $99 Apple account): the iPhone goes by free sideloading | Hilmi `[chat]` |
 | 29 Sep | No special fight camera ("unless its some simple zoom in"); the camera changes inside buildings and when talking | Hilmi `[chat]` |
 | 29 Sep | The low camera only "if specifically enabled to view something"; target-follow and edge markers | Hilmi `[chat]` (answer) |
 | 29 Sep | Storm people are their own ancestors; three ages | Hilmi `[chat]` (answers) |
 | 29 Sep | Story villages are exempt from randomness and storms | Hilmi `[chat]` |
 | 29 Sep | Manipulation is a side component, not the core (not like Crusader Kings) | Hilmi `[chat]` |
-| 29 Sep | A small budget from Hilmi for a server or services if needed; keep the backend options open | Hilmi `[chat]` |
+| 29 Sep | Hilmi funds up to about £5 a month; keep the backend options open | Hilmi `[chat]` |
 | 29 Sep | The next target is the vertical slice | Hilmi `[chat]` (answer) |
 | 29 Sep | Default camera: the tilted view (-32°), from look board 1's three views | Hilmi `[chat]`: "I think best was tilted" |
+| 29 Sep | Multiplayer left until after the slice, with the capacity kept in mind; players are never on the same Wi-Fi | Hilmi `[chat]`: "we would never be under the same wifi though and multiplayer needs to have the capacity kept in mind but left until later" |
+| 29 Sep | Hilmi's domain runs on Cloudflare: a candidate home for rooms, matchmaking and world logs | Hilmi `[chat]` |
+| 29 Sep | Enea may read Hilmi's own words in the branch documents | Hilmi `[chat]`: "let him see them" |
 
 ---
 
 ## 9. Open questions
 
-1. **What does Hilmi's domain run on** (a website host, Cloudflare, or a server of its own)? That decides matchmaking and log storage (M0).
+1. ~~What does dltreasures run on?~~ **Answered:** Cloudflare (section 3.9).
 2. **Enea's confirmation of the tilted default** (Hilmi picked it). The fighting pass was tuned on today's high view, so check it on the tilted view (M3).
 3. **Who builds the lock-on and parry prototype?** Assumed: Enea, with the studio's networking rules.
-4. **The Epic developer account (free) for testing EOS in M0:** who signs up? The studio can't create accounts.
+4. **Deferred to M5:** an Epic developer account (free), only if EOS is one of the two backends tested. The studio can't create accounts.
 5. **The sideloaded iPhone build:** will Enea install SideStore or AltStore on his phone when the first build exists?

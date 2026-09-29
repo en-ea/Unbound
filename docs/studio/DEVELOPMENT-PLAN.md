@@ -175,3 +175,12 @@ The lead spot-checked the report's repo claims against Enea's code, and they hol
   - The autosave costs 17-22 ms on the main thread on the S10, every 15 s.
 - **Device lab:** `lab_args` bakes dev arguments into an APK; `lab_wake` catches a locked phone (Android pauses the game, and a run silently does nothing).
 - **i4 done:** pull requests #2 (safe saves), #3 (HUD from the safe area) and #4 (iPhone swipe), each off `main` and tested as its description says. Saves were checked on the S10, including recovery from a cut-off save.
+- **Superseded sequencing (29 Sep, later):** the order of work is now `ROUTE-r4.md` section 5:
+  - M1: the village, headless;
+  - M2: the village on screen;
+  - M3: the camera;
+  - M4: the slice playtest, each on your own phone;
+  - M5: the multiplayer spike;
+  - M6: live together.
+
+  Every milestone follows the multiplayer-ready rules and passes a replay test (r4 section 3.9). The workstreams and gates above stay as the record.

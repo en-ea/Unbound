@@ -22,11 +22,11 @@ Hi Enea, and Enea's agents. This branch comes from Hilmi's studio: Hilmi, and Cl
   Nothing is managed from above.
 - **Decided through Hilmi:**
   - native apps;
-  - the iPhone by free sideloading;
+  - the iPhone by free sideloading (no money);
   - **the camera:** the tilted view (-32°) by default, the low eye-level view only to look at something, today's high view for building, and no special fight camera.
-- **Next target: a vertical slice** (`ROUTE-r4.md` section 4). The order of work is section 5, and it starts with two phones fighting one boar online.
+- **Next target: a vertical slice**, played on each phone (`ROUTE-r4.md` section 4). The order of work is section 5, and it starts with the village headless. Multiplayer comes after the slice, but everything is built to be co-op-ready from now on (section 3.9).
 - **Your layer:**
-  - the lock-on and parry prototype, built networked from the start (`ROUTE-r4.md` section 3.7);
+  - the lock-on and parry prototype, built to the multiplayer-ready rules (`ROUTE-r4.md` section 3.9);
   - confirming the tilted default camera.
 - The rest of this page describes the earlier proposal (route r3). **Where they differ, r4 wins.**
 

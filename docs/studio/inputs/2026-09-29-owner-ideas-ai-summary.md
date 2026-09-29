@@ -4,7 +4,7 @@ created: 2026-09-29
 type: input
 voice: derived (an AI's summary of Hilmi's and Enea's messages; not their own words)
 author: supplied by Hilmi in chat; summarised by an unnamed AI outside this studio
-status: input; the studio's reading is in docs/studio/ROUTE-r4.md
+status: input; acted on in docs/studio/ROUTE-r4.md
 next_step: acted on in ROUTE-r4.md; its section 9 holds the questions still open
 ---
 
@@ -12,11 +12,13 @@ next_step: acted on in ROUTE-r4.md; its section 9 holds the questions still open
 
 **Provenance.** Hilmi pasted this into the studio chat on 29 Sep 2026 with the words "I got an ai to summarise some of the ideas we covered in messages". It is a **derived record**: another AI's summary of messages between Hilmi and Enea. It is not their own wording. Where it conflicts with their own words, their words win.
 
-## Hilmi's notes on it `[chat]`
+## Hilmi's own words in the same messages `[chat]`
 
-- On manipulating villagers: "we can somewhat have that but it most not be a main component of the game like it is in crusador kings, its more so a fun component to see how we can manipulate behaviour and stage events".
-- "certain villages would probably not suffer the randomness and 'timenados' and instead serve as story checkpoints".
-- On the camera: "we don't think different camera angles for fighting is necessary unless its some simple zoom in but even then its specific cases and the only time it may change is when inside somewhere or interacting with an npc possibly"; "I do not think the low camera would be used much unless its specifically enabled to view something"; "I think best was tilted".
+- "I think enea is forced to accept these things at this point, he won't be spending any money, we don't think different camera angles for fighting is necessary unless its some simple zoom in but even then its specific cases and the only time it may change is when inside somewhere or interacting with an npc possibly."
+- After the summary: "(on that last point though, we can somewhat have that but it most not be a main component of the game like it is in crusador kings, its more so a fun component to see how we can manipulate behaviour and stage events) (also certain villages would probably not suffer the randomness and 'timenados' and instead serve as story checkpoints)."
+- "This probably raises a lot of questions and changes previous assumptions you had on the game, take the time to think about this now"
+- "I do have a domain (dltreasures) that I wouldnt mind paying £5 a month for more calls for"
+- "but there are many options, dont narrow yourself too early on"
 
 ## The summary (verbatim, as pasted; its SVG sketch is omitted)
 
