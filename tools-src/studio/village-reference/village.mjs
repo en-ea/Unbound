@@ -8,6 +8,7 @@ import { logEvent, nameOf } from "./events.mjs";
 import { crimesToday, discoverCrimes, gossip, checkCases } from "./crime.mjs";
 import { runScheduled, confessGuilt, remember } from "./justice.mjs";
 import { directorDay } from "./director.mjs";
+import { stormDay } from "./storm.mjs";
 
 export const YEAR = 60; // days in a village year: four seasons of 15
 export const DAY = 1440; // minutes
@@ -42,6 +43,8 @@ export function createVillage(seed, opts = {}) {
     people: [], households: [], lineages: [], authority: -1, priest: -1,
     hardship: 0, fear: 0, harvest: 100, events: [], evHash: 2166136261,
     crimes: [], cases: [], schedule: [], stagings: [], stagingCount: 0, outlaws: [], shrines: [],
+    // time storms (storm.mjs): an anchored story village is exempt; stormPlan is the kernel's stand-in for tests
+    storms: [], stormPlan: opts.stormPlan ?? [], anchored: opts.anchored ?? false,
     director: { on: false, until: 0, lethal: 0, cooldown: 0, last: [], cycles: 0 },
     stats: { crimes: 0, cases: 0, trials: 0, acts: {}, outcomes: {}, deaths: 0, violentDeaths: 0, births: 0, famines: 0, omens: 0, festivals: 0, exonerations: 0, mobs: 0 },
   };
@@ -178,6 +181,7 @@ export function stepDay(V) {
   planDay(V);
   runScheduled(V);
   crimesToday(V);
+  if (V.storms.length || V.stormPlan.length) stormDay(V);
   discoverCrimes(V);
   gossip(V);
   checkCases(V);
@@ -256,7 +260,8 @@ function life(V) {
     if (hh.members.filter((m) => V.people[m].alive).length >= 8 || hh.food < 0) continue;
     if (chance(key(key(key(V.base, P.BIRTH), V.day), p.id), 9000)) {
       const k = key(key(V.base, P.SEX), V.people.length);
-      addPerson(V, p.household, pick(k, 2), 0, p.spouse, p.id);
+      const baby = addPerson(V, p.household, pick(k, 2), 0, p.spouse, p.id, p.ancestor !== undefined ? { era: p.era } : {});
+      if (p.ancestor !== undefined) { V.people[baby].ancestor = p.ancestor; V.storms[p.ancestor].ancestors.push(baby); } // born in the storm, goes with it
       V.stats.births++;
     }
   }

@@ -55,7 +55,7 @@ export const LAW = {
   arson:          [["exile", "stoning"], ["branding", "hanging", "bonfire"], ["exile", "hanging"]],
   false_witness:  [["fine"], ["pillory", "branding"], ["fine", "stocks", "branding"]],
   hoarding:       [["exile"], ["fine", "pillory"], ["fine"]],
-  sorcery:        [["scapegoat", "sacrifice"], ["ordeal", "exile", "bonfire"], ["stocks", "exile", "bonfire"]],
+  sorcery:        [["scapegoat", "sacrifice"], ["pillory", "exile", "bonfire"], ["stocks", "exile", "bonfire"]],
   well_poison:    [["stoning"], ["hanging", "bonfire"], ["hanging"]],
   grave_robbing:  [["stoning"], ["pillory", "branding", "hanging"], ["stocks", "branding"]],
   cannibal_famine:[["exile"], ["hanging", "bonfire"], ["hanging"]],
@@ -95,6 +95,10 @@ export const CULTURE = [
 // The village's places (a reusable layout type: every generated village has these kinds). Positions
 // are in decimetres (integers). The meadow village (Enea's) maps onto this in its layout.
 export const PLACE_KINDS = ["home", "pen", "square", "well", "shrine", "field", "pasture", "mill", "forge", "woods", "pillory", "gallows", "stake", "gate_south", "road", "far_woods"];
+// How far apart the ages' speech is (0 = the same tongue, 100 = none shared): gossip carries less across it
+// and misunderstandings (slights) come easier. [tribal, village, town] x [tribal, village, town].
+export const LANG_DISTANCE = [[0, 70, 90], [70, 0, 40], [90, 40, 0]];
+
 // The live game's pace (village.mjs): about ten times the chronicle's, so a village near the player has a
 // quarrel most days, a public act most weeks and a grave one every month or two of game days.
 export const LIVE_PACE = 10;

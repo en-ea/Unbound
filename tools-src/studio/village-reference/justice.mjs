@@ -8,6 +8,7 @@ import { logEvent, nameOf, fullName } from "./events.mjs";
 import { P, YEAR, ageOf, opinion, setOpinion, isKin, die, living } from "./village.mjs";
 import { giveBelief } from "./crime.mjs";
 import { lethalAllowed, noteAct } from "./director.mjs";
+import { riteAct } from "./storm.mjs";
 
 export function authorityCapacity(V) {
   if (V.authority < 0) return 0;
@@ -46,9 +47,10 @@ export function runScheduled(V) {
     else if (s.kind === "festival") gathering(V, "festival", s);
     else if (s.kind === "unlock") { const p = V.people[s.who]; p.locked = false; }
     else if (s.kind === "return") comeHome(V, s);
+    else if (s.kind === "rite") riteAct(V, s);
   }
 }
-const ORDER = ["unlock", "funeral", "trial", "public", "wedding", "festival"];
+const ORDER = ["unlock", "funeral", "trial", "public", "wedding", "festival", "rite"]; // (a "return" is not listed: it sorts first, index -1)
 
 // ---------- the trial ----------
 function trial(V, s) {
@@ -218,7 +220,8 @@ function publicAct(V, s) {
   for (const id of attend) { totalA += anger.get(id); totalS += sympathy.get(id); }
   const turned = n > 0 && totalS * 10 > totalA * 11 && !(kind === "mob" && V.fear > 800);
   // the cascade: each joins once enough others already throw (threshold from their own balance)
-  const wants = attend.filter((id) => anger.get(id) > sympathy.get(id));
+  // (children watch, but never throw)
+  const wants = attend.filter((id) => anger.get(id) > sympathy.get(id) && ageOf(V, V.people[id]) >= 14);
   const thr = new Map(wants.map((id) => [id, clamp(idiv((sympathy.get(id) - anger.get(id) + 700) * n, 1400), 0, n)]));
   let throwing = [];
   for (let round = 0; round < n + 1; round++) {
@@ -359,7 +362,7 @@ export function confessGuilt(V, pid, deathbed = false) {
       giveBelief(V, hearer, cid, pid, 800, V.priest >= 0 ? V.priest : hearer, 1, V.priest);
       if (c.household < 0 || !V.households[c.household].members.includes(hearer)) c.household = V.people[hearer].household;
     }
-    c.caseOpen = false; c.closed = false; c.falseAccusation = false; c.discovered = true;
+    c.caseOpen = false; c.closed = false; c.falseAccusation = false; c.discovered = true; c.reopenDay = V.day;
   }
   p.secret = [];
 }
@@ -367,7 +370,7 @@ export function confessGuilt(V, pid, deathbed = false) {
 // The wrongly exiled come home: thinner, older, owed something; the village makes amends.
 function comeHome(V, s) {
   const p = V.people[s.who];
-  if (!p.alive || p.present) return;
+  if (!p.alive || p.present || p.faded) return;
   p.present = true;
   V.outlaws = V.outlaws.filter((x) => x !== p.id);
   const hh = V.households[p.household];
@@ -511,7 +514,7 @@ function makeFestivalStaging(V, folk, name, k) {
     people: crowd.map((id) => personEntry(V, id)) });
 }
 
-function personEntry(V, id) {
+export function personEntry(V, id) {
   const p = V.people[id];
   return { id, name: p.name, outfit: key(key(V.base, 77), id) % 13, home: V.households[p.household].home, role: p.role, marks: Object.keys(p.marks).filter((m) => p.marks[m]) };
 }
