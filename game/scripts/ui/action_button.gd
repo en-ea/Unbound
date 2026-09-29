@@ -8,6 +8,7 @@ signal released
 var radius := 68.0
 var margin := Vector2(150, 150)      # centre, measured from the bottom-right corner
 var font_size := 28
+var _safe := Rect2()                 # where the whole button must stay (clear of notches and the home bar)
 
 var verb := ""
 var sub := ""                # small second line under the verb (a hint like "hold: sprint")
@@ -37,6 +38,8 @@ func refuse() -> void:
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_update_safe()
+	get_viewport().size_changed.connect(_update_safe)
 
 
 func set_verb(new_verb: String) -> void:
@@ -45,7 +48,14 @@ func set_verb(new_verb: String) -> void:
 
 
 func _center() -> Vector2:
-	return get_viewport().get_visible_rect().size - margin
+	var c := get_viewport().get_visible_rect().size - margin
+	var r := Vector2(radius, radius) * 1.15
+	return c.clamp(_safe.position + r, _safe.end - r)
+
+
+func _update_safe() -> void:
+	_safe = preload("res://scripts/ui/safe_area.gd").rect(get_viewport())
+	queue_redraw()
 
 
 func _input(event: InputEvent) -> void:

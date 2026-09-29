@@ -12,6 +12,7 @@ const SETTINGS_PANEL := preload("res://scripts/ui/settings_panel.gd")
 const CRAFTING_PANEL := preload("res://scripts/ui/crafting_panel.gd")
 const HOLD_TO_SPRINT := 0.18     # Roll button: shorter than this is a roll, longer is a sprint
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
+const SafeArea := preload("res://scripts/ui/safe_area.gd")
 ## Title camera: close on the character, who stands to the right of the title.
 const TITLE_VIEW := {"distance": 5.0, "pitch": -7.0, "offset": Vector3(-1.35, 0.25, 0.0)}
 
@@ -50,6 +51,7 @@ var _timer := 0.0
 
 func _ready() -> void:
 	add_to_group("hud")
+	var push := SafeArea.push(get_viewport())   # further in on phones whose notch or camera hole reaches past MARGIN
 	_add_vignette()
 	_joystick = Control.new()
 	_joystick.set_script(preload("res://scripts/ui/joystick.gd"))
@@ -88,7 +90,7 @@ func _ready() -> void:
 	_corner = HBoxContainer.new()
 	_corner.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_corner.position = Vector2(-MARGIN.x, MARGIN.y)
+	_corner.position = Vector2(-MARGIN.x - push.x, MARGIN.y + push.y)
 	_corner.add_theme_constant_override("separation", 12)
 	add_child(_corner)
 	_furnish = UIStyle.button(_corner, "Furnish", Vector2(120, 60), 20)
@@ -100,7 +102,7 @@ func _ready() -> void:
 	_map = Control.new()
 	_map.set_script(preload("res://scripts/ui/minimap.gd"))
 	_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_map.position = Vector2(-MARGIN.x - 150.0, MARGIN.y + 72.0)
+	_map.position = Vector2(-MARGIN.x - push.x - 150.0, MARGIN.y + push.y + 72.0)
 	_map.player = player
 	_map.visual = character
 	add_child(_map)
@@ -113,7 +115,7 @@ func _ready() -> void:
 	player.got_up.connect(_got_up)
 
 	_buffs = HBoxContainer.new()
-	_buffs.position = MARGIN + Vector2(0, 96)
+	_buffs.position = MARGIN + push + Vector2(0, 96)
 	_buffs.add_theme_constant_override("separation", 8)
 	add_child(_buffs)
 	Food.changed.connect(_show_buffs)
@@ -129,7 +131,7 @@ func _ready() -> void:
 	add_child(_feed)
 
 	_fps_label = Label.new()
-	_fps_label.position = MARGIN
+	_fps_label.position = MARGIN + push
 	_fps_label.add_theme_font_size_override("font_size", 16)
 	_fps_label.modulate = Color(1, 1, 1, 0.7)
 	_fps_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
