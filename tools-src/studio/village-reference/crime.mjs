@@ -268,7 +268,7 @@ export function discoverCrimes(V) {
       const told = owners.find((o) => ageOf(V, V.people[o]) >= 14);
       if (told !== undefined) for (const w of c.witnesses) {
         const q = V.people[w];
-        if (!q.alive || !q.present || isKin(V, w, c.culprit) || q.traits[C.HONESTY] < 45 || opinion(V, w, c.culprit) > 30) continue;
+        if (w === told || !q.alive || !q.present || isKin(V, w, c.culprit) || q.traits[C.HONESTY] < 45 || opinion(V, w, c.culprit) > 30) continue;
         const seen = q.beliefs.find((b) => b.crime === c.id && b.origin === w);
         if (!seen) continue;
         const nb = giveBelief(V, told, c.id, seen.culprit, seen.strength, w, 1, w);

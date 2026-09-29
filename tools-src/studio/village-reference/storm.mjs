@@ -141,7 +141,7 @@ export function riteAct(V, s) {
         `ropes cut at the stake before dawn; ${nameOf(V, r.id)} and ${nameOf(V, q.id)} running for the houses`);
       earn(V, r.id, "rescuer");
       setOpinion(V, L.id, r.id, -80); remember(L, r.id, ev);
-      makeRiteStaging(V, L.id, q.id, worshippers, "rescued", r.id, ev);
+      V.events[ev].data.staging = makeRiteStaging(V, L.id, q.id, worshippers, "rescued", r.id, ev).id;
       return;
     }
   }
@@ -153,7 +153,7 @@ export function riteAct(V, s) {
   st.offered = true;
   V.stats.acts.sacrifice = (V.stats.acts.sacrifice ?? 0) + 1;
   die(V, q.id, "sacrificed", [ev], "a still shape on the stone at dawn");
-  makeRiteStaging(V, L.id, q.id, worshippers, "carried_out", -1, ev);
+  V.events[ev].data.staging = makeRiteStaging(V, L.id, q.id, worshippers, "carried_out", -1, ev).id;
   // to the village it is murder, done openly: every grown member of the dead's household saw the drums
   const c = addCrime(V, "sacrifice", L.id, q.household, q.id, 300, "stake", "", [ev], "ash and blood on the stone", { motive: "rite" });
   c.discovered = true;
@@ -185,17 +185,22 @@ function makeRiteStaging(V, leader, victim, worshippers, outcome, rescuer, ev) {
   } else {
     B(start + 60, victim, "fall", -1, -1, "Death01");
   }
+  // the village wakes to the drums: the nearest dozen come, and stand back appalled (outer slots, after the ring)
+  const onlookers = V.people.filter((p) => p.alive && p.present && p.ancestor === undefined && p.id !== victim && p.id !== rescuer && ageOf(V, p) >= 14)
+    .map((p) => p.id).sort((a, b) => a - b).slice(0, 12);
+  onlookers.forEach((id, i) => { B(start + 15 + i, id, "walk_to", ring.length + i, -1, "Jog_Fwd"); B(start + 35 + i, id, "stand", ring.length + i, -1, "Idle_No"); });
   const end = start + 90;
   ring.forEach((id, i) => B(end + i, id, "leave", -1, -1, "Walk"));
+  onlookers.forEach((id, i) => B(end + 5 + i, id, "leave", -1, -1, "Walk"));
   B(end, leader, "leave", -1, -1, "Walk");
   beats.forEach((b, i) => { b.seq = i; });
   beats.sort((a, b) => a.at - b.at || a.who - b.who || a.seq - b.seq);
   for (const b of beats) delete b.seq;
-  const ids = [victim, leader, ...ring, ...(rescuer >= 0 ? [rescuer] : [])];
+  const ids = [victim, leader, ...ring, ...onlookers, ...(rescuer >= 0 ? [rescuer] : [])];
   const staging = {
-    id: V.stagingCount++, kind: "sacrifice", place: "stake", start, end: end + ring.length + 5,
+    id: V.stagingCount++, kind: "sacrifice", place: "stake", start, end: end + ring.length + onlookers.length + 10,
     phases: [{ name: "night", from: start - 480, to: start, rescue: true }, { name: "rite", from: start, to: start + 60, rescue: true }, { name: "end", from: start + 60, to: end + ring.length + 5, rescue: false }],
-    roles: { victim, accuser: leader, authority: leader, crowd: ring },
+    roles: { victim, accuser: leader, authority: leader, crowd: [...ring, ...onlookers] },
     beats, outcome, cause: [`rite: ${V.events[ev].cue}`], cue: V.events[ev].cue, day: V.day, people: ids.map((id) => personEntry(V, id)),
   };
   V.stagings.push(staging);

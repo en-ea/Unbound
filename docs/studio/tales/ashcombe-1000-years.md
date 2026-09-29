@@ -12,83 +12,79 @@ next_step: Enea and Hilmi read one book and say which tales feel like Unbound an
 
 *Told from the village's own memory: every name, cause and turn below happened in the simulation (seed 16838); only the sentence patterns were written by hand.*
 
-## Year 35: The Late Truth About Gwen
+## Year 12: Jory in the Pillory
 
-That was a hungry year. Alys, hungry, took grain from the Hollin house while they were at work. Simkin had never trusted Gwen, and heard what they wanted to hear. Jory found the grain sacks lighter than yesterday. Simkin named Gwen before the elder. Tobin, the elder, heard it in the square. The sentence was a fine. Gwen paid in grain. Years later, dying, Alys called for the priest and told him everything: it had been them all along. The truth came too late for Gwen. Now there are candles on Gwen's grave, and strangers come to kneel. They are remembered as Gwen the Blessed.
+One evening old grudges came to blows: Colm struck Gwen. Merric named Colm before the elder. Tobin, the elder, heard it in the square. The sentence was exile. Jory had never forgiven Merric for what was done to Colm. One evening old grudges came to blows: Jory struck Merric. Alys came to Gwen: it was Jory. Gwen named Jory before the elder. Tobin, the elder, heard it in the square. Jory confessed, and was spared the worst. The sentence was a day in the pillory. Jory stood a day in the pillory while the village muttered. They are remembered as Jory of the Pillory.
 
-## Year 62: The Burning of Hawise
+## Year 51: The Offering of Orla
 
-Then came a two-headed calf. The old women said it meant a curse among them. Whispers started that Hawise had cursed the village - charms of twisted straw found by a doorway. Wat named Hawise before the elder. Alder, the elder, heard it in the square. They put Hawise in the millpond. They floated. Guilty. The sentence was the fire. They burned Hawise at the stake at dusk; the smoke was seen from the next valley. They are remembered as Hawise the Burned.
+That was the year the storm came down on the Miller house. When the air cleared, the family was gone, and in their place stood people in furs who spoke like the old songs - the Millers' own forebears. The forebears read the strange world as their gods' anger. At dusk they took Orla to the stake, and the drums began. At dawn Hild made the offering, as their fathers had. They kept the heart for their fire. Godric named Hild before the elder. Hugh, the elder, heard it in the square. Hild confessed, and was spared the worst. The sentence was the fire. They burned Hild at the stake at dusk; the smoke was seen from the next valley. They are remembered as Hild the Burned.
 
-## Year 109: Rafe Walks Out
+## Year 115: Wenna's Fine
 
-That season people saw crows on the church roof, and began to watch one another. Whispers started that Juliana had cursed the village - charms of twisted straw found by a doorway. Wenna named Juliana before the elder. Alder, the elder, heard it in the square. They put Juliana in the millpond. They floated. Guilty. The law asked for the fire, but the elder, weary of blood, gave exile. Wystan had never forgiven Wenna for what was done to Juliana. One evening old grudges came to blows: Wystan struck Wenna. Wenna named Wystan before the elder. Alder, the elder, heard it in the square. The sentence was exile. Merric had never forgiven Wenna for what was done to Wystan. One evening old grudges came to blows: Merric struck Wenna. Wenna named Merric before the elder. Alder, the elder, heard it in the square. Merric confessed, and was spared the worst. The sentence was a day in the pillory. Merric stood a day in the pillory while the village muttered. Rafe had never forgiven Wenna for what was done to Merric. One evening old grudges came to blows: Rafe struck Wenna. Ansel named Rafe before the elder. Alder, the elder, heard it in the square. The sentence was exile. Rafe walked out of the south gate with one bundle and did not look back. From that day the Wendmoor and the Thatcher would not share a well. They are remembered as Rafe Who Walked Out.
+One evening old grudges came to blows: Lettice struck Hugh. Hugh named Lettice before the elder. Alys, the elder, heard it in the square. The sentence was exile. Wenna had never forgiven Hugh for what was done to Lettice. One evening old grudges came to blows: Wenna struck Hugh. Cecily named Wenna before the elder. Alys, the elder, heard it in the square. Wenna confessed, and was spared the worst. The sentence was a fine. Wenna paid in grain. They are remembered as Wenna Who Confessed.
 
-## Year 136: The Burning of Gwen
+## Year 149: The Night at the Stone
 
-That season people saw a stillborn foal, and began to watch one another. Whispers started that Gwen had cursed the village - charms of twisted straw found by a doorway. Tobin named Gwen before the elder. Maud, the elder, heard it in the square. They put Gwen in the millpond. They floated. Guilty. The sentence was the fire. They burned Gwen at the stake at dusk; the smoke was seen from the next valley. Piers had never forgiven Tobin for what was done to Gwen. Tobin was found dead on the south road. They are remembered as Gwen the Burned.
+That was the year the storm came down on the Thatcher house. When the air cleared, the family was gone, and in their place stood people in furs who spoke like the old songs - the Thatchers' own forebears. The forebears read the strange world as their gods' anger. At dusk they took Edith to the stake, and the drums began. Before dawn Rose crept to the stake and cut the ropes, and the two of them ran for the houses.
 
-## Year 246: The Offering of Joan
+## Year 246: The Offering of Orla
 
-That was the year the storm came down on the Fenwick house. When the air cleared, the family was gone, and in their place stood people in furs who spoke like the old songs - the Fenwicks' own forebears. The forebears read the strange world as their gods' anger. At dusk they took Joan to the stake, and the drums began. At dawn Sif made the offering, as their fathers had. Elsbet named Sif before the elder. Cecily, the elder, heard it in the square. The sentence was the fire. But before the day came, the mist rolled back over the cottage house, and Sif was gone with it, back to their own time.
+That was the year the storm came down on the Hollin house. When the air cleared, the family was gone, and in their place stood people in furs who spoke like the old songs - the Hollins' own forebears. The forebears read the strange world as their gods' anger. At dusk they took Orla to the stake, and the drums began. At dawn Bor made the offering, as their fathers had. Ansel named Bor before the elder. Tobin, the elder, heard it in the square. Bor confessed, and was spared the worst. The sentence was the fire. But before the day came, the mist rolled back over the cottage house, and Bor was gone with it, back to their own time. They are remembered as Bor Who Confessed.
 
-## Year 296: The Night of the Torches
+## Year 258: The Late Truth About Ansel
 
-That season people saw a two-headed calf, and began to watch one another. Whispers started that Tobin had cursed the village - charms of twisted straw found by a doorway. Dunstan named Tobin before the elder. The stones were thrown before anyone could stop them. Tobin died in the dust of the square. From that day the Hale and the Thatcher would not share a well.
+That season people saw a red moon, and began to watch one another. Whispers started that Ansel had cursed the village - charms of twisted straw found by a doorway. Rafe went to Hawise: it was Ansel. Hawise named Ansel before the elder. Hawise, the elder, judged it too. They put Ansel in the millpond. They floated. Guilty. The law asked for the fire, but the elder, weary of blood, gave exile. Before the month was out, Hawise stood up in the shrine and took it all back: there had been no curse, only fear, and they had named Ansel for it. The truth came out. They sent riders after Ansel, and Ansel came home through the south gate, thinner and older; the village came out to meet them, ashamed. They are remembered as Ansel Who Came Home.
 
-## Year 374: The Stones That Were Not Thrown
+## Year 373: Isolde Walks Out
 
-The harvest failed that year, and the bread ran out before the spring. While others starved, Alder's barn stayed full - full sacks glimpsed through a barn door in a hungry year. Godric named Alder before the elder. Petra, the priest, heard it in the square. They put Alder in the millpond. They floated. Guilty. The sentence was a day in the pillory. They put Alder in the pillory. But the crowd closed round the condemned instead of the stones, and the elder let them go.
+That season people saw lights over the marsh, and began to watch one another. Whispers started that Isolde had cursed the village - charms of twisted straw found by a doorway. Merric named Isolde before the elder. Bram, the elder, heard it in the square. They put Isolde in the millpond. They floated. Guilty. The law asked for the fire, but the elder, weary of blood, gave exile. Isolde walked out of the south gate with one bundle and did not look back. A few years later, Merric stood up in the shrine and took it all back: there had been no curse, only fear, and they had named Isolde for it. The truth came out. They sent riders after Isolde, and Isolde came home through the south gate, thinner and older; the village came out to meet them, ashamed. They are remembered as Isolde Who Came Home.
 
-## Year 384: The Burning of Wat
+## Year 384: The Stones That Were Not Thrown
 
-Then came lights over the marsh. The old women said it meant a curse among them. Whispers started that Wat had cursed the village - charms of twisted straw found by a doorway. Tam named Wat before the elder. Alder, the elder, heard it in the square. They put Wat in the millpond. They floated. Guilty. The sentence was the fire. They burned Wat at the stake at dusk; the smoke was seen from the next valley. They are remembered as Wat the Burned.
+That was a hungry year. Oswin, half-starved, took grain from the Brook house while they were at work. Alder found the grain sacks lighter than yesterday. Juliana named Oswin before the elder. Piers, the elder, heard it in the square. They put Oswin in the millpond. They floated. Guilty. The sentence was the brand. They put Oswin in the branding. But the crowd closed round the condemned instead of the stones, and the elder let them go.
 
-## Year 436: The Empty Cell
+## Year 419: Bram Walks Out
 
-Ilse was found dead on the south road. Ansel went to Cecily: it was Jory. Maud found crows over a still shape. Cecily named Jory before the elder. Maud, the elder, heard it in the square. The sentence was the rope. But on the night before, Jory's cell was found empty and the ropes cut. Everyone knew it was Edith, and no one said so. Jory was gone by morning, into the woods. They are remembered as Jory Who Walked Out and Edith the Brave.
+Bram had never forgiven Rafe for marrying Maud. One evening old grudges came to blows: Bram struck Rafe. Rafe named Bram before the elder. Rose, the elder, heard it in the square. Bram confessed, and was spared the worst. The sentence was exile. Bram walked out of the south gate with one bundle and did not look back. They are remembered as Bram Who Walked Out.
 
-## Year 463: The Late Truth About Godric
+## Year 595: Osric in the Pillory
 
-It was the year the grain rotted in the ear. Edric, half-starved, took grain from the Cooper house while they were at work. Colm had never trusted Godric, and heard what they wanted to hear. Hob found the grain sacks lighter than yesterday. Colm named Godric before the elder. Sella, the elder, heard it in the square. They put Godric in the millpond. They floated. Guilty. The sentence was a fine. Godric paid in grain. A few years later, Edric broke down at the shrine and told the priest everything: it had been them all along. The truth came too late for Godric.
+It was the year the grain rotted in the ear. While others starved, Osric's barn stayed full - full sacks glimpsed through a barn door in a hungry year. Gwen named Osric before the elder. Wystan, the priest, heard it in the square. The sentence was a day in the pillory. Osric stood a day in the pillory while the village muttered.
 
-## Year 521: The Stones That Were Not Thrown
+## Year 595: Alder's Fine
 
-The harvest failed that year, and the bread ran out before the spring. Hugh, hungry, took grain from the Miller house while they were at work. Oswin found the grain sacks lighter than yesterday. Oswin named Hugh before the elder. Ansel, the elder, heard it in the square. They put Hugh in the millpond. They floated. Guilty. The sentence was a day in the pillory. They put Hugh in the pillory. But the crowd closed round the condemned instead of the stones, and the elder let them go.
+Alder, who had always counted other people's geese, took grain from the Brook house while they were at work. Garrow came to Isolde: it was Alder. Osric found the grain sacks lighter than yesterday. Isolde named Alder before the elder. Osric, the elder, heard it in the square. They put Alder in the millpond. They floated. Guilty. The sentence was a fine. Alder paid in grain.
 
-## Year 593: Orla's Fine
+## Year 633: The Empty Cell
 
-That season people saw lights over the marsh, and began to watch one another. Whispers started that Hob had cursed the village - charms of twisted straw found by a doorway. Elsbet named Hob before the elder. Simkin, the elder, heard it in the square. They put Hob in the millpond. They floated. Guilty. The sentence was exile. Orla Ashby had never forgiven Elsbet for what was done to Hob. One evening old grudges came to blows: Orla Ashby struck Elsbet. Merric named Orla Ashby before the elder. Orla Cooper, the elder, heard it in the square. Orla Ashby confessed, and was spared the worst. The sentence was a fine. Orla Ashby paid in grain. They are remembered as Orla Ashby Who Confessed.
+Then came a stillborn foal. The old women said it meant a curse among them. Whispers started that Brakka had cursed the village - charms of twisted straw found by a doorway. Oswin named Brakka before the elder. Rafe, the elder, heard it in the square. They put Brakka in the millpond. They floated. Guilty. The sentence was the fire. But on the night before, Brakka's cell was found empty and the ropes cut. Everyone knew it was Oda, and no one said so. Brakka was gone by morning, into the woods. They are remembered as Brakka Who Walked Out and Oda the Brave.
 
-## Year 633: Osric Walks Out
+## Year 634: Aud Walks Out
 
-That season people saw a stillborn foal, and began to watch one another. Whispers started that Osric had cursed the village - charms of twisted straw found by a doorway. Alder named Osric before the elder. Lettice, the elder, heard it in the square. They put Osric in the millpond. They floated. Guilty. The law asked for the fire, but the elder, weary of blood, gave exile. Osric walked out of the south gate with one bundle and did not look back. Before the month was out, Alder stood up in the shrine and took it all back: there had been no curse, only fear, and they had named Osric for it. The truth came out. They sent riders after Osric, and Osric came home through the south gate, thinner and older; the village came out to meet them, ashamed. They are remembered as Osric Who Came Home.
+Then came a stillborn foal. The old women said it meant a curse among them. Whispers started that Aud had cursed the village - charms of twisted straw found by a doorway. Isolde named Aud before the elder. Rafe, the elder, heard it in the square. They put Aud in the millpond. They floated. Guilty. The law asked for the fire, but the elder, weary of blood, gave exile. Aud walked out of the south gate with one bundle and did not look back. They are remembered as Aud Who Walked Out.
 
-## Year 634: The Burning of Gwen
+## Year 731: The Burning of Holt
 
-That season people saw a stillborn foal, and began to watch one another. Whispers started that Gwen Hale had cursed the village - charms of twisted straw found by a doorway. Gwen Miller named Gwen Hale before the elder. Lettice, the elder, heard it in the square. They put Gwen Hale in the millpond. They floated. Guilty. The sentence was the fire. They burned Gwen Hale at the stake at dusk; the smoke was seen from the next valley. A few years later, Gwen Miller stood up in the shrine and took it all back: there had been no curse, only fear, and they had named Gwen Hale for it. The truth came too late for Gwen Hale. Now there are candles on Gwen Hale's grave, and strangers come to kneel. They are remembered as Gwen Hale the Blessed.
+That was the year the storm came down on the Thatcher house. When the air cleared, the family was gone, and in their place stood people in furs who spoke like the old songs - the Thatchers' own forebears. The forebears read the strange world as their gods' anger. At dusk they took Piers to the stake, and the drums began. At dawn Holt made the offering, as their fathers had. Wat named Holt before the elder. Alys, the elder, heard it in the square. The sentence was the fire. They burned Holt at the stake at dusk; the smoke was seen from the next valley. From that day the Fenwick and the Miller would not share a well. They are remembered as Holt the Burned.
 
-## Year 731: The Night at the Stone
+## Year 741: Nell Walks Out
 
-That was the year the storm came down on the Hale house. When the air cleared, the family was gone, and in their place stood people in furs who spoke like the old songs - the Hales' own forebears. The forebears read the strange world as their gods' anger. At dusk they took Sella to the stake, and the drums began. Before dawn Hob crept to the stake and cut the ropes, and the two of them ran for the houses.
+That season people saw crows on the church roof, and began to watch one another. Whispers started that Nell had cursed the village - charms of twisted straw found by a doorway. Ilse named Nell before the elder. Ilse, the elder, judged it too. They put Nell in the millpond. They floated. Guilty. The sentence was exile. Nell walked out of the south gate with one bundle and did not look back. Hob had never forgiven Ilse for what was done to Nell. Ilse was found dead at the loaf house. They are remembered as Nell Who Walked Out.
 
-## Year 741: Godric in the Pillory
+## Year 853: The Stones That Were Not Thrown
 
-That was a hungry year. Godric, hungry, took grain from the Hollin house while they were at work. Sella Hollin found the grain sacks lighter than yesterday. Sella Fenwick named Godric before the elder. Marjory, the elder, heard it in the square. They put Godric in the millpond. They floated. Guilty. The sentence was a day in the pillory. Godric stood a day in the pillory while the village muttered.
+Tilda, who had always counted other people's geese, took grain from the Hale house while they were at work. Wystan found the grain sacks lighter than yesterday. Isolde named Tilda before the elder. Mara, the elder, heard it in the square. The sentence was the rope. They put Tilda in the hanging. But the crowd closed round the condemned instead of the stones, and the elder let them go.
 
-## Year 839: The Stones That Were Not Thrown
+## Year 893: The Hanging of Tobin
 
-It was the year the grain rotted in the ear. Hugh, with the children crying for bread, took grain from the Hollin house while they were at work. Nell found the grain sacks lighter than yesterday. Nell named Piers before the elder. Oswin, the elder, heard it in the square. They put Piers in the millpond. They floated. Guilty. The sentence was a day in the pillory. They put Piers in the pillory. But the crowd closed round the condemned instead of the stones, and the elder let them go.
+It was the year the grain rotted in the ear. Tobin, half-starved, took grain from the Brook house while they were at work. Ansel found the grain sacks lighter than yesterday. Alder Ashby named Tobin before the elder. Oswin, the elder, heard it in the square. The sentence was the rope. They hanged Tobin at dawn from a gallows built by lantern light. From that day the Cooper and the Ashby would not share a well. They are remembered as Tobin the Hanged.
 
-## Year 887: The Late Truth About Piers
+## Year 914: The Empty Cell
 
-The harvest failed that year, and the bread ran out before the spring. Hugh, hungry, took grain from the Hollin house while they were at work. Nell found the grain sacks lighter than yesterday. Oswin had never trusted Piers, and heard what they wanted to hear. Oswin named Piers before the elder. Oswin, the elder, judged it too. They put Piers in the millpond. They floated. Guilty. The sentence was a fine. Piers paid in grain. Years later, dying, Hugh called for the priest and told him everything: it had been them all along. The truth came too late for Piers. Now there are candles on Piers's grave, and strangers come to kneel. They are remembered as Piers the Blessed.
+Isolde, who had always counted other people's geese, took grain from the Brook house while they were at work. Garrow went to Rafe: it was Isolde. Merric found the grain sacks lighter than yesterday. Rafe named Isolde before the elder. Cuthbert, the elder, heard it in the square. They put Isolde in the millpond. They floated. Guilty. The sentence was the brand. But on the night before, Isolde's cell was found empty and the ropes cut. Everyone knew it was Edric, and no one said so. Isolde was gone by morning, into the woods. They are remembered as Isolde Who Walked Out and Edric the Brave.
 
-## Year 916: Agnes in the Pillory
+## Year 950: The Stones That Were Not Thrown
 
-That season people saw a two-headed calf, and began to watch one another. Whispers started that Piers had cursed the village - charms of twisted straw found by a doorway. Wat named Piers before the elder. Orla, the elder, heard it in the square. They put Piers in the millpond. They floated. Guilty. The law asked for the fire, but the elder, weary of blood, gave exile. Dunstan had never forgiven Wat for what was done to Piers. One evening old grudges came to blows: Dunstan struck Wat. Wat named Dunstan before the elder. Orla, the elder, heard it in the square. The sentence was exile. Ilse had never forgiven Wat for what was done to Dunstan. One evening old grudges came to blows: Ilse struck Wat. Wat named Ilse before the elder. Orla, the elder, heard it in the square. Ilse confessed, and was spared the worst. The sentence was a day in the pillory. Ilse stood a day in the pillory while the village muttered. Agnes had never forgiven Wat for what was done to Ilse. One evening old grudges came to blows: Agnes struck Wat. Wat named Agnes before the elder. Orla, the elder, heard it in the square. Agnes confessed, and was spared the worst. The sentence was a day in the pillory. Agnes stood a day in the pillory while the village muttered. They are remembered as Agnes Who Confessed.
-
-## Year 983: Ilse Walks Out
-
-Then came a hailstorm in summer. The old women said it meant a curse among them. Whispers started that Ilse had cursed the village - charms of twisted straw found by a doorway. Cuthbert named Ilse before the elder. Hawise, the elder, heard it in the square. They put Ilse in the millpond. They floated. Guilty. The law asked for the fire, but the elder, weary of blood, gave exile. Ilse walked out of the south gate with one bundle and did not look back. A few years later, Cuthbert stood up in the shrine and took it all back: there had been no curse, only fear, and they had named Ilse for it. The truth came out. They sent riders after Ilse, and Ilse came home through the south gate, thinner and older; the village came out to meet them, ashamed. They are remembered as Ilse Who Came Home.
+That was a hungry year. Dunstan, hungry, took grain from the Hale house while they were at work. Wat found the grain sacks lighter than yesterday. Petra named Dunstan before the elder. Rafe, the elder, heard it in the square. The sentence was the brand. They put Dunstan in the branding. But the crowd closed round the condemned instead of the stones, and the elder let them go.
 

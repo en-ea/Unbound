@@ -36,11 +36,13 @@ export function extractTales(V, perCentury = 3) {
   const perC = new Map();
   const kindsIn = new Map();
   const kindUses = new Map(); // a kind already told is worth less the next time (the book needs range)
+  const themeOf = (t) => V.events[t.ids.find((id) => V.events[id].type === "crime") ?? t.root].data.act ?? "none";
+  const themeUses = new Map(); // so is a theme (another witch, another theft)
   const pool = [...tales];
   while (pool.length) {
     let bi = 0, bs = -1e9;
     for (let i = 0; i < pool.length; i++) {
-      const a = pool[i].score - 25 * (kindUses.get(kindOf(pool[i])) ?? 0);
+      const a = pool[i].score - 30 * (kindUses.get(kindOf(pool[i])) ?? 0) - 20 * (themeUses.get(themeOf(pool[i])) ?? 0);
       if (a > bs || (a === bs && pool[i].root < pool[bi].root)) { bs = a; bi = i; }
     }
     const t = pool.splice(bi, 1)[0];
@@ -57,6 +59,7 @@ export function extractTales(V, perCentury = 3) {
     kindsIn.set(ck, true);
     told.set(r.who, [...(told.get(r.who) ?? []), t.year]);
     kindUses.set(kind, (kindUses.get(kind) ?? 0) + 1);
+    themeUses.set(themeOf(t), (themeUses.get(themeOf(t)) ?? 0) + 1);
     out.push(t);
     perC.set(century, (perC.get(century) ?? 0) + 1);
     for (const id of t.ids) used.add(id);
@@ -109,6 +112,8 @@ const PLACE_WORDS = { road: "on the south road", far_woods: "in the far woods", 
   pasture: "in the pasture", well: "by the well", square: "in the square", forge: "by the forge", shrine: "at the shrine" };
 
 // why a quarrel came to blood: the old wrong the grudge remembers
+const where = (V, place) => PLACE_WORDS[place] ?? (V.layout.homes.includes(place) ? `at the ${place} house` : `at the ${place}`);
+
 function grudgeLine(V, e, n) {
   for (const c of e.causes) {
     const x = V.events[c];
@@ -149,8 +154,8 @@ function sentence(V, e, ctx) {
       if (d.act === "sorcery") return `Whispers started that ${n(e.who)} had cursed the village - ${e.cue}.`;
       if (d.act === "poaching") return `${n(e.who)} set snares in the elder's woods.`;
       if (d.act === "assault") return grudgeLine(V, e, n) + `One evening old grudges came to blows: ${n(e.who)} struck ${n(e.other)}.`;
-      if (d.act === "murder") return grudgeLine(V, e, n) + (e.cue.includes("brawl") ? `One evening a fight ${PLACE_WORDS[d.place] ?? "at the " + d.place} went too far: ${n(e.who)} struck ${n(e.other)}, and ${n(e.other)} did not get up.`
-        : `${n(e.other)} was found dead ${PLACE_WORDS[d.place] ?? "at the " + d.place}.`);
+      if (d.act === "murder") return grudgeLine(V, e, n) + (e.cue.includes("brawl") ? `One evening a fight ${where(V, d.place)} went too far: ${n(e.who)} struck ${n(e.other)}, and ${n(e.other)} did not get up.`
+        : `${n(e.other)} was found dead ${where(V, d.place)}.`);
       if (d.act === "cannibal_famine") return `In the worst of it, ${n(e.who)} did what no one would ever speak of: there were ${e.cue.replace("bones", "bones")}.`;
       if (d.act === "hoarding") return `While others starved, ${n(e.who)}'s barn stayed full - ${e.cue}.`;
       return `${n(e.who)} was accused of ${C.ACTS[d.act]?.noun ?? d.act}.`;

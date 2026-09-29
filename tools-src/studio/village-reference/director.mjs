@@ -21,7 +21,7 @@ export function directorDay(V) {
   const doy = V.day % YEAR;
   if (FEASTS[doy]) V.schedule.push({ day: V.day, kind: "festival", name: FEASTS[doy], who: -1, other: -1, causes: [] });
   // omens: rare; hardship makes them likelier (a hungry village reads signs everywhere)
-  if (chance(key(k, 2), (2200 + idiv(V.hardship, 2) * 8) * V.pace)) {
+  if (chance(key(k, 2), (900 + idiv(V.hardship, 2) * 8) * V.pace)) {
     const omen = C.OMENS[pick(key(k, 3), C.OMENS.length)];
     V.fear = clamp(V.fear + 460, 0, 1000);
     V.stats.omens++;
