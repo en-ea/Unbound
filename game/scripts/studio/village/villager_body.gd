@@ -26,7 +26,7 @@ extends Node3D
 ##
 ## Same public interface as CharacterVisual for villagers (hero_look, is_player_look, wear_gear,
 ## apply_hero_look, play_motion, play_action, animation_length, hit_stop, flash, show_tool,
-## head_attachment), plus play_loop, set_detail and hand_attachment. Not carried over: charge_tool
+## head_attachment), plus play_loop, set_detail, hand_attachment and hold_hands / release_hands. Not carried over: charge_tool
 ## (the player's sword only). Which parts show and how they are coloured mirrors
 ## CharacterVisual.apply_hero_look and _slot_material; keep the two in step.
 
@@ -51,6 +51,8 @@ var _detail := 0
 var _step_left := 0.0           # tier 1: seconds until the next animation step
 var _stepped := 0.0             # tier 1: seconds of animation not yet applied
 var _lean: SkeletonModifier3D   # only while running, so walking and standing bodies carry no modifier
+var _hands: TwoBoneIK3D         # only while the hands are held somewhere (hold_hands)
+var _hand_marks: Array[Marker3D] = []   # the wrists' targets, then the elbows' poles (left, right)
 var _hand: BoneAttachment3D
 var _tools := {}                # name -> Node3D in the hand (made on first show_tool)
 var _flash := 0.0
@@ -186,6 +188,42 @@ func play_loop(anim_name: String, blend := 0.2, speed := 1.0, start_at := 0.0) -
 	_anim.play(looped, blend)
 	if start_at > 0.0:
 		_anim.seek(fposmod(start_at, _anim.get_animation(looped).length), true)
+
+
+## Holds the wrists at two points in the body's own space (+z forward; left is +x), elbows down and out,
+## over whatever the body plays: the hands through a pillory's board. Two-bone IK on each arm (upper arm,
+## forearm, hand); a skeleton with a modifier re-poses every frame, so it exists only while held.
+func hold_hands(left: Vector3, right: Vector3) -> void:
+	if _hands == null:
+		_hands = TwoBoneIK3D.new()
+		_hands.name = "Hands"
+		_skeleton.add_child(_hands)
+		_hands.set_setting_count(2)
+		for i in 4:
+			var mark := Marker3D.new()
+			add_child(mark)
+			_hand_marks.append(mark)
+		for i in 2:
+			var side := "_l" if i == 0 else "_r"
+			_hands.set_root_bone_name(i, "upperarm" + side)
+			_hands.set_middle_bone_name(i, "lowerarm" + side)
+			_hands.set_end_bone_name(i, "hand" + side)
+			_hands.set_target_node(i, _hands.get_path_to(_hand_marks[i]))
+			_hands.set_pole_node(i, _hands.get_path_to(_hand_marks[i + 2]))
+	_hand_marks[0].position = left
+	_hand_marks[1].position = right
+	_hand_marks[2].position = Vector3(0.7, left.y - 0.6, left.z - 0.35)
+	_hand_marks[3].position = Vector3(-0.7, right.y - 0.6, right.z - 0.35)
+
+
+func release_hands() -> void:
+	if _hands == null:
+		return
+	_hands.queue_free()
+	_hands = null
+	for mark in _hand_marks:
+		mark.queue_free()
+	_hand_marks.clear()
 
 
 func animation_length(anim_name: String) -> float:

@@ -24,16 +24,24 @@ const STONE := Color(0.66, 0.64, 0.6)
 const DARK_STONE := Color(0.5, 0.49, 0.47)
 const PAPER := Color(0.93, 0.89, 0.76)
 
-## Where the one being punished stands or sits, relative to the prop's origin (the stage's hint):
-## pillory: standing behind the board, the neck hole level with the neck (the rig's neck is 1.49 m up;
-## the head only comes through with a pose bent forward at the waist); stocks: sitting on the log, ankles
-## in the board; stake: standing on the board, back to the post; gallows: on the trapdoor, under the noose.
+## Where the one being punished stands or sits: the body's origin (its feet), relative to the prop's
+## origin, facing +Z, in the pose VICTIM_POSE names (the stage plays it; the numbers are measured on the
+## rig in that pose, so the two go together):
+## pillory: on the platform, bent forward on the board (Idle_Rail: the neck drops to 1.33-1.38 m and leads
+##   the feet by 0.3 m), the neck through the hole and the face just out in front of the board;
+## stocks: sitting (Sitting_Idle: hips 0.33 m behind the feet, seat ~0.44 m) with the hips over the log;
+## stake: standing on the board, back to the post;
+## gallows: on the trapdoor, under the noose (a little forward of it, so a fall backwards stays on the deck).
 const VICTIM := {
-	"pillory": Vector3(0.0, 0.3, -0.2),
-	"stocks": Vector3(0.0, 0.0, -0.55),
+	"pillory": Vector3(0.0, 0.3, 0.1),
+	"stocks": Vector3(0.0, 0.0, -0.29),
 	"stake": Vector3(0.0, 0.5, 0.22),
-	"gallows": Vector3(0.45, 1.2, 0.0),
+	"gallows": Vector3(0.45, 1.2, 0.25),
 }
+const VICTIM_POSE := {"pillory": "Idle_Rail", "stocks": "Sitting_Idle", "stake": "Idle", "gallows": "Idle"}
+## The pillory's holes (neck in the middle, wrists either side): at the neck of a body bent forward in
+## VICTIM_POSE on the platform (0.3 m).
+const PILLORY_HOLES := 1.66
 
 static var _meshes := {}        # prop name -> ArrayMesh
 static var _material: ShaderMaterial
@@ -44,16 +52,17 @@ static func pillory() -> Node3D:
 	return _prop("pillory", func(k: Kit) -> void:
 		k.box(Vector3(0, 0.15, -0.2), Vector3(1.5, 0.3, 1.3), DARK_WOOD)         # platform
 		k.box(Vector3(0, 0.08, 0.6), Vector3(0.7, 0.16, 0.3), DARK_WOOD)         # a step up
-		k.box(Vector3(0, 1.35, 0), Vector3(0.16, 2.1, 0.16), WOOD)               # post
-		k.box(Vector3(0, 1.7, 0.1), Vector3(1.2, 0.18, 0.08), PALE_WOOD)         # lower half of the board
-		k.box(Vector3(0, 1.88, 0.1), Vector3(1.2, 0.18, 0.08), PALE_WOOD)        # upper half (it lifts)
+		var y := PILLORY_HOLES
+		k.box(Vector3(0, (0.3 + y + 0.4) / 2.0, 0), Vector3(0.16, y + 0.1, 0.16), WOOD)      # post
+		k.box(Vector3(0, y - 0.09, 0.1), Vector3(1.2, 0.18, 0.08), PALE_WOOD)    # lower half of the board
+		k.box(Vector3(0, y + 0.09, 0.1), Vector3(1.2, 0.18, 0.08), PALE_WOOD)    # upper half (it lifts)
 		for x in [-0.36, 0.0, 0.36]:                                             # wrist, neck, wrist
 			var r := 0.075 if x == 0.0 else 0.045
-			k.prism(Vector3(x, 1.79, 0.145), r, 0.012, HOLE, 8, Basis(Vector3.RIGHT, PI / 2.0))
-			k.prism(Vector3(x, 1.79, 0.055), r, 0.012, HOLE, 8, Basis(Vector3.RIGHT, PI / 2.0))
-		k.box(Vector3(-0.62, 1.79, 0.1), Vector3(0.05, 0.4, 0.1), IRON)          # hinge
-		k.box(Vector3(0.62, 1.79, 0.1), Vector3(0.05, 0.12, 0.11), IRON)         # hasp
-		k.box(Vector3(0, 2.44, 0), Vector3(0.24, 0.08, 0.24), DARK_WOOD))         # cap
+			k.prism(Vector3(x, y, 0.145), r, 0.012, HOLE, 8, Basis(Vector3.RIGHT, PI / 2.0))
+			k.prism(Vector3(x, y, 0.055), r, 0.012, HOLE, 8, Basis(Vector3.RIGHT, PI / 2.0))
+		k.box(Vector3(-0.62, y, 0.1), Vector3(0.05, 0.4, 0.1), IRON)             # hinge
+		k.box(Vector3(0.62, y, 0.1), Vector3(0.05, 0.12, 0.11), IRON)            # hasp
+		k.box(Vector3(0, y + 0.44, 0), Vector3(0.24, 0.08, 0.24), DARK_WOOD))     # cap
 
 
 ## A low frame for sitting in: two uprights, the ankle board, and a log to sit on behind it.

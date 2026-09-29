@@ -11,7 +11,7 @@ const VillagerBody := preload("res://scripts/studio/village/villager_body.gd")
 const BIG := ["pillory", "stocks", "stake", "gallows", "shrine", "notice_board"]
 const WIDTH := {"pillory": 1.5, "stocks": 1.4, "stake": 2.0, "gallows": 2.6, "shrine": 1.0, "notice_board": 1.6}
 const SMALL := ["cabbage", "turnip", "mud", "stone"]
-const POSES := {"pillory": "Idle", "stocks": "Sitting_Idle", "stake": "Idle", "gallows": "Idle"}
+const POSES := Props.VICTIM_POSE
 const GAP := 1.1              # metres between big props
 
 var _frame := 0
