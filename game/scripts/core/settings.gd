@@ -3,6 +3,7 @@ extends Node
 
 signal changed
 
+const SafeFile := preload("res://scripts/core/safe_file.gd")
 const PATH := "user://settings.cfg"
 const FPS_CAPS := [30, 40, 60]
 const ZOOMS := {0.8: "Close", 1.0: "Normal", 1.25: "Far"}     # camera distance multiplier
@@ -17,7 +18,7 @@ var render_scale := 0.8
 
 func _ready() -> void:
 	var cfg := ConfigFile.new()
-	if cfg.load(PATH) == OK:
+	if SafeFile.load_config(cfg, PATH) == OK:
 		fps_cap = cfg.get_value("video", "fps_cap", fps_cap)
 		show_stats = cfg.get_value("video", "show_stats", show_stats)
 		show_map = cfg.get_value("video", "show_map", show_map)
@@ -71,5 +72,5 @@ func _save_and_apply() -> void:
 	cfg.set_value("video", "show_map", show_map)
 	cfg.set_value("audio", "sound_on", sound_on)
 	cfg.set_value("video", "zoom", zoom)
-	cfg.save(PATH)
+	SafeFile.save_config(cfg, PATH)
 	apply()

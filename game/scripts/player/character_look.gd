@@ -3,6 +3,7 @@ extends RefCounted
 ## What a "hero"-style character looks like: which parts it wears and its colours.
 ## Plain data, so it can be saved, randomised for villagers, and later sent to other players.
 
+const SafeFile := preload("res://scripts/core/safe_file.gd")
 const SAVE_PATH := "user://look.cfg"
 
 ## Part slots and their choices (the first is the default). Mesh names in hero.glb follow them.
@@ -176,13 +177,13 @@ func save() -> void:
 	cfg.set_value("look", "colors", colors)
 	cfg.set_value("look", "height", height)
 	cfg.set_value("look", "build", build)
-	cfg.save(SAVE_PATH)
+	SafeFile.save_config(cfg, SAVE_PATH)
 
 
 static func load_saved() -> CharacterLook:
 	var look := CharacterLook.new()
 	var cfg := ConfigFile.new()
-	if cfg.load(SAVE_PATH) == OK:
+	if SafeFile.load_config(cfg, SAVE_PATH) == OK:
 		var saved_outfit: String = cfg.get_value("look", "outfit", look.outfit)
 		if OUTFITS.has(saved_outfit):
 			look.outfit = saved_outfit
