@@ -4,15 +4,18 @@ extends Control
 const POS := Vector2(66, 76)
 const SIZE := 26.0
 const GAP := 34.0
+const SafeArea := preload("res://scripts/ui/safe_area.gd")
 
 var _health := 5
 var _max := 5
 var _pop := 0.0
+var _push := Vector2.ZERO   # further in on phones with a notch or camera hole
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_push = SafeArea.push(get_viewport())
 
 
 func show_health(health: int, max_health: int) -> void:
@@ -31,7 +34,7 @@ func _process(delta: float) -> void:
 
 func _draw() -> void:
 	for i in _max:
-		var c := POS + Vector2(i * GAP + SIZE * 0.5, SIZE * 0.5)
+		var c := POS + _push + Vector2(i * GAP + SIZE * 0.5, SIZE * 0.5)
 		var full := i < _health
 		var s := SIZE * (1.0 + (0.3 * _pop if i == _health else 0.0))
 		_heart(c + Vector2(0, 2), s, Color(0, 0, 0, 0.25))
