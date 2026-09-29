@@ -6,9 +6,10 @@ Where we are:
 - Loot and armour: six rarities with rolled bonuses and names, armour (helm/chest/boots, defence blocks hits; helm hidden unless "Helm: shown" in the Bag), Bag Gear tab with compare, found-loot card. Models are placeholders until I send weapon/armour designs.
 - Character screen: clean ‹ › cards, 13 ready-made outfits, eye colour, nose, elf ears, markings.
 - Build lab (title screen): small walled room; the Lab board switches buildings and spawns enemies, trees, rocks, ores, chests and loot.
+- Home inside: walk in through your front door; a cosy room per house (hearth cooks, bed rests to morning); Furnish button places, turns and puts away 13 furniture pieces; mailbox by the path has the home menu.
 
 Hilmi (my friend) works on the `studio` branch (docs/studio/START-HERE.md): a bigger "living civilisations" direction, native apps, a new camera. My answers are in docs/studio/FROM-ENEA.md. Don't merge or build on `studio` without my OK. Because fighting and the camera may change on his side, prefer work that stays the same either way (looks, content, data, screens).
 
-Next: going inside houses, starting with my own home (walk in through the door, a cosy interior, furniture I can place later). Tell me your plan in a few lines first, then build it.
+Next: (pick from the ideas at the end of the last chat, or my playtest notes).
 
 How I like to work: I don't code; keep replies short and plain. Batch my requests into one go, commit after each working step, only screenshot when a visual check really matters, make things look good (not basic), and at the end tell me concisely what to test.

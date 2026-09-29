@@ -72,8 +72,22 @@ targets at the top. Other scripts alias its constants (`Gear.TIERS := Balance.TI
 `state/home.gd` (autoload `Home`): owned house, pieces built in the yard, `missing()` (needs the Smithy,
 a skill total and coins, see Balance.HOME), `buy()`, `place()`, `remove()`. `world/home_plot.gd` shows the
 plot (meadow, west of the village); `ui/build_mode.gd` is the building bar (preview in front of you on a
-half-metre grid, or Snap: fences join, 1 m grid, square turns; `_hook`). Your front door opens the home
+half-metre grid, or Snap: fences join, 1 m grid, square turns; `_hook`). The mailbox by the path opens the home
 screen (build, or move into another house). Add a buildable: `Home.PIECES` + its cost in `Balance.HOME_PIECES`. Dev: `--home`.
+
+## Inside your home
+`world/home_interior.gd`: one room far off the map (`AT`), built from `assets/interior/room_<house>.glb`
+(`tools-src/blender/make_interior.py`: floor, cut-away walls, hearth, windows as a separate "Windows" object,
+shelves; furniture `furn_<id>.glb`; the mailbox). Walk into the front door (or Enter) / out through the doorway
+(or Leave on the mat), with `Region.fade_through()`. Indoors: `DayNight.set_indoors()` (softer sun, warmer ambient),
+camera `enter_room()` / `leave_room()` (closer, steeper, stays on the room), no fog, quieter ambience, wooden steps,
+HUD `set_indoors()` (Furnish button, no minimap). The hearth cooks; a bed "Rest" sleeps to morning and heals.
+Furniture state: `Home.FURNITURE` (name, model, footprint, "wall"/"rug"/"", action), `Home.furniture`, `Home.stored`
+(put away = free to place again), `furnish()`, `put_away()`, `room_fits()` (rects; rugs only mind rugs;
+`ROOM_BUILT_IN`, `ROOM_DOORWAY`), `STARTER` (a new home's pieces). Costs: `Balance.HOME_FURNITURE`.
+Furnish bar = `ui/build_mode.gd` with `room = true` (0.5 m grid, wall pieces back onto the nearest wall).
+Saved indoors → you wake up inside. Add furniture: a model in make_interior.py + `Home.FURNITURE` + its cost.
+Dev: `--inside[=hill]`, `--furnish`, `--house=lantern`. Test menu: "One of each furniture".
 
 ## Places
 `world/places.gd`: named placeholder spots per region (watchtower, farmstead, camp, hollow, cave...),
