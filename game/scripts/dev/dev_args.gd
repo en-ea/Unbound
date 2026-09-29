@@ -11,6 +11,7 @@ extends Node
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
 ##   --telltest        a boar frozen mid-warning (glint), a heavy blow's shockwave, stamina part used (screenshots)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
+##   --cam=d,pitch,fov[,yaw]  try another camera framing (distance, pitch, lens, turn), with a far view
 ##   --lineup[=N]      stand 7 outfit presets (from the Nth) in a row in front of the camera
 ##   --outfit=Mage     wear a ready-made outfit
 ##   --title           keep the title screen (otherwise any dev argument skips it)
@@ -32,6 +33,7 @@ var _lineup := false
 var _gather_test := false
 var _fight_test := false
 var _tell_test := false
+var _lock_mock := false
 var _lineup_from := 0
 var _lineup_marks := false
 var _gather_offset := Vector3(0, 0.3, -1.3)
@@ -184,6 +186,8 @@ func _ready() -> void:
 			_fight_test = true
 		elif arg == "--telltest":
 			_tell_test = true
+		elif arg == "--lockmock":                     # with --telltest: a mock lock-on marker on the boar
+			_lock_mock = true
 		elif arg.begins_with("--gatheroffset="):
 			var v := arg.trim_prefix("--gatheroffset=").split(",")
 			_gather_offset = Vector3(float(v[0]), 0.3, float(v[1]))
@@ -204,6 +208,14 @@ func _ready() -> void:
 		elif arg.begins_with("--view="):
 			var v := arg.trim_prefix("--view=").split(",")
 			get_node("../CameraRig").set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01)
+		elif arg.begins_with("--cam="):               # --cam=d,pitch,fov[,yaw]: try other camera framings
+			var v := arg.trim_prefix("--cam=").split(",")
+			var rig := get_node("../CameraRig")
+			rig.set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01)
+			rig.camera.fov = float(v[2])
+			rig.camera.far = 600.0
+			if v.size() > 3:
+				rig.rotation.y = deg_to_rad(float(v[3]))
 		elif arg == "--touchtest":
 			_touch_test = true
 	if _shot_path == "" and not _touch_test and not _gather_test and not _fight_test:
@@ -338,6 +350,8 @@ func _run_tell_test() -> void:
 	if _frames == 20:
 		player.global_position = boar.global_position + Vector3(1.0, 0.3, 3.0)
 		get_node("../CameraRig").snap()
+		if _lock_mock:
+			_add_lock_mock(boar)
 	if _frames > 20 and player.stamina.value > 45.0:
 		player.stamina._spend(player.stamina.value - 45.0)
 	if boar.state == Boar.State.WINDUP:
@@ -351,6 +365,31 @@ func _run_tell_test() -> void:
 		f._shock_t = 0.3
 		player.visual.show_tool("sword")
 		player.visual.charge_tool(1.0)
+
+
+## A look-board mock of a lock-on marker: a ring on the ground and a small arrow over the target.
+func _add_lock_mock(target: Node3D) -> void:
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(1.0, 0.55, 0.15)
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 1.05
+	torus.outer_radius = 1.2
+	ring.mesh = torus
+	ring.material_override = mat
+	ring.position = Vector3(0, 0.05, 0)
+	target.add_child(ring)
+	var arrow := MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.22
+	cone.bottom_radius = 0.0
+	cone.height = 0.4
+	cone.radial_segments = 4
+	arrow.mesh = cone
+	arrow.material_override = mat
+	arrow.position = Vector3(0, 2.0, 0)
+	target.add_child(arrow)
 
 
 func _build_lineup() -> void:
