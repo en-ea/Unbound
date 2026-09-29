@@ -21,6 +21,9 @@ func _ready() -> void:
 	if "--measure-uncapped" in OS.get_cmdline_user_args():
 		Engine.max_fps = 0
 		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	# A bounded diagnostic only; normal settings remain untouched.
+	if "--measure-no-msaa" in OS.get_cmdline_user_args():
+		get_viewport().msaa_3d = Viewport.MSAA_DISABLED
 	_start = Time.get_ticks_usec()
 	_last = _start
 	var player := get_tree().get_first_node_in_group("player") as Node3D
@@ -48,8 +51,14 @@ func _process(_delta: float) -> void:
 		if int(elapsed / 10.0) >= _samples.size():
 			var draws := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
 			draw_calls.append(float(draws))
-			_samples.append({"seconds": elapsed, "draws": draws, "bodies": live.registry.bodies.size(), "event": live._event,
-				"minute": VillageSession.village.runtime.now, "background": VillageSession.background})
+			var sample := {"seconds": elapsed, "draws": draws, "bodies": live.registry.bodies.size(), "event": live._event,
+				"minute": VillageSession.village.runtime.now, "background": VillageSession.background,
+				"static_bytes": Performance.get_monitor(Performance.MEMORY_STATIC), "objects": Performance.get_monitor(Performance.OBJECT_COUNT),
+				"resources": Performance.get_monitor(Performance.OBJECT_RESOURCE_COUNT), "nodes": Performance.get_monitor(Performance.OBJECT_NODE_COUNT),
+				"video_bytes": Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED), "msaa": get_viewport().msaa_3d,
+				"viewport": str(get_viewport().get_visible_rect().size)}
+			_samples.append(sample)
+			print("MEASURE sample ", JSON.stringify(sample)) # survives even a driver/process failure
 	if elapsed < _seconds:
 		return
 	var result := {"label": _label, "seconds": elapsed, "device": OS.get_model_name(), "godot": Engine.get_version_info().string,
