@@ -34,6 +34,27 @@ const snap=loadVillage(saveVillage(V));
 advance(V,e.deadline); advance(snap,e.deadline);
 assert.equal(e.outcome,'acquitted'); assert.equal(canonical(V),canonical(snap));
 assert.equal(V.people[e.victim].alive,true);
+// Two living speakers repeat one original account. Listening cannot manufacture corroboration.
+{
+  const [T,te]=hearing(), tc=T.cases[te.source.case], judge=T.stagings.find(s=>s.id===te.id).roles.authority;
+  const speakers=T.people.filter(p=>p.alive&&p.present&&p.id!==judge&&p.id!==tc.accused).slice(0,2);
+  const source=4000000+tc.crime;
+  for(const p of speakers) {
+    p.era=T.age; p.beliefs=p.beliefs.filter(b=>b.crime!==tc.crime);
+    giveBelief(T,p.id,tc.crime,tc.accused,600,source,1,speakers[0].id);
+    if(!te.witnesses.includes(p.id))te.witnesses.push(p.id);
+    assert.equal(request(T,te,'listen',{speaker:p.id}).accepted,true);
+  }
+  const knowledge=T.runtime.players['player:local'].knowledge;
+  assert.equal(knowledge.filter(k=>k.origin===source).length,1);
+  const before=T.people.map(p=>p.beliefs.length), evidence=tc.evidence;
+  assert.equal(request(T,te,'testify',{origin:source}).accepted,true);
+  assert.equal(tc.evidence,evidence+300);
+  for(const p of T.people)if(p.id!==judge)assert.equal(p.beliefs.length,before[p.id]);
+  assert.equal(act(T,{action_id:'new-input-same-origin',player_id:'player:local',village_id:T.runtime.village,
+    logical_time:T.runtime.now,event_id:te.id,verb:'testify',parameters:{origin:source}},{distance_dm:0}).accepted,false);
+  assert.equal(tc.evidence,evidence+300);
+}
 for(const accepted of [true,false]) {
   const [B,be]=hearing(), judge=B.people[B.stagings.find(s=>s.id===be.id).roles.authority];
   judge.traits[C.GREED]=accepted?100:0; judge.traits[C.HONESTY]=accepted?0:100; judge.values.law=50;
@@ -65,6 +86,15 @@ function rite() {
   victim.locked=true; riteAct(R,s); syncEvents(R);
   const event=R.runtime.events.find(e=>e.type==='rite');
   advance(R,event.from); return [R,event,storm];
+}
+for(const accepts of [true,false]) {
+  const [O,oe]=rite(), leader=O.people[oe.source.who];
+  leader.traits[C.COMPASSION]=accepts?100:0; leader.values.mercy=accepts?100:0;
+  assert.equal(request(O,oe,'offer').wood,1);
+  assert.equal(terminal(oe),accepts);
+  assert.equal(request(O,oe,'offer').duplicate,true);
+  assert.equal(O.runtime.players['player:local'].enemies.includes(leader.id),false);
+  if(!accepts)assert.equal(request(O,oe,'free').accepted,true,'refused offering still allows rescue');
 }
 for(const rescue of [true,false]) {
   const [R,re,storm]=rite(); assert.equal(R.people[re.victim].alive,true,'no death at preparation');

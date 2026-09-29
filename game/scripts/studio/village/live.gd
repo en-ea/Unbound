@@ -268,6 +268,9 @@ func _update_storms() -> void:
 		_storm_props[storm.id] = prop
 
 func _update_cue(now: int) -> void:
+	_label.visible = not Controls.locked and not VillageSession.background
+	if not _label.visible:
+		return
 	if now < _feedback_until:
 		_label.text = _feedback
 		return

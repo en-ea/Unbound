@@ -6,6 +6,7 @@ const Save := preload("res://scripts/studio/village/sim/save.gd")
 const Storm := preload("res://scripts/studio/village/sim/storm.gd")
 const C := preload("res://scripts/studio/village/sim/content.gd")
 const Bridge := preload("res://scripts/studio/village/sim/storm_bridge.gd")
+const Crime := preload("res://scripts/studio/village/sim/crime.gd")
 
 static func _request(v: S.Village, e: Dictionary, verb: String, params: Dictionary = {}, extra: Dictionary = {}) -> Dictionary:
 	var context := {"distance_dm": 0, "coins": 50, "wood": 1}
@@ -84,6 +85,37 @@ static func report() -> PackedStringArray:
 	Runtime.advance(v, int(e.deadline)); Runtime.advance(saved, int(e.deadline))
 	if e.outcome != "acquitted" or not _same(v, saved) or not v.people[int(e.victim)].alive:
 		return ["FAIL actions: acquittal continuation"]
+	var tp := _hearing()
+	var tv: S.Village = tp[0]
+	var te: Dictionary = tp[1]
+	var tc := tv.cases[te.source.case_id]
+	var retell_judge := int(Runtime.staging(tv, int(te.id)).roles.authority)
+	var speakers: Array[int] = []
+	for person in tv.people:
+		if person.alive and person.present and person.id != retell_judge and person.id != tc.accused:
+			speakers.append(person.id)
+			if speakers.size() == 2: break
+	var source := 4000000 + tc.crime
+	for id in speakers:
+		var speaker := tv.people[id]
+		speaker.era = tv.age
+		speaker.beliefs = speaker.beliefs.filter(func(b: S.Belief) -> bool: return b.crime != tc.crime)
+		Crime.give_belief(tv, id, tc.crime, tc.accused, 600, source, 1, speakers[0])
+		if not te.witnesses.has(id): te.witnesses.append(id)
+		if not _request(tv, te, "listen", {"speaker": id}).accepted: return ["FAIL actions: retold account unavailable"]
+	var knowledge: Array = tv.runtime.players["player:local"].knowledge
+	if knowledge.filter(func(k: Dictionary) -> bool: return k.origin == source).size() != 1:
+		return ["FAIL actions: retelling manufactured another source"]
+	var counts: Array[int] = []
+	for person in tv.people: counts.append(person.beliefs.size())
+	var evidence := tc.evidence
+	if not _request(tv, te, "testify", {"origin": source}).accepted or tc.evidence != evidence + 300:
+		return ["FAIL actions: single retold source evidence"]
+	for person in tv.people:
+		if person.id != retell_judge and person.beliefs.size() != counts[person.id]: return ["FAIL actions: nonrecipient learned testimony"]
+	var repeated := Runtime.act(tv, {"action_id": "new-input-same-origin", "player_id": "player:local", "village_id": tv.runtime.village,
+		"logical_time": tv.runtime.now, "event_id": te.id, "verb": "testify", "parameters": {"origin": source}}, {"distance_dm": 0})
+	if repeated.accepted or tc.evidence != evidence + 300: return ["FAIL actions: repeated source became corroboration"]
 	for accepted in [true, false]:
 		pair = _hearing()
 		var b: S.Village = pair[0]
@@ -137,6 +169,18 @@ static func report() -> PackedStringArray:
 			if not rv.people[id].present: return ["FAIL actions: lost did not return"]
 		for id in storm.ancestors:
 			if rv.people[id].present: return ["FAIL actions: ancestor did not recede"]
+	for accepts in [true, false]:
+		var offer_fixture := _rite()
+		var ov: S.Village = offer_fixture[0]
+		var oe: Dictionary = offer_fixture[1]
+		var leader := ov.people[int(oe.source.who)]
+		leader.traits[C.COMPASSION] = 100 if accepts else 0
+		leader.values[C.V_MERCY] = 100 if accepts else 0
+		if _request(ov, oe, "offer").get("wood", 0) != 1 or Runtime.terminal(oe) != accepts:
+			return ["FAIL actions: differentiated rite offering"]
+		if not _request(ov, oe, "offer").get("duplicate", false): return ["FAIL actions: offer replay"]
+		if ov.runtime.players["player:local"].enemies.has(leader.id): return ["FAIL actions: gesture created authority grudge"]
+		if not accepts and not _request(ov, oe, "free").accepted: return ["FAIL actions: refused offering blocked rescue"]
 	var triple := _rite()
 	var rv: S.Village = triple[0]
 	var re: Dictionary = triple[1]
