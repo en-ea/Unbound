@@ -13,6 +13,9 @@ const NPCS := {
 			"colors": {"Skin": 3, "Hair": 1, "Main": 13, "Second": 6, "Cloth": 1, "Leather": 0},
 		},
 		"prop": "shears",
+		# A daily round: spots to walk between (metres from where he stands), and what he does at each.
+		"route": [{"at": Vector2(0, 0), "work": "Farm_Harvest"}, {"at": Vector2(-3.0, 0.8), "work": "Farm_Watering"},
+			{"at": Vector2(-1.8, -1.6), "work": "Farm_PlantSeed"}, {"at": Vector2(1.4, -0.6), "work": ""}],
 		"greetings": ["Hm.", "Mind the stalks.", "Good leaf this year.", "Sun's fine. Smoke's better."],
 		"chatter": ["The first leaf of the season is the sweetest. Don't tell the others.",
 			"A slow smoke and a long look at the hills. That's all a day needs.",

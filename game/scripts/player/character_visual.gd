@@ -87,6 +87,12 @@ func _process(delta: float) -> void:
 			m.set_shader_parameter("flash", _flash)
 
 
+## Ends a one-shot action now (an NPC stopping its work to talk).
+func stop_action() -> void:
+	_action_left = 0.0
+	_current = ""
+
+
 func play_motion(speed: float) -> void:
 	if _action_left > 0.0:
 		return
