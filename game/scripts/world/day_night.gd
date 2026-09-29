@@ -12,6 +12,7 @@ extends WorldEnvironment
 var night := 0.0
 ## Inside a house: softer sunlight and a warmer, dimmer ambient (the room's own lights do the rest).
 var indoors := false
+var village_clock := false # studio: one logical clock for light and consequences
 
 const UPDATE_EVERY := 0.2
 
@@ -65,7 +66,10 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	time_of_day = fposmod(time_of_day + delta / (cycle_minutes * 60.0), 1.0)
+	if village_clock and VillageSession.village != null:
+		time_of_day = fposmod(float(VillageSession.village.runtime.now) + float(VillageSession.village.runtime.fraction), 1440.0) / 1440.0
+	else:
+		time_of_day = fposmod(time_of_day + delta / (cycle_minutes * 60.0), 1.0)
 	_timer -= delta
 	if _timer <= 0.0:
 		_timer = UPDATE_EVERY
@@ -79,6 +83,8 @@ func set_indoors(on: bool) -> void:
 
 ## Jumps the clock forward (dev button).
 func skip(fraction: float) -> void:
+	if village_clock and VillageSession.village != null:
+		VillageSession.Runtime.advance(VillageSession.village, int(VillageSession.village.runtime.now) + int(fraction * 1440))
 	time_of_day = fposmod(time_of_day + fraction, 1.0)
 	_apply()
 

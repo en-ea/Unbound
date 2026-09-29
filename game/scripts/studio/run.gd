@@ -12,6 +12,9 @@ func _init() -> void:
 	(func() -> void: quit(0 if _ok else 1)).call_deferred()
 	var args := OS.get_cmdline_user_args()
 	var spike: GDScript = load("res://scripts/studio/%s.gd" % args[0])
-	for line: String in spike.report():
+	var lines: PackedStringArray = spike.report()
+	_ok = not lines.is_empty()
+	for line: String in lines:
 		print(line)
-	_ok = true
+		if "FAIL" in line:
+			_ok = false

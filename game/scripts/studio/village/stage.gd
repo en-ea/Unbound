@@ -200,6 +200,10 @@ class Shot:
 
 
 var _shape := WorldShape.new()
+var resident_registry: Node3D
+var action_authority: Callable
+var external_clock := false
+var external_minute := 0.0
 var _real := {}                       # the real props by name (props.gd all())
 var _beats: Array = []                # the stage's own copy: the staging's beats, implied ones, injected ones
 var _order := PackedInt32Array()      # beat indices in time order; _next is the next to hand out
@@ -313,6 +317,10 @@ func play(staging: Dictionary, people: Array, speed: float = 1.0) -> void:
 
 ## Removes every body and prop; the stage can play again.
 func clear() -> void:
+	if is_instance_valid(resident_registry):
+		for a in _actors:
+			if is_instance_valid(a.body):
+				resident_registry.release(a.id, a.body)
 	for c in get_children():
 		c.queue_free()
 	_actors.clear()
@@ -523,18 +531,20 @@ func last_cost_us() -> int:
 
 
 func _process(delta: float) -> void:
+	var t0 := Time.get_ticks_usec()
 	_made_in_frame = 0
 	if not _unmade.is_empty():
 		_embody(_unmade[0])
-	var t0 := Time.get_ticks_usec()
-	_made_in_frame = 0
-	_step(minf(delta, MAX_FRAME) * _speed)
+	if external_clock:
+		_step(maxf(0.0, (external_minute - minute()) * SECONDS_PER_MINUTE))
+	else:
+		_step(minf(delta, MAX_FRAME) * _speed)
 	_age_lying(delta)
 	_detail_in -= delta
 	if _detail_in <= 0.0:
 		_detail_in = DETAIL_EVERY
 		_set_details()
-	var used := Time.get_ticks_usec() - t0 - _made_in_frame   # making a body is the body's cost, not the stage's
+	var used := Time.get_ticks_usec() - t0 # includes construction, including urgent bodies made by beats
 	_cost_frames += 1
 	_cost_last = used
 	_cost_sum += used
@@ -716,6 +726,13 @@ func _queue_bodies() -> void:
 func _embody(a: Actor) -> void:
 	var t0 := Time.get_ticks_usec()
 	_unmade.erase(a)
+	if is_instance_valid(resident_registry):
+		a.body = resident_registry.acquire(a.person, self)
+		a.pos = Vector2(a.body.position.x, a.body.position.z)
+		a.y = a.body.position.y
+		a.inside = false
+		_made_in_frame += Time.get_ticks_usec() - t0
+		return
 	a.body = _make_body(a.person)
 	add_child(a.body)
 	a.body.position = Vector3(a.pos.x, a.y, a.pos.y)
@@ -1427,6 +1444,7 @@ func _offer_free() -> void:
 		add_child(_free_spot)
 		var at := _victim.pos
 		_free_spot.setup(Vector3(at.x, _victim.y, at.y), "Free", _player_frees, FREE_REACH)
+		_free_spot.set_meta("village_action", true)
 	var offered := _free_spot.is_in_group("interactable")
 	if can and not offered:
 		_free_spot.add_to_group("interactable")
@@ -1439,9 +1457,31 @@ func _offer_free() -> void:
 func _player_frees() -> void:
 	if not rescue_open() or not _victim.locked:
 		return
+	if action_authority.is_valid():
+		var result: Dictionary = action_authority.call("free", {})
+		if not result.get("accepted", false):
+			return
+	show_rescue()
+
+
+func show_rescue() -> void:
+	if _rescued or _victim == null:
+		return
 	var now := int(ceil(minute()))
 	_rescued = true
+	if external_clock:
+		_victim.door = Vector2(-70.0, -40.0) # same refuge as authoritative resident memory
+		for shot in _shots:
+			if is_instance_valid(shot.node):
+				shot.node.queue_free()
+		_shots.clear()
+		_fire_at = -1.0
+		if is_instance_valid(_fire):
+			_fire.queue_free()
+			_fire = null
 	_victim.pending.clear()
+	if _victim.body != null:
+		_unlock(_victim) # accepted restraint change is visible immediately, before a gesture finishes
 	inject({"at": now, "who": _victim.id, "do": "release", "target": _victim.id, "anim": "Interact"})
 	inject({"at": now + 1, "who": _victim.id, "do": "leave", "anim": "Jog_Fwd"})
 	_by_near.clear()

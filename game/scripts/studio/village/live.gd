@@ -1,164 +1,138 @@
 extends Node
-## The living village in the running game (studio): the village simulation runs a day at a time on the
-## game's own clock, and every public act it makes is played on the stage at its hour, where the player can
-## walk up to it and, while a rescue window is open, step in.
-##
-##   game clock (day_night.gd: 12 real minutes a day)
-##        | midnight
-##        v
-##   Village.step_day(V) --> today's stagings --> queued by start minute
-##        | the hour comes (start - LEAD)
-##        v
-##   stage.play(staging)    the player walks up; in a rescue phase: free / shield --> player_intervened
-##        | finished
-##        v
-##   Justice.resolve_public(V, staging id, what the player did)    deaths, exiles and grudges land now
-##
-## The village runs live (V.live): its public acts wait for the stage (village-reference justice.mjs,
-## resolvePublic). A month of history is lived first, a day per frame, so the village has its grudges and
-## its dead before the player arrives.
-## Dev argument --studio=village/live, with --village-seed=N, --village-days=30 (history), --village-soon
-## (today's first event starts in a minute of game time) and --village-caption (a line naming what is on).
-
-const Village := preload("res://scripts/studio/village/sim/village.gd")
-const Content := preload("res://scripts/studio/village/sim/content.gd")
-const Justice := preload("res://scripts/studio/village/sim/justice.gd")
+## Region presentation only. The persistent session admits actions and owns every consequence.
+const Runtime := preload("res://scripts/studio/village/sim/runtime.gd")
 const Stage := preload("res://scripts/studio/village/stage.gd")
+const Residents := preload("res://scripts/studio/village/residents.gd")
+var registry: Node3D
+var _stage: Node3D
+var _event := -1
+var _revision := -1
+var _label: Label
+var _player: Node3D
+var _feedback := ""
+var _feedback_until := 0
 
-const LEAD := 20              # game minutes before a staging's start that the stage opens (people leave home)
-const MINUTES := 1440
-
-var V                          # the village (sim/state.gd Village)
-var _day_night: Node
-var _history_left := 30
-var _soon := false
-var _last_tod := -1.0
-var _queue: Array[Dictionary] = []
-var _stage: Node3D = null
-var _playing := -1             # the staging on the stage
-var _did := {}                 # staging id -> what the player did ("free" outranks "shield")
-var _caption: Label = null
-var _log: PackedStringArray = []
-
-
-static func on_device(tree: SceneTree) -> void:
-	var live: Node = (load("res://scripts/studio/village/live.gd") as GDScript).new()
-	live.name = "VillageLive"
-	tree.root.add_child.call_deferred(live)
-
+static func on_device(_tree: SceneTree) -> void:
+	pass # main attaches the same normal-game authority and bridge for this launch argument
 
 func _ready() -> void:
-	var seed := 16838
-	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--village-seed="):
-			seed = int(arg.trim_prefix("--village-seed="))
-		elif arg.begins_with("--village-days="):
-			_history_left = int(arg.trim_prefix("--village-days="))
-		elif arg == "--village-soon":
-			_soon = true
-		elif arg == "--village-caption":
-			_make_caption()
-	V = Village.create_village(seed, {"pace": Content.LIVE_PACE, "live": true})
-	_day_night = get_tree().current_scene.get_node_or_null("WorldEnvironment")
-	_say("village %s (seed %d): living %d days of history" % [V.name, seed, _history_left])
-
+	registry = Residents.new()
+	add_child(registry)
+	_player = get_tree().get_first_node_in_group("player")
+	var layer := CanvasLayer.new()
+	layer.layer = 8
+	add_child(layer)
+	_label = Label.new()
+	_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_label.position = Vector2(210, 98)
+	_label.size = Vector2(820, 74)
+	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_label.add_theme_font_size_override("font_size", 21)
+	_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_label.add_theme_constant_override("outline_size", 5)
+	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(_label)
 
 func _process(_delta: float) -> void:
-	if _day_night == null:
-		_day_night = get_tree().current_scene.get_node_or_null("WorldEnvironment")
+	var v = VillageSession.village
+	if v == null:
 		return
-	if _history_left > 0:
-		_step_unseen()
-		_history_left -= 1
-		if _history_left == 0:
-			_say("history done: day %d, %d people ever, %d events" % [V.day, V.people.size(), V.events.size()])
-			if _soon:
-				_new_day()
-				if not _queue.is_empty():   # bring the clock to just before the first event
-					_day_night.time_of_day = float(maxi(0, int(_queue[0]["start"]) - LEAD - 1)) / MINUTES
-			_last_tod = _day_night.time_of_day
-		return
-	var tod: float = _day_night.time_of_day
-	if tod < _last_tod:
-		_new_day()
-	_last_tod = tod
-	var minute := int(tod * MINUTES)
-	if _stage == null and not _queue.is_empty() and minute >= int(_queue[0]["start"]) - LEAD:
-		_open(_queue.pop_front(), minute)
-	if _caption != null:
-		_caption.text = _caption_text(minute)
-
-
-## A day nobody watches: every public act resolves as it was going to.
-func _step_unseen() -> void:
-	Village.step_day(V)
-	while not V.pending.is_empty():
-		Justice.resolve_public(V, int(V.pending[0]["staging"]), "")
-
-
-func _new_day() -> void:
-	var before: int = V.staging_count
-	Village.step_day(V)
-	_queue.clear()
-	for st: Dictionary in V.stagings:
-		if int(st["id"]) >= before:
-			_queue.append(st)
-	_queue.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return int(a["start"]) < int(b["start"]) or (int(a["start"]) == int(b["start"]) and int(a["id"]) < int(b["id"])))
-	_say("day %d: %d events today%s" % [V.day, _queue.size(), "" if _queue.is_empty() else " - first: %s at %s" % [_queue[0]["kind"], _clock(int(_queue[0]["start"]))]])
-
-
-func _open(st: Dictionary, minute: int) -> void:
-	_stage = Stage.new()
-	_playing = int(st["id"])
-	get_tree().current_scene.add_child(_stage)
-	_stage.player_intervened.connect(_on_intervened.bind(_playing))
-	_stage.finished.connect(_on_finished.bind(_playing))
-	_stage.play(st, st["people"], 1.0)
-	if minute > int(st["start"]):
-		_stage.skip_to(float(minute))
-	_say("on stage: %s at the %s (%s), %d people" % [st["kind"], st["place"], st["outcome"], (st["people"] as Array).size()])
-
-
-func _on_intervened(kind: String, minute: int, id: int) -> void:
-	if _did.get(id, "") != "free":
-		_did[id] = kind
-	_say("the player stepped in: %s at %s" % [kind, _clock(minute)])
-
-
-func _on_finished(id: int) -> void:
-	var did: String = _did.get(id, "")
-	var resolved: bool = Justice.resolve_public(V, id, did)
-	_say("staging %d ends; %s%s" % [id, "resolved" if resolved else "nothing pending (a festival or a rite)", "" if did.is_empty() else " - the player: " + did])
-	_stage.queue_free()
-	_stage = null
-	_playing = -1
-
-
-func _make_caption() -> void:
-	var layer := CanvasLayer.new()
-	layer.layer = 90
-	_caption = Label.new()
-	_caption.position = Vector2(24, 140)
-	_caption.add_theme_font_size_override("font_size", 18)
-	_caption.modulate = Color(1, 1, 1, 0.8)
-	layer.add_child(_caption)
-	add_child(layer)
-
-
-func _caption_text(minute: int) -> String:
-	var now := "%s day %d, %s" % [V.name, V.day, _clock(minute)]
+	var now := int(v.runtime.now)
 	if _stage != null:
-		return now + " - on now"
-	if not _queue.is_empty():
-		return now + " - next: %s at %s" % [_queue[0]["kind"], _clock(int(_queue[0]["start"]))]
-	return now
+		var e := Runtime.event_by_id(v, _event)
+		if e.is_empty() or e.phase == "cancelled" or now >= int(e.end):
+			_close()
+		else:
+			var st := Runtime.staging(v, _event)
+			_stage.external_minute = float(now - int(st.day) * 1440) + float(v.runtime.fraction)
+			if int(e.revision) != _revision:
+				_revision = int(e.revision)
+				if e.outcome == "rescued":
+					_stage.show_rescue()
+	if _stage == null:
+		for e: Dictionary in v.runtime.events:
+			if not Runtime.terminal(e) and now >= int(e.from) - 20 and now < int(e.deadline):
+				_open(e)
+				break
+	_update_cue(now)
 
+func _open(e: Dictionary) -> void:
+	var v = VillageSession.village
+	var st := Runtime.staging(v, int(e.id))
+	if st.is_empty():
+		return
+	_stage = Stage.new()
+	_stage.resident_registry = registry
+	_stage.external_clock = true
+	add_child(_stage)
+	_event = int(e.id)
+	_revision = int(e.revision)
+	var people := []
+	for person: Dictionary in st.people:
+		var p = v.people[int(person.id)]
+		if p.alive and p.present:
+			people.append(person)
+	_stage.play(st, people)
+	var minute := float(int(v.runtime.now) - int(st.day) * 1440)
+	# Preparation can start before the first beat without fast-forwarding the event clock.
+	_stage._clock = (minf(minute, float(st.start)) - float(st.start)) * 0.5
+	_stage.external_minute = minute
+	if minute > float(st.start):
+		_stage._player = null # restoration cannot invent player contacts from historical projectiles
+		_stage.skip_to(minute)
+		_stage._player = _player
+	_stage.action_authority = _act
 
-func _clock(minute: int) -> String:
-	return "%02d:%02d" % [minute / 60, minute % 60]
+func _act(verb: String, parameters: Dictionary) -> Dictionary:
+	var v = VillageSession.village
+	var e := Runtime.event_by_id(v, _event)
+	if e.is_empty() or _stage == null or _stage._victim == null or Controls.locked:
+		return {"accepted": false, "reason": "unavailable"}
+	var pos: Vector2 = _stage._victim.pos
+	var distance := Vector2(_player.global_position.x, _player.global_position.z).distance_to(pos)
+	var req := {"action_id": "%s:%d:%s" % [v.runtime.village, _event, verb], "player_id": "player:local",
+		"village_id": v.runtime.village, "logical_time": v.runtime.now, "event_id": _event, "verb": verb, "parameters": parameters}
+	var result := Runtime.act(v, req, {"distance_dm": int(ceil(distance * 10.0))})
+	_feedback = "Free! I'll hide in the far woods. I won't forget you." if result.accepted else "Too late to intervene." if result.reason == "window closed" else result.reason
+	_feedback_until = int(v.runtime.now) + 20
+	if result.accepted:
+		SaveGame.save_game() # accepted state and existing inventory share the normal atomic save
+	return result
 
+func _update_cue(now: int) -> void:
+	if now < _feedback_until:
+		_label.text = _feedback
+		return
+	var v = VillageSession.village
+	var nearest := -1
+	var distance := 6.0
+	for id: int in registry.bodies:
+		var body: Node3D = registry.bodies[id]
+		if not body.visible or not v.people[id].alive or not v.people[id].present:
+			continue
+		var d := _player.global_position.distance_to(body.global_position)
+		if d < distance:
+			nearest = id; distance = d
+	_label.text = ""
+	if nearest >= 0:
+		var p = v.people[nearest]
+		var memory: Dictionary = v.runtime.residents.get(str(nearest), {})
+		_label.text = "%s · %s" % [p.name, "You cut me loose. Thank you." if memory.has("rescued_by") else p.role.capitalize()]
+	if _stage != null and _player.global_position.distance_to(Vector3(_stage.place_at().x, _player.global_position.y, _stage.place_at().y)) < 12.0:
+		var e := Runtime.event_by_id(v, _event)
+		var name: String = v.people[int(e.victim)].name
+		_label.text = "%s · %s" % [name, "Approach the restraint to Free; stand between a thrower and the victim to shield." if not Runtime.terminal(e) else e.outcome.capitalize()]
 
-func _say(line: String) -> void:
-	print("VILLAGE ", line)
-	_log.append(line)
+func _close() -> void:
+	if _stage != null:
+		_stage.action_authority = Callable()
+		_stage.clear()
+		_stage.queue_free()
+		_stage = null
+	_event = -1
+
+func _exit_tree() -> void:
+	# Scene teardown frees both registry and stage; no reparenting or delayed state callbacks.
+	if is_instance_valid(_stage):
+		_stage.action_authority = Callable()
+		_stage.set_process(false)

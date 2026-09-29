@@ -14,6 +14,13 @@ var _timer := AUTOSAVE_EVERY
 var _enabled := true
 var paused := false     # the build lab turns saving off while you are in it
 var _regions := {}      # region -> {"layout", "world", "saved_at"}: every region's trees, rocks and chests
+var _path := PATH # studio: isolated test files use the real save path
+
+
+func _ready() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--test-save="):
+			_path = "user://studio-test-" + arg.trim_prefix("--test-save=").validate_filename() + ".json"
 
 
 ## Called by main once the world is built: remembers what to save and loads the last save.
@@ -21,7 +28,7 @@ func attach(player: Node3D, day_night: Node) -> void:
 	_player = player
 	_day_night = day_night
 	# Dev test runs start fresh and don't overwrite the real save.
-	_enabled = OS.get_cmdline_user_args().is_empty()
+	_enabled = OS.get_cmdline_user_args().is_empty() or _path != PATH
 	if _enabled:
 		load_game()
 
@@ -61,12 +68,13 @@ func save_game() -> void:
 		"regions": _regions,
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y, "indoors": _indoors()},
 		"time_of_day": _day_night.time_of_day,
+		"village": VillageSession.to_data(), # studio: accepted state precedes animation
 	}
-	SafeFile.write_text(PATH, JSON.stringify(data))   # beside the old save, then swapped in: a crash can't wipe it
+	SafeFile.write_text(_path, JSON.stringify(data))   # beside the old save, then swapped in: a crash can't wipe it
 
 
 func _read() -> Dictionary:
-	for path in SafeFile.candidates(PATH):      # the save, or what a crash mid-save left behind
+	for path in SafeFile.candidates(_path):      # the save, or what a crash mid-save left behind
 		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 		if data is Dictionary and data.get("version", 0) == VERSION:
 			return data
@@ -75,7 +83,7 @@ func _read() -> Dictionary:
 
 ## The region the save was made in, so main can build it before loading (real runs only).
 func saved_region() -> String:
-	if not OS.get_cmdline_user_args().is_empty():
+	if not OS.get_cmdline_user_args().is_empty() and _path == PATH:
 		return Region.current
 	return _read().get("region", "meadow")
 
@@ -91,6 +99,7 @@ func load_game() -> void:
 	Money.load_data(data.get("coins", 0))
 	Projects.load_data(data.get("projects", []))
 	Home.load_data(data.get("home", {}))
+	VillageSession.load_data(data.get("village", {}))
 	Quests.load_data(data.get("quests", {}))
 	_regions = data.get("regions", {})
 	if not data.has("regions") and data.has("world"):       # a save from before regions: the meadow
@@ -117,9 +126,10 @@ func _indoors() -> bool:
 
 ## Wipes the save and restarts the world from scratch.
 func start_over() -> void:
-	SafeFile.remove(PATH)   # and its backup, or the next launch would bring the old world back
+	SafeFile.remove(_path)   # and its backup, or the next launch would bring the old world back
 	_enabled = false        # don't save the old world on the way out
 	_regions = {}
+	VillageSession.reset()
 	Region.current = "meadow"
 	Inventory.load_data({})
 	Gear.load_data({})

@@ -217,6 +217,8 @@ class Director:
 
 
 class Village:
+	# Versioned action/clock state. Empty for historical chronicle/conformance runs.
+	var runtime := {}
 	var seed := 0
 	var base := 0
 	var day := 0

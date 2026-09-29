@@ -60,9 +60,12 @@ func heavy() -> void:
 
 ## The action button: fight if an enemy is in reach, otherwise gather.
 func act() -> void:
-	if _roll > 0.0 or _stun > 0.0:
+	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or Controls.locked:
 		return
-	if fighter.verb != "":
+	_station = _nearest_station() # studio: validate the same local target at input time
+	if is_instance_valid(_station) and _station.get_meta("village_action", false):
+		_station.interact()
+	elif fighter.verb != "":
 		fighter.attack()
 	elif is_instance_valid(_station):
 		_station.interact()
@@ -97,8 +100,9 @@ func _nearest_station() -> Node3D:
 	var best_d := INF
 	for n: Node3D in get_tree().get_nodes_in_group("interactable"):
 		var d := Vector2(n.global_position.x - global_position.x, n.global_position.z - global_position.z).length()
-		if d < n.reach and d < best_d and absf(n.global_position.y - global_position.y) < 3.0:
-			best_d = d
+		var score := d - (10.0 if n.get_meta("village_action", false) else 0.0)
+		if d < n.reach and score < best_d and absf(n.global_position.y - global_position.y) < 3.0:
+			best_d = score
 			best = n
 	return best
 
@@ -221,8 +225,11 @@ func _physics_process(delta: float) -> void:
 			got_up.emit()
 		return
 	_station = _nearest_station()
+	# studio: urgent village actions remain explicitly selectable near the target.
 	var new_verb: String = fighter.verb
-	if new_verb == "":
+	if is_instance_valid(_station) and _station.get_meta("village_action", false):
+		new_verb = _station.verb
+	elif new_verb == "":
 		new_verb = _station.verb if _station else gatherer.verb
 	if new_verb != verb:
 		verb = new_verb

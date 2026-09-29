@@ -1,0 +1,71 @@
+extends Node
+## Survives region replacement; live.gd owns disposable presentation.
+const Runtime := preload("res://scripts/studio/village/sim/runtime.gd")
+const Save := preload("res://scripts/studio/village/sim/save.gd")
+const S := preload("res://scripts/studio/village/sim/state.gd")
+var village: S.Village
+var active := false
+var background := false
+
+func _ready() -> void:
+	process_priority = -50
+
+func attach(scene: Node) -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--studio=") and arg != "--studio=village/live":
+			return
+	if village == null:
+		village = Runtime.create()
+		if "--village-soon" in OS.get_cmdline_user_args():
+			for _i in 150:
+				Runtime.advance(village, village.day * 1440)
+				var chosen := -1
+				for pending in village.pending:
+					if pending.kind in ["pillory", "stocks", "hanging", "bonfire"]:
+						chosen = pending.staging
+						break
+				if chosen >= 0:
+					var e := Runtime.event_by_id(village, chosen)
+					Runtime.advance(village, maxi(int(village.runtime.now), int(e.from)))
+					break
+	active = true
+	var day_night := scene.get_node("WorldEnvironment")
+	day_night.village_clock = true
+	day_night.time_of_day = float(int(village.runtime.now) % 1440) / 1440.0
+	if Region.current == "meadow":
+		var live: Node = load("res://scripts/studio/village/live.gd").new()
+		live.name = "VillageLive"
+		scene.add_child(live)
+	if "--village-rescue-test" in OS.get_cmdline_user_args() and not has_node("RescueProbe"):
+		var probe: Node = load("res://scripts/studio/village/rescue_probe.gd").new()
+		probe.name = "RescueProbe"
+		add_child(probe)
+
+func _process(delta: float) -> void:
+	if not active or village == null or background or Controls.locked or SaveGame.paused:
+		return
+	var r := village.runtime
+	r.fraction += delta * 2.0 # One day = twelve real minutes.
+	var minutes := int(r.fraction)
+	if minutes > 0:
+		r.fraction -= minutes
+		Runtime.advance(village, int(r.now) + minutes)
+
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT]:
+		background = true
+	elif what in [NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN]:
+		background = false
+
+func to_data() -> Dictionary:
+	return Save.to_data(village) if village != null else {}
+
+func load_data(data: Dictionary) -> void:
+	if village == null and not data.is_empty():
+		village = Save.from_data(data)
+		if village == null:
+			push_warning("Village payload could not be restored; player progress retained.")
+
+func reset() -> void:
+	village = null
+	active = false

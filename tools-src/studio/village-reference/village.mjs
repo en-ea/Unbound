@@ -178,7 +178,7 @@ export const living = (V) => V.people.filter((p) => p.alive && p.present);
 // ---------- one day ----------
 export function stepDay(V) {
   // anything the stage did not finish yesterday resolves as it was going to
-  while (V.pending.length) resolvePublic(V, V.pending[0].staging, "");
+  if (!V.runtime) while (V.pending.length) resolvePublic(V, V.pending[0].staging, "");
   const doy = V.day % YEAR;
   if (doy === 0) yearStart(V);
   food(V);

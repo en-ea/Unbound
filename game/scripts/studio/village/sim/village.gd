@@ -341,7 +341,7 @@ static func living(V: S.Village) -> Array[S.Person]:
 # ---------- one day ----------
 static func step_day(V: S.Village) -> void:
 	# anything the stage did not finish yesterday resolves as it was going to
-	while V.pending.size() > 0:
+	while V.runtime.is_empty() and V.pending.size() > 0:
 		Justice.resolve_public(V, V.pending[0].staging, "")
 	var doy := V.day % YEAR
 	if doy == 0:

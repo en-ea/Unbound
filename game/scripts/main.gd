@@ -79,6 +79,7 @@ func _ready() -> void:
 	player.spawn_point = player.global_position
 	var arrive := Region.arrive
 	SaveGame.attach(player, $WorldEnvironment)
+	VillageSession.attach(self) # studio: persistent authority, disposable presentation
 	if arrive != Vector2.INF:          # came through a gate: stand just inside it, facing in
 		player.global_position = Vector3(arrive.x, shape.height_at(arrive.x, arrive.y) + 0.3, arrive.y)
 		player.visual.rotation.y = atan2(-arrive.x, -arrive.y)
