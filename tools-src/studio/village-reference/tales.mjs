@@ -61,7 +61,13 @@ export function extractTales(V, perCentury = 3) {
   return out;
 }
 
-function walk(V, start, next, limit) {
+// The story behind one public act (for a staging's notice board and the witness's printout).
+export function storyOf(V, eventId) {
+  const ids = walk(V, eventId, (e) => e.causes, 30).sort((a, b) => a - b);
+  return tellTale(V, { root: eventId, ids, score: 0, year: yearOf(V.events[eventId].day) });
+}
+
+export function walk(V, start, next, limit) {
   const seen = new Set([start]);
   const q = [start];
   while (q.length && seen.size < limit) {

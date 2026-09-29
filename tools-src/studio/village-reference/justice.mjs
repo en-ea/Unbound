@@ -411,31 +411,44 @@ function makeStaging(V, cs, c, kind, attend, throwing, level, outcome, lethalByS
   const def = C.PUBLIC[kind];
   const place = def.place;
   const start = kind === "bonfire" ? 720 : kind === "mob" ? 1200 : 480;
-  const end = start + def.minutes;
   const victim = cs.accused;
+  // walking takes time: 1.3 m/s is 2.6 m (26 dm) per game minute; each arrives, then takes a stance
+  const walkMin = (id) => {
+    const from = V.layout.pos[V.people[id].locked ? V.people[id].lockedAt ?? "pillory" : V.households[V.people[id].household].home] ?? [0, 0];
+    const to = V.layout.pos[place] ?? [0, 0];
+    return 2 + idiv(Math.abs(from[0] - to[0]) + Math.abs(from[1] - to[1]), 26);
+  };
   const beats = [];
   const B = (at, who, d, slot = -1, target = -1, anim = "", prop = "") => beats.push({ at, who, do: d, slot, target, anim, prop });
   const elder = V.authority;
-  if (elder >= 0 && elder !== victim) B(start, elder, "walk_to", -1, -1, "Walk_Formal");
+  // the elder escorts the condemned: both leave together from the condemned's door
+  const vWalk = walkMin(victim);
+  if (elder >= 0 && elder !== victim) B(start, elder, "walk_to", -1, victim, "Walk_Formal");
   B(start, victim, "walk_to", -1, -1, "Walk");
-  if (["pillory", "stocks", "hanging", "bonfire", "sacrifice"].includes(kind)) B(start + 20, victim, "lock", -1, -1, kind === "hanging" ? "Idle" : "Crouch_Idle");
-  // the crowd arrives slot by slot, in id order, and takes its stance
+  let gatherEnd = start + vWalk + 2;
+  if (["pillory", "stocks", "hanging", "bonfire", "sacrifice"].includes(kind)) B(start + vWalk + 2, victim, "lock", -1, -1, kind === "hanging" ? "Idle" : "Crouch_Idle");
+  // the crowd leaves home one by one in id order, arrives at its slot and takes its stance
   const crowd = [...attend].sort((a, b) => a - b).filter((id) => id !== elder).slice(0, 40);
   crowd.forEach((id, i) => {
-    B(start + 5 + i * 2, id, "walk_to", i, -1, "Walk");
-    B(start + 30 + i * 2, id, "stand", i, -1, STANCE_ANIM(anger.get(id) ?? 0, sympathy.get(id) ?? 0));
+    const t0 = start + 5 + i, t1 = t0 + walkMin(id) + 1;
+    B(t0, id, "walk_to", i, -1, "Walk");
+    B(t1, id, "stand", i, -1, STANCE_ANIM(anger.get(id) ?? 0, sympathy.get(id) ?? 0));
+    gatherEnd = Math.max(gatherEnd, t1);
   });
+  // the act begins once the crowd has gathered, and runs its length
+  const actStart = Math.max(start + 60, gatherEnd + 5);
+  const end = actStart + def.minutes - 60;
   // the work of the act: wood carried to the stake, the gallows built, the priest's words
-  if (kind === "bonfire") for (let i = 0; i < Math.min(4, crowd.length); i++) B(start + 40 + i * 20, crowd[i], "carry", i, -1, "Walk_Carry", "wood");
-  if (kind === "hanging") for (let i = 0; i < Math.min(2, crowd.length); i++) B(start + 40 + i * 30, crowd[i], "gesture", i, -1, "Fixing_Kneeling");
-  if (V.priest >= 0 && V.priest !== victim && (def.lethal || kind === "exile")) B(start + 60, V.priest, "gesture", -1, -1, "Spell_Simple_Idle");
+  if (kind === "bonfire") for (let i = 0; i < Math.min(4, crowd.length); i++) B(actStart - 20 + i * 20, crowd[i], "carry", i, -1, "Walk_Carry", "wood");
+  if (kind === "hanging") for (let i = 0; i < Math.min(2, crowd.length); i++) B(actStart - 20 + i * 30, crowd[i], "gesture", i, -1, "Fixing_Kneeling");
+  if (V.priest >= 0 && V.priest !== victim && (def.lethal || kind === "exile")) B(actStart, V.priest, "gesture", -1, -1, "Spell_Simple_Idle");
   // pelting, wave by wave; the first stone is thrown by the one with the lowest threshold (throwing[0])
   const slotOf = new Map(crowd.map((id, i) => [id, i]));
   const waves = Math.min(level, 3);
   for (let w = 1; w <= waves; w++) {
     const who = throwing.filter((id) => slotOf.has(id)).slice(0, 4 + w * 2);
     who.forEach((id, j) => {
-      const at = start + 60 + (w - 1) * idiv(def.minutes - 90, 3) + j * 7;
+      const at = actStart + (w - 1) * idiv(def.minutes - 90, 3) + j * 7;
       const props = PROP_BY_LEVEL[w];
       B(at, id, "throw", slotOf.get(id), victim, "OverhandThrow", props[j % props.length]);
       B(at + 1, victim, "react", -1, id, w === 3 ? "Hit_Head" : "Hit_Chest");
@@ -469,8 +482,8 @@ function makeStaging(V, cs, c, kind, attend, throwing, level, outcome, lethalByS
   const staging = {
     id: V.stagingCount++, kind: STAGE_KIND[kind] ?? kind, place, start, end: end + crowd.length + 5,
     phases: [
-      { name: "gather", from: start, to: start + 60, rescue: true },
-      { name: kind, from: start + 60, to: end - 10, rescue: !dies || kind !== "stoning" },
+      { name: "gather", from: start, to: actStart, rescue: true },
+      { name: kind, from: actStart, to: end - 10, rescue: !dies || kind !== "stoning" },
       { name: "end", from: end - 10, to: end + crowd.length + 5, rescue: false },
     ],
     roles: { victim, accuser: cs.accuser, authority: elder, crowd },
