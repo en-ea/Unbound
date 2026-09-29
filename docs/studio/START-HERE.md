@@ -14,7 +14,7 @@ next_step: Enea (and his agents) read this and reply (NEXT.md); then we plan the
 
 The focused village slice is now implemented in ordinary play. Start with [NIGHT-1.md](NIGHT-1.md), the [V1-V14 completion ledger](CONTINUATION.md) and the [rendered witness board](evidence/witness/CONTINUATION.md). These supersede the earlier uncompleted night handoff and any older statements below that native delivery replaces web: Enea's later answer makes **web the immediate target**, with native/crossplay later.
 
-From this game repository, `node tools-src/serve.js --local` serves the built game at **http://localhost:8087/**. The Godot source is `game/project.godot`; normal Play includes the village and saves it with existing progress. Native Android `Unbound Village` uses its own package. The report records exact candidate/build identities and device limitations. No main merge or outward publication is implied by these local artifacts.
+From this game repository, `node tools-src/serve.js --local` serves the built game at **http://127.0.0.1:8087/**. Keep that same browser origin for its saved progress. The final source is `17c1f06`; tracked `web/` contains its prepared export (`6c4667b`), and `build/web/` is the equivalent local copy. The Godot source is `game/project.godot`; normal Play includes the village and saves it with existing progress. Native Android **Unbound Village** uses its own package; the ordinary APK is `build/android/unbound-village-17c1f06.apk`. The report records exact hashes and device limitations. No main merge or outward publication is implied by these local artifacts.
 
 ```powershell
 $unboundGodot = 'C:/Users/hilmi/AppData/Local/UnboundStudio/tools/godot/Godot_v4.7.2-stable_win64_console.exe'

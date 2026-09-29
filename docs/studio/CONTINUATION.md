@@ -4,8 +4,8 @@ created: 2026-09-29
 type: implementation-ledger
 voice: agent-draft
 author: Codex (Astra)
-status: implementing
-next_step: complete the focused village slice and record final evidence here
+status: engineering complete locally
+next_step: Hilmi reviews the delivered build for feel and separately decides whether to publish studio
 ---
 
 ## Contracts [design]
@@ -28,14 +28,14 @@ Commands name the village, event, local player and a unique action ID. Receipts 
 |---|---|
 | A Rules / diversity / invariants | Complete `1a8f000`, `3ae594f`: 20x1000 final invariants; zero diversity failures, case denominator and unclassified cases disclosed in `final-rules/README.md` |
 | B Three tale books | Complete `3ae594f`: original seeds, refreshed examples, exact regeneration and causal-link audit; original blobs preserved |
-| C GDScript parity | PC complete `3ae594f`, added source/gesture tests `3554d91`; S10 check awaiting repaired device candidate |
-| D Phone crowd and cold costs | PC measured `a2e9f92`, `3554d91`; S10 memory exhaustion reproduced `e6aff96`, repair in progress; no device performance pass |
+| C GDScript parity | Complete: PC `3ae594f`, added source/gesture tests `3554d91`; final S10 source `17c1f06` matches all 3 x 20 x 6 golden checkpoints, plus live/storm suites (`s10-final/FINAL-RESULTS.md`) |
+| D Phone crowd and cold costs | Complete: PC `a2e9f92`, `3554d91`; repaired S10 `b1e0c5f` completes 120/900 seconds with stable memory; final `17c1f06` 45 walkers pass capped/uncapped. Cold hitches and thermal throttling disclosed; 60 remains historical stretch evidence |
 | E Generated witness / evidence | Complete `f4e0e9b`: eight inspected captures, seed/minute/event index; board `evidence/witness/CONTINUATION.md` |
-| F Fix PRs / report / branch | Main and fix PRs reconciled at `b9618d6`; local milestones committed; report/build finalization follows device repair; no push authorized |
+| F Fix PRs / report / branch | Complete locally: main/fix PRs reconciled at `b9618d6`; source `17c1f06`, Web package `6c4667b`, ordinary Android APK and final report with hashes. No push authorized |
 | Authoritative actions V2–V10 | Complete `882c35d`, `2f0b94e`, `4d3fa68`, `1a8f000`, `3554d91`: acceptance matrix below |
 | Save / travel V3–V6, V12–V14 | Complete `5ebc55a`, `a2e9f92`, `e714c93`: actual save, touch input, airborne-pause and scene replacement checks |
 | Storm / forebears V11 | Complete `2f0b94e`, `fce94d0`, `4d3fa68`: kernel transition, reversible district and interruptible rite, checked in `final-rules/` |
-| Legibility / ordinary play | Named persistent registry and nearby actions `4d3fa68`; captures `f4e0e9b`; web startup/movement/menu smoke `3554d91`; natural phone cadence/owner feel still separate |
+| Legibility / ordinary play | Complete engineering checks: named registry/actions `4d3fa68`, captures `f4e0e9b`, Web/phone touch `e714c93`, conditional trace cue `17c1f06`; natural first hearing at 763.936s without seeking. Human feel remains owner review |
 
 Publication: this continuation has no blanket push authorization. Finish and commit local engineering first. No merge into Enea's main or outward message is authorized.
 
@@ -71,7 +71,7 @@ Evidence paths below are relative to `docs/studio/evidence/continuation/`. Earli
 
 | ID | Implemented check and evidence | Commit / limit |
 |---|---|---|
-| V1 | `final-rules/godot-conformance.stdout.txt`, `kernel.stdout.txt`: 3 x 20 x 6 village columns; 420 world checkpoints and scenarios. Intentional clemency changes only the live-pace golden after day 120. | `3ae594f`; phone parity separate |
+| V1 | `final-rules/godot-conformance.stdout.txt`, `kernel.stdout.txt`: 3 x 20 x 6 village columns; 420 world checkpoints and scenarios. Intentional clemency changes only the live-pace golden after day 120. Final S10 repeats the 3 x 20 x 6, live and storm checks. | `3ae594f`; phone source `17c1f06`, `s10-final/FINAL-RESULTS.md` |
 | V2 | `delivery/boundaries-rendered.txt`: actual offered Free button at deadline minus one, Attack cannot steal it, duplicate, midnight, alive/unlocked. Runtime test rejects exact-deadline input. | `882c35d`, `a2e9f92` |
 | V3 | Same run: immediately saves through normal SafeFile and reloads before departure animation completes; preserves resident identity/refuge. Bribe wallet also restored in `merchant-purchase-final.txt`. | `5ebc55a`, `a2e9f92` |
 | V4 | Actual forest/meadow reload both after rescue and during an untouched event, return before/after deadline; full headless state comparison and no stale stage. `delivery/boundaries-rendered.txt` | `a2e9f92` |
@@ -97,3 +97,13 @@ Evidence paths below are relative to `docs/studio/evidence/continuation/`. Earli
 ## Final interaction repair [repo/run]
 
 `e714c93` closes an observed web touch/mouse boundary: the same opening gesture could immediately dismiss a crafting or merchant panel. The action button now consumes its emulated mouse press and releases its held finger even while hidden. The expanded rendered check passes twenty assertions, including a real priced purchase. Web Play, Craft, Done, Save, reload and resumed named residents were inspected. `delivery/INPUT.md` preserves the original event log, final screenshots and failed probe output. The final Web export and SHA256 manifest name `e714c93`; no rule or performance change followed `b1e0c5f`.
+
+## Final device and delivery closure [repo/run]
+
+The repaired S10 completed both uncapped integrated runs on `b1e0c5f`: 120-second arrival and 900-second ordinary cadence, zero background samples, stable native heap and no allocation failure. Cold maximums were 311.736/306.768 ms; steady median/p95 were 16.972/21.682 ms and 20.036/33.648 ms respectively. The long run reached severe skin thermal status, explicitly included in the result. Stage timings include acquisition; resident construction and whole frames are reported separately in `NIGHT-1.md`.
+
+Final source `17c1f06` passes the new 45-body S10 gate (uncapped median/p95 25.3/32.1 ms; capped 33.4/36.5 ms), on-device village/live/storm conformance and all twenty normal-save/touch assertions. The natural assault hearing exposed a misleading cue promising a trace; `17c1f06` conditions that phrase on actual evidence. No simulation or performance code changed after the measured guard. No long benchmark was repeated for this wording fix.
+
+`6c4667b` packages the final Web export in tracked `web/`; equivalent `build/web/` and `build/android/unbound-village-17c1f06.apk` are the local playable artifacts. Exact SHA256 manifests are in `delivery/`. This supersedes the earlier `e714c93` export identity and all pending device notes above. The final packet is `s10-final/FINAL-RESULTS.md`; the original failed gate remains a historical record. Owner feel and actual iPhone Safari/offline checks remain explicitly external, with a runnable play route in the finished night report. Publication, main merge and outward messages were not authorized or performed.
+
+`44a8ba8` imports Sol's final device packet (`3d48ab3`). Astra independently inspected both completed measurement JSONs, the saved phone conformance and twenty-input-check reports, both crowd results, the natural hearing screenshot and the restored ordinary title screen; the copied APK checksum matches the installed raw artifact. The S10 has the ordinary game installed without test arguments. This closes the original A-F engineering ledger and V1-V14 packet; the stated cold-hitch, thermal and external-owner limits remain.
