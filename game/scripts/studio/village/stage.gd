@@ -186,6 +186,7 @@ func clear() -> void:
 	_on_impact.clear()
 	_device = null
 	_victim = null
+	_anims = null                         # its body is going; the loop answers already found stay
 	_clock = 0.0
 	_next = 0
 	_released = -1.0
@@ -424,9 +425,9 @@ func _update(a: Actor, dt: float) -> void:
 		_walk(a, dt)
 	elif a.loop_left != INF and a.busy <= 0.0:
 		a.loop_left -= dt
-		if a.loop_left <= 0.0:
+		if a.loop_left <= 0.0:               # a stance that doesn't loop by itself: again, from the top
 			a.playing = ""
-			_rest(a)
+			_loop(a, a.rest_anim, 1.0, 0.0)
 	if a.yaw != a.yaw_goal:
 		var diff := angle_difference(a.yaw, a.yaw_goal)
 		var turn := TURN_RATE * dt
@@ -618,7 +619,9 @@ func _rest(a: Actor) -> void:
 		_loop(a, a.rest_anim, 1.0)
 
 
-func _loop(a: Actor, anim: String, rate: float) -> void:
+## Loops an animation at `rate` x the stage speed; `start` < 0 starts each body at its own point in the
+## loop, so a crowd doesn't breathe in step.
+func _loop(a: Actor, anim: String, rate: float, start := -1.0) -> void:
 	if a.playing == anim:
 		return
 	a.playing = anim
@@ -626,9 +629,9 @@ func _loop(a: Actor, anim: String, rate: float) -> void:
 		a.body.call("play_loop", anim)
 		a.loop_left = INF
 		return
-	# Start each body at its own point in the loop, so a crowd doesn't breathe in step.
 	var length: float = a.body.animation_length(anim)
-	var start := fposmod(a.id * 0.37, length)
+	if start < 0.0:
+		start = fposmod(a.id * 0.37, length)
 	a.body.play_action(anim, _speed * rate, start)
 	a.loop_left = INF if _loops(anim) else length - start
 

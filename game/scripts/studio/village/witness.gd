@@ -4,6 +4,7 @@ extends Node
 ##   godot --path game --resolution 1560x720 -- --studio=village/witness --frame=fight --at=1.5,26 --time=0.45
 ##         [--witness-shots=DIR] [--witness-speed=8] [--witness-hide-player] [--witness-skip=MINUTES]
 ## --witness-skip jumps that many game minutes into the staging at once (stage.skip_to), to test it.
+## --witness-edge adds what the demo lacks: a stance that doesn't loop by itself, a gesture, a fall.
 ## For a close look, stand the (hidden) player at the place: --at=-0.5,18 --view=6,-40 --witness-hide-player.
 ## Shots: DIR/witness-<beat>.png for the people coming out, the crowd gathered, the first throw, stones
 ## flying, the release and everyone home. Each shot also prints a probe line (state, not pixels) and the
@@ -26,6 +27,7 @@ var _shots: Array[Dictionary] = []   # {"name", "at" (minute), "wait" ("" / "fly
 var _slowed := false
 var _hide_player := false
 var _skip := 0.0
+var _edge := false
 var _frame := 0
 var _in_house := {}         # "id@minute" of anyone seen inside a house footprint (walking included)
 var _crowded := {}          # pairs seen standing on top of each other
@@ -45,6 +47,8 @@ func _ready() -> void:
 			_speed = float(arg.trim_prefix("--witness-speed="))
 		elif arg.begins_with("--witness-skip="):
 			_skip = float(arg.trim_prefix("--witness-skip="))
+		elif arg == "--witness-edge":
+			_edge = true
 		elif arg == "--witness-hide-player":
 			_hide_player = true
 		elif arg.begins_with("--at="):
@@ -93,6 +97,8 @@ func _process(delta: float) -> void:
 func _begin() -> void:
 	var demo := Staging.demo_pillory()
 	var staging: Dictionary = demo[0]
+	if _edge:
+		_add_edge_cases(staging, demo[1])
 	_stage = StageScript.new()
 	get_tree().current_scene.add_child(_stage)
 	var player := get_tree().current_scene.get_node("Player") as Node3D
@@ -131,6 +137,21 @@ func _begin() -> void:
 	_shots.append({"name": "home", "at": staging["end"] + 30, "wait": "finished"})   # walks home can outlast the staging
 	print("WITNESS playing %s at x%.1f, %d beats, minutes %d-%d; player at %s; shots to %s" % [staging["kind"], _speed, staging["beats"].size(),
 		start, staging["end"], player.global_position.snapped(Vector3.ONE * 0.1), _dir])
+
+
+## Tobin (3) stands saying "Yes" (a one-shot, so the stage replays it), Ilse (4) shakes her head once,
+## and Garrow (5) collapses before the stones and lies there until everyone goes home.
+func _add_edge_cases(staging: Dictionary, people: Array) -> void:
+	var t0: int = staging["start"]
+	var beats: Array = staging["beats"]
+	for b: Dictionary in beats:
+		if b["who"] == 3 and b["do"] == "stand":
+			b["anim"] = "Yes"
+	beats.append({"at": t0 + 50, "who": 4, "do": "gesture", "slot": 3, "target": -1, "anim": "Idle_No", "prop": ""})
+	beats.append({"at": t0 + 230, "who": 5, "do": "fall", "slot": 4, "target": -1, "anim": "Death01", "prop": ""})
+	beats.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return a["at"] < b["at"] or (a["at"] == b["at"] and a["who"] < b["who"]))
+	print("WITNESS edge cases added; staging problems: ", Staging.validate(staging, people))
 
 
 func _shoot(shot_name: String) -> void:
