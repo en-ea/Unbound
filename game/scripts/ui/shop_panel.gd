@@ -106,7 +106,7 @@ func _refresh() -> void:
 				var out: String = r["out"]
 				var title := Items.name_of(out) + (" × %d" % r["n"] if r.has("n") else "")
 				_offer(out, title, Food.describe(out), r["cost"], 0, "Roll" if out == "cigarette" else "Cook",
-					Food.cook.bind(r).unbind(0))
+					Food.cook.bind(r))
 		"trade":
 			var names := ["Buy", "Sell"]
 			_grid.columns = 3 if _tab == 0 else 1
@@ -124,7 +124,7 @@ func _refresh() -> void:
 						else Gear.name_of(offer["tool"][0], offer["tool"][1])
 					var text := "Sold out" if offer["sold"] else ("A found tool with a bonus" if item == "tool" else "")
 					_offer("" if item == "tool" else item, label, text, {}, offer["price"], "Buy",
-						Money.buy.bind(offer).unbind(0), offer["sold"], offer.get("tool", []))
+						Money.buy.bind(offer), offer["sold"], offer.get("tool", []))
 			else:
 				var worth := 0
 				var loot := 0
@@ -151,13 +151,13 @@ func _refresh() -> void:
 					return false)
 				for h: String in Home.HOUSES:
 					if h != Home.house:
-						_offer("", Home.HOUSES[h][0], "", {}, 0, "Move in", Home.change_house.bind(h).unbind(0))
+						_offer("", Home.HOUSES[h][0], "", {}, 0, "Move in", Home.change_house.bind(h))
 			else:
 				var miss := Home.missing()
 				_note.text = "A plot of your own, with a house you choose. " + ("Ready to buy!" if miss.is_empty() else "Still needed: " + "; ".join(miss) + ".")
 				for h: String in Home.HOUSES:
 					_offer("", Home.HOUSES[h][0], "", {}, Balance.HOME["coins"], "Buy" if miss.is_empty() else "Not yet",
-						Home.buy.bind(h).unbind(0), false, [], not miss.is_empty())
+						Home.buy.bind(h), false, [], not miss.is_empty())
 		"project":
 			var d: Dictionary = Projects.DEFS[project]
 			if Projects.is_built(project):
@@ -165,7 +165,7 @@ func _refresh() -> void:
 			else:
 				_note.text = "Help the village build this. " + d["text"]
 				_offer("", d["name"], "", Projects.cost(project), Projects.coins(project), "Build",
-					Projects.fund.bind(project).unbind(0))
+					Projects.fund.bind(project))
 
 
 ## A card with a picture, a name, some text, a cost and a button that runs `action`.

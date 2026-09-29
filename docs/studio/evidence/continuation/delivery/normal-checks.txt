@@ -12,8 +12,11 @@ PASS real action button still gathers a world resource
 PASS combat action still starts outside a rescue
 PASS downed player cannot act
 PASS locked controls cannot act
+PASS ordinary merchant opens from the real action button
+FAIL merchant Buy button completes an actual payment
+PASS merchant closes back into play
 PASS live bribe single debit, accepts=true
 PASS normal reload preserves bribe and wallet
 PASS live bribe single debit, accepts=false
 PASS normal reload preserves bribe and wallet
-CHECKS complete failures=0
+CHECKS complete failures=1

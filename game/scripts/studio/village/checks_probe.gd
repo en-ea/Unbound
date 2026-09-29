@@ -108,6 +108,14 @@ func run() -> void:
 			var hud := get_tree().get_first_node_in_group("hud")
 			for child in hud.get_children():
 				if child.get_script() != null and child.get_script().resource_path.ends_with("shop_panel.gd"):
+					var bought := false
+					for button in child.find_children("*", "Button", true, false):
+						if button.text == "Buy" and not button.disabled:
+							var coins_before := Money.coins
+							button.pressed.emit()
+							bought = Money.coins < coins_before
+							break
+					check(bought, "merchant Buy button completes an actual payment")
 					child._close()
 			check(not Controls.locked, "merchant closes back into play")
 			break
