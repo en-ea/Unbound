@@ -142,12 +142,12 @@ static func try_theft(V: S.Village, p: S.Person, k: int) -> void:
 	# the opportunity: the minute (work hours) with the fewest eyes on the pen
 	var when := -1
 	var fewest := 99
-	var m := 420
-	while m <= 1020:
-		var eyes := Village.witnesses_at(V, place, m, p.id).size()
+	var eyes_at := Village.eyes_by_minute(V, place, 420, 60, 11, p.id)   # witnesses_at(V, place, m, p.id).size() for each m
+	for i in 11:
+		var m := 420 + i * 60
+		var eyes := eyes_at[i]
 		if eyes < fewest or (eyes == fewest and (R.key(k, m) & 3) == 0):
 			fewest = eyes; when = m
-		m += 60
 	if fewest > (3 if p.hunger > 800 else 1):
 		return  # too many eyes; not today
 	var item := "goose" if h.geese > 0 else "grain"
@@ -461,79 +461,154 @@ static func give_belief(V: S.Village, pid: int, crime: int, culprit: int, streng
 const SOCIAL := [[720, 780], [1080, 1260], [540, 660]]  # meals, evenings, the holy-day service
 
 
+@warning_ignore("integer_division")
 static func gossip(V: S.Village) -> void:
 	var gk := R.key(R.key(V.base, Village.P_GOSSIP), V.day)
+	var people := V.people
+	var pace := V.pace
+	var lang := V.lang
+	var min_born := V.day - 12 * Village.YEAR   # (port) age_of(p) >= 12 is p.born <= V.day - 720
 	for window: Array in SOCIAL:
 		var from: int = window[0]
 		var to: int = window[1]
-		var groups := {}   # place -> Array[int], insertion ordered
-		for p in V.people:
-			if not p.alive or not p.present or p.locked or Village.age_of(V, p) < 12:
+		# who is together: one group per place, in people order; the places are taken in string order of their
+		# names (the reference sorts the group keys), so the groups are kept by the place's name rank
+		var groups := []
+		groups.resize(V.n_places)
+		for p in people:
+			if not p.alive or not p.present or p.locked or p.born > min_born:
 				continue
-			var at := Village.place_at(p, from + 10)
-			if at < 0 or Village.place_at(p, to - 10) != at:
+			# place_at(p, from + 10) and place_at(p, to - 10), inlined
+			var pl := p.plan
+			var at := -1
+			var at2 := -1
+			var pi := 0
+			while pi < pl.size():
+				if from + 10 >= pl[pi] and from + 10 < pl[pi + 1]:
+					at = pl[pi + 2]
+				if to - 10 >= pl[pi] and to - 10 < pl[pi + 1]:
+					at2 = pl[pi + 2]
+				pi += 3
+			if at < 0 or at2 != at:
 				continue
-			if not groups.has(at):
+			var r := V.place_rank[at]
+			if groups[r] == null:
 				var fresh: Array[int] = []
-				groups[at] = fresh
-			(groups[at] as Array[int]).append(p.id)
-		# the places in string order of their names
-		var places: Array = groups.keys()
-		places.sort_custom(func(a: int, b: int) -> bool: return V.place_rank[a] < V.place_rank[b])
-		for place: int in places:
-			var ids: Array[int] = groups[place]
-			for i in ids.size():
-				for j in ids.size():
+				groups[r] = fresh
+			(groups[r] as Array[int]).append(p.id)
+		for group: Variant in groups:
+			if group == null:
+				continue
+			var ids: Array[int] = group
+			var n := ids.size()
+			for i in n:
+				var a := ids[i]
+				var sp := people[a]
+				var t := sp.traits
+				var ka := a * 4099 + from
+				# mingle's terms that depend on the speaker only
+				var slight0 := t[C.TEMPER] * 60 - t[C.COMPASSION] * 20
+				var warm := (20000 + t[C.SOCIABLE] * 300) * pace
+				var lang_row := sp.era * 3
+				var rk := sp.rel_k   # (a's feelings do not change while a speaks: only listeners' do)
+				var rv := sp.rel_v
+				# tell() has nothing to say unless the speaker holds a belief about an open, unsettled crime (a pure
+				# check on the speaker's beliefs, which do not change while they speak): skip it otherwise
+				var tellable := false
+				for bf in sp.beliefs:
+					var cr := V.crimes[bf.crime]
+					if not cr.closed and (cr.case_open or V.day - cr.day <= 30):
+						tellable = true
+						break
+				for j in n:
 					if i == j:
 						continue
-					var k := R.key(gk, ids[i] * 4099 + ids[j] + from)
-					tell(V, ids[i], ids[j], k)
-					mingle(V, ids[i], ids[j], R.key(k, 77))
+					var b := ids[j]
+					# k = key(gk, ids[i] * 4099 + ids[j] + from), and key(k, 77) for mingle (rng.gd key, inlined: this
+					# loop runs for every pair in every group three times a day)
+					var k := (gk ^ (ka + b)) & R.M32
+					k = ((k ^ (k >> 16)) * 0x7feb352d) & R.M32
+					k ^= k >> 15
+					k = (k * 0x046ca68b + ((k & 1) << 31)) & R.M32
+					k ^= k >> 16
+					if tellable:
+						tell(V, a, b, k)
+					# mingle(V, a, b, key(k, 77)), inlined
+					var k2 := k ^ 77
+					k2 = ((k2 ^ (k2 >> 16)) * 0x7feb352d) & R.M32
+					k2 ^= k2 >> 15
+					k2 = (k2 * 0x046ca68b + ((k2 & 1) << 31)) & R.M32
+					k2 ^= k2 >> 16
+					var ls := people[b]
+					var op := 0   # opinion(V, a, b)
+					var ri := rk.find(b)
+					if ri >= 0:
+						op = rv[ri]
+					elif sp.household == ls.household or sp.lineage == ls.lineage or sp.spouse == b or sp.father == b or sp.mother == b or ls.father == a or ls.mother == a:
+						op = 50
+					var slight := slight0 + maxi(0, -op) * 450 + lang[lang_row + ls.era] * 60
+					if slight > 0 and ((k2 * 1000000) >> 32) < slight * pace:
+						Village.set_opinion(V, b, a, Village.opinion(V, b, a) - 4 - ls.traits[C.TEMPER] / 12)   # (temper >= 0: idiv is /)
+						continue
+					var k3 := k2 ^ 1
+					k3 = ((k3 ^ (k3 >> 16)) * 0x7feb352d) & R.M32
+					k3 ^= k3 >> 15
+					k3 = (k3 * 0x046ca68b + ((k3 & 1) << 31)) & R.M32
+					k3 ^= k3 >> 16
+					if ((k3 * 1000000) >> 32) < warm:
+						Village.set_opinion(V, b, a, Village.opinion(V, b, a) + 2)
 
 
 # Everyday friction and warmth (RimWorld's chitchat and slights): the hot-tempered give offence, the
 # sociable make friends. Each is small; over years they add up to friendships and enmities, and an old
 # dislike makes the next slight likelier (so enmities deepen unless time heals them).
+# (not called: gossip inlines it for speed. Kept as the readable twin of the reference's mingle so the port
+# diffs line by line; a change here must be made in gossip too.)
+@warning_ignore("integer_division")
 static func mingle(V: S.Village, a: int, b: int, k: int) -> void:
 	var sp := V.people[a]
 	var ls := V.people[b]
-	var slight := sp.traits[C.TEMPER] * 60 + maxi(0, -Village.opinion(V, a, b)) * 450 - sp.traits[C.COMPASSION] * 20 + int(C.LANG_DISTANCE[sp.era][ls.era]) * 60
-	if slight > 0 and R.chance(k, slight * V.pace):
-		Village.set_opinion(V, b, a, Village.opinion(V, b, a) - 4 - R.idiv(ls.traits[C.TEMPER], 12))
+	var t := sp.traits
+	var slight := t[C.TEMPER] * 60 + maxi(0, -Village.opinion(V, a, b)) * 450 - t[C.COMPASSION] * 20 + V.lang[sp.era * 3 + ls.era] * 60
+	if slight > 0 and ((k * 1000000) >> 32) < slight * V.pace:   # chance(k, slight * pace)
+		Village.set_opinion(V, b, a, Village.opinion(V, b, a) - 4 - ls.traits[C.TEMPER] / 12)   # (temper >= 0: idiv is /)
 		return
-	if R.chance(R.key(k, 1), (20000 + sp.traits[C.SOCIABLE] * 300) * V.pace):
+	if R.chance(R.key(k, 1), (20000 + t[C.SOCIABLE] * 300) * V.pace):
 		Village.set_opinion(V, b, a, Village.opinion(V, b, a) + 2)
 
 
+@warning_ignore("integer_division")
 static func tell(V: S.Village, a: int, b: int, k: int) -> void:
 	var sp := V.people[a]
 	var ls := V.people[b]
 	if sp.beliefs.size() == 0:
 		return
 	# across the ages speech barely carries (a storm's forebears and the villagers): language distance
-	var lang := 100 - int(C.LANG_DISTANCE[sp.era][ls.era])
-	if not R.chance(k, R.idiv((250000 + sp.traits[C.SOCIABLE] * 5000) * lang, 100)):
+	var lang := 100 - V.lang[sp.era * 3 + ls.era]
+	if ((k * 1000000) >> 32) >= (250000 + sp.traits[C.SOCIABLE] * 5000) * lang / 100:   # chance(k, idiv(...)); all terms >= 0
 		return
 	# the speaker's strongest belief the listener has not heard (old news about settled cases is not told)
+	var heard_list := ls.beliefs
 	var best: S.Belief = null
 	for bf in sp.beliefs:
 		var cr := V.crimes[bf.crime]
 		if bf.culprit == b or cr.closed or (not cr.case_open and V.day - cr.day > 30):
 			continue  # cold or settled: not told
+		if best != null and bf.strength <= best.strength:
+			continue  # (port: could not become the best; the heard check below has no side effects)
 		var heard := false
-		for x in ls.beliefs:
+		for x in heard_list:
 			if x.crime == bf.crime and x.culprit == bf.culprit and x.origin == bf.origin:
 				heard = true
 				break
 		if heard:
 			continue
-		if best == null or bf.strength > best.strength:
-			best = bf
+		best = bf
 	if best == null:
 		return
 	var trust := clampi(500 + Village.opinion(V, b, a) * 4, 100, 900)
 	var heard_before := false
-	for x in ls.beliefs:
+	for x in heard_list:
 		if x.crime == best.crime:
 			heard_before = true
 			break
@@ -541,17 +616,21 @@ static func tell(V: S.Village, a: int, b: int, k: int) -> void:
 	var origin := best.origin
 	var via := 1
 	# bent by dislike: sometimes the listener hears what they already wanted to believe
+	# (port: the reference finds the enemy first; it is pure, so it is found only when the other terms allow it)
 	var crime := V.crimes[best.crime]
-	var enemy := -1
-	var worst := -40
-	for i in ls.rel_k.size():
-		var o := ls.rel_k[i]
-		var v := ls.rel_v[i]
-		if v < worst and V.people[o].alive and V.people[o].present and o != a and o != b:
-			worst = v; enemy = o
-	if enemy >= 0 and crime.act != "sorcery" and not heard_before and R.chance(R.key(k, 3), 45000):
-		culprit = enemy; origin = b; via = 3
-	var nb := give_belief(V, b, best.crime, culprit, R.idiv(best.strength * trust, 1000), origin, via, a)
+	if crime.act != "sorcery" and not heard_before and R.chance(R.key(k, 3), 45000):
+		var enemy := -1
+		var worst := -40
+		var rk := ls.rel_k
+		var rv := ls.rel_v
+		for i in rk.size():
+			var o := rk[i]
+			var v := rv[i]
+			if v < worst and V.people[o].alive and V.people[o].present and o != a and o != b:
+				worst = v; enemy = o
+		if enemy >= 0:
+			culprit = enemy; origin = b; via = 3
+	var nb := give_belief(V, b, best.crime, culprit, best.strength * trust / 1000, origin, via, a)
 	best.strength = clampi(best.strength + 15, 0, 1000)  # retelling strengthens the teller's own belief
 	# only what reaches the wronged household or the elder is kept in the chronicle (the tales follow it)
 	var wronged := crime.household >= 0 and ls.household == crime.household
@@ -587,6 +666,13 @@ static func check_cases(V: S.Village) -> void:
 		var pick_str := 0
 		var pick_ev := PackedInt32Array()
 		for acc in accusers:
+			# (port) a case needs two of this accuser's beliefs naming someone else for this crime: skip the rest early
+			var naming := 0
+			for bf in V.people[acc].beliefs:
+				if bf.crime == c.id and bf.culprit != acc:
+					naming += 1
+			if naming < 2:
+				continue
 			# by: culprit -> (origin -> strongest), both insertion ordered
 			var by := {}
 			for bf in V.people[acc].beliefs:

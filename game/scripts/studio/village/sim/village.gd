@@ -87,6 +87,9 @@ static func create_village(seed: int, opts: Dictionary = {}) -> S.Village:
 	V.focus = opts.get("focus", false)
 	make_places(V, opts.get("layout", MEADOW))
 	V.culture = (C.CULTURE[V.age] as Dictionary).duplicate()
+	for row: Array in C.LANG_DISTANCE:
+		for d: int in row:
+			V.lang.append(d)
 	# six founding lineages, one household each
 	var names: Array = C.LINEAGE_NAMES[V.age]
 	var used := {}
@@ -142,6 +145,10 @@ static func make_places(V: S.Village, layout: Dictionary) -> void:
 	V.pl_far_woods = place_id(V, "far_woods")
 	V.pl_road = place_id(V, "road")
 	V.pl_woods = place_id(V, "woods")
+	V.pl_well = place_id(V, "well")
+	for role: String in C.ROLES:
+		var w: String = C.ROLES[role]["work"]
+		V.role_work[role] = -1 if w == "home" else place_id(V, w)
 	V.pl_home_word = V.place_ids.get("home", -2)   # the reference compares places with "home": never a place here
 	for h in V.homes:
 		place_id(V, h)
@@ -292,23 +299,29 @@ static func opinion(V: S.Village, a: int, b: int) -> int:
 static func set_opinion(V: S.Village, a: int, b: int, v: int) -> void:
 	var pa := V.people[a]
 	v = clampi(v, -100, 100)
-	var i := pa.rel_k.find(b)
+	var rk := pa.rel_k
+	var i := rk.find(b)
 	if i >= 0:
 		pa.rel_v[i] = v
+		pa.rel_abs[i] = absi(v)
 	else:
-		pa.rel_k.append(b)
+		rk.append(b)
 		pa.rel_v.append(v)
-	if pa.rel_k.size() > 16:  # keep the strongest feelings (Bannerlord: grudges are personal and few)
-		var weakest := -1
-		var w := 1000
-		var wi := -1
-		for j in pa.rel_k.size():
-			var val := absi(pa.rel_v[j])
-			var o := pa.rel_k[j]
-			if val < w or (val == w and o < weakest):
-				w = val; weakest = o; wi = j
-		pa.rel_k.remove_at(wi)
+		pa.rel_abs.append(absi(v))
+	if rk.size() > 16:  # keep the strongest feelings (Bannerlord: grudges are personal and few)
+		# the weakest |feeling|, the lowest id among equals (the reference scans the map for the same entry)
+		var ra := pa.rel_abs
+		var w: int = ra.min()
+		var wi := ra.find(w)
+		var weakest := rk[wi]
+		var j := ra.find(w, wi + 1)
+		while j >= 0:
+			if rk[j] < weakest:
+				weakest = rk[j]; wi = j
+			j = ra.find(w, j + 1)
+		rk.remove_at(wi)
 		pa.rel_v.remove_at(wi)
+		ra.remove_at(wi)
 
 
 static func is_kin(V: S.Village, a: int, b: int) -> bool:
@@ -410,11 +423,12 @@ static func food(V: S.Village) -> void:
 
 
 static func life(V: S.Village) -> void:
+	var death_day := R.key(R.key(V.base, P_DEATH), V.day)
 	for p in V.people:
 		if not p.alive or not p.present:
 			continue
 		var a := age_of(V, p)
-		var k := R.key(R.key(R.key(V.base, P_DEATH), V.day), p.id)
+		var k := R.key(death_day, p.id)
 		# natural death: rises after 50; hunger raises it (famine); store-tier children never die of hunger
 		var risk := 30 if a < 50 else (250 if a < 60 else (900 if a < 70 else 2500))
 		if p.hunger >= 900 and not (V.tier == "store" and a < 14):
@@ -422,6 +436,7 @@ static func life(V: S.Village) -> void:
 		if R.chance(k, risk):
 			die(V, p.id, "hunger" if p.hunger >= 900 else "age", PackedInt32Array(), "the empty bowl by the bed" if p.hunger >= 900 else "the bell for the dead")
 	# births: married women 18-40 with a living husband, not in famine, small household
+	var birth_day := R.key(R.key(V.base, P_BIRTH), V.day)
 	# (people born in this loop are visited too, as in the reference; they are never mothers)
 	var i := 0
 	while i < V.people.size():
@@ -439,7 +454,7 @@ static func life(V: S.Village) -> void:
 				alive_members += 1
 		if alive_members >= 8 or hh.food < 0:
 			continue
-		if R.chance(R.key(R.key(R.key(V.base, P_BIRTH), V.day), p.id), 9000):
+		if R.chance(R.key(birth_day, p.id), 9000):
 			var k := R.key(R.key(V.base, P_SEX), V.people.size())
 			var baby := add_person(V, p.household, R.pick(k, 2), 0, p.spouse, p.id, {"era": p.era} if p.ancestor >= 0 else {})
 			if p.ancestor >= 0:  # born in the storm, goes with it
@@ -582,67 +597,79 @@ static func plan_day(V: S.Village) -> void:
 	var dk := R.key(R.key(V.base, P_PLAN), V.day)
 	var holy := V.day % 7 == 0
 	var market := V.day % 7 == 3
+	var households := V.households
 	for p in V.people:
-		p.plan = PackedInt32Array()
 		if not p.alive or not p.present:
+			if p.plan.size() > 0:
+				p.plan = PackedInt32Array()
 			continue
-		var home := V.households[p.household].home_place
+		var home := households[p.household].home_place
 		if p.locked:
 			p.plan = PackedInt32Array([0, DAY, p.locked_at if p.locked_at >= 0 else V.pl_pillory])
 			continue
 		var k := R.key(dk, p.id)
 		var work := work_place(V, p)
-		var plan := PackedInt32Array([0, 360, home])
+		var eve := evening_choice(V, p, k)
+		# (port: each plan is made in one piece; the reference appends the same [from, to, place] runs)
 		if holy and p.traits[C.PIETY] >= 35:
-			plan.append_array([360, 540, home, 540, 660, V.pl_shrine, 660, 1080, V.pl_square if market else home])
+			p.plan = PackedInt32Array([0, 360, home, 360, 540, home, 540, 660, V.pl_shrine, 660, 1080, V.pl_square if market else home, 1080, 1260, eve, 1260, DAY, home])
 		elif market and (p.role == "merchant" or R.chance(R.key(k, 1), 350000)):
-			plan.append_array([360, 600, work, 600, 780, V.pl_square, 780, 1080, work])
+			p.plan = PackedInt32Array([0, 360, home, 360, 600, work, 600, 780, V.pl_square, 780, 1080, work, 1080, 1260, eve, 1260, DAY, home])
 		else:
-			plan.append_array([360, 720, work, 720, 780, work if (p.role == "farmer" or p.role == "herder") else home])
-			plan.append_array(afternoon(V, p, work, k))
-		plan.append_array([1080, 1260, evening_choice(V, p, k), 1260, DAY, home])
-		p.plan = plan
+			var meal := work if (p.role == "farmer" or p.role == "herder") else home
+			var far := afternoon(V, p, k)
+			if far < 0:
+				p.plan = PackedInt32Array([0, 360, home, 360, 720, work, 720, 780, meal, 780, 1080, work, 1080, 1260, eve, 1260, DAY, home])
+			else:
+				p.plan = PackedInt32Array([0, 360, home, 360, 720, work, 720, 780, meal, 780, 840, work, 840, 1000, far, 1000, 1080, work, 1080, 1260, eve, 1260, DAY, home])
 
 
 # Most afternoons are work; now and then an errand takes a person out alone (to the next village's market,
 # to the far woods for timber or game): the lonely hours where no one sees.
-static func afternoon(V: S.Village, p: S.Person, work: int, k: int) -> PackedInt32Array:
+# (port: returns the errand's place, 840-1000 between two stretches of work, or -1 for a working afternoon)
+static func afternoon(V: S.Village, p: S.Person, k: int) -> int:
 	if p.role == "child" or p.role == "elder" or p.role == "priest" or p.role == "beggar" or not R.chance(R.key(k, 2), 60000):
-		return PackedInt32Array([780, 1080, work])
-	var far := V.pl_far_woods if (p.role == "woodcutter" or p.role == "hunter" or p.role == "gatherer") else V.pl_road
-	return PackedInt32Array([780, 840, work, 840, 1000, far, 1000, 1080, work])
+		return -1
+	return V.pl_far_woods if (p.role == "woodcutter" or p.role == "hunter" or p.role == "gatherer") else V.pl_road
 
 
 static func work_place(V: S.Village, p: S.Person) -> int:
-	var w: String = C.ROLES[p.role]["work"] if C.ROLES.has(p.role) else "home"
-	if w == "home":
+	var w: int = V.role_work.get(p.role, -1)   # (port) the role's work place, -1 for "home"
+	if w < 0:
 		return V.households[p.household].home_place
 	if p.role == "child":
 		return V.households[p.household].home_place
-	return place_id(V, w)
+	return w
 
 
+@warning_ignore("integer_division")
 static func evening_choice(V: S.Village, p: S.Person, k: int) -> int:
 	var t := p.traits
 	var home := V.households[p.household].home_place
-	var o_place: Array[int] = [place_id(V, "well"), V.pl_square, V.pl_shrine, home]
+	var soc := t[C.SOCIABLE]
+	var piety := t[C.PIETY]
+	var stress4 := p.stress / 4   # (stress and fear are never negative: idiv is /)
+	var o_place: Array[int] = [V.pl_well, V.pl_square, V.pl_shrine, home]
 	var o_weight: Array[int] = [
-		t[C.SOCIABLE] * 2 + 20,
-		t[C.SOCIABLE] + (100 - t[C.PIETY]) + R.idiv(p.stress, 4),
-		t[C.PIETY] * 2 + R.idiv(V.fear, 10) + R.idiv(p.stress, 4) + (60 if p.guilt > 0 else 0),
-		(100 - t[C.SOCIABLE]) + 60,
+		soc * 2 + 20,
+		soc + (100 - piety) + stress4,
+		piety * 2 + V.fear / 10 + stress4 + (60 if p.guilt > 0 else 0),
+		(100 - soc) + 60,
 	]
 	# a friend's home: the best-liked person outside one's household
 	var friend := -1
 	var fo := 40
-	for i in p.rel_k.size():
-		var o := p.rel_k[i]
-		var v := p.rel_v[i]
-		if v > fo and V.people[o].alive and V.people[o].present and V.people[o].household != p.household:
-			fo = v; friend = o
+	var rk := p.rel_k
+	var rv := p.rel_v
+	for i in rk.size():
+		var v := rv[i]
+		if v > fo:
+			var q := V.people[rk[i]]
+			if q.alive and q.present and q.household != p.household:
+				fo = v; friend = rk[i]
 	if friend >= 0:
 		o_place.append(V.households[V.people[friend].household].home_place)
-		o_weight.append(fo + t[C.SOCIABLE])
+		o_weight.append(fo + soc)
 	# sort: weight descending, then place name ascending (the names differ, so the order is total);
 	# an insertion sort over at most five offers
 	var n := o_place.size()
@@ -660,7 +687,7 @@ static func evening_choice(V: S.Village, p: S.Person, k: int) -> int:
 	var total := 0
 	for i in top:
 		total += maxi(1, o_weight[i])
-	var r := R.pick(R.key(k, 99), total)
+	var r := (R.key(k, 99) * total) >> 32   # pick(key(k, 99), total)
 	for i in top:
 		r -= maxi(1, o_weight[i])
 		if r < 0:
@@ -686,16 +713,57 @@ static func witnesses_at(V: S.Village, place: int, minute: int, exclude: int) ->
 	var r := C.SEE_NIGHT if night else C.SEE_DAY
 	var r2 := r * r
 	var row := place * V.n_places
+	var dist2 := V.dist2
 	var out: Array[int] = []
 	for q in V.people:
 		if not q.alive or not q.present or q.id == exclude:
 			continue
-		var at := place_at(q, minute)
-		if at < 0:
-			continue
-		if V.dist2[row + at] <= r2:
-			out.append(q.id)
+		# place_at(q, minute), inlined (this runs for everyone, eleven times for each theft considered)
+		var pl := q.plan
+		var i := 0
+		var n := pl.size()
+		while i < n:
+			if minute >= pl[i] and minute < pl[i + 1]:
+				if dist2[row + pl[i + 2]] <= r2:
+					out.append(q.id)
+				break
+			i += 3
 	return out
+
+
+## (port) witnesses_at(V, place, m, exclude).size() for the minutes m = first, first + step, ... (count of them),
+## in one pass over each plan instead of one scan per minute. Every plan is a run of disjoint [from, to) stretches.
+@warning_ignore("integer_division")
+static func eyes_by_minute(V: S.Village, place: int, first: int, step: int, count: int, exclude: int) -> PackedInt32Array:
+	var eyes := PackedInt32Array()
+	eyes.resize(count)
+	eyes.fill(0)
+	var r_day := C.SEE_DAY * C.SEE_DAY
+	var r_night := C.SEE_NIGHT * C.SEE_NIGHT
+	var row := place * V.n_places
+	var dist2 := V.dist2
+	var last := first + (count - 1) * step
+	for q in V.people:
+		if not q.alive or not q.present or q.id == exclude:
+			continue
+		var pl := q.plan
+		var i := 0
+		var n := pl.size()
+		while i < n:
+			var from := pl[i]
+			var to := pl[i + 1]
+			if to > first and from <= last:
+				var d2 := dist2[row + pl[i + 2]]
+				# the minutes of this stretch: j from ceil((from - first) / step) to floor((to - 1 - first) / step)
+				var j0 := 0 if from <= first else (from - first + step - 1) / step
+				var j1 := mini(count - 1, (to - 1 - first) / step)
+				for j in range(j0, j1 + 1):
+					var m := first + j * step
+					var night := m < 360 or m >= 1260
+					if d2 <= (r_night if night else r_day):
+						eyes[j] += 1
+			i += 3
+	return eyes
 
 
 # ---------- minds: stress, guilt, coping, belief fading, feelings drifting ----------
@@ -713,19 +781,26 @@ static func minds(V: S.Village) -> void:
 				Justice.confess_guilt(V, p.id)
 		# beliefs fade; the weakest are forgotten
 		if p.beliefs.size() > 0:
-			var kept: Array[S.Belief] = []
+			var fading := false
 			for b in p.beliefs:
 				b.strength -= 4
-				if b.strength > 60:
-					kept.append(b)
-			p.beliefs = kept
+				if b.strength <= 60:
+					fading = true
+			if fading:
+				var kept: Array[S.Belief] = []
+				for b in p.beliefs:
+					if b.strength > 60:
+						kept.append(b)
+				p.beliefs = kept
 		# feelings drift back towards neutral, slowly; deep hatreds hardly at all (grudges are few and kept)
 		if V.day % 10 == p.id % 10:
 			for i in p.rel_k.size():
 				var v := p.rel_v[i]
 				if v < -50 and V.day % 60 != p.id % 60:
 					continue
-				p.rel_v[i] = v - 1 if v > 0 else (v + 1 if v < 0 else 0)
+				var nv := v - 1 if v > 0 else (v + 1 if v < 0 else 0)
+				p.rel_v[i] = nv
+				p.rel_abs[i] = absi(nv)
 
 
 static func hash_village(V: S.Village) -> String:

@@ -50,6 +50,7 @@ class Person:
 	# arrays; Array (not Packed) so writes through a Person reference change it in place.
 	var rel_k: Array[int] = []
 	var rel_v: Array[int] = []
+	var rel_abs: Array[int] = []   # (port) |rel_v|, kept alongside so the weakest feeling is found natively
 	# grudges: Map(person -> event), insertion ordered, at most 4
 	var grudge_k: Array[int] = []
 	var grudge_v: Array[int] = []
@@ -241,6 +242,8 @@ class Village:
 	var pl_far_woods := -1
 	var pl_road := -1
 	var pl_woods := -1
+	var pl_well := -1
+	var role_work := {}   # role -> its work place id (-1: "home")
 	var people: Array[Person] = []
 	var households: Array[Household] = []
 	var lineages: Array[Lineage] = []
@@ -262,6 +265,7 @@ class Village:
 	var stats := {"crimes": 0, "cases": 0, "trials": 0, "acts": {}, "outcomes": {}, "deaths": 0, "violentDeaths": 0,
 		"births": 0, "famines": 0, "omens": 0, "festivals": 0, "exonerations": 0, "mobs": 0}
 	var culture := {}
+	var lang := PackedInt32Array()   # (port) content.gd LANG_DISTANCE flattened: [speaker era * 3 + listener era]
 	var omen_event := -1
 	# time storms (storm.gd): an anchored story village is exempt; storm_plan is the kernel's stand-in for tests,
 	# [day, household, days] triples
