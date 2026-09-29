@@ -68,6 +68,19 @@ func _ready() -> void:
 			if "--labmenu" in OS.get_cmdline_user_args():      # and open the lab menu
 				get_tree().create_timer(0.5).timeout.connect(func() -> void:
 					get_node("../HUD").open_station({"mode": "lab", "lab": get_tree().get_first_node_in_group("build_lab")}))
+			for v_arg in OS.get_cmdline_user_args():             # --villager=wren[,far]: show one close up
+				if v_arg.begins_with("--villager="):
+					var vbits := v_arg.trim_prefix("--villager=").split(",")
+					get_tree().create_timer(0.6).timeout.connect(func() -> void:
+						var lab := get_tree().get_first_node_in_group("build_lab")
+						lab.spin = false
+						lab.show_villager(Npcs.NPCS.keys().find(vbits[0]))
+						get_node("../HUD").open_station({"mode": "lab", "lab": lab})
+						get_tree().create_timer(0.2).timeout.connect(func() -> void:
+							for m in get_node("../HUD").find_children("*", "Control", true, false):
+								if m.has_method("_frame_villager"):
+									m._show_villager_name()
+									m._frame_villager(vbits.size() < 2)))
 		elif arg == "--craft" or arg == "--bag":      # open a screen (with some items to show)
 			for item in ["wood", "stone", "flint", "copper", "hide", "apple", "resin"]:
 				Inventory.add(item, 5)

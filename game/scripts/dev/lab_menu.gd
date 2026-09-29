@@ -12,6 +12,7 @@ const ENEMIES := ["boar", "wolf", "shadow"]
 
 var lab: Node
 var _name: Label
+var _vname: Label
 
 
 func _ready() -> void:
@@ -53,6 +54,21 @@ func _ready() -> void:
 	_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UIStyle.button(row, "›", Vector2(60, 50), 26).pressed.connect(func() -> void: _step(1))
 	_show_name()
+	_head(col, "VILLAGERS")
+	var vrow := HBoxContainer.new()
+	vrow.add_theme_constant_override("separation", 8)
+	col.add_child(vrow)
+	UIStyle.button(vrow, "‹", Vector2(60, 50), 26).pressed.connect(func() -> void: _step_villager(-1))
+	_vname = UIStyle.label(vrow, "", 18)
+	_vname.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_vname.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UIStyle.button(vrow, "›", Vector2(60, 50), 26).pressed.connect(func() -> void: _step_villager(1))
+	var vgrid := _grid(col)
+	UIStyle.button(vgrid, "Close-up", Vector2(0, 46), 16).pressed.connect(func() -> void: _frame_villager(true))
+	UIStyle.button(vgrid, "Whole body", Vector2(0, 46), 16).pressed.connect(func() -> void: _frame_villager(false))
+	UIStyle.button(vgrid, "Spin on/off", Vector2(0, 46), 16).pressed.connect(func() -> void: lab.spin = not lab.spin)
+	UIStyle.button(vgrid, "Show building", Vector2(0, 46), 16).pressed.connect(_frame_pad)
+	_show_villager_name()
 	_head(col, "SPAWN IN FRONT OF YOU")
 	var grid := _grid(col)
 	for s: Array in SPAWNS:
@@ -95,6 +111,36 @@ func _grid(parent: Control) -> GridContainer:
 func _step(d: int) -> void:
 	lab.show_building(lab.building + d)
 	_show_name()
+
+
+func _step_villager(d: int) -> void:
+	var n: int = Npcs.NPCS.size()
+	var next: int = lab.villager + d                 # -1 (nobody) sits between the last and the first
+	if next >= n:
+		next = -1
+	elif next < -1:
+		next = n - 1
+	lab.show_villager(next)
+	_show_villager_name()
+	if next >= 0:
+		_frame_villager(true)
+	else:
+		_frame_pad()
+
+
+func _show_villager_name() -> void:
+	_vname.text = "Nobody" if lab.villager < 0 else String(Npcs.NPCS.values()[lab.villager]["name"])
+
+
+## The camera frames the villager beside the panel: close on the face, or the whole body.
+func _frame_villager(close: bool) -> void:
+	if lab.villager < 0:
+		return
+	var rig := get_tree().get_first_node_in_group("camera_rig")
+	var h: float = lab.villager_height()
+	var target: Vector3 = lab.AT + lab.VILLAGER_SPOT - lab.player.global_position
+	target += Vector3(0.9 if close else 2.0, (h * 0.88 if close else h * 0.5) - 1.0, 0.0)
+	rig.set_view(2.6 * h / 1.8 if close else 7.5, -6.0 if close else -12.0, target, 0.7)
 
 
 func _show_name() -> void:

@@ -40,6 +40,8 @@ COLORS = {  # defaults (sRGB); the game overrides the slot colours
     "Tobacco": (0.74, 0.52, 0.29), "Tobacco2": (0.6, 0.4, 0.22),
     "MaskWhite": (0.95, 0.93, 0.89), "MaskRed": (0.82, 0.1, 0.12), "Oni": (0.6, 0.07, 0.08), "OniDark": (0.3, 0.03, 0.05),
     "Ivory": (0.93, 0.88, 0.76), "Void": (0.06, 0.06, 0.08), "MaskGlow": (0.45, 0.95, 1.0), "Steel": (0.62, 0.64, 0.68),
+    "Raven": (0.13, 0.13, 0.17), "RavenSheen": (0.24, 0.26, 0.36), "LensGlow": (1.0, 0.7, 0.28), "SunGlow": (1.0, 0.86, 0.5), "SunGold": (0.98, 0.7, 0.24),
+    "Antler": (0.86, 0.79, 0.66),
 }
 
 HC = V((0.0, -0.01, 1.72))      # head centre
@@ -510,6 +512,63 @@ def hat(bm):
         bm.faces.new((ring_in_b[k2], ring_out_b[k2], ring_out_b[k], ring_in_b[k]))
         bm.faces.new((ring_out[k], ring_out_b[k], ring_out_b[k2], ring_out[k2]))
     rk.tube(bm, [V((0, 0.0, Z + 0.1)), V((0, 0.0, Z + 0.2)), V((0, 0.005, Z + 0.25))], [(0.16, 0.155), (0.145, 0.14), (0.11, 0.105)], seg=8)
+
+
+def wayfarer_hat(bm):
+    """A wanderer's hat: a wide brim that droops at front and back, and a tall crooked crown whose
+    point bends back over the head."""
+    n = 16
+    inner, outer, inner_b, outer_b = [], [], [], []
+    for k in range(n):
+        a = k * math.tau / n
+        c, sn = math.cos(a), math.sin(a)
+        droop = 0.05 * abs(sn)                       # front and back (along Y) dip down
+        inner.append(bm.verts.new(V((c * 0.16, sn * 0.155, Z + 0.105))))
+        outer.append(bm.verts.new(V((c * 0.36, sn * 0.34, Z + 0.075 - droop))))
+    for v in inner:
+        inner_b.append(bm.verts.new(v.co - V((0, 0, 0.018))))
+    for v in outer:
+        outer_b.append(bm.verts.new(v.co - V((0, 0, 0.016))))
+    for k in range(n):
+        k2 = (k + 1) % n
+        bm.faces.new((inner[k], outer[k], outer[k2], inner[k2]))
+        bm.faces.new((inner_b[k2], outer_b[k2], outer_b[k], inner_b[k]))
+        bm.faces.new((outer[k], outer_b[k], outer_b[k2], outer[k2]))
+    rk.tube(bm, [V((0, 0.0, Z + 0.1)), V((0, 0.01, Z + 0.22)), V((0, 0.035, Z + 0.34)), V((0, 0.09, Z + 0.43)),
+                 V((0, 0.17, Z + 0.47)), V((0, 0.24, Z + 0.45))],
+            [(0.165, 0.16), (0.13, 0.13), (0.09, 0.09), (0.055, 0.055), (0.028, 0.028), (0.004, 0.004)], seg=10)
+
+
+def wayfarer_band(bm):
+    rk.tube(bm, [V((0, 0.0, Z + 0.11)), V((0, 0.0, Z + 0.155))], [(0.168, 0.163), (0.158, 0.155)], seg=10, caps=False)
+
+
+def wayfarer_buckle(bm):
+    p = V((0.06, -0.155, Z + 0.132))
+    rk.tube(bm, [p, p + V((0, -0.018, 0))], [(0.03, 0.026)] * 2, ref=V((1, 0, 0)), seg=4)
+
+
+def antlers(bm):
+    """A pair of branching antlers rising from the temples, each with three tines."""
+    for s in (1, -1):
+        base, n = around(s * 68, 42, 0.0)
+        beam_pts = [base, base + V((s * 0.05, 0.02, 0.09)), base + V((s * 0.11, 0.05, 0.18)), base + V((s * 0.15, 0.1, 0.28)),
+                    base + V((s * 0.16, 0.16, 0.36))]
+        rk.tube(bm, beam_pts, [(0.024, 0.024), (0.02, 0.02), (0.016, 0.016), (0.011, 0.011), (0.003, 0.003)], seg=6)
+        for k, (d, ln) in enumerate(((V((s * 0.02, -0.06, 0.08)), 1.0), (V((s * 0.05, -0.04, 0.09)), 0.9), (V((s * 0.06, 0.0, 0.08)), 0.7))):
+            root = beam_pts[k + 1]
+            rk.tube(bm, [root, root + d * ln * 0.6, root + d * ln], [(0.012 - k * 0.002, 0.012 - k * 0.002), (0.008, 0.008), (0.002, 0.002)], seg=5)
+
+
+def antler_band(bm):
+    rk.tube(bm, [V((0, 0.0, Z + 0.05)), V((0, 0.0, Z + 0.08))], [(HR.x + 0.02, HR.y + 0.022)] * 2, seg=12, caps=False)
+
+
+def antler_leaves(bm):
+    for s in (1, -1):
+        for k, (yaw, pitch) in enumerate(((60, 30), (75, 24), (50, 22))):
+            c, n = around(s * yaw, pitch, 0.03)
+            rk.blob(bm, c, (0.03, 0.02, 0.018), 5, 3)
 
 
 def hat_band(bm):
@@ -1130,6 +1189,40 @@ def build(arm):
         line(bm, [on(0, 44, 0.036), on(0, 10, 0.037), on(0, -30, 0.037), on(0, -58, 0.036)], 0.004),
         [line(bm, [on(s * 40, -10, 0.036), on(s * 26, -36, 0.036)], 0.003) for s in (1, -1)]), **flat)
 
+    # Raven: a dark crow mask over the upper face, a long curved beak, feathered brows sweeping back,
+    # round lenses glowing amber in steel rims.
+    part("H_mask_raven", "Raven", headw, lambda bm: (
+        plate(bm, lambda yw: -22 + abs(yw) * 0.05, lambda yw: 46 - abs(yw) * 0.1),
+        rk.tube(bm, [on(0, -6, 0.03), V((0, HC.y - HR.y - 0.08, Z - 0.035)), V((0, HC.y - HR.y - 0.17, Z - 0.075)),
+                     V((0, HC.y - HR.y - 0.23, Z - 0.13))],
+                [(0.05, 0.045), (0.034, 0.03), (0.018, 0.016), (0.003, 0.003)], ref=V((1, 0, 0)), seg=6)), **flat)
+    part("H_mask_raven_feathers", "RavenSheen", headw, lambda bm: [
+        rk.tube(bm, [on(s * (8 + k * 11), 24 + k * 2, 0.032), on(s * (22 + k * 13), 38 + k * 5, 0.07 + k * 0.01)],
+                [(0.018 - k * 0.002, 0.008), (0.002, 0.002)], ref=V((0, 0, 1)), seg=4)
+        for s in (1, -1) for k in range(4)], **flat)
+    part("H_mask_raven_rims", "Steel", headw, lambda bm: [
+        rk.tube(bm, [around(s * 20, 7, 0.03)[0], around(s * 20, 7, 0.05)[0]], [(0.034, 0.034)] * 2, ref=V((0, 0, 1)), seg=10)
+        for s in (1, -1)], **flat)
+    part("H_mask_raven_lenses", "LensGlow", headw, lambda bm: [
+        rk.tube(bm, [around(s * 20, 7, 0.048)[0], around(s * 20, 7, 0.054)[0]], [(0.025, 0.025)] * 2, ref=V((0, 0, 1)), seg=10)
+        for s in (1, -1)], **flat)
+
+    # Sun mask: a serene gold face with closed eyes and a halo of rays round the head.
+    part("H_mask_aurum", "SunGold", headw, lambda bm: (
+        plate(bm, lambda yw: -56 + abs(yw) * 0.18, lambda yw: 44 - abs(yw) * 0.1),
+        rk.tube(bm, [V((0, HC.y + 0.035, Z + 0.02)), V((0, HC.y + 0.055, Z + 0.02))], [(0.2, 0.21)] * 2, ref=V((1, 0, 0)), seg=16),
+        [rk.tube(bm, [V((math.cos(a) * 0.19, HC.y + 0.045, Z + 0.02 + math.sin(a) * 0.2)),
+                      V((math.cos(a) * (0.33 if k % 2 == 0 else 0.27), HC.y + 0.045, Z + 0.02 + math.sin(a) * (0.34 if k % 2 == 0 else 0.28)))],
+                 [(0.055, 0.016), (0.004, 0.004)], ref=V((0, 1, 0)), seg=4)
+         for k, a in enumerate(math.radians(-15 + 210 * i / 10) for i in range(11))]), **flat)
+    part("H_mask_aurum_lines", "Void", headw, lambda bm: (
+        [line(bm, [on(s * 8, 8, 0.037), on(s * 19, 4, 0.038), on(s * 31, 8, 0.037)], 0.006) for s in (1, -1)],
+        line(bm, [on(-10, -34, 0.037), on(0, -36, 0.038), on(10, -34, 0.037)], 0.005)), **flat)
+    part("H_mask_aurum_gem", "SunGlow", headw, lambda bm: (
+        rk.blob(bm, on(0, 28, 0.045), (0.022, 0.012, 0.03), 6, 4),
+        [rk.blob(bm, V((math.cos(a) * 0.335, HC.y + 0.045, Z + 0.02 + math.sin(a) * 0.345)), (0.016, 0.016, 0.016), 5, 3)
+         for i, a in enumerate(math.radians(-15 + 210 * i / 10) for i in range(11)) if i % 2 == 0]), **flat)
+
     part("H_extra_glasses", "Metal", headw, glasses, **flat)
     part("H_extra_eyepatch", "Leather", headw, eyepatch, **flat)
     part("H_extra_earrings", "Metal", headw, earrings, **flat)
@@ -1228,6 +1321,12 @@ def build(arm):
     part("H_back_leafcloak", "Tobacco", torso_weights, lambda bm: leaf_cloak(bm, False), **flat)
     part("H_back_leafcloak_dark", "Tobacco2", torso_weights, lambda bm: leaf_cloak(bm, True), **flat)
     part("H_back_leafcloak_ribs", "Wood", torso_weights, leaf_ribs, **flat)
+    part("H_head_wayfarer", "Accent", headw, wayfarer_hat, **flat)
+    part("H_head_wayfarer_band", "Leather", headw, wayfarer_band, **flat)
+    part("H_head_wayfarer_buckle", "Gold", headw, wayfarer_buckle, **flat)
+    part("H_head_antlers", "Antler", headw, antlers, **flat)
+    part("H_head_antlers_band", "Leather", headw, antler_band, **flat)
+    part("H_head_antlers_leaves", "Leaf", headw, antler_leaves, **flat)
     part("H_head_straw", "Straw", headw, straw_hat, **flat)
     part("H_head_straw_band", "Accent", headw, straw_band, **flat)
     return parts

@@ -183,13 +183,21 @@ def cigarette():
 
 
 def shears():
-    """Big garden shears for Wren: handles at the origin, blades along +Z (crossed, so they read as shears)."""
+    """Wren's hedge shears: two long wooden handles spreading from the pivot (at the origin) towards
+    -Z, where the hands grip them, and two long steel blades along +Z, slightly crossed."""
     b = Builder(["Item"])
-    steel, wood = (0.8, 0.83, 0.87), (0.55, 0.36, 0.2)
+    steel, edge, wood, dark = (0.78, 0.8, 0.84), (0.92, 0.94, 0.96), (0.58, 0.38, 0.22), (0.3, 0.3, 0.33)
     for s in (1, -1):
-        tube_faces(b, [V((s * 0.012, 0, 0.02)), V((-s * 0.03, 0, 0.5))], [(0.008, 0.05), (0.004, 0.016)], steel, seg=4, ref=V((1, 0, 0)))
-        tube_faces(b, [V((s * 0.012, 0, 0.02)), V((s * 0.05, 0, -0.16))], [(0.016, 0.016), (0.02, 0.02)], wood, seg=5, ref=V((0, 1, 0)))
-    tube_faces(b, [V((0, -0.02, 0.02)), V((0, 0.02, 0.02))], [(0.014, 0.014)] * 2, (0.35, 0.35, 0.38), seg=5)
+        # blade: broad at the pivot, tapering to a point, crossing the middle line
+        tube_faces(b, [V((s * 0.006, 0, 0.0)), V((-s * 0.012, 0, 0.22)), V((-s * 0.02, 0, 0.44))],
+                   [(0.01, 0.042), (0.007, 0.032), (0.003, 0.004)], steel, seg=4, ref=V((1, 0, 0)))
+        tube_faces(b, [V((-s * 0.004, 0.02, 0.03)), V((-s * 0.018, 0.02, 0.42))], [(0.004, 0.006), (0.002, 0.002)], edge, seg=4)
+        # neck and ferrule, then the long handle
+        tube_faces(b, [V((s * 0.004, 0, 0.0)), V((s * 0.03, 0, -0.08))], [(0.013, 0.013), (0.015, 0.015)], dark, seg=5)
+        tube_faces(b, [V((s * 0.03, 0, -0.08)), V((s * 0.075, 0, -0.24)), V((s * 0.12, 0, -0.4))],
+                   [(0.021, 0.021), (0.02, 0.02), (0.022, 0.022)], wood, seg=6)
+        tube_faces(b, [V((s * 0.12, 0, -0.4)), V((s * 0.126, 0, -0.43))], [(0.024, 0.024), (0.018, 0.018)], dark, seg=6)
+    tube_faces(b, [V((0, -0.025, 0.0)), V((0, 0.025, 0.0))], [(0.02, 0.02)] * 2, dark, seg=6)      # the pivot bolt
     return b
 
 

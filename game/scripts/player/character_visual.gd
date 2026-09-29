@@ -32,7 +32,7 @@ const TOOL_GRIP := {
 }
 const TOOL_OFFSET := Vector3(0.0, 0.07, 0.0)       # from the wrist into the palm
 ## Headwear that covers the top of the head: hair switches to its cut-down "_hat" version.
-const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw", "sunhat"]
+const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw", "sunhat", "wayfarer"]
 
 var hero_look := CharacterLook.load_saved()
 var body_model := ""            # a different body on the same rig (Brakk the golem), instead of the hero
@@ -50,6 +50,9 @@ var _parts: Array[MeshInstance3D] = []
 var _slot_materials := {}    # colour slot -> ShaderMaterial shared by the hero's meshes
 var _flash := 0.0
 var _lean: SkeletonModifier3D          # straightens the torso while running (lean_fix.gd)
+var _hold: SkeletonModifier3D          # two-handed prop hold (two_hand_hold.gd), NPCs only
+var _hold_hand_prop: Node3D
+var _hold_on := false
 var _lean_target := 0.0
 ## Degrees the torso is straightened for each motion (the jog leans ~27°, the sprint ~40°).
 const LEAN_FIX := {"Jog_Fwd": 20.0, "Sprint": 32.0}   # leaves the jog at ~16° and the sprint at ~21°
@@ -75,6 +78,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if _hold:
+		_hold.weight = move_toward(_hold.weight, 1.0 if _hold_on else 0.0, delta * 4.0)
 	if _action_left > 0.0:
 		_action_left -= delta
 		if _action_left <= 0.0:
@@ -283,6 +288,31 @@ func hold_prop(item: String, grip: Vector3, offset := TOOL_OFFSET) -> Node3D:
 	prop.position = offset
 	hand.add_child(prop)
 	return prop
+
+
+## Holds a prop low in front in both hands (Wren's shears): an arm pose after the animation (see
+## two_hand_hold.gd). The one-handed `hand_prop` shows instead while `set_two_hand(false)` (working).
+func hold_two_handed(item: String, scale_by: float, hand_prop: Node3D = null) -> void:
+	var holder := MeshInstance3D.new()
+	holder.mesh = Items.mesh(item)
+	holder.scale = Vector3.ONE * scale_by
+	holder.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	add_child(holder)
+	_hold = SkeletonModifier3D.new()
+	_hold.set_script(preload("res://scripts/player/two_hand_hold.gd"))
+	_hold.visual = self
+	_hold.holder = holder
+	_skeleton.add_child(_hold)
+	_hold_hand_prop = hand_prop
+	set_two_hand(true)
+
+
+func set_two_hand(on: bool) -> void:
+	if _hold == null:
+		return
+	_hold_on = on
+	if is_instance_valid(_hold_hand_prop):
+		_hold_hand_prop.visible = not on
 
 
 ## A spot on the head bone for small props (a cigarette). Made once.

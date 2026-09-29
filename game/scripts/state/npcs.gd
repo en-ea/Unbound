@@ -16,7 +16,7 @@ const NPCS := {
 			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "wren"},
 		"portrait": {"look_at": Vector3(0.05, 1.74, 0), "cam": Vector3(0.22, 1.92, 2.05), "fov": 34.0, "turn": -10.0},
 		"smokes": true,
-		"prop": "shears", "prop_scale": 1.5,
+		"prop": "shears", "prop_scale": 1.3, "two_hands": true,
 		# A daily round: spots to walk between (metres from where he stands), and what he does at each.
 		"route": [{"at": Vector2(0, 0), "work": "Farm_Harvest"}, {"at": Vector2(-3.0, 0.8), "work": "Farm_Watering"},
 			{"at": Vector2(-1.8, -1.6), "work": "Farm_PlantSeed"}, {"at": Vector2(1.4, -0.6), "work": ""}],
@@ -27,12 +27,12 @@ const NPCS := {
 			"Boars leave the plants alone. Wolves too. It's the rabbits I can't forgive."],
 	},
 	"morrow": {
-		"name": "Morrow", "title": "Wanderer", "at": Vector2(-1.5, 25.5), "scale": Vector3(0.88, 1.2, 0.88),
+		"name": "Morrow", "title": "Wanderer", "at": Vector2(-1.5, 25.5), "scale": Vector3(0.96, 1.3, 0.96),
 		"body": "res://assets/characters/morrow.glb",
 		"theme": {"bg": Color(0.06, 0.06, 0.09, 0.95), "accent": Color(0.86, 0.8, 0.66), "text": Color(0.93, 0.91, 0.86),
 			"font": "res://assets/fonts/Cinzel-Variable.ttf", "name_font": "res://assets/fonts/Cinzel-Variable.ttf", "voice": "morrow"},
 		"portrait": {"look_at": Vector3(0, 2.02, 0), "cam": Vector3(0.3, 2.12, 1.6), "fov": 34.0, "turn": -8.0},
-		"prop": "skull_staff",
+		"prop": "skull_staff", "walk_speed": 0.75,
 		"route": [{"at": Vector2(0, 0), "work": ""}, {"at": Vector2(2.5, 1.5), "work": ""}, {"at": Vector2(-1.5, 2.0), "work": ""}],
 		"greetings": ["...", "Hm.", "You see me.", "The wind turned."],
 		"chatter": ["Everything that falls is gathered in the end. I only walk ahead of it.",
@@ -89,6 +89,8 @@ static func dress_visual(id: String, visual: CharacterVisual, portrait := false)
 	if def.has("prop"):
 		var prop := visual.hold_prop(def["prop"], def.get("prop_grip", Vector3.ZERO), Vector3(0, 0.05, 0.0))
 		prop.scale = Vector3.ONE * def.get("prop_scale", 1.0)
+		if def.get("two_hands", false):          # held low in both hands except while working
+			visual.hold_two_handed(def["prop"], def.get("prop_scale", 1.0), prop)
 	if def.get("smokes", false):
 		var smoke := Smoking.new()
 		smoke.visual = visual

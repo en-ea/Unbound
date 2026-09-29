@@ -106,12 +106,12 @@ def build(arm):
         [(0.17, 0.13), (0.16, 0.12), (0.2, 0.14), (0.22, 0.14), (0.14, 0.1)], ref=V((1, 0, 0)), seg=8))
     collar_w = rk.weights_by_distance(["spine_03", "neck_01"])
     part("M_collar", "Coat", collar_w, lambda bm: shell(bm, [
-        ring(V((0, 0.02, 1.8)), 0.23, 0.2, 55, 305, 10),
-        ring(V((0, 0.02, 1.66)), 0.16, 0.14, 40, 320, 10),
-        ring(V((0, 0.02, 1.5)), 0.15, 0.12, 26, 334, 10)], 0.018))
+        ring(V((0, 0.03, 1.9)), 0.27, 0.23, 58, 302, 10),
+        ring(V((0, 0.02, 1.72)), 0.18, 0.15, 42, 318, 10),
+        ring(V((0, 0.02, 1.5)), 0.15, 0.12, 26, 334, 10)], 0.02))
     part("M_collar_lining", "Lining", collar_w, lambda bm: shell(bm, [
-        ring(V((0, 0.02, 1.78)), 0.215, 0.185, 58, 302, 10),
-        ring(V((0, 0.02, 1.66)), 0.145, 0.125, 44, 316, 10),
+        ring(V((0, 0.03, 1.88)), 0.255, 0.215, 61, 299, 10),
+        ring(V((0, 0.02, 1.72)), 0.165, 0.135, 46, 314, 10),
         ring(V((0, 0.02, 1.52)), 0.135, 0.105, 30, 330, 10)], 0.006))
     part("M_lapels", "CoatDark", torso, lambda bm: [shell(bm, [
         [V((s * 0.07, -0.14, 1.52)), V((s * 0.15, -0.12, 1.5))],
@@ -119,22 +119,29 @@ def build(arm):
         [V((s * 0.02, -0.15, 1.05)), V((s * 0.05, -0.15, 1.08))]], 0.014) for s in (1, -1)])
     part("M_sash", "Sash", rk.weights_by_distance(["pelvis", "spine_01"]), lambda bm: rk.tube(
         bm, rk.ring_path(V((0, 0.02, 1.0)), 0.185, 0.145, 12), [(0.035, 0.02)] * 12, ref=V((0, 0, 1)), seg=4, closed=True))
-    # Tails: long panels round the sides and back, parted at the front so the legs show; each ends in
-    # a point at its own length, flaring out towards the ground.
-    tails = [(-150, -95, 0.06, "CoatDark"), (-95, -40, 0.12, "Coat"), (40, 95, 0.1, "Coat"), (95, 150, 0.05, "CoatDark"),
-             (150, 210, 0.03, "Coat")]
-    for i, (a0, a1, end, mat) in enumerate(tails):
-        def tail(bm, a0=a0, a1=a1, end=end):
+    # Tails: the coat splits below the waist into many long strips round the sides and back, parted
+    # at the front so the thin legs show. Each strip flares out as it falls, ends in a ragged point at
+    # its own length (the longest trail on the ground), and alternates light and dark cloth.
+    strips = [(-155, -128, 0.02), (-128, -103, 0.08), (-103, -80, 0.0), (-80, -58, 0.14), (-58, -36, 0.22),
+              (36, 58, 0.18), (58, 80, 0.05), (80, 103, 0.1), (103, 128, 0.0), (128, 155, 0.06), (155, 182, 0.03), (182, 205, 0.09)]
+    for i, (a0, a1, end) in enumerate(strips):
+        def tail(bm, a0=a0, a1=a1, end=end, i=i):
             rows = []
-            for k, (z, rx, ry) in enumerate([(1.0, 0.19, 0.15), (0.75, 0.24, 0.19), (0.5, 0.29, 0.23), (0.25, 0.33, 0.27), (end, 0.36, 0.3)]):
-                spread = 1.0 + k * 0.03
-                mid = (a0 + a1) / 2
-                rows.append(ring(V((0, 0.02, z)), rx, ry, mid + (a0 - mid) * spread, mid + (a1 - mid) * spread, 4))
-            last = rows[-1]                          # a pointed hem: the middle hangs lowest
+            levels = [(1.02, 0.19, 0.15), (0.78, 0.235, 0.19), (0.54, 0.28, 0.23), (0.3, 0.33, 0.27), (end, 0.38, 0.31)]
+            for k, (z, rx, ry) in enumerate(levels):
+                narrow = 1.0 - k * 0.07                   # strips thin out and part as they fall
+                mid = (a0 + a1) / 2 + (k * 2.5 if a0 > 0 else -k * 2.5)
+                rows.append(ring(V((0, 0.02, z)), rx, ry, mid + (a0 - mid) * narrow, mid + (a1 - mid) * narrow, 3))
+            last = rows[-1]                               # a ragged pointed hem
             for j, p in enumerate(last):
-                p.z -= 0.05 * (1.0 - abs(j - 2) / 2.0)
-            shell(bm, rows, 0.016)
-        part(f"M_tail_{i}", mat, coat_weights, tail)
+                p.z -= (0.07 if j in (1, 2) else 0.0) + (0.03 if (i + j) % 2 else 0.0)
+            shell(bm, rows, 0.014)
+        part(f"M_tail_{i}", "Coat" if i % 2 == 0 else "CoatDark", coat_weights, tail)
+    # A dark under-robe showing in the front gap, down to the shins.
+    part("M_underrobe", "Lining", coat_weights, lambda bm: shell(bm, [
+        ring(V((0, 0.02, 1.0)), 0.17, 0.14, -40, 40, 4),
+        ring(V((0, 0.02, 0.62)), 0.2, 0.16, -38, 38, 4),
+        ring(V((0, 0.02, 0.42)), 0.22, 0.18, -36, 36, 4)], 0.01))
 
     # --- arms: long sleeves with wide cuffs, thin pale hands --------------------------------------
     for s, side in ((1, "l"), (-1, "r")):
