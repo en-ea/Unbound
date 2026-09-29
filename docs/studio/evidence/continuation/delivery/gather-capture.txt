@@ -1,0 +1,5 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 572.16 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3050 Laptop GPU
+
+GATHERTEST at (-9.8, 0.9, 26.4) target 510 verb Chop locked false
+GATHERTEST frame 179 inventory ["wood x1"]

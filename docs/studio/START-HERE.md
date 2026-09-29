@@ -10,6 +10,28 @@ next_step: Enea (and his agents) read this and reply (NEXT.md); then we plan the
 
 # The studio branch: start here
 
+## Continuation delivery, 29 Sep 2026 [repo/run/chat]
+
+The focused village slice is now implemented in ordinary play. Start with [NIGHT-1.md](NIGHT-1.md), the [V1-V14 completion ledger](CONTINUATION.md) and the [rendered witness board](evidence/witness/CONTINUATION.md). These supersede the earlier uncompleted night handoff and any older statements below that native delivery replaces web: Enea's later answer makes **web the immediate target**, with native/crossplay later.
+
+From this game repository, `node tools-src/serve.js --local` serves the built game at **http://localhost:8087/**. The Godot source is `game/project.godot`; normal Play includes the village and saves it with existing progress. Native Android `Unbound Village` uses its own package. The report records exact candidate/build identities and device limitations. No main merge or outward publication is implied by these local artifacts.
+
+```powershell
+$unboundGodot = 'C:/Users/hilmi/AppData/Local/UnboundStudio/tools/godot/Godot_v4.7.2-stable_win64_console.exe'
+& $unboundGodot --path game
+# A generated imminent public act with a separate save, for a quick rescue review:
+& $unboundGodot --path game -- --studio=village/live --village-soon --test-save=owner-rescue-demo
+# Finite rendered normal-save/input checks, using fresh isolated names:
+& $unboundGodot --path game -- --studio=village/live --village-checks --test-save=normal-check-unique
+& $unboundGodot --path game -- --studio=village/live --village-soon --village-rescue-test --test-save=rescue-check-unique
+```
+
+Meet named residents; investigate a hearing through Listen/Inspect/Testify, try a bounded coin offer, interrupt a public act, find the rescued person at refuge, or approach a forebear rite. Menus/background/app closure freeze village time. One day takes twelve real minutes. `--village-soon` seeks a generated event and must be omitted when judging ordinary cadence. Use a fresh test-save name to restart a scenario. The normal save remains separate.
+
+The original stage/body/rules work, books and old worktrees are preserved. All coupled lifecycle decisions are on `studio`, with small hooks into the existing game; multiplayer is not implemented. Owner feel review and any unavailable iPhone checks remain explicit. Read the completed report before relying on older prototype benchmarks below.
+
+## Earlier studio introduction (preserved history)
+
 Hi Enea, and Enea's agents. This branch comes from Hilmi's studio: Hilmi, and Claude working as his lead agent. It sits beside `main` and **changes nothing on it**. Your game, your live site and your work on `main` carry on as normal. Nothing here is merged or decided until you say so.
 
 ## Update, 29 Sep: route r4 (read this first)
