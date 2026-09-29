@@ -224,7 +224,7 @@ function famineCause(V, p) {
   return [];
 }
 
-function addCrime(V, act, culprit, household, victim, minute, place, item, causes, cue, data) {
+export function addCrime(V, act, culprit, household, victim, minute, place, item, causes, cue, data) {
   const crime = {
     id: V.crimes.length, act, culprit, household, victim, day: V.day, minute, place, item,
     discovered: false, closed: false, witnesses: [], traceAt: "", falseAccusation: data?.falseAccusation ?? false,
@@ -350,7 +350,7 @@ export function gossip(V) {
 // dislike makes the next slight likelier (so enmities deepen unless time heals them).
 function mingle(V, a, b, k) {
   const sp = V.people[a], ls = V.people[b];
-  const slight = sp.traits[C.TEMPER] * 60 + Math.max(0, -opinion(V, a, b)) * 450 - sp.traits[C.COMPASSION] * 20;
+  const slight = sp.traits[C.TEMPER] * 60 + Math.max(0, -opinion(V, a, b)) * 450 - sp.traits[C.COMPASSION] * 20 + C.LANG_DISTANCE[sp.era][ls.era] * 60;
   if (slight > 0 && chance(k, slight * V.pace)) { setOpinion(V, b, a, opinion(V, b, a) - 4 - idiv(ls.traits[C.TEMPER], 12)); return; }
   if (chance(key(k, 1), (20000 + sp.traits[C.SOCIABLE] * 300) * V.pace)) setOpinion(V, b, a, opinion(V, b, a) + 2);
 }
@@ -358,7 +358,9 @@ function mingle(V, a, b, k) {
 function tell(V, a, b, k) {
   const sp = V.people[a], ls = V.people[b];
   if (!sp.beliefs.length) return;
-  if (!chance(k, 250000 + sp.traits[C.SOCIABLE] * 5000)) return;
+  // across the ages speech barely carries (a storm's forebears and the villagers): language distance
+  const lang = 100 - C.LANG_DISTANCE[sp.era][ls.era];
+  if (!chance(k, idiv((250000 + sp.traits[C.SOCIABLE] * 5000) * lang, 100))) return;
   // the speaker's strongest belief the listener has not heard (old news about settled cases is not told)
   let best = null;
   for (const bf of sp.beliefs) {
@@ -389,6 +391,8 @@ function tell(V, a, b, k) {
 export function checkCases(V) {
   for (const c of V.crimes) {
     if (c.closed || !c.discovered || c.caseOpen) continue;
+    // a cold case: two months with no one able to name anyone, and it is let go
+    if (V.day - (c.reopenDay ?? c.day) > 60) { c.closed = true; continue; }
     // who may accuse: the wronged household (and the elder); for witchcraft, anyone
     const accusers = c.household >= 0 && c.act !== "sorcery"
       ? [...V.households[c.household].members.filter((m) => V.people[m].alive && V.people[m].present && ageOf(V, V.people[m]) >= 14), V.authority].filter((x) => x >= 0)

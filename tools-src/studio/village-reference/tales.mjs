@@ -9,12 +9,14 @@ import { fullName, nameOf } from "./events.mjs";
 import { YEAR } from "./village.mjs";
 
 const yearOf = (d) => Math.floor(d / YEAR) + 1;
+const RITE_SEQUEL = new Set(["accusation", "trial", "verdict", "public_act", "ordeal", "confession", "exile", "violent_death", "crowd_turned", "feud"]);
 const SEQUEL = new Set(["confession", "exoneration", "veneration", "return", "feud", "crowd_turned", "violent_death", "exile", "epithet"]);
 
 export function extractTales(V, perCentury = 3) {
   const children = new Map();
   for (const e of V.events) for (const c of e.causes) { if (!children.has(c)) children.set(c, []); children.get(c).push(e.id); }
-  const roots = V.events.filter((e) => ["public_act", "exoneration", "mob", "crowd_turned"].includes(e.type) || (e.type === "ordeal" && e.data.combat));
+  const roots = V.events.filter((e) => ["public_act", "exoneration", "mob", "crowd_turned"].includes(e.type) || (e.type === "ordeal" && e.data.combat)
+    || (e.type === "rite" && e.data.rite === "sacrifice"));
   const told = new Map(); // person -> years of their tales: one tale per person per 8 years
   const tales = [];
   const used = new Set();
@@ -22,7 +24,9 @@ export function extractTales(V, perCentury = 3) {
     const back = walk(V, r.id, (e) => e.causes, 30);
     // consequences: the truth, the shrine, the return, the feud, and a killing done for it; not every later
     // quarrel that an old grudge fed (those are their own tales)
-    const fwd = walk(V, r.id, (e) => e.type === "crime" && e.id !== r.id ? [] : (children.get(e.id) ?? []).filter((c) => SEQUEL.has(V.events[c].type) || (V.events[c].type === "crime" && V.events[c].data.act === "murder")), 12);
+    // (after an offering, the village's justice on the forebears is the sequel)
+    const seq = r.type === "rite" ? RITE_SEQUEL : SEQUEL;
+    const fwd = walk(V, r.id, (e) => e.type === "crime" && e.id !== r.id ? [] : (children.get(e.id) ?? []).filter((c) => seq.has(V.events[c].type) || (V.events[c].type === "crime" && V.events[c].data.act === "murder")), 14);
     const ids = [...new Set([...back, ...fwd])].sort((a, b) => a - b);
     tales.push({ root: r.id, ids, score: score(V, r, ids), year: yearOf(r.day) });
   }
@@ -81,6 +85,7 @@ function score(V, r, ids) {
   let s = 0;
   const kinds = ids.map((id) => V.events[id]);
   const act = r.type === "public_act" ? r.data.kind : r.type;
+  if (r.type === "rite") s += 55;
   s += { bonfire: 70, hanging: 65, stoning: 70, mob: 70, sacrifice: 70, trial_by_combat: 55, exile: 35, branding: 30, pillory: 20, stocks: 15, fine: 2, ordeal: 25, scapegoat: 40, exoneration: 60, crowd_turned: 60 }[act] ?? 10;
   if (r.data.level >= 2) s += 10 * r.data.level;
   for (const e of kinds) {
@@ -124,6 +129,16 @@ function sentence(V, e, ctx) {
   const n = (id) => ctx.label.get(id) ?? nameOf(V, id);
   const d = e.data;
   switch (e.type) {
+    case "storm": {
+      const hh = V.households[d.household];
+      const lin = V.lineages[hh.lineage]?.name ?? "";
+      return d.phase === "recedes" ? `Then one morning the mist lifted and the strangers were gone, and the ${lin}s were home, remembering nothing.`
+        : `That was the year the storm came down on the ${lin} house. When the air cleared, the family was gone, and in their place stood people in furs who spoke like the old songs - the ${lin}s' own forebears.`;
+    }
+    case "arrival": return d.storm !== undefined ? `Their leader was called ${n(e.who)}.` : "";
+    case "rite": return d.rite === "seized" ? `The forebears read the strange world as their gods' anger. At dusk they took ${n(e.other)} to the stake, and the drums began.`
+      : d.outcome === "rescued" ? `Before dawn ${n(d.rescuer)} crept to the stake and cut the ropes, and the two of them ran for the houses.`
+      : `At dawn ${n(e.who)} made the offering, as their fathers had.${d.heart ? " They kept the heart for their fire." : ""}`;
     case "famine": return ["It was the year the grain rotted in the ear.", "The harvest failed that year, and the bread ran out before the spring.", "That was a hungry year."][variant(V, e, 3)];
     case "omen": return [`That season people saw ${d.omen}, and began to watch one another.`, `Then came ${d.omen}. The old women said it meant a curse among them.`][variant(V, e, 2)];
     case "crime": {
@@ -134,7 +149,8 @@ function sentence(V, e, ctx) {
       if (d.act === "sorcery") return `Whispers started that ${n(e.who)} had cursed the village - ${e.cue}.`;
       if (d.act === "poaching") return `${n(e.who)} set snares in the elder's woods.`;
       if (d.act === "assault") return grudgeLine(V, e, n) + `One evening old grudges came to blows: ${n(e.who)} struck ${n(e.other)}.`;
-      if (d.act === "murder") return grudgeLine(V, e, n) + `${n(e.other)} was found dead ${PLACE_WORDS[d.place] ?? "at the " + d.place}.`;
+      if (d.act === "murder") return grudgeLine(V, e, n) + (e.cue.includes("brawl") ? `One evening a fight ${PLACE_WORDS[d.place] ?? "at the " + d.place} went too far: ${n(e.who)} struck ${n(e.other)}, and ${n(e.other)} did not get up.`
+        : `${n(e.other)} was found dead ${PLACE_WORDS[d.place] ?? "at the " + d.place}.`);
       if (d.act === "cannibal_famine") return `In the worst of it, ${n(e.who)} did what no one would ever speak of: there were ${e.cue.replace("bones", "bones")}.`;
       if (d.act === "hoarding") return `While others starved, ${n(e.who)}'s barn stayed full - ${e.cue}.`;
       return `${n(e.who)} was accused of ${C.ACTS[d.act]?.noun ?? d.act}.`;
@@ -236,6 +252,11 @@ export function tellTale(V, t) {
   };
   const epithetShown = (p) => { const log = (V.people[p].epithetLog ?? []).filter(([ep, d]) => d >= firstDay && d <= lastDay && shown(p, ep)); return log.length ? log[log.length - 1][0] : ""; };
   const remembered = [...new Set(people)].filter((p) => p >= 0 && epithetShown(p)).map((p) => `${ctx.label.get(p) ?? V.people[p].name} ${epithetShown(p)}`);
+  // a sentence on a forebear the storm took back before it could be carried out
+  const lastVerdict = [...evs].reverse().find((e) => e.type === "verdict" && e.data.verdict === "guilty");
+  if (lastVerdict && V.people[lastVerdict.other].faded && !evs.some((e) => e.type === "public_act" && e.data.case === lastVerdict.data.case)) {
+    lines.push(`But before the day came, the mist rolled back over the ${V.households[V.people[lastVerdict.other].household].home} house, and ${ctx.label.get(lastVerdict.other) ?? nameOf(V, lastVerdict.other)} was gone with it, back to their own time.`);
+  }
   if (remembered.length) lines.push(`They are remembered as ${remembered.join(" and ")}.`);
   return { title: title(V, root), year: t.year, text: lines.join(" ") };
 }
@@ -244,6 +265,7 @@ function title(V, e) {
   const v = nameOf(V, e.who);
   if (e.type === "exoneration") return `The Late Truth About ${v}`;
   if (e.type === "crowd_turned") return `The Stones That Were Not Thrown`;
+  if (e.type === "rite") return e.data.outcome === "rescued" ? `The Night at the Stone` : `The Offering of ${nameOf(V, e.other)}`;
   if (e.type === "mob") return `The Night of the Torches`;
   if (e.type === "ordeal" && e.data.combat) return `${v} in the Ring`;
   const d = e.data;
