@@ -63,7 +63,7 @@ const MEADOW := {
 }
 
 
-## opts: {"pace": int, "age": int, "tier": String, "layout": Dictionary, "name": String, "anchored": bool, "live": bool,
+## opts: {"pace": int, "age": int, "tier": String, "layout": Dictionary, "name": String, "anchored": bool, "live": bool, "focus": bool,
 ##   "stormPlan": [{"day": int, "household": int, "days": int}]}
 static func create_village(seed: int, opts: Dictionary = {}) -> S.Village:
 	var V := S.Village.new()
@@ -83,6 +83,8 @@ static func create_village(seed: int, opts: Dictionary = {}) -> S.Village:
 	V.anchored = opts.get("anchored", false)
 	# the live game (live.gd): public acts wait on the stage for the player (justice.gd resolve_public)
 	V.live = opts.get("live", false)
+	# focus: this is the village the player is in (the live game's director paces it by play time, director.gd)
+	V.focus = opts.get("focus", false)
 	make_places(V, opts.get("layout", MEADOW))
 	V.culture = (C.CULTURE[V.age] as Dictionary).duplicate()
 	# six founding lineages, one household each

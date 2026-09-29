@@ -192,6 +192,8 @@ static func trial(V: S.Village, s: S.Sched) -> void:
 		"the elder, weary of blood, names a lesser sentence" if vetoed else "the elder naming the sentence: %s" % _replace_first(act, "_", " "))
 	if vetoed:
 		earn(V, V.authority, "merciful")
+	if C.PUBLIC[act]["lethal"] and not hold:
+		V.director.lethal += 1  # a death sentence takes the cycle's one death now (not two in a day)
 	accused.offences += 1
 	# a kinsman may try a rescue the night before a killing (headless stand-in for the player's rescue window)
 	var p := S.Sched.new()

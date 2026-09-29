@@ -626,6 +626,7 @@ static func check_cases(V: S.Village) -> void:
 		var anger := R.idiv(V.fear, 2) + R.idiv(V.hardship, 3) + int(C.ACTS[c.act]["severity"]) * 90
 		var cap := Justice.authority_capacity(V)
 		if Director.lethal_allowed(V) and cap < 420 and anger > cap + 250:
+			V.director.lethal += 1  # (the mob takes the cycle's one death now)
 			Justice.schedule_mob(V, cs)
 		else:
 			Justice.schedule_trial(V, cs)

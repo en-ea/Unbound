@@ -211,6 +211,8 @@ class Director:
 	var cooldown := 0
 	var last := PackedStringArray()
 	var cycles := 0
+	var last_act := 0   # the day of the last public act (note_act)
+	var pressure := 0   # days past the focus gap (director.gd focus_day)
 
 
 class Village:
@@ -270,3 +272,5 @@ class Village:
 	var live := false
 	var pending: Array[PublicAct] = []
 	var stranger := Stranger.new()
+	# focus: this is the village the player is in (the live game's director paces it by play time, director.gd)
+	var focus := false

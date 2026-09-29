@@ -11,6 +11,9 @@ extends RefCounted
 const R := preload("res://scripts/studio/village/sim/rng.gd")
 const S := preload("res://scripts/studio/village/sim/state.gd")
 const Village := preload("res://scripts/studio/village/sim/village.gd")
+const C := preload("res://scripts/studio/village/sim/content.gd")
+const E := preload("res://scripts/studio/village/sim/events.gd")
+const Justice := preload("res://scripts/studio/village/sim/justice.gd")
 const Golden := preload("res://scripts/studio/village/sim/golden_data.gd")
 
 const COLUMNS := ["day", "village hash", "event-log hash", "events", "staging hash", "stagings"]
@@ -97,9 +100,112 @@ static func conform(say: Callable) -> bool:
 	return ok
 
 
+## Twin of live-test.mjs: in the player's village (live) public acts wait for the stage. (1) Two live runs
+## with the same resolutions give the same world; (2) a player who frees everyone condemned to a lethal act
+## saves them all (and shields every pillory), and the village remembers the stranger.
+static func live_check(say: Callable, seeds: int = 10) -> bool:
+	var fails := PackedStringArray()
+	var freed := 0
+	var saved := 0
+	var shielded := 0
+	var t0 := Time.get_ticks_usec()
+	for s in seeds:
+		var seed := 11000 + s * 7919
+		var A := Village.create_village(seed, {"pace": C.LIVE_PACE, "live": true})
+		var B := Village.create_village(seed, {"pace": C.LIVE_PACE, "live": true})
+		for d in 3 * Village.YEAR:
+			Village.step_day(A)
+			Village.step_day(B)
+			for a in A.pending.duplicate():
+				Justice.resolve_public(A, a.staging, "")
+			for a in B.pending.duplicate():
+				Justice.resolve_public(B, a.staging, "")
+		if Village.hash_village(A) != Village.hash_village(B) or A.ev_hash != B.ev_hash:
+			fails.append("seed %d: two live runs with the same resolutions differ" % seed)
+		# the rescuer: frees everyone about to die, shields everyone in a pillory
+		var Rv := Village.create_village(seed, {"pace": C.LIVE_PACE, "live": true})
+		var freed_before := freed
+		for d in 3 * Village.YEAR:
+			Village.step_day(Rv)
+			for a in Rv.pending.duplicate():
+				var lethal: bool = C.PUBLIC[a.kind]["lethal"]
+				var who: int = a.victim
+				Justice.resolve_public(Rv, a.staging, "free" if lethal else ("shield" if a.kind == "pillory" else ""))
+				if lethal:
+					freed += 1
+					if Rv.people[who].alive:
+						saved += 1
+					else:
+						fails.append("seed %d: freed %d died anyway" % [seed, who])
+				if a.kind == "pillory":
+					shielded += 1
+		if freed > freed_before and Rv.stranger.standing >= 0 and Rv.stranger.enemies.size() == 0:
+			fails.append("seed %d: the stranger left no mark" % seed)
+	say.call("live: freed %d (all %d alive), shielded %d  [%.0f ms]" % [freed, saved, shielded, (Time.get_ticks_usec() - t0) / 1000.0])
+	for f in fails:
+		say.call("  " + f)
+	say.call("LIVE: %s" % ("FAIL" if fails.size() > 0 else "PASS: %d villages; live villages deterministic; every freed person lives; the village remembers the stranger" % seeds))
+	return fails.size() == 0
+
+
+## Twin of storm-test.mjs's checks: a storm folds one household back to its ancestors for a season (day 90,
+## 120 days, pace 10, 4 years). Determinism, no child seized for a rite, the ancestors gone and the lost home
+## after the storm, cues on notable events, and an anchored village never struck.
+static func storm_check(say: Callable, seeds: int = 20) -> bool:
+	var fails := PackedStringArray()
+	var tally := {}
+	var t0 := Time.get_ticks_usec()
+	for s in seeds:
+		var seed := 3000 + s * 7919
+		var V := _storm_village(seed, false)
+		if Village.hash_village(_storm_village(seed, false)) != Village.hash_village(V):
+			fails.append("seed %d: two runs differ" % seed)
+		if V.storms.size() == 0:
+			fails.append("seed %d: no storm" % seed)
+			continue
+		var st := V.storms[0]
+		tally["ancestors"] = tally.get("ancestors", 0) + st.ancestors.size()
+		tally["lost"] = tally.get("lost", 0) + st.lost.size()
+		for e in V.events:
+			if e.type == "rite":
+				var what: String = e.data.get("outcome", e.data.get("rite", ""))
+				tally["rite:" + what] = tally.get("rite:" + what, 0) + 1
+				if e.data.get("rite", "") == "seized" and Village.age_of(V, V.people[e.other]) < 16:
+					fails.append("seed %d: a child seized" % seed)
+			if E.NOTABLE.has(e.type) and e.cue == "":
+				fails.append("seed %d: %s without a cue" % [seed, e.type])
+		for id in st.ancestors:
+			if V.people[id].alive and V.people[id].present:
+				fails.append("seed %d: ancestor %d still present" % [seed, id])
+		for id in st.lost:
+			if V.people[id].alive and not V.people[id].present and not V.outlaws.has(id):
+				fails.append("seed %d: lost %d not home" % [seed, id])
+		if _storm_village(seed, true).storms.size() > 0:
+			fails.append("seed %d: anchored village struck" % seed)
+	var parts := PackedStringArray()
+	var keys := tally.keys()
+	keys.sort()
+	for k: String in keys:
+		parts.append("%s %d" % [k, tally[k]])
+	say.call("storms: %s  [%.0f ms]" % [", ".join(parts), (Time.get_ticks_usec() - t0) / 1000.0])
+	for f in fails.slice(0, 20):
+		say.call("  " + f)
+	say.call("STORMS: %s" % ("FAIL" if fails.size() > 0 else "PASS: %d villages, determinism, no child offerings, recede, anchored exempt" % seeds))
+	return fails.size() == 0
+
+
+static func _storm_village(seed: int, anchored: bool) -> S.Village:
+	var V := Village.create_village(seed, {"pace": C.LIVE_PACE, "anchored": anchored, "stormPlan": [{"day": 90, "household": seed % 6, "days": 120}]})
+	Village.run(V, 4 * Village.YEAR)
+	return V
+
+
 static func report() -> PackedStringArray:
 	var lines := PackedStringArray()
-	conform(func(s: String) -> void: lines.append(s))
+	var say := func(s: String) -> void: lines.append(s)
+	conform(say)
+	live_check(say)
+	storm_check(say)
 	return lines
 
 
@@ -113,6 +219,8 @@ static func on_device(tree: SceneTree) -> void:
 	say.call("device: %s, %s, %s, %d cores" % [OS.get_model_name(), OS.get_name(), OS.get_processor_name(), OS.get_processor_count()])
 	say.call("engine: Godot %s, %s build" % [Engine.get_version_info()["string"], "debug" if OS.is_debug_build() else "release"])
 	conform(say)
+	live_check(say)
+	storm_check(say)
 	var f := FileAccess.open("user://studio-village-conformance.txt", FileAccess.WRITE)
 	if f:
 		f.store_string("\n".join(lines) + "\n")
