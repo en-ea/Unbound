@@ -8,15 +8,21 @@ var joystick := Vector2.ZERO
 var locked := false
 ## True while the Roll button is held (roll, then keep holding to sprint).
 var sprint_button := false
+## The camera's turn (radians, set by the camera): movement is relative to where it looks.
+var cam_yaw := 0.0
 
 
 func is_sprint_held() -> bool:
 	return not locked and (sprint_button or Input.is_physical_key_pressed(KEY_Q))
 
 
-## Returns the wanted movement on the ground plane, length 0..1.
-## Joystick past ~75% means run; the keyboard runs unless Shift is held.
+## Returns the wanted movement on the ground plane (x = world x, y = world z), length 0..1.
+## Stick up means "away from the camera". Joystick past ~75% means run; the keyboard runs unless Shift is held.
 func get_move() -> Vector2:
+	return _screen_move().rotated(-cam_yaw)
+
+
+func _screen_move() -> Vector2:
 	if locked:
 		return Vector2.ZERO
 	if joystick != Vector2.ZERO:

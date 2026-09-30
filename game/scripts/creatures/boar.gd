@@ -7,14 +7,14 @@ extends CharacterBody3D
 
 const WALK_SPEED := 1.3
 const CHARGE_SPEED := 7.5
-const SIGHT := 8.5
+const SIGHT := 10.0
 const HOME_RADIUS := 9.0
 const MAX_HEALTH := 10         # the real value comes from Balance.BOAR (set in _ready)
 
 const GRAVITY := 20.0
 const LEASH := 20.0            # chases no further than this from home, then gives up
 const REGEN_EVERY := 3.0       # heals 1 while calm
-const WINDUP := 0.8            # seconds of warning before a charge
+const WINDUP := 0.65           # seconds of warning before a charge
 const AIM_LOCK := 0.55         # after this part of the wind-up it stops turning (and glints): sidestep now
 const SOUNDS := {
 	"snort": preload("res://assets/sounds/boar_snort.wav"),
