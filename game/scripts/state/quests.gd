@@ -38,6 +38,20 @@ const DEFS := {
 		"thanks": "Not bad at all. Better than my first. Keep the spare leaf, I've plenty, and take this for your trouble. Light one up when the day gets long.",
 		"reward": {"coins": 60, "items": {"tobacco": 5}},
 	},
+	"harvest_supper": {
+		"giver": "wren", "name": "The Harvest Supper",
+		"offer": "Supper's coming, the proper one, end of harvest. Everyone eats. Except this year there's no stag for the spit. They graze out on the open grass, big red things with crowns on their heads. Run at them and they're gone. Creep. Bring a whole one to the butcher's rack, fresh, and I'll see you right.",
+		"accepted": "Whole, mind, not carved. Drag it if you have to, or take the ox cart by the rack. And quick about it: meat doesn't wait.",
+		"steps": [
+			{"kind": "event", "event": "sold_stag", "text": "Bring a whole stag to the butcher's rack",
+				"where": {"region": "meadow", "at": Vector2(46.0, -22.0)},
+				"say": "No stag yet? They're out on the open grass. Sneak up on them, they spook at a run."},
+			{"kind": "turn_in", "text": "Tell Wren the stag's in", "items": {},
+				"say": "I heard the butcher whistling from here. Is that our stag?"},
+		],
+		"thanks": "That's a supper, then. You'll sit at the long table with the rest of us. Here, for your trouble, and some stew to keep you going till then.",
+		"reward": {"coins": 120, "items": {"stew": 2}},
+	},
 	"morrow_seal": {
 		"giver": "morrow", "name": "The Black Seal",
 		"offer": "You have a steady hand. Good. There is a man in the eastern wood who calls himself Varek. His Red Hand take from the road, and the road has had enough. I want him not to see another morning. And at his throat he wears a black seal on a chain. That you bring to me. Not to the trader. Not to the smith. To me.",
@@ -55,6 +69,7 @@ const DEFS := {
 }
 
 var _state := {}       # quest id -> {"step": int, "done": bool}
+var _events := {}      # things that happened, for "event" steps ("sold_stag")
 var tracked := ""      # the quest the tracker and the guide beam follow ("" or finished = the first one)
 
 
@@ -260,7 +275,7 @@ func _ready() -> void:
 ## Moves past every "have" step you already satisfy. True if it moved.
 func _advance(id: String) -> bool:
 	var moved := false
-	while _step_kind(id) == "have" and _satisfied(_step(id)):
+	while _step_kind(id) in ["have", "event"] and _satisfied(_step(id)):
 		_state[id]["step"] += 1
 		moved = true
 	return moved
@@ -279,10 +294,19 @@ func _event_done(event: String) -> bool:
 	match event:
 		"awakened":
 			return Classes.awakened
-	return false
+	return _events.has(event)
+
+
+## The action: something happened that a quest step may be waiting for.
+func note(event: String) -> void:
+	if not _events.has(event):
+		_events[event] = true
+	refresh()
 
 
 func _satisfied(step: Dictionary) -> bool:
+	if step["kind"] == "event":
+		return _event_done(step["event"])
 	return _has_items(step["items"]) or (step.has("or") and _has_items(step["or"]))
 
 
@@ -310,6 +334,7 @@ func _screen(text: String, options: Array) -> Dictionary:
 func to_data() -> Dictionary:
 	var d := _state.duplicate(true)
 	d["_tracked"] = tracked
+	d["_events"] = _events.keys()
 	return d
 
 
@@ -318,6 +343,9 @@ func load_data(data: Variant) -> void:
 	tracked = ""
 	if data is Dictionary:
 		tracked = str(data.get("_tracked", ""))
+		_events = {}
+		for e: Variant in data.get("_events", []):
+			_events[str(e)] = true
 		for id: String in data:
 			if DEFS.has(id) and data[id] is Dictionary and not DEFS[id].get("auto", false):
 				var step := clampi(int(data[id].get("step", 0)), 0, DEFS[id]["steps"].size() - 1)

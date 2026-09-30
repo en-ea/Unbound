@@ -49,6 +49,7 @@ var _roll_age := 0.0
 var _roll_speed := ROLL_SPEED
 var _roll_time := ROLL_TIME
 var abilities: Abilities
+var hauling: Hauling            # dragging a body or riding the ox cart
 var _guard := 0.0               # guard up (the Parry button): the first part of it is a perfect parry
 var _guard_age := 0.0
 var _guard_rest := 0.0
@@ -64,6 +65,8 @@ func is_rolling() -> bool:
 
 ## Heavy attack (the Heavy button in a fight): a slow, big swing that costs stamina.
 func heavy() -> void:
+	if hauling.busy():
+		return
 	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or fighter.is_busy() or Controls.locked:
 		return
 	if stamina.use("heavy"):
@@ -74,6 +77,8 @@ func heavy() -> void:
 ## parries: the attacker is knocked off balance and open, and your next hit is a counter. A late guard
 ## still blocks, but costs stamina and shoves you back.
 func guard() -> void:
+	if hauling.busy():
+		return
 	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or _guard_rest > 0.0 or Controls.locked:
 		return
 	if not stamina.use("guard"):
@@ -97,6 +102,8 @@ func is_down() -> bool:
 
 ## The Sneak button: crouch and creep (again to stand).
 func sneak() -> void:
+	if hauling.busy():
+		return
 	if _down > 0.0 or Controls.locked:
 		return
 	set_sneaking(not sneaking)
@@ -162,6 +169,10 @@ func receive_attack(attacker: Node3D, damage: int, push: Vector3) -> String:
 			return "block"
 		get_tree().call_group("hud", "hint", "Guard broken!")      # out of stamina: the blow gets through
 		_guard = 0.0
+	if hauling.carrying:
+		hauling.drop()                          # knocked loose: it's on the ground now
+	if hauling.riding:
+		hauling.get_off()
 	knockback(push)
 	take_damage(damage)
 	return "hit"
@@ -215,10 +226,14 @@ func _play(stream: AudioStream, db: float) -> void:
 func act() -> void:
 	if _roll > 0.0 or _stun > 0.0:
 		return
-	if fighter.verb != "":
-		fighter.attack()
-	elif is_instance_valid(_station):
+	if hauling.riding:
+		hauling.get_off()
+	elif is_instance_valid(_station) and (hauling.carrying or fighter.verb == ""):
 		_station.interact()
+	elif hauling.carrying:
+		hauling.drop()
+	elif fighter.verb != "":
+		fighter.attack()
 	elif gatherer.verb != "":
 		gatherer.act()
 	elif not Controls.locked:
@@ -234,6 +249,9 @@ func _ready() -> void:
 	smoking = Smoking.new()
 	smoking.name = "Smoking"
 	add_child(smoking)
+	hauling = Hauling.new()
+	hauling.name = "Hauling"
+	add_child(hauling)
 	abilities = Abilities.new()
 	abilities.name = "Abilities"
 	add_child(abilities)
@@ -262,7 +280,7 @@ func _nearest_station() -> Node3D:
 	var best_d := INF
 	for n: Node3D in get_tree().get_nodes_in_group("interactable"):
 		var d := Vector2(n.global_position.x - global_position.x, n.global_position.z - global_position.z).length()
-		if d < n.reach and d < best_d and absf(n.global_position.y - global_position.y) < 3.0:
+		if n.verb != "" and d < n.reach and d < best_d and absf(n.global_position.y - global_position.y) < 3.0:
 			best_d = d
 			best = n
 	return best
@@ -270,6 +288,8 @@ func _nearest_station() -> Node3D:
 
 ## Dodge roll: a quick roll in the stick direction (or forward). Charges miss you mid-roll.
 func roll() -> void:
+	if hauling.busy():
+		return
 	if _roll > 0.0 or _roll_rest > 0.0 or _stun > 0.0 or gatherer.is_busy() or Controls.locked:
 		return
 	if not stamina.use("roll"):
@@ -420,18 +440,25 @@ func _physics_process(delta: float) -> void:
 			get_tree().call_group("camera_rig", "snap")
 			got_up.emit()
 		return
-	_station = _nearest_station()
-	var new_verb: String = fighter.verb
+	_station = _nearest_station() if not hauling.riding else null
+	var new_verb: String = fighter.verb if not hauling.busy() else ""
 	if new_verb == "":
-		new_verb = _station.verb if _station else gatherer.verb
+		new_verb = _station.verb if _station else ("" if hauling.busy() else gatherer.verb)
 	if new_verb == "":
-		new_verb = "Attack"
+		new_verb = "Get off" if hauling.riding else ("Drop" if hauling.carrying else "Attack")
 	if new_verb != verb:
 		verb = new_verb
 		verb_changed.emit(verb)
 	if _roll > 0.0 or _stun > 0.0:
 		sprinting = false
 		_special_move(delta)
+		return
+	if hauling.riding:                     # sat on the cart: it moves you (ox_cart.gd)
+		sprinting = false
+		velocity = Vector3.ZERO
+		global_position = hauling.riding.seat()
+		visual.rotation.y = hauling.riding.yaw()
+		visual.play_motion(0.0)
 		return
 	# Gathering roots you in place. A swing commits you only until its blow lands (a short step in);
 	# after that, pushing the stick cancels the follow-through and you move at full speed.
@@ -446,7 +473,7 @@ func _physics_process(delta: float) -> void:
 	var target_speed := 0.0
 	# Holding Roll after the roll keeps you sprinting while stamina lasts.
 	var was_sprinting := sprinting
-	sprinting = Controls.is_sprint_held() and strength >= RUN_THRESHOLD and not swinging and stamina.can("sprint")
+	sprinting = not hauling.busy() and Controls.is_sprint_held() and strength >= RUN_THRESHOLD and not swinging and stamina.can("sprint")
 	if sprinting and not was_sprinting:
 		$Effects.burst(true)              # a kick of dust as you take off
 	if sprinting:
@@ -459,6 +486,8 @@ func _physics_process(delta: float) -> void:
 		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
 		if sneaking:
 			target_speed = minf(target_speed, Balance.STEALTH["sneak_speed"])
+		if hauling.carrying:
+			target_speed = minf(target_speed, RUN_SPEED * Balance.HUNT["drag_speed"])
 	# Controls already turned the stick into ground directions (relative to the camera).
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))

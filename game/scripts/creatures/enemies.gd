@@ -3,13 +3,16 @@ extends Node3D
 
 const BOAR := preload("res://scenes/boar.tscn")
 const WOLF := preload("res://scenes/wolf.tscn")
-## Per region: where boars live, wolf packs (two wolves each), and lone shadow wolves (tougher).
+## Per region: where boars live, wolf packs (two wolves each), lone shadow wolves (tougher), and stag
+## herds (two each: prey that runs).
 const HOMES := {
 	"meadow": {"boars": [Vector2(20, 28), Vector2(-24, 12), Vector2(58, 20), Vector2(-60, 30)],
-		"wolves": [Vector2(6, -38), Vector2(-44, -4), Vector2(-62, -76), Vector2(70, -60)], "shadow": []},
+		"wolves": [Vector2(6, -38), Vector2(-44, -4), Vector2(-62, -76), Vector2(70, -60)], "shadow": [],
+		"stags": [Vector2(46, -22), Vector2(-50, -50)]},
 	"forest": {"boars": [Vector2(26, -40), Vector2(70, -20)],
 		"wolves": [Vector2(-20, -30), Vector2(30, 6), Vector2(-30, 20), Vector2(60, -64), Vector2(-80, 10), Vector2(40, 80)],
-		"shadow": [Vector2(10, 40), Vector2(-40, -10), Vector2(-50, 64), Vector2(80, 66)]},
+		"shadow": [Vector2(10, 40), Vector2(-40, -10), Vector2(-50, 64), Vector2(80, 66)],
+		"stags": [Vector2(-10, 62), Vector2(-62, -52)]},
 }
 
 @export var player: Node3D
@@ -32,6 +35,13 @@ func spawn(shape: WorldShape) -> void:
 			wolf.home = Vector3(h.x, shape.height_at(h.x, h.y), h.y)
 			add_child(wolf)
 			wolf.global_position = wolf.home + Vector3(i * 1.5, 0.5, i)
+	for h: Vector2 in homes.get("stags", []):
+		for i in 2:
+			var stag := Stag.new()
+			stag.player = player
+			stag.home = Vector3(h.x, shape.height_at(h.x, h.y), h.y)
+			add_child(stag)
+			stag.global_position = stag.home + Vector3(i * 2.5, 0.6, i * 1.5)
 	_limit_range.call_deferred()
 
 

@@ -33,6 +33,7 @@ Home="*res://scripts/state/home.gd"
 Quests="*res://scripts/state/quests.gd"
 Classes="*res://scripts/state/classes.gd"
 Region="*res://scripts/core/region.gd"
+Hunting="*res://scripts/state/hunting.gd"
 
 [display]
 

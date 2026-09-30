@@ -36,7 +36,7 @@ const SOUNDS := {
 
 ## The action: an ability button.
 func use(ability: String) -> void:
-	if player.is_down() or Controls.locked or player.is_rolling():
+	if player.is_down() or Controls.locked or player.is_rolling() or player.hauling.busy():
 		return
 	if not Classes.use(ability):
 		return

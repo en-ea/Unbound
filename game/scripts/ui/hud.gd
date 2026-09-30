@@ -299,6 +299,21 @@ func start_game(instant := false) -> void:
 	_set_play_ui(true)
 
 
+## Choices for something you walked up to (a body): see choice_bar.gd. One at a time.
+func show_choices(source: Node3D, title: String, options: Array) -> void:
+	var old := get_node_or_null("Choices")
+	if old:
+		old.free()
+	var bar := PanelContainer.new()
+	bar.name = "Choices"
+	bar.set_script(preload("res://scripts/ui/choice_bar.gd"))
+	bar.source = source
+	bar.player = player
+	bar.title = title
+	bar.options = options
+	add_child(bar)
+
+
 ## A short message at the top of the screen ("Needs a Stone Pickaxe", "Made a Copper Axe!").
 func hint(text: String) -> void:
 	_hint.text = text

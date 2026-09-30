@@ -5,6 +5,17 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "30 Sep", "title": "Hunting: stags, bodies, the butcher and the ox cart", "lines": [
+		"Stags graze out on the open grass (two herds in the meadow, two in the wood). They hear you walk and see you coming: sneak up, or the whole herd bolts. Hurt one up close and it may lower its antlers and charge (watch for the glint).",
+		"Kills stay where they fall now (stags, boars, wolves). Walk up and Take: Carve here (meat and hide now), Drag it, or put it Into the cart.",
+		"Dragging is slow and you can't fight, roll or sprint. Drop it to defend yourself (a hit knocks it loose too).",
+		"The butcher's rack is on the west side of the village. Sell a whole body there for more coins and the good parts: a stag gives Crown Antlers, a trophy.",
+		"Bodies rot: fresh for 3 minutes, then worth less, then gone. Flies come as they turn.",
+		"Leave a body alone and crows come down to peck at it, then wolves come to eat. Both make it rot faster. Leave one in the village and someone will take it.",
+		"The ox cart is parked by the butcher. Ride it (steer with the stick), load up to three bodies, sell the lot at the rack. It follows you through the gate to the Whispering Wood.",
+		"Three bodies left close together out in the open at night call something up: the Duskmaw. Its body is too big to drag.",
+		"New job from Wren: The Harvest Supper (bring her a whole stag).",
+	]},
 	{"when": "30 Sep", "title": "Pyromancer talents", "lines": [
 		"Menu > Class > Talents: 12 talents in four branches (Flame Dash, Meteor, Cinderburst, Kindling), learned top to bottom.",
 		"Points: one from the shrine and one more for every combat level. Menu > Class shows how many you have to spend.",

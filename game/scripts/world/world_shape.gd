@@ -22,7 +22,8 @@ const REGIONS := {
 			Vector3(-17.0, 13.5, 5.5), Vector3(-3.5, 27.0, 2.6),
 			Vector3(-76, -62, 8.0), Vector3(72, 44, 11.0), Vector3(-70, 58, 7.0),     # the places (places.gd)
 			Vector3(-40, 36, 9.0), Vector3(-40, 41, 9.0)],                          # your home plot (Home)
-		"keep_clear": [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5), Vector3(10.8, -3.0, 3.2)],  # last: the Seeker
+		"keep_clear": [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5), Vector3(10.8, -3.0, 3.2),
+			Vector3(-19, 26, 4.5), Vector3(-21, 32, 5.0)],  # the Seeker; the butcher's rack and the ox cart
 	},
 	"forest": {
 		"pond": Vector2(-24.0, -8.0), "pond_r": 8.0, "hill": Vector2(18.0, 30.0), "hill_r": 14.0, "hill_h": 3.5,
