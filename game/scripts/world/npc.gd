@@ -18,6 +18,7 @@ var _marker_y := 2.9
 var _shape: WorldShape
 var _home := Vector2.ZERO
 var _stop := 0                   # index of the route spot he is at or heading for
+var _speed := 0.0                # eases in and out of walking
 var _mode := "wait"              # "wait", "walk" or "work"
 var _timer := 2.0
 
@@ -35,7 +36,7 @@ func setup(id: String, shape: WorldShape) -> void:
 	global_position = Vector3(at.x, shape.height_at(at.x, at.y), at.y)
 	_visual = Npcs.make_visual(id)
 	add_child(_visual)
-	Npcs.dress_visual(id, _visual)
+	Npcs.dress_visual(id, _visual, false, true)
 	var body := StaticBody3D.new()
 	var col := CollisionShape3D.new()
 	var shape3 := CylinderShape3D.new()
@@ -141,8 +142,10 @@ func _go_about(delta: float, busy: bool) -> void:
 	if busy:
 		if _mode != "wait":
 			_visual.stop_action()
+			_visual.set_two_hand(true)
 			_mode = "wait"
 			_timer = 1.5
+		_speed = 0.0
 		_visual.play_motion(0.0)
 		return
 	var route: Array = _def["route"]
@@ -165,7 +168,9 @@ func _go_about(delta: float, busy: bool) -> void:
 					_visual.play_motion(0.0)
 				else:
 					_mode = "work"
+					_speed = 0.0
 					_timer = _visual.animation_length(work)
+					_visual.set_two_hand(false)
 					_visual.play_action(work)
 					if _clang:                                   # the blow lands about half way through the swing
 						get_tree().create_timer(_timer * 0.5).timeout.connect(func() -> void:
@@ -173,13 +178,19 @@ func _go_about(delta: float, busy: bool) -> void:
 								_clang.play())
 				return
 			var dir := step.normalized()
-			here += dir * minf(WALK_SPEED * delta, step.length())
+			# Turn towards the next spot first, then ease into the walk and slow down on arrival.
+			var facing := atan2(dir.x, dir.y)
+			_visual.rotation.y = lerp_angle(_visual.rotation.y, facing, clampf(delta * 5.0, 0.0, 1.0))
+			var top: float = _def.get("walk_speed", WALK_SPEED)
+			var want := 0.0 if absf(angle_difference(_visual.rotation.y, facing)) > 0.7 else minf(top, 0.35 + step.length() * 1.5)
+			_speed = move_toward(_speed, want, delta * 2.2)
+			here += dir * minf(_speed * delta, step.length())
 			global_position = Vector3(here.x, _shape.height_at(here.x, here.y), here.y)
-			_visual.rotation.y = lerp_angle(_visual.rotation.y, atan2(dir.x, dir.y), clampf(delta * 6.0, 0.0, 1.0))
-			_visual.play_motion(WALK_SPEED)
+			_visual.play_motion(_speed)
 		"work":
 			_timer -= delta
 			if _timer <= 0.0:
 				_mode = "wait"
 				_timer = randf_range(2.0, 4.0)
 				_visual.stop_action()
+				_visual.set_two_hand(true)

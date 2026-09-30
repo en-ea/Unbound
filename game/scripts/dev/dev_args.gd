@@ -9,8 +9,10 @@ extends Node
 ##   --showcase        line up one of every tree/bush model in front of the player
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
+##   --lab --packtest  three wolves against you swinging now and then (prints lowest health, states seen)
 ##   --telltest        a boar frozen mid-warning (glint), a heavy blow's shockwave, stamina part used (screenshots)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
+##   --cam=d,pitch,fov[,yaw]  try another camera framing (distance, pitch, lens, turn), with a far view
 ##   --lineup[=N]      stand 7 outfit presets (from the Nth) in a row in front of the camera
 ##   --outfit=Mage     wear a ready-made outfit
 ##   --title           keep the title screen (otherwise any dev argument skips it)
@@ -38,6 +40,7 @@ var _lineup := false
 var _gather_test := false
 var _fight_test := false
 var _tell_test := false
+var _lock_mock := false
 var _lineup_from := 0
 var _lineup_marks := false
 var _gather_offset := Vector3(0, 0.3, -1.3)
@@ -61,6 +64,23 @@ func _ready() -> void:
 				var v := arg.trim_prefix("--lab=").split(",")
 				spot = Vector2(float(v[0]), float(v[1]))
 			get_tree().call_group.call_deferred("build_lab", "enter", spot)
+			if "--packtest" in OS.get_cmdline_user_args():     # three wolves against you swinging now and then (prints states)
+				get_tree().create_timer(1.0).timeout.connect(func() -> void:
+					var lab := get_tree().get_first_node_in_group("build_lab")
+					for i in 3:
+						lab.spawn("wolf")
+					var player := get_node("../Player")
+					var seen := {}
+					var lowest: int = player.health
+					for k in 60:
+						await get_tree().create_timer(0.25).timeout
+						if k % 2 == 0:
+							player.act()
+						lowest = mini(lowest, player.health)
+						for w in get_tree().get_nodes_in_group("enemy"):
+							seen[Wolf.State.keys()[w.state]] = true
+					print("PACKTEST lowest health ", lowest, " now ", player.health, " states seen ", seen.keys())
+					get_tree().quit())
 			if "--labtest" in OS.get_cmdline_user_args():      # spawn one of everything, then clear it (prints counts)
 				get_tree().create_timer(1.0).timeout.connect(func() -> void:
 					var lab := get_tree().get_first_node_in_group("build_lab")
@@ -74,6 +94,19 @@ func _ready() -> void:
 			if "--labmenu" in OS.get_cmdline_user_args():      # and open the lab menu
 				get_tree().create_timer(0.5).timeout.connect(func() -> void:
 					get_node("../HUD").open_station({"mode": "lab", "lab": get_tree().get_first_node_in_group("build_lab")}))
+			for v_arg in OS.get_cmdline_user_args():             # --villager=wren[,far]: show one close up
+				if v_arg.begins_with("--villager="):
+					var vbits := v_arg.trim_prefix("--villager=").split(",")
+					get_tree().create_timer(0.6).timeout.connect(func() -> void:
+						var lab := get_tree().get_first_node_in_group("build_lab")
+						lab.spin = false
+						lab.show_villager(Npcs.NPCS.keys().find(vbits[0]))
+						get_node("../HUD").open_station({"mode": "lab", "lab": lab})
+						get_tree().create_timer(0.2).timeout.connect(func() -> void:
+							for m in get_node("../HUD").find_children("*", "Control", true, false):
+								if m.has_method("_frame_villager"):
+									m._show_villager_name()
+									m._frame_villager(vbits.size() < 2)))
 		elif arg == "--craft" or arg == "--bag":      # open a screen (with some items to show)
 			for item in ["wood", "stone", "flint", "copper", "hide", "apple", "resin"]:
 				Inventory.add(item, 5)
@@ -177,6 +210,8 @@ func _ready() -> void:
 			_fight_test = true
 		elif arg == "--telltest":
 			_tell_test = true
+		elif arg == "--lockmock":                     # with --telltest: a mock lock-on marker on the boar
+			_lock_mock = true
 		elif arg.begins_with("--gatheroffset="):
 			var v := arg.trim_prefix("--gatheroffset=").split(",")
 			_gather_offset = Vector3(float(v[0]), 0.3, float(v[1]))
@@ -197,6 +232,14 @@ func _ready() -> void:
 		elif arg.begins_with("--view="):
 			var v := arg.trim_prefix("--view=").split(",")
 			get_node("../CameraRig").set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01)
+		elif arg.begins_with("--cam="):               # --cam=d,pitch,fov[,yaw]: try other camera framings
+			var v := arg.trim_prefix("--cam=").split(",")
+			var rig := get_node("../CameraRig")
+			rig.set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01)
+			rig.camera.fov = float(v[2])
+			rig.camera.far = 600.0
+			if v.size() > 3:
+				rig.rotation.y = deg_to_rad(float(v[3]))
 		elif arg == "--touchtest":
 			_touch_test = true
 		elif arg == "--kernel-bench":                   # studio branch: the world kernel's conformance and timings, then quit
@@ -352,6 +395,8 @@ func _run_tell_test() -> void:
 	if _frames == 20:
 		player.global_position = boar.global_position + Vector3(1.0, 0.3, 3.0)
 		get_node("../CameraRig").snap()
+		if _lock_mock:
+			_add_lock_mock(boar)
 	if _frames > 20 and player.stamina.value > 45.0:
 		player.stamina._spend(player.stamina.value - 45.0)
 	if boar.state == Boar.State.WINDUP:
@@ -365,6 +410,31 @@ func _run_tell_test() -> void:
 		f._shock_t = 0.3
 		player.visual.show_tool("sword")
 		player.visual.charge_tool(1.0)
+
+
+## A look-board mock of a lock-on marker: a ring on the ground and a small arrow over the target.
+func _add_lock_mock(target: Node3D) -> void:
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.albedo_color = Color(1.0, 0.55, 0.15)
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 1.05
+	torus.outer_radius = 1.2
+	ring.mesh = torus
+	ring.material_override = mat
+	ring.position = Vector3(0, 0.05, 0)
+	target.add_child(ring)
+	var arrow := MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.22
+	cone.bottom_radius = 0.0
+	cone.height = 0.4
+	cone.radial_segments = 4
+	arrow.mesh = cone
+	arrow.material_override = mat
+	arrow.position = Vector3(0, 2.0, 0)
+	target.add_child(arrow)
 
 
 func _build_lineup() -> void:

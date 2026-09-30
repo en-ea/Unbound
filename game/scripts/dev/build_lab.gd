@@ -43,6 +43,10 @@ var _shown: Node3D
 var _label: Label3D
 var _spawns: Node3D       # enemies, drops and gatherables spawned here
 var _first_id := -1       # the first resource id spawned in the lab (all later ones are ours)
+var villager := -1        # index into Npcs.NPCS of the villager on show, -1 for none
+var spin := true          # the villager turns slowly on the spot
+var _villager: CharacterVisual
+const VILLAGER_SPOT := Vector3(0, 0, 3.4)
 
 
 func _ready() -> void:
@@ -70,6 +74,7 @@ func leave() -> void:
 	if not active:
 		return
 	clear_spawns()
+	show_villager(-1)
 	active = false
 	var env := get_viewport().world_3d.environment
 	if env:
@@ -105,6 +110,34 @@ func show_building(index: int) -> void:
 	var t := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_shown.scale = Vector3(1, 0.05, 1)
 	t.tween_property(_shown, "scale", Vector3.ONE, 0.4)
+
+
+## The action: show a villager in front of the pad (index into Npcs.NPCS; -1 removes them).
+func show_villager(index: int) -> void:
+	if is_instance_valid(_villager):
+		_villager.queue_free()
+		_villager = null
+	var ids: Array = Npcs.NPCS.keys()
+	villager = -1 if index < 0 else posmod(index, ids.size())
+	if is_instance_valid(_label):
+		_label.visible = villager < 0          # the building's name would sit over the villager
+	if villager < 0:
+		return
+	var id: String = ids[villager]
+	_villager = Npcs.make_visual(id)
+	add_child(_villager)
+	_villager.position = VILLAGER_SPOT
+	Npcs.dress_visual(id, _villager)
+	_villager.play_motion.call_deferred(0.0)
+
+
+func villager_height() -> float:
+	return (_villager.scale.y if is_instance_valid(_villager) else 1.0) * 1.8
+
+
+func _process(delta: float) -> void:
+	if active and spin and is_instance_valid(_villager):
+		_villager.rotation.y += delta * 0.5
 
 
 ## The action: spawn something 3.5 m in front of you (kept inside the walls).

@@ -41,7 +41,7 @@ func _ready() -> void:
 	_voice = AudioStreamPlayer.new()
 	_voice.volume_db = -9.0
 	add_child(_voice)
-	for i in 4:
+	for i in 8:                 # up to 8 clips per voice
 		var path := "res://assets/sounds/voice_%s_%d.wav" % [_theme.get("voice", "wren"), i]
 		if ResourceLoader.exists(path):
 			_voices.append(load(path))

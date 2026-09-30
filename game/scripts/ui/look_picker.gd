@@ -131,7 +131,7 @@ func _refresh() -> void:
 			look.build = v
 			_visual.apply_hero_look())
 	for slot: String in SLOTS.get(_tab, []):
-		_row(CharacterLook.PART_LABELS[slot], CharacterLook.PARTS[slot], look.parts[slot], func(c: String) -> void:
+		_row(CharacterLook.PART_LABELS[slot], CharacterLook.PARTS[slot], look.parts.get(slot, CharacterLook.PARTS[slot][0]), func(c: String) -> void:
 			look.set_part(slot, c)
 			_flash_slot = slot
 			_changed(), slot)

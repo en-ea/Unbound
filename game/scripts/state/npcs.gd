@@ -16,7 +16,7 @@ const NPCS := {
 			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "wren"},
 		"portrait": {"look_at": Vector3(0.05, 1.74, 0), "cam": Vector3(0.22, 1.92, 2.05), "fov": 34.0, "turn": -10.0},
 		"smokes": true,
-		"prop": "shears", "prop_scale": 1.5,
+		"prop": "shears", "prop_scale": 1.3, "two_hands": true,
 		# A daily round: spots to walk between (metres from where he stands), and what he does at each.
 		"route": [{"at": Vector2(0, 0), "work": "Farm_Harvest"}, {"at": Vector2(-3.0, 0.8), "work": "Farm_Watering"},
 			{"at": Vector2(-1.8, -1.6), "work": "Farm_PlantSeed"}, {"at": Vector2(1.4, -0.6), "work": ""}],
@@ -27,12 +27,12 @@ const NPCS := {
 			"Boars leave the plants alone. Wolves too. It's the rabbits I can't forgive."],
 	},
 	"morrow": {
-		"name": "Morrow", "title": "Wanderer", "at": Vector2(-1.5, 25.5), "scale": Vector3(0.88, 1.2, 0.88),
+		"name": "Morrow", "title": "Wanderer", "at": Vector2(-1.5, 25.5), "scale": Vector3(0.96, 1.3, 0.96),
 		"body": "res://assets/characters/morrow.glb",
 		"theme": {"bg": Color(0.06, 0.06, 0.09, 0.95), "accent": Color(0.86, 0.8, 0.66), "text": Color(0.93, 0.91, 0.86),
 			"font": "res://assets/fonts/Cinzel-Variable.ttf", "name_font": "res://assets/fonts/Cinzel-Variable.ttf", "voice": "morrow"},
 		"portrait": {"look_at": Vector3(0, 2.02, 0), "cam": Vector3(0.3, 2.12, 1.6), "fov": 34.0, "turn": -8.0},
-		"prop": "skull_staff",
+		"prop": "skull_staff", "walk_speed": 0.75,
 		"route": [{"at": Vector2(0, 0), "work": ""}, {"at": Vector2(2.5, 1.5), "work": ""}, {"at": Vector2(-1.5, 2.0), "work": ""}],
 		"greetings": ["...", "Hm.", "You see me.", "The wind turned."],
 		"chatter": ["Everything that falls is gathered in the end. I only walk ahead of it.",
@@ -45,8 +45,9 @@ const NPCS := {
 		"body": "res://assets/characters/golem.glb",
 		"theme": {"bg": Color(0.1, 0.09, 0.11, 0.95), "accent": Color(1.0, 0.52, 0.16), "text": Color(1.0, 0.94, 0.86),
 			"font": "res://assets/fonts/Cinzel-Variable.ttf", "name_font": "res://assets/fonts/Cinzel-Variable.ttf", "voice": "brakk"},
-		"portrait": {"look_at": Vector3(0, 2.05, 0), "cam": Vector3(0.35, 2.35, 3.3), "fov": 34.0, "turn": -6.0},
-		"prop": "golem_hammer", "prop_grip": Vector3(0, 0, 0),
+		"portrait": {"look_at": Vector3(0, 2.4, 0), "cam": Vector3(0.35, 2.75, 3.3), "fov": 34.0, "turn": -6.0},
+		"prop": "golem_hammer", "prop_grip": Vector3(0, 0, 0), "prop_scale": 0.85,
+		"carry": {"item": "anvil", "bone": "hand_l", "at": Vector3(0.0, 0.25, 0.0), "turn": Vector3(90, 0, 0), "scale": 0.7},
 		"scenery": [{"model": "anvil", "at": Vector2(-1.7, 0.4), "turn": 90.0, "scale": 1.15}],
 		"route": [{"at": Vector2(0, 0), "work": "TreeChopping"}],
 		"work_sound": "res://assets/kenney_impact/impactMining_001.ogg",
@@ -55,6 +56,23 @@ const NPCS := {
 			"The village needs a real smithy. This anvil has waited long enough.",
 			"I was carved from the hill before this one. The iron there still sings.",
 			"Bring me ore and I will make it into something that lasts."],
+	},
+	"seeker": {
+		"name": "Moss-Cap", "title": "Seeker", "at": Vector2(11.5, -3.0), "scale": Vector3.ONE * 0.56,
+		"body": "res://assets/characters/seeker.glb",
+		"theme": {"bg": Color(0.05, 0.09, 0.08, 0.95), "accent": Color(0.66, 0.88, 1.0), "text": Color(0.9, 0.97, 1.0),
+			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "seeker"},
+		"portrait": {"look_at": Vector3(0, 0.98, 0), "cam": Vector3(0.15, 1.08, 1.25), "fov": 34.0, "turn": -10.0},
+		"walk_speed": 0.8,
+		# A shy spirit by the pond, searching the grass for lost things.
+		"route": [{"at": Vector2(0, 0), "work": "Farm_Harvest"}, {"at": Vector2(-2.0, -1.8), "work": "Fixing_Kneeling"},
+			{"at": Vector2(-1.2, 1.8), "work": ""}, {"at": Vector2(1.0, -0.5), "work": "Farm_Harvest"}],
+		"greetings": ["Oh!", "...hi.", "Shh. Listening.", "*chirp*"],
+		"chatter": ["I find lost things. Buttons, keys, the song a bird forgot. Mostly I put them back.",
+			"Lost things hum. There is an old stone arch west of here, near the hill. Something hums under it.",
+			"Past the pond, where the sun comes up, another arch. Shiny things like old stones.",
+			"Far away where the land gets wild, north and west, something is humming very quietly. Very old.",
+			"You walk loudly. It's all right. The mushrooms don't mind."],
 	},
 }
 
@@ -80,8 +98,9 @@ static func make_visual(id: String) -> CharacterVisual:
 	return visual
 
 
-## After the visual is in the tree: scale, shoulders, and what they hold or smoke.
-static func dress_visual(id: String, visual: CharacterVisual, portrait := false) -> void:
+## After the visual is in the tree: scale, shoulders, and what they hold or smoke. `carry` (a second prop,
+## like Brakk's anvil under his arm) only shows in the build lab.
+static func dress_visual(id: String, visual: CharacterVisual, portrait := false, in_world := false) -> void:
 	var def: Dictionary = NPCS[id]
 	visual.scale = def["scale"]
 	if def.has("shoulders"):
@@ -89,6 +108,12 @@ static func dress_visual(id: String, visual: CharacterVisual, portrait := false)
 	if def.has("prop"):
 		var prop := visual.hold_prop(def["prop"], def.get("prop_grip", Vector3.ZERO), Vector3(0, 0.05, 0.0))
 		prop.scale = Vector3.ONE * def.get("prop_scale", 1.0)
+		if def.get("two_hands", false):          # held low in both hands except while working
+			visual.hold_two_handed(def["prop"], def.get("prop_scale", 1.0), prop)
+	if def.has("carry") and not in_world and not portrait:
+		var c: Dictionary = def["carry"]
+		var carried := visual.hold_prop(c["item"], c["turn"], c["at"], c["bone"])
+		carried.scale = Vector3.ONE * c.get("scale", 1.0)
 	if def.get("smokes", false):
 		var smoke := Smoking.new()
 		smoke.visual = visual

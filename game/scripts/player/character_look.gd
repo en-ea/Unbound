@@ -16,10 +16,10 @@ const PARTS := {
 	"cheeks": ["none", "blush"],
 	"marks": ["none", "freckles", "scar", "eyestripe", "warpaint", "mask", "tears", "claws", "dots", "chin", "noseband"],
 	"extra": ["none", "glasses", "eyepatch", "earrings"],
-	"mask": ["none", "kitsune", "oni", "hollow"],
+	"mask": ["none", "kitsune", "oni", "hollow", "raven", "aurum"],
 	"hair": ["short", "messy", "swept", "curly", "long", "ponytail", "pigtails", "braid", "bun", "topknot", "mohawk", "none"],
 	"beard": ["none", "stubble", "short", "full", "braided", "goatee", "mustache", "chinstrap"],
-	"head": ["none", "hat", "hood", "helm", "cap", "straw", "crown", "band", "bandana", "circlet", "sunhat"],
+	"head": ["none", "hat", "hood", "helm", "cap", "straw", "crown", "band", "bandana", "circlet", "sunhat", "wayfarer", "antlers"],
 	"top": ["tunic", "jacket", "coat", "robe", "armor", "jerkin"],
 	"waist": ["none", "kilt", "apron", "tabard"],
 	"chest": ["none", "strap", "vest", "sash", "bandolier"],
@@ -35,7 +35,8 @@ const CHOICE_NAMES := {"armor": "Armour", "jerkin": "Jerkin", "straw": "Straw ha
 	"cap": "Feathered cap", "pauldron": "Pauldron", "fur": "Fur mantle", "bandolier": "Potions", "eyestripe": "Eye stripe",
 	"warpaint": "War paint", "mask": "Painted mask", "tears": "Tear lines", "claws": "Claw marks", "dots": "Cheek dots",
 	"chin": "Chin stripes", "noseband": "Nose band", "plates": "Steel plates", "pads": "Leather pads", "long": "Long",
-	"strap": "Satchel", "none": "None", "kitsune": "Kitsune", "oni": "Oni", "hollow": "Hollow"}
+	"strap": "Satchel", "none": "None", "kitsune": "Kitsune", "oni": "Oni", "hollow": "Hollow",
+	"raven": "Raven", "aurum": "Sun mask", "wayfarer": "Wayfarer hat", "antlers": "Antler crown"}
 ## Body shape ranges (the picker's sliders): height and build scale the whole character.
 const HEIGHT_RANGE := Vector2(0.9, 1.1)
 const BUILD_RANGE := Vector2(0.88, 1.14)
@@ -107,7 +108,7 @@ const OUTFIT_BLURBS := {"Wanderer": "Light travelling clothes and a long scarf."
 	"Guardian": "Armour, a great pauldron and a flowing cape."}
 
 var outfit := "Wanderer"
-var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "nose": "straight", "ears": "round", "cheeks": "none", "marks": "none", "extra": "none", "hair": "short", "beard": "none",
+var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "nose": "straight", "ears": "round", "cheeks": "none", "marks": "none", "extra": "none", "mask": "none", "hair": "short", "beard": "none",
 	"head": "none", "top": "tunic", "waist": "none", "chest": "strap", "shoulders": "none", "back": "scarf", "feet": "boots"}
 var colors := {"Eyes": 0, "Skin": 2, "Hair": 0, "Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0, "Marks": 0}   # palette indices
 var height := 1.0

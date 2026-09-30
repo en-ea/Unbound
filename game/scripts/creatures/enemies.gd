@@ -32,3 +32,10 @@ func spawn(shape: WorldShape) -> void:
 			wolf.home = Vector3(h.x, shape.height_at(h.x, h.y), h.y)
 			add_child(wolf)
 			wolf.global_position = wolf.home + Vector3(i * 1.5, 0.5, i)
+	_limit_range.call_deferred()
+
+
+## Far creatures are only specks in the fog: stop drawing them past this (saves draw calls).
+func _limit_range() -> void:
+	for g in find_children("*", "GeometryInstance3D", true, false):
+		(g as GeometryInstance3D).visibility_range_end = 55.0

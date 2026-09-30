@@ -2,7 +2,7 @@ class_name UIStyle
 extends RefCounted
 ## Shared look for menus: dark translucent panels, rounded buttons, round colour swatches.
 
-const PANEL_BG := Color(0.06, 0.08, 0.13, 0.84)
+const PANEL_BG := Color(0.06, 0.08, 0.13, 0.95)
 const BUTTON_BG := Color(0.05, 0.07, 0.12, 0.55)
 const BUTTON_PRESSED := Color(0.16, 0.2, 0.3, 0.85)
 const TEXT := Color(1, 0.97, 0.9)

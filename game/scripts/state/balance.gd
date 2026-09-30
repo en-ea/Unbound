@@ -5,15 +5,15 @@ extends RefCounted
 ##
 ## Targets (a steady, not-too-easy climb; tune by playing):
 ## - Stone tools ~5 min in, Copper ~15 min, Iron ~40 min, Steel (needs the Smithy) ~1.5 h.
-## - Fights: a fresh player needs ~6 hits on a boar and must dodge; a pack of 2 wolves can knock a
-##   careless player out. Forest enemies are tougher than meadow ones. Food matters for hard fights.
+## - Fights (tuned harder 30 Sep: "too easy"): a fresh player needs ~7 hits on a boar and a charge
+##   takes 2 hearts, so dodging matters; a pack of 2 wolves knocks a careless player out. Forest enemies are tougher than meadow ones. Food matters for hard fights.
 ## - Hearts come back slowly on their own; food heals fast.
 ## - Coins: selling a trip's worth of loot pays ~30-60; the Smithy takes a few trips; a home much more.
 
 # --- you ---------------------------------------------------------------------------------------
 const HEARTS := 5
-const REGEN_DELAY := 8.0          # seconds without a hit before hearts start coming back
-const REGEN_EVERY := 6.0          # then one heart this often
+const REGEN_DELAY := 12.0         # seconds without a hit before hearts start coming back
+const REGEN_EVERY := 9.0          # then one heart this often
 ## Stamina: sprinting (hold Roll), rolling and heavy attacks use it; it refills after a short pause.
 ## Run it empty and you are winded: no sprint, roll or heavy until it is back to `winded_until`.
 const STAMINA := {"max": 100.0, "regen": 34.0, "delay": 0.6, "sprint": 20.0, "roll": 26.0, "heavy": 34.0,
@@ -23,11 +23,26 @@ const HEAVY_DAMAGE := 2.5         # a heavy attack does this many times a normal
 const HEAVY_PUSH := 2.2           # and knocks the enemy back this much further
 
 # --- enemies: health, damage per hit, seconds to come back, combat XP, found-tool chance ------
-const BOAR := {"hp": 12, "damage": 1, "respawn": 60.0, "xp": 25, "tool": 0.06}
-const WOLF := {"hp": 8, "damage": 1, "respawn": 60.0, "xp": 12, "tool": 0.08}
-const SHADOW_WOLF := {"hp": 26, "damage": 2, "respawn": 120.0, "xp": 45, "tool": 0.25}
+const BOAR := {"hp": 20, "damage": 2, "respawn": 60.0, "xp": 25, "tool": 0.06}
+const WOLF := {"hp": 12, "damage": 1, "respawn": 60.0, "xp": 12, "tool": 0.08}
+const SHADOW_WOLF := {"hp": 40, "damage": 2, "respawn": 120.0, "xp": 45, "tool": 0.25}
+## How enemies fight (boar.gd, wolf.gd). The glint is always honest: it comes a fixed beat before a real
+## attack; the red glow before it can be held (delay) or faked (a wolf's feint has no glint).
+const FIGHT := {
+	"boar_poise": 3,        # light hits in a quick row before a boar braces and counters with a tusk swipe
+	"wolf_poise": 2,        # ... before a wolf leaps away (and a packmate takes the opening)
+	"poise_decay": 1.1,     # seconds for one of those hits to be forgotten
+	"hold_max": 0.55,       # the longest extra hold of a wind-up before the glint
+	"boar_recharge": 0.6,   # chance a wounded boar (under half health) charges again straight after a miss
+	"boar_daze": 2.2,       # seconds a boar is dazed after charging into a tree or wall
+	"swipe_reach": 2.3,     # a boar swipes with its tusks instead of charging when you are this close in front
+	"wolf_feint": 0.3,      # chance a wolf's wind-up is a fake: a hop and a snap at the air, no glint
+	"wolf_dodge": 0.4,      # chance a circling wolf hops away from your swing
+	"wolf_pincer": 0.35,    # chance a second wolf strikes right after the first
+	"wolf_stumble": 0.65,   # seconds a wolf stumbles after a missed lunge (your opening)
+}
 ## Enemies in tougher regions get more health (x) and hit harder (+).
-const REGION_TOUGHNESS := {"meadow": {"hp": 1.0, "damage": 0}, "forest": {"hp": 1.5, "damage": 0}}
+const REGION_TOUGHNESS := {"meadow": {"hp": 1.0, "damage": 0}, "forest": {"hp": 1.6, "damage": 1}}
 
 # --- tools --------------------------------------------------------------------------------------
 ## power: hits taken off a tree or rock per swing; damage: sword damage; speed: swing speed.

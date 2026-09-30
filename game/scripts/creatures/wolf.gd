@@ -1,9 +1,13 @@
 class_name Wolf
 extends CharacterBody3D
-## The wolf: roams with its pack. When it spots the player it growls, then circles at a distance;
-## it stops and crouches glowing red-hot (the warning), locks its aim with a glint and a "ting",
-## darts in for a bite, and backs off to circle again. Only one
-## wolf lunges at a time. Quick but fragile: three hits. Drops a pelt and sometimes a fang.
+## The wolf: roams with its pack. When it spots the player it growls, then circles at a distance,
+## spreading out from the others and working round behind you; the wolves beside or behind you strike
+## first. It stops and crouches glowing red-hot (the warning, sometimes held), locks its aim with a
+## glint and a "ting" (always the same beat before it goes), darts in for a bite, and backs off. Some
+## crouches are feints (a hop and a snap at the air, no glint), sometimes a second wolf strikes right
+## after the first, a circling wolf may hop away from your swing, and a swing at nothing (or a flurry on
+## one wolf) opens you up to the pack. A missed lunge leaves it stumbling: your opening.
+## Drops a pelt and sometimes a fang. Numbers: Balance.WOLF and Balance.FIGHT.
 
 const WALK_SPEED := 1.6
 const CIRCLE_SPEED := 3.0
@@ -15,7 +19,9 @@ const LEASH := 22.0
 const MAX_HEALTH := 6          # the real value comes from Balance (set in _ready)
 
 const GRAVITY := 20.0
-const WINDUP := 0.6            # seconds of warning before a lunge
+const WINDUP := 0.5            # seconds of warning before a lunge (plus a random hold)
+const QUICK_WINDUP := 0.35     # taking an opening, or the real strike after a feint
+const SPREAD := 2.6            # wolves keep about this far apart while circling
 const AIM_LOCK := 0.5          # after this part of the wind-up it stops turning (and glints)
 const SOUNDS := {
 	"growl": preload("res://assets/sounds/wolf_growl.wav"),
@@ -26,9 +32,10 @@ const SOUNDS := {
 const DROP := preload("res://scripts/world/drop.gd")
 const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
 
-enum State { WANDER, ALERT, CIRCLE, WINDUP, LUNGE, RETREAT, HURT, DEAD }
+enum State { WANDER, ALERT, CIRCLE, WINDUP, LUNGE, FEINT, STUMBLE, RETREAT, DODGE, HURT, DEAD }
 
-static var _lunge_free_at := 0.0     # pack rule: one lunge at a time
+static var _lunge_free_at := 0.0     # pack rule: one lunge at a time (a pincer lets the next one go early)
+static var _opening_until := 0.0     # the player just swung at nothing: the pack pounces
 
 var player: Node3D
 var home := Vector3.ZERO
@@ -46,6 +53,10 @@ var _side := 1.0                    # circling direction
 var _lunge_dir := Vector3.FORWARD
 var _bit := false
 var _hurt_time := 0.3         # longer after a heavy blow
+var _windup := WINDUP         # this wind-up's length (with its hold)
+var _feint := false
+var _poise := 0.0             # recent light hits; too many and it leaps away
+var _player_visual: Node3D
 var _push := Vector3.ZERO
 var _audio: AudioStreamPlayer3D
 @onready var visual: WolfVisual = $Visual
@@ -106,28 +117,54 @@ func _physics_process(delta: float) -> void:
 			elif _t > 0.7:
 				_enter(State.CIRCLE)
 		State.CIRCLE:
-			# Lope around the player (facing where it runs), drifting in or out to hold the distance.
+			# Lope around the player (facing where it runs), drifting in or out to hold the distance, keeping
+			# apart from the pack, and circling the way that brings it round behind the player.
+			var in_view := _in_view(toward)
+			if in_view > 0.5:
+				_side = _flank_side(toward)
 			var around := toward.cross(Vector3.UP) * _side
-			want = (around + toward * clampf((dist - CIRCLE_RADIUS) * 0.6, -1.0, 1.0)).normalized() * CIRCLE_SPEED
+			want = (around + toward * clampf((dist - CIRCLE_RADIUS) * 0.6, -1.0, 1.0) + _spread() * 0.9).normalized() * CIRCLE_SPEED
+			var free := _now() >= _lunge_free_at and dist < CIRCLE_RADIUS + 2.5
 			if lost:
 				_give_up()
-			elif _t > _circle_time and dist < CIRCLE_RADIUS + 2.0 and _now() >= _lunge_free_at:
-				_lunge_free_at = _now() + 1.6
-				_enter(State.WINDUP)
+			elif free and _now() < _opening_until:     # you swung at nothing: pounce
+				_start_windup(QUICK_WINDUP, false)
+			elif free and _t > _circle_time and (in_view < 0.3 or _t > _circle_time + 2.0):
+				_start_windup(WINDUP + (randf_range(0.1, Balance.FIGHT["hold_max"]) if randf() < 0.5 else 0.0),
+					randf() < Balance.FIGHT["wolf_feint"])
 			elif is_on_wall():
 				_side = -_side
 		State.WINDUP:
-			if _t < WINDUP * AIM_LOCK:      # stops dead and crouches: the tell
+			var lock := _windup - WINDUP * (1.0 - AIM_LOCK)
+			if _t < lock:                   # stops dead and crouches: the tell
 				face = toward
-				_lunge_dir = Vector3(sin(rotation.y), 0, cos(rotation.y))
-				if _t + delta >= WINDUP * AIM_LOCK:
-					visual.glint()
-			visual.tell = clampf(_t / WINDUP, 0.0, 1.0)
+				_lunge_dir = toward
+				if _t + delta >= lock:
+					rotation.y = atan2(toward.x, toward.z)     # square on to you as the aim locks
+				if _t + delta >= lock and not _feint:
+					visual.glint()          # a feint never glints
+			visual.tell = clampf(_t / _windup, 0.0, 1.0)
 			if lost:
 				_give_up()
-			elif _t > WINDUP:
+			elif _t > _windup:
 				_bit = false
-				_enter(State.LUNGE)
+				if _feint:
+					_play("snap", randf_range(1.1, 1.25))
+					_enter(State.FEINT)
+				else:
+					if randf() < Balance.FIGHT["wolf_pincer"]:
+						_lunge_free_at = _now()      # a packmate may strike right behind this one
+					_enter(State.LUNGE)
+		State.FEINT:
+			# A hop that stops short and a snap at the air; then often the real strike, quickly.
+			if _t < 0.18 and dist > 2.2:
+				want = _lunge_dir * 5.5
+			face = toward
+			if _t > 0.4:
+				if randf() < 0.5:
+					_start_windup(QUICK_WINDUP, false)
+				else:
+					_enter(State.CIRCLE)
 		State.LUNGE:
 			want = _lunge_dir * LUNGE_SPEED
 			if not _bit and dist < 1.1 and not player.is_rolling():
@@ -137,7 +174,15 @@ func _physics_process(delta: float) -> void:
 				player.take_damage(_damage)
 				get_tree().call_group("camera_rig", "shake", 0.08)
 			if _t > 0.4 or (_t > 0.1 and is_on_wall()):
+				_enter(State.RETREAT if _bit else State.STUMBLE)
+		State.STUMBLE:
+			if _t > Balance.FIGHT["wolf_stumble"]:     # missed: it skids and stumbles, open to a counter
 				_enter(State.RETREAT)
+		State.DODGE:
+			face = toward
+			want = -toward * 5.0
+			if _t > 0.4:
+				_enter(State.CIRCLE)
 		State.RETREAT:
 			face = toward
 			want = -toward * 3.5
@@ -149,6 +194,7 @@ func _physics_process(delta: float) -> void:
 				_enter(State.RETREAT)
 		State.DEAD:
 			pass
+	_poise = maxf(_poise - delta / Balance.FIGHT["poise_decay"], 0.0)
 	var flat := Vector3(velocity.x, 0, velocity.z)
 	var accel := 22.0 if state == State.LUNGE else 8.0
 	flat = flat.lerp(want, clampf(accel * delta, 0.0, 1.0)) + _push
@@ -177,8 +223,37 @@ func take_hit(from: Vector3, damage := 1, push := 1.0) -> void:
 	_play("yelp", randf_range(0.95, 1.12))
 	if health <= 0:
 		_die()
+		return
+	_poise = 0.0 if push > 1.0 else _poise + 1.0
+	if _poise >= Balance.FIGHT["wolf_poise"]:      # a flurry on one wolf: it leaps clear, the pack pounces
+		_poise = 0.0
+		_dodge()
 	else:
 		_enter(State.HURT)
+
+
+## The player starts a swing at this wolf: while it is only circling, it may hop out of reach.
+func sense_swing() -> void:
+	if state in [State.CIRCLE, State.ALERT, State.RETREAT] and randf() < Balance.FIGHT["wolf_dodge"]:
+		_dodge()
+
+
+## True while it is hopping clear (a swing started at it misses).
+func is_evading() -> bool:
+	return state == State.DODGE
+
+
+## The player swung at nothing: circling wolves get a moment to pounce.
+static func open_up() -> void:
+	_opening_until = Time.get_ticks_msec() / 1000.0 + 0.6
+
+
+func _dodge() -> void:
+	var away := global_position - player.global_position
+	away.y = 0.0
+	_push = away.normalized() * 9.0
+	_enter(State.DODGE)
+	open_up()
 
 
 func _die() -> void:
@@ -223,6 +298,45 @@ func _size() -> float:
 	return 1.3 if shadow else 1.0
 
 
+func _start_windup(length: float, feint: bool) -> void:
+	_windup = length
+	_feint = feint
+	_lunge_free_at = _now() + 1.1
+	_enter(State.WINDUP)
+
+
+## How much the wolf is in front of the player (1 = right in front of them, -1 = right behind).
+func _in_view(toward: Vector3) -> float:
+	if _player_visual == null:
+		_player_visual = player.get_node_or_null("Visual")
+	if _player_visual == null:
+		return 0.0
+	var facing := Vector3(sin(_player_visual.rotation.y), 0, cos(_player_visual.rotation.y))
+	return facing.dot(-toward)
+
+
+## Which way to circle to get round behind the player.
+func _flank_side(toward: Vector3) -> float:
+	var facing := Vector3(sin(_player_visual.rotation.y), 0, cos(_player_visual.rotation.y))
+	var around := toward.cross(Vector3.UP)
+	var d := around.dot(-facing)
+	return _side if absf(d) < 0.15 else signf(d)
+
+
+## A nudge away from packmates that are too close.
+func _spread() -> Vector3:
+	var push := Vector3.ZERO
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e == self or not (e is Wolf) or not e.is_alive():
+			continue
+		var off: Vector3 = global_position - (e as Node3D).global_position
+		off.y = 0.0
+		var d := off.length()
+		if d < SPREAD and d > 0.01:
+			push += off / d * (SPREAD - d) / SPREAD
+	return push
+
+
 func _give_up() -> void:
 	_goal = home
 	_enter(State.WANDER)
@@ -235,9 +349,9 @@ func _enter(new_state: State) -> void:
 		visual.tell = 0.0
 	visual.crouch = new_state == State.WINDUP
 	if new_state == State.CIRCLE:
-		_circle_time = randf_range(1.2, 2.6)
+		_circle_time = randf_range(0.8, 1.8)
 	visual.mode = {State.ALERT: "alert", State.CIRCLE: "stalk", State.WINDUP: "alert", State.LUNGE: "charge",
-		State.HURT: "hurt", State.DEAD: "dead"}.get(new_state, "walk")
+		State.FEINT: "charge", State.STUMBLE: "hurt", State.DODGE: "stalk", State.HURT: "hurt", State.DEAD: "dead"}.get(new_state, "walk")
 	if new_state == State.ALERT:
 		_play("growl", randf_range(0.9, 1.1))
 
