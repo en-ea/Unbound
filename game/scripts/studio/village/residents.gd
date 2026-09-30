@@ -1,11 +1,27 @@
 extends Node3D
 ## One body per resident. Events borrow it; routines resume from its actual position.
+##
+## Daily life: a resident walks the day plan (Runtime.routine), and while they stand somewhere their body does
+## what the plan says they are doing (resident_anims.gd: farming, chopping, chatting with someone, eating on
+## the step...). At night they are indoors: hidden, costing nothing, and back at their door in the morning.
+## Every resident carries a talk spot (resident_talk.gd) while the player is near; the name shows over the
+## one the action button would talk to. Nothing else of the village's is drawn.
 const Body := preload("res://scripts/studio/village/villager_body.gd")
 const Rules := preload("res://scripts/studio/village/sim/village.gd")
 const Justice := preload("res://scripts/studio/village/sim/justice.gd")
 const Sites := preload("res://scripts/studio/village/sites.gd")
 const Stage := preload("res://scripts/studio/village/stage.gd")
 const Runtime := preload("res://scripts/studio/village/sim/runtime.gd")
+const View := preload("res://scripts/studio/village/sim/view.gd")
+const Talk := preload("res://scripts/studio/village/resident_talk.gd")
+const Anims := preload("res://scripts/studio/village/resident_anims.gd")
+const React := preload("res://scripts/studio/village/resident_react.gd")
+
+const TALK_NEAR := 6.0          # metres: a talk spot exists only for a resident this close to the player
+const PICKS_PER_FRAME := 3      # daily-life picks (a describe each) made in one frame: a minute's worth spread over frames
+const TURN := 6.0               # radians per second a standing resident turns to face what they face
+const CHILD_SCALE := 0.68
+
 var bodies := {}
 var borrowed := {}
 var paths := {}
@@ -17,12 +33,25 @@ var frame_usec: Array[int] = []
 var ready_for_play := false
 var _router: Node3D
 var _player: Node3D
+var _spots := {}                # id -> Talk.Spot
+var _picks := {}                # id -> resident_anims.gd pick (the loop, tool, whether indoors, what to face)
+var _pick_minute := {}          # id -> the minute the pick was made
+var _activity := {}             # id -> view activity at that minute
+var _faces := {}                # id -> the ground point a standing body looks at
+var _aligned := {}              # id -> true once a standing body faces what it should (no turning left to do)
+var _who := {}                  # id -> {role, age_group, day}: what does not change within a day
+var _tier := {}                 # id -> the detail tier last given to the body
+var _applied := {}              # id -> "loop|tool" the body is playing
+var _talking := -1              # the resident the player is talking to (they stand and talk until it ends)
+var _tag: React.Tag
 
 func _ready() -> void:
 	_router = Stage.new()
 	add_child(_router)
 	_router._build_blocks() # same existing obstacle routes as event actors, computed only on replanning
 	_player = get_tree().get_first_node_in_group("player")
+	_tag = React.Tag.new()
+	add_child(_tag)
 
 func _process(delta: float) -> void:
 	var t0 := Time.get_ticks_usec()
@@ -38,20 +67,28 @@ func _process(delta: float) -> void:
 	var now := int(v.runtime.now)
 	var replan := now != _minute
 	_minute = now
+	if _talking >= 0 and not Controls.locked:
+		_talking = -1            # the talk screen closed: back to their day
+	var picks := PICKS_PER_FRAME
+	var player_at := _player.global_position if _player != null else Vector3(INF, INF, INF)
+	var controls_locked := Controls.locked
 	for id: int in bodies:
-		if borrowed.has(id):
-			continue
 		var body: Body = bodies[id]
 		var p = v.people[id]
+		var near2 := player_at.distance_squared_to(body.position)   # the registry and any stage sit at the origin
+		if borrowed.has(id):
+			_offer_talk(id, body, p, near2, controls_locked)
+			continue
 		if not p.alive or not p.present:
-			body.set_detail(2)
+			_show(id, body, 2)
+			_offer_talk(id, body, p, near2, controls_locked)
 			continue
 		if replan or not destinations.has(id):
 			var trip := Runtime.routine(v, id)
-			var offset := Vector2(cos(id * 2.4), sin(id * 2.4)) * (0.65 + (id % 4) * 0.35)
-			var start := place(trip.from) + offset
-			var goal := place(trip.place) + offset
 			if not destinations.has(id) or destinations[id].start != trip.start or destinations[id].place != trip.place:
+				var offset := _offset(id, trip.place)
+				var start := place(trip.from) + offset
+				var goal := place(trip.place) + offset
 				destinations[id] = trip
 				paths[id] = [start] + Array(_router._route(start, goal))
 		var trip: Dictionary = destinations[id]
@@ -70,17 +107,170 @@ func _process(delta: float) -> void:
 			left -= segment
 		var at := Vector2(body.position.x, body.position.z)
 		body.position = Vector3(next.x, _shape.height_at(next.x, next.y), next.y)
+		var moving := progress < 1.0 and length > 0.1
 		if at.distance_squared_to(next) > 0.00001:
 			body.rotation.y = atan2(next.x - at.x, next.y - at.y)
-		var moving := progress < 1.0 and length > 0.1
-		var near := _player != null and _player.global_position.distance_squared_to(body.global_position) < 100.0
-		body.set_detail(0 if near else 1)
-		body.play_motion(1.3 if moving and not VillageSession.background and not Controls.locked else 0.0)
-		if not moving and not p.locked:
-			body.play_loop("Farm_Harvest" if p.role == "farmer" else "Idle_Talking" if now % 1440 >= 1080 else "Idle")
+		# what they are doing now: made once a minute for each, a few a frame
+		if _pick_minute.get(id, -1) != now and picks > 0:
+			picks -= 1
+			_choose(v, id, now)
+		var pick: Dictionary = _picks.get(id, {})
+		if pick.get("hidden", false) and not moving:
+			_show(id, body, 2)         # indoors: asleep, or away
+			_offer_talk(id, body, p, near2, controls_locked)
+			continue
+		_show(id, body, 0 if near2 < 100.0 else 1)
+		if moving:
+			body.play_motion(1.3 if not VillageSession.background and not Controls.locked else 0.0)
+			if _applied.has(id):
+				_applied.erase(id)
+				_aligned.erase(id)
+				body.show_tool("")
+		elif not p.locked and id != _talking and not pick.is_empty():
+			var key := "%s|%s" % [pick.loop, pick.tool]
+			if _applied.get(id, "") != key:
+				_applied[id] = key
+				body.play_loop(pick.loop, 0.25, 1.0, id * 0.37)
+				body.show_tool(pick.tool)
+			if not _aligned.has(id):
+				_face(body, id, delta)
+		_offer_talk(id, body, p, near2, controls_locked)
+	_name_tag(v, delta)
 	frame_usec.append(Time.get_ticks_usec() - t0)
 	if frame_usec.size() > 3600:
 		frame_usec.pop_front()
+
+## Where a resident stands about a place: a sunflower spiral, by how many of the residents with a lower id are
+## already heading there, so however many come they stay a metre or so apart (not one heap at the door).
+func _offset(id: int, place_name: String) -> Vector2:
+	var rank := 0
+	for other: int in destinations:
+		if other < id and destinations[other].place == place_name:
+			rank += 1
+	var angle := rank * 2.39996 + id * 0.5
+	return Vector2(cos(angle), sin(angle)) * (1.0 * sqrt(rank + 0.6))
+
+## Makes a body drawn (tier 0 or 1) or indoors (2). Indoors is not drawn at all; a body a stage had hidden
+## shows again as soon as its day says so.
+func _show(id: int, body: Body, tier: int) -> void:
+	if _tier.get(id, -1) != tier:
+		_tier[id] = tier
+		body.set_detail(tier)
+	var drawn := tier < 2
+	if body.visible != drawn:
+		body.visible = drawn
+
+## The day's pick for one resident: the loop and tool for what they are doing, who they chat with, and where
+## they look.
+func _choose(v, id: int, now: int) -> void:
+	var day := now / 1440
+	var who: Dictionary = _who.get(id, {})
+	if int(who.get("day", -1)) != day:
+		var d := View.describe(v, id)          # who they are changes at most with the years: asked once a day
+		who = {"role": d.role, "age_group": d.age_group, "day": day}
+		_who[id] = who
+	var activity: Dictionary = View.activity(v, id)
+	_pick_minute[id] = now
+	_activity[id] = activity
+	var partner := _partner_of(id, activity)
+	var pick := Anims.pick(activity.verb, who.role, who.age_group, id, now, partner)
+	_picks[id] = pick
+	var target := Vector2.INF
+	match pick.face:
+		"partner":
+			if bodies.has(partner):
+				target = Vector2((bodies[partner] as Body).position.x, (bodies[partner] as Body).position.z)
+		"place":
+			target = focus(activity.place)
+		"home":
+			target = Sites.HOMES.get(activity.place, Vector2.INF)
+	_aligned.erase(id)
+	if target == Vector2.INF:
+		_faces.erase(id)
+	else:
+		_faces[id] = target
+
+## Who a resident chats with: the residents chatting in the same place, paired by id order.
+func _partner_of(id: int, activity: Dictionary) -> int:
+	if activity.verb != "chatting":
+		return -1
+	var mates: Array[int] = []
+	for other: int in _activity:
+		var a: Dictionary = _activity[other]
+		if a.verb == "chatting" and a.place == activity.place and bodies.has(other) and not borrowed.has(other):
+			mates.append(other)
+	mates.sort()
+	var i := mates.find(id)
+	if mates.size() < 2 or i < 0:
+		return -1
+	var j := i ^ 1
+	return mates[j] if j < mates.size() else mates[i - 1]
+
+## A standing body turns to what it faces (its work, its chat partner, its own door), then stops looking.
+func _face(body: Body, id: int, delta: float) -> void:
+	if not _faces.has(id):
+		_aligned[id] = true
+		return
+	var to: Vector2 = (_faces[id] as Vector2) - Vector2(body.position.x, body.position.z)
+	if to.length_squared() < 0.04:
+		_aligned[id] = true
+		return
+	var goal := atan2(to.x, to.y)
+	if absf(angle_difference(body.rotation.y, goal)) > 0.01:
+		body.rotation.y = lerp_angle(body.rotation.y, goal, clampf(delta * TURN, 0.0, 1.0))
+	else:
+		_aligned[id] = true
+
+## Where a place's work is done: its focus (the sails of the mill), else the place itself.
+func focus(place_name: String) -> Vector2:
+	if Sites.PLACES.has(place_name):
+		return Sites.PLACES[place_name]["focus"]
+	return place(place_name)
+
+## The talk spot of a resident is in the player's reach group only while it can be used: the resident is
+## near the player, drawn, and not held for an event. (near2: squared metres to the player.)
+func _offer_talk(id: int, body: Body, p, near2: float, controls_locked: bool) -> void:
+	var spot: Talk.Spot = _spots.get(id)
+	if spot == null:
+		return
+	var want: bool = near2 < TALK_NEAR * TALK_NEAR and not controls_locked and body.visible and not p.locked
+	if want != spot.offered:
+		spot.offered = want
+		if want:
+			spot.add_to_group("interactable")
+		else:
+			spot.remove_from_group("interactable")
+
+## The name over whoever the action button would talk to (the player's own choice of station), else nothing.
+func _name_tag(v, delta: float) -> void:
+	var aimed: Body = null
+	var who := -1
+	var height := 2.15
+	if _player != null and not Controls.locked:
+		var station: Object = _player.get("_station")
+		if is_instance_valid(station) and station is Talk.Spot and bodies.has((station as Talk.Spot).resident):
+			who = (station as Talk.Spot).resident
+			aimed = bodies[who]
+			height = 2.15 * aimed.scale.y
+			if React.has_bubble(aimed):
+				aimed = null          # they are speaking: the words are over their head, the name would sit on them
+				who = -1
+	_tag.aim(aimed, str(v.people[who].name) if who >= 0 else "", height, delta)
+
+## The village is talking to this resident: they stop what they are doing, turn to the player and talk until
+## the screen closes. (A body an event holds keeps to the event.)
+func begin_talk(id: int, player: Node3D) -> void:
+	if not bodies.has(id) or borrowed.has(id):
+		return
+	_talking = id
+	var body: Body = bodies[id]
+	var to := Vector2(player.global_position.x - body.global_position.x, player.global_position.z - body.global_position.z)
+	if to.length_squared() > 0.01:
+		body.rotation.y = atan2(to.x, to.y)
+	body.play_motion(0.0)
+	body.play_loop("Idle_Talking", 0.2, 1.0, 0.0)
+	_applied.erase(id)
+	_aligned.erase(id)
 
 func place(name: String) -> Vector2:
 	if Sites.DOORS.has(name):
@@ -95,22 +285,21 @@ func ensure(person: Dictionary) -> Body:
 		return bodies[id]
 	var t0 := Time.get_ticks_usec()
 	var body := Body.new()
-	var look := CharacterLook.new()
-	var outfits: Array = CharacterLook.OUTFITS.keys()
-	look.set_outfit(outfits[posmod(int(person.get("outfit", 0)), outfits.size())])
 	var resident = VillageSession.village.people[id]
-	if resident.ancestor >= 0:
-		look.set_outfit("Northlander") # existing fur/paint outfit makes the local forebears readable
-	look.set_color("Hair", (id * 3) % CharacterLook.PALETTES.Hair.size())
-	look.set_color("Skin", (id * 2 + 1) % CharacterLook.PALETTES.Skin.size())
-	body.hero_look = look; body.is_player_look = false
+	body.hero_look = Talk.look_of(VillageSession.village, id)
+	body.is_player_look = false
 	add_child(body)
 	var trip := Runtime.routine(VillageSession.village, id)
 	var at := place(trip.from)
 	body.position = Vector3(at.x, _shape.height_at(at.x, at.y), at.y)
 	bodies[id] = body
 	if Rules.age_of(VillageSession.village, resident) < 14:
-		body.scale = Vector3.ONE * 0.68
+		body.scale = Vector3.ONE * CHILD_SCALE
+	var spot := Talk.Spot.new()
+	spot.name = "TalkSpot"
+	spot.resident = id
+	body.add_child(spot)
+	_spots[id] = spot
 	build_usec.append(Time.get_ticks_usec() - t0)
 	return body
 
@@ -120,6 +309,10 @@ func acquire(person: Dictionary, parent: Node) -> Body:
 	body.reparent(parent, true)
 	body.process_mode = Node.PROCESS_MODE_INHERIT
 	body.set_detail(1)
+	_applied.erase(int(person.id))
+	_tier.erase(int(person.id))
+	if _talking == int(person.id):
+		_talking = -1
 	return body
 
 func release(id: int, body: Body) -> void:
@@ -130,6 +323,10 @@ func release(id: int, body: Body) -> void:
 	body.process_mode = Node.PROCESS_MODE_INHERIT
 	borrowed.erase(id)
 	destinations.erase(id)
+	_applied.erase(id)
+	_aligned.erase(id)
+	_tier.erase(id)
+	_pick_minute.erase(id)
 
 func _exit_tree() -> void:
 	# Only data belongs to VillageSession. This registry dies with its region scene.

@@ -194,10 +194,65 @@ static func stone() -> Node3D:
 		k.blob(Vector3(0, 0.05, 0), Vector3(0.075, 0.05, 0.065), DARK_STONE, 0.25, 8))
 
 
+## About 0.55 m long, 0.6 m to the top of the head, facing +Z: a white goose, orange bill and feet, the neck up.
+## (Pass 2: what a thief takes from a pen, and what a keeper carries under an arm.)
+static func goose() -> Node3D:
+	return _prop("goose", func(k: Kit) -> void:
+		var white := Color(0.96, 0.95, 0.91)
+		var orange := Color(0.96, 0.6, 0.16)
+		k.blob(Vector3(0, 0.25, 0), Vector3(0.13, 0.11, 0.2), white, 0.06, 21)              # body
+		k.blob(Vector3(0, 0.29, -0.2), Vector3(0.05, 0.04, 0.08), white, 0.05, 22)          # tail
+		for side in [-1.0, 1.0]:                                                            # folded wings
+			k.blob(Vector3(side * 0.115, 0.28, -0.02), Vector3(0.03, 0.07, 0.15), Color(0.84, 0.83, 0.79), 0.06, 23)
+			k.prism(Vector3(side * 0.05, 0.075, 0.03), 0.011, 0.14, orange, 4)              # legs
+			k.box(Vector3(side * 0.05, 0.018, 0.06), Vector3(0.045, 0.03, 0.1), orange)     # webbed feet
+		k.prism(Vector3(0, 0.43, 0.15), 0.036, 0.3, white, 6, Basis(Vector3.RIGHT, 0.32), 0.028)   # the neck, leaning forward
+		k.blob(Vector3(0, 0.6, 0.24), Vector3(0.05, 0.045, 0.06), white, 0.04, 24)          # head
+		k.box(Vector3(0, 0.59, 0.31), Vector3(0.035, 0.022, 0.075), orange)                 # bill
+		for side in [-1.0, 1.0]:
+			k.box(Vector3(side * 0.04, 0.615, 0.265), Vector3(0.014, 0.014, 0.014), Color(0.1, 0.08, 0.07)))   # eyes
+
+
+## About 0.42 m tall: a full burlap sack, its neck gathered and tied with cord, a darker patch sewn on.
+static func sack() -> Node3D:
+	return _prop("sack", func(k: Kit) -> void:
+		var burlap := Color(0.68, 0.54, 0.35)
+		k.blob(Vector3(0, 0.2, 0), Vector3(0.19, 0.2, 0.16), burlap, 0.12, 31)               # the belly of the sack
+		k.prism(Vector3(0, 0.43, 0), 0.075, 0.1, Color(0.62, 0.48, 0.31), 6, Basis.IDENTITY, 0.04)   # the gathered neck
+		k.prism(Vector3(0, 0.4, 0), 0.06, 0.03, ROPE, 6)                                     # the cord
+		k.box(Vector3(0.09, 0.2, 0.15), Vector3(0.1, 0.12, 0.02), Color(0.5, 0.38, 0.24))    # a patch
+		k.box(Vector3(-0.11, 0.09, 0.13), Vector3(0.08, 0.02, 0.03), Color(0.55, 0.42, 0.27), Basis(Vector3.BACK, 0.4)))   # a stitched seam
+
+
+## About 0.45 m across: a flared wicker basket with woven bands, a bent handle and a red cloth folded in it.
+static func basket() -> Node3D:
+	return _prop("basket", func(k: Kit) -> void:
+		var wicker := Color(0.74, 0.58, 0.33)
+		var band := Color(0.56, 0.41, 0.23)
+		k.prism(Vector3(0, 0.11, 0), 0.2, 0.22, wicker, 9, Basis.IDENTITY, 0.245)            # flared body
+		for y in [0.06, 0.13, 0.19]:                                                        # woven bands
+			k.prism(Vector3(0, y, 0), 0.215 + y * 0.2, 0.025, band, 9)
+		k.prism(Vector3(0, 0.225, 0), 0.25, 0.03, Color(0.6, 0.45, 0.26), 9)                # the rim
+		k.blob(Vector3(0, 0.235, 0), Vector3(0.18, 0.05, 0.18), Color(0.8, 0.32, 0.28), 0.1, 32)   # cloth in it
+		for i in 7:                                                                         # the handle, an arch over the top
+			var t := PI * (i + 0.5) / 7.0
+			k.box(Vector3(cos(t) * 0.24, 0.24 + sin(t) * 0.2, 0), Vector3(0.045, 0.045, 0.05), band, Basis(Vector3.BACK, t)))
+
+
+## About 0.34 m long, lying: a golden loaf, its dark crust cut with three slashes.
+static func bread() -> Node3D:
+	return _prop("bread", func(k: Kit) -> void:
+		k.blob(Vector3(0, 0.06, 0), Vector3(0.09, 0.06, 0.17), Color(0.85, 0.63, 0.32), 0.08, 41)   # the loaf
+		k.blob(Vector3(0, 0.085, 0), Vector3(0.07, 0.04, 0.14), Color(0.72, 0.47, 0.22), 0.1, 42)   # the crust
+		for z in [-0.07, 0.0, 0.07]:                                                         # slashes
+			k.box(Vector3(0, 0.122, z), Vector3(0.055, 0.008, 0.022), Color(0.93, 0.78, 0.52), Basis(Vector3.UP, 0.6)))
+
+
 ## Every prop, by name (for line-ups and the stage).
 static func all() -> Dictionary:
 	return {"pillory": pillory, "stocks": stocks, "stake": stake, "gallows": gallows, "shrine": shrine,
-		"notice_board": notice_board, "cabbage": cabbage, "turnip": turnip, "mud": mud, "stone": stone}
+		"notice_board": notice_board, "cabbage": cabbage, "turnip": turnip, "mud": mud, "stone": stone,
+		"goose": goose, "sack": sack, "basket": basket, "bread": bread}
 
 
 static func _prop(prop_name: String, build: Callable) -> Node3D:

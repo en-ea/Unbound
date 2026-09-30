@@ -393,6 +393,8 @@ func show_quest_complete(id: String) -> void:
 
 ## Talking to a villager (world/npc.gd).
 func open_dialogue(npc: String) -> void:
+	if npc.begins_with("resident:") and not load("res://scripts/studio/village/resident_talk.gd").opened(npc):   # studio: the village records the meeting first
+		return   # studio
 	_tracker.visible = false                               # it would sit behind the portrait
 	var panel := _modal(preload("res://scripts/ui/dialogue_panel.gd"), {"npc": npc})
 	panel.closed.connect(func() -> void: _tracker.visible = true)
