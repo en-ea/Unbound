@@ -249,7 +249,7 @@ func _physics_process(delta: float) -> void:
 		var run := Balance.SPRINT_SPEED if sprinting else RUN_SPEED
 		run *= 1.0 + Armor.bonus_total("fleet") / 100.0
 		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
-	# The camera never rotates, so screen up is world -Z.
+	# Controls already turned the stick into ground directions (relative to the camera).
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))
 	flat += fighter.step_velocity()

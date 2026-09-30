@@ -48,6 +48,11 @@ func _center() -> Vector2:
 	return get_viewport().get_visible_rect().size - margin
 
 
+## True if a touch here would press this button (the camera drag leaves those alone).
+func covers(pos: Vector2) -> bool:
+	return is_visible_in_tree() and pos.distance_to(_center()) < radius * 1.25
+
+
 func _input(event: InputEvent) -> void:
 	if not visible or not event is InputEventScreenTouch:
 		return

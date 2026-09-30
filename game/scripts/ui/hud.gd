@@ -22,6 +22,7 @@ const TITLE_VIEW := {"distance": 5.0, "pitch": -7.0, "offset": Vector3(-1.35, 0.
 
 var _fps_label: Label
 var _joystick: Control
+var _camera_drag: Control
 var _action: Control
 var _roll: Control
 var _heavy: Control
@@ -54,6 +55,10 @@ func _ready() -> void:
 	_joystick = Control.new()
 	_joystick.set_script(preload("res://scripts/ui/joystick.gd"))
 	add_child(_joystick)
+	_camera_drag = Control.new()
+	_camera_drag.set_script(preload("res://scripts/ui/camera_drag.gd"))
+	_camera_drag.camera_rig = camera_rig
+	add_child(_camera_drag)
 
 	_action = Control.new()
 	_action.set_script(ACTION_BUTTON)
@@ -405,6 +410,7 @@ func _title_camera() -> void:
 
 func _set_play_ui(on: bool) -> void:
 	_joystick.visible = on
+	_camera_drag.visible = on
 	_action.visible = on
 	_roll.visible = on
 	if not on:

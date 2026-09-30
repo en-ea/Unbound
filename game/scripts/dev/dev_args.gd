@@ -211,11 +211,10 @@ func _ready() -> void:
 		elif arg.begins_with("--cam="):               # --cam=d,pitch,fov[,yaw]: try other camera framings
 			var v := arg.trim_prefix("--cam=").split(",")
 			var rig := get_node("../CameraRig")
-			rig.set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01)
-			rig.camera.fov = float(v[2])
+			rig.set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01, float(v[2]))
 			rig.camera.far = 600.0
 			if v.size() > 3:
-				rig.rotation.y = deg_to_rad(float(v[3]))
+				rig.turn.call_deferred(deg_to_rad(float(v[3])))
 		elif arg == "--touchtest":
 			_touch_test = true
 	if _shot_path == "" and not _touch_test and not _gather_test and not _fight_test:

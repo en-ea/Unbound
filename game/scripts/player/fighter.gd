@@ -70,6 +70,9 @@ func _ready() -> void:
 	quad.material = mat
 	_sparks.mesh = quad
 	player.add_child.call_deferred(_sparks)
+	var marker := LockMarker.new()
+	marker.fighter = self
+	player.add_child.call_deferred(marker)
 	_thud = AudioStreamPlayer3D.new()
 	_thud.stream = THUD
 	_thud.unit_size = 8.0
@@ -257,6 +260,11 @@ func _land_heavy() -> void:
 	# Hit-stop for everything: the world nearly stops for a moment, then carries on.
 	Engine.time_scale = 0.05
 	get_tree().create_timer(0.11, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+
+
+## The closest living enemy within `reach` metres, or null (the camera and the lock marker use it).
+func nearest_enemy(reach: float) -> Node3D:
+	return _nearest_enemy(reach)
 
 
 func _nearest_enemy(reach: float) -> Node3D:
