@@ -43,6 +43,16 @@ func run(live: Node) -> void:
 	await get_tree().create_timer(1.2).timeout
 	if v.people[target].hurt != hurt0:
 		finish(false, "a normal tap hit a villager"); return
+	# the tap talked instead (their talk screen): close it as the player would
+	var talked := false
+	for hud in get_tree().get_nodes_in_group("hud"):
+		for c in hud.get_children():
+			if c.get_script() == preload("res://scripts/ui/dialogue_panel.gd"):
+				talked = true
+				c.closed.emit()
+				c.queue_free()
+	await get_tree().process_frame
+	print("PROVOKE a tap beside them opened their talk screen: %s" % talked)
 	# 2. square up, then real swings through Enea's fighter
 	var answer: Dictionary = provoke.square_up(target)
 	if not answer.get("accepted", false):
