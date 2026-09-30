@@ -157,7 +157,7 @@ Settings has a "Living village" switch: off means Enea's village only.
 ## 9. Next
 
 1. **The web frame measurement** with the pane showing (about 90 seconds); then the iPhone route, run by Hilmi or Enea.
-2. **`toolbox/vitals`** (lesson L015): position, health, clock rate, focus and errors streamed to the agent, and readable by Hilmi.
+2. **Live observation** (lesson L015): position, health, clock rate, focus and errors streamed to the agent, and readable by Hilmi. HQ's foundations v2 (sections 4 and 5) already design this contract. So Unbound builds a Godot adapter to it once HQ's Stage A has settled it, not a studio-shaped tool ahead of it.
 3. **Enea's hauling** (carry, drag, cart) as the base for carrying a person (G08) and captivity (B4). **His quest guide beam** as the way a gathering catches the eye.
 4. The stretch left from this pass: the player reported and summoned to a hearing; an apology or restitution as a way back.
 5. The S10 golden check and the long sweep, at the next milestone.
