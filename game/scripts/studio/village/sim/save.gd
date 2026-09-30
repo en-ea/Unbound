@@ -192,12 +192,19 @@ static func _enc_any(value: Variant) -> Variant:
 				out.append(item if t == TYPE_INT or t == TYPE_STRING else _enc_any(item))
 			return out
 		TYPE_DICTIONARY:
+			# A JSON object comes back with its keys sorted (JSON.stringify sorts them), and order is state here (the
+			# oldest receipt is the first key; the rules walk dictionaries in order). So a plain object only when the
+			# keys already are in that order; otherwise the ordered pairs.
 			var plain: bool = not (value.has("@o") or value.has("@d"))
 			if plain:
+				var prev := ""
+				var first := true
 				for k: Variant in value:
-					if not k is String:
+					if not k is String or (not first and not (prev < k)):
 						plain = false
 						break
+					prev = k
+					first = false
 			if plain:
 				var out := {}
 				for k: String in value:
@@ -233,13 +240,9 @@ static func _kept_stagings(v: S.Village) -> Dictionary:
 
 
 ## Rebuilds the layout tables of a decoded village: the meadow layout and what the rules add when a runtime is
-## attached (Village.rebuild_places, once it exists; make_places alone until then).
+## attached (Enea's characters' spots: authored.gd).
 static func _rebuild_places(v: S.Village) -> void:
-	var rules: GDScript = Village
-	if rules.has_method("rebuild_places"):
-		rules.call("rebuild_places", v)
-	else:
-		Village.make_places(v, Village.MEADOW)
+	Village.rebuild_places(v)
 
 
 ## Everything the rebuild could depend on, folded to one number: the tables as they are, and which people are authored.
