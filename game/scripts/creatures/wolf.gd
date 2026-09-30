@@ -299,7 +299,8 @@ func _die() -> void:
 		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.5))
-	var items: Array[String] = ["shadow_pelt"] if shadow else ["pelt"]
+	var items: Array[String] = []     # (a typed array can't take a ternary's untyped list in 4.7: wolves dropped nothing)
+	items.append("shadow_pelt" if shadow else "pelt")
 	if randf() < Balance.MEAT_CHANCE["wolf"]:
 		items.append("raw_meat")
 	if randf() < (0.6 if shadow else 0.3):
