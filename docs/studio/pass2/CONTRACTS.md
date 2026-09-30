@@ -79,3 +79,25 @@ Presentation reads residents only through this contract:
 - A smoke render.
 
 Godot: `C:/Users/hilmi/AppData/Local/UnboundStudio/tools/godot/Godot_v4.7.2-stable_win64_console.exe` (windowed: `..._win64.exe`). Test saves always use `--test-save=<unique name>`; never the owner's `save.json`.
+
+## Stage 2 additions (lead, 30 Sep)
+
+- **The phased day** (`village.gd begin_day`/`run_phase`, `runtime.gd advance`):
+  - `v.day` is "today" all day long;
+  - `Runtime.next_dawn(v)` gives the next midnight;
+  - `Runtime.set_player(v, present, x_dm, z_dm)` is written by `live.gd`.
+- **Incidents** (`sim/incidents.gd`): runtime events of type `"incident"` whose deadline is their end. Kinds: `theft` (`done`/`abandoned`), `quarrel` (`words`/`blows`), `kindness`. They are staged only while the player is present.
+- **World verbs** (`sim/world_actions.gd`):
+  - `square_up`, `strike` (`{press_id, damage}`), `shove`, `give` (`{item, count}`, with context `have` and `food`).
+  - The rules refuse children ("never a child") and Enea's characters ("not them").
+- **Reactions** (`sim/reactions.gd`):
+  - they are written to `runtime.reactions[str(id)] = {state, since, until}` (game minutes);
+  - the one struck: puzzled, startled, protest, flee, call_help, fight_back, plead, down;
+  - onlookers: intervene, shout, flee, back_away, watch.
+- **In the game:** `provoke.gd` (`square_up(id)`, `landed()`, `witnesses()`) and `fight_target.gd` (group `"enemy"`, only while squared up).
+- **Codes:** runtime results carry a `code`; key presentation on it, never on the prose.
+- **The view:** `describe` gains `look` (outfit index), `protected` and `authored`.
+- **Enea's characters** (`sim/authored.gd`) are residents with `authored` set to their Npcs id.
+  - Presentation never makes a body, talk spot or stage actor for them.
+  - `Village.rebuild_places(V)` replaces `make_places(V, MEADOW)` after a save is decoded.
+- **Memory tokens:** `threatened_by_you`, `hit_by_you`, `shoved_by_you`, `saw_you_hit`, `saw_you_shove`, `gift_from_you`, `told_about_you`, `you_shielded`.
