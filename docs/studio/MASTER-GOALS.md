@@ -372,7 +372,22 @@ visible body, movement, sound and cue express the accepted result
 |---|---|---|---|
 | Recovered night and focused continuation | Existing hearing/rescue/rite, residents, persistence and device repair | [repo/run] Engineering complete for V1-V14; owner feel pending; published through `535fd40` | [Continuation ledger](CONTINUATION.md), [night report](NIGHT-1.md), [device packet](evidence/continuation/s10-final/FINAL-RESULTS.md). Older local-only publication statements there are historical; the push was later authorised and verified. |
 | Master goals reconciliation | Whole vision, source conflicts, missing gameplay and execution order | [repo/chat/design] This document | Based on S0-S9; no new gameplay implied. |
-| Next proposed batch | B1: G01/G02/G03/G04 narrow slices | [design] Ready for lead selection; not started | Check branch drift and existing dirty work; implement spontaneous adult assault with varied response and a local witness. |
+| Next proposed batch | B1: G01/G02/G03/G04 narrow slices | [design] Selected 30 Sep (record below); not started | Main 0709565 merged locally as df6f214 with all checks passing; implement the strike action and one reaction end to end. |
+
+#### B1 - Provoke a person (selected 30 Sep 2026, not started)
+
+```text
+Batch / date / lead and exact helper selections: B1 / 30 Sep 2026 / Claude (claude-opus-5-5) as lead; no helpers (Hilmi, 30 Sep: "Without subagents now")
+Goal IDs and the bounded player outcome: G01 (intent only), G02, G03, G04 (one witness chain). Outside any event, the player squares up to an adult resident on purpose and strikes them. That person reacts in their own way (puzzled, protesting, fleeing, calling for help or hitting back; more blows change the answer). A nearby resident who could actually see it decides for themselves (step in, raise the alarm, back away, look away). One of them carries a report with its origin to the elder. Saving at once, or leaving and coming back, keeps the bruise, the fear and the report.
+Source base, inspected main head, branch and file ownership: studio df6f214 (merge of main 0709565 into 17c1f06/b16438c); nested game repo, branch studio. Owned: scripts/studio/village/sim/{runtime,state,save}.gd plus a new sim/provoke.gd, scripts/studio/village/{residents,live}.gd, tools-src/studio/village-reference/ (the JS twin of the decision rules). Enea's files: only small marked hooks in player/fighter.gd and player/player.gd.
+Contracts the lead owns: (1) intent - an ordinary tap never assaults: a deliberate square-up (proposed: hold the action button near an adult resident) selects the target, and the lock releases on distance, menu, travel, the target's absence or a second hold; children and story characters cannot be selected (story characters answer with a visible refusal); (2) one authoritative "strike" action through runtime.act (actor, target, place, minute, swing id): the injury and the incident are applied once, a repeated delivery of the same swing is a no-op; (3) the reaction decision is a pure keyed function of the target's traits, injury, standing towards the stranger, kin and nearby support, with a JS twin and shared fixtures; (4) perception is distance plus the existing obstacle blocks (no eyewitness through a wall); an alarm carries danger, not identity; a report keeps its origin.
+Status: selected; not started
+Commits and normal build identity / launch route: (to fill)
+Acceptance scenarios and actual results / evidence paths: controlled fixtures - a neutral, a timid and an assertive adult plus one witness: first hit, repeated real hit, duplicated same hit, an unseen hit, a hit during an existing event, the target disappearing, immediate save/load, travel away and back; plus ordinary play. (to fill)
+Performance scope, device and limits: reactions are event-driven (no per-frame planner); one short S10 sample of a provoked crowd at a stable checkpoint.
+Owner feedback (only if received): none yet. The square-up control is shown to the owner before any wider change to combat.
+Remaining gap, next exact action and publication authority/status: next - implement the strike action and one reaction end to end, with save and travel. Local commits only; df6f214 and later are unpushed; no main merge or outward message.
+```
 
 [design] Add each implementation batch as a new entry using this compact record; preserve failed results and corrections rather than rewriting them as successes:
 
