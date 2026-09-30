@@ -12,6 +12,8 @@ next_step: Enea replies (any of the ways below); the studio then plans the next 
 
 ## 29 Sep 2026 - current continuation route [chat/repo/design]
 
+**30 Sep, evening:** Pass 2 is done: read [PASS-2-REPORT.md](PASS-2-REPORT.md) first (what the village does around the player now, the checks, how to play it, what is open).
+
 **30 Sep:** the programme is now [MASTER-GOALS-r2.md](MASTER-GOALS-r2.md). It proposes who builds what (Enea: the adventure; the studio: the people) and a single opt-in landing path into `main`, and puts hygiene and foundations before the first player-agency batch. The paragraph below is the 29 Sep history.
 
 Use [MASTER-GOALS.md](MASTER-GOALS.md) for the next Opus-led implementation cycle. Enea's later answers are already in [FROM-ENEA.md](FROM-ENEA.md), the focused village continuation is published through `535fd40`, and Hilmi's latest exchange broadens the next work to natural player agency while keeping village drama optional. The master separates existing code from missing features, gives related batches and an Opus/Sonnet execution brief, and records current-main drift. The earlier questions and weekly-rebase wording below are history; do not repeat answered questions or rewrite published history merely to follow that old schedule.

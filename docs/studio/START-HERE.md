@@ -12,6 +12,8 @@ next_step: Enea (and his agents) read this and reply (NEXT.md); then we plan the
 
 ## Master goals, 29 Sep 2026 [chat/repo/design]
 
+**30 Sep, evening:** Pass 2 is done: read [PASS-2-REPORT.md](PASS-2-REPORT.md) first (what the village does around the player now, the checks, how to play it, what is open).
+
 **30 Sep:** the programme is now [MASTER-GOALS-r2.md](MASTER-GOALS-r2.md). It proposes who builds what (Enea: the adventure; the studio: the people) and a single opt-in landing path into `main`, and puts hygiene and foundations before the first player-agency batch. The paragraph below is the 29 Sep history.
 
 For the next implementation run, read [MASTER-GOALS.md](MASTER-GOALS.md). It reconciles Hilmi/Enea's latest conversation, the original Opus design chat, Enea's game plan and the delivered code into 23 goals with a proposed sequence of playable batches. It explicitly covers natural provocation and resident reactions, recognition/disguises, captivity and transport, groups/conflicts, three-land progression and the existing adventure. The future Opus lead selects a few related goal slices and uses at most two explicitly selected Sonnet helpers. The first proposed batch is a deliberate punch, an individual response and a locally informed witness, with persistent consequences. Read its current-state table before treating an older route proposal as implemented.
