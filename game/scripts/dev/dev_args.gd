@@ -205,6 +205,8 @@ func _ready() -> void:
 				picker[0]._show_tab(tab))
 		elif arg == "--fighttest":
 			_fight_test = true
+		elif arg == "--bandittest":                   # with --lab: sneak-kill a bandit, then fight two
+			add_child(preload("res://scripts/dev/bandit_test.gd").new())
 		elif arg == "--defencetest":                  # parry a boar's charge, perfect-dodge the next
 			add_child(preload("res://scripts/dev/defence_test.gd").new())
 		elif arg == "--telltest":

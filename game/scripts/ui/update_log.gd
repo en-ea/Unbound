@@ -5,6 +5,27 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "30 Sep", "title": "Morrow's job: The Black Seal", "lines": [
+		"Morrow (by the spawn, with the skull staff) has a dark job for you: kill Varek, leader of the Red Hand bandits, and bring back the black seal he wears. For Morrow. Not the trader.",
+		"Reward: coins and an Epic sword. His last words about the seal are worth reading.",
+	]},
+	{"when": "30 Sep", "title": "The Red Hand bandits", "lines": [
+		"A bandit camp in the east of the Whispering Wood (look for the red dots on the minimap, and 'Red Hand Camp'): a stake wall with a gate on the west and a gap at the back, tents, a lookout, and 7 bandits plus their leader Varek.",
+		"Cutthroats: swords, 2 to 3 hit combos, they block some hits from the front and strike back if you keep swinging into their guard.",
+		"Shield bandits block everything from the front. Get behind them, or break the guard with a Heavy blow.",
+		"Archers keep their distance and shoot. Each shot has a glint first: roll through it or parry it. They back off if you close in.",
+		"Only 2 bandits attack at once. The others circle round behind you, so keep moving.",
+		"Varek: a duelist with long combos and a dashing lunge. He reads button-mashers and parries them. At half health he roars, calls the whole camp, and gets faster. Boss music.",
+		"Bandits drop coins and Red Hand Rags (the trader buys them), and sometimes gear. The dead come back if you stay away long enough.",
+		"Test them one at a time in the Build lab (Bandit, Shield bandit, Bandit archer, Varek).",
+	]},
+	{"when": "30 Sep", "title": "Sneaking", "lines": [
+		"New Sneak button (C on a keyboard): crouch and creep. It's slower, and bandits only see you from close up. Sprinting stands you up.",
+		"Bandits see in a cone in front of them, not through walls or tents, and less far at night. They hear you run, sprint or fight.",
+		"A '?' over a bandit's head fills up while they notice you. At '!' they shout and the camp comes.",
+		"Get close behind an unaware bandit and the action button says Takedown: one quiet blow. On Varek it takes half his health and wakes him.",
+		"A bandit who sees a body comes to look. Pick your order.",
+	]},
 	{"when": "30 Sep", "title": "Parry and perfect dodge", "lines": [
 		"New Parry button in fights (R on a keyboard). Press it just as a blow lands (the glint is your cue): PARRY! The enemy is knocked off balance and stunned, and your next hit is a double-damage counter.",
 		"Press it too early or late and you still block, but it costs stamina and shoves you back. Run out of stamina and your guard breaks.",

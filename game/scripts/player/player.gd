@@ -30,6 +30,7 @@ var verb := ""
 var stamina: Stamina
 var smoking: Smoking
 var sprinting := false
+var sneaking := false          # crouched: slow and quiet, and bandits see you from much closer
 var _roll := 0.0
 var _roll_rest := 0.0
 var _roll_dir := Vector3.FORWARD
@@ -89,6 +90,37 @@ func guard() -> void:
 
 func is_down() -> bool:
 	return _down > 0.0
+
+
+## The Sneak button: crouch and creep (again to stand).
+func sneak() -> void:
+	if _down > 0.0 or Controls.locked:
+		return
+	set_sneaking(not sneaking)
+
+
+func set_sneaking(on: bool) -> void:
+	sneaking = on
+	visual.idle_anim = "Crouch_Idle" if on else ""
+	visual.walk_anim = "Crouch_Fwd" if on else ""
+	get_tree().call_group("hud", "sneak_changed", on)
+
+
+## How far away you can be heard right now (metres; 0 = silent). Bandits use it.
+func noise() -> float:
+	var st: Dictionary = Balance.STEALTH
+	if _down > 0.0:
+		return 0.0
+	if fighter.is_busy() or _roll > 0.0 or _guard > 0.0:
+		return st["noise_fight"]
+	var speed := Vector2(velocity.x, velocity.z).length()
+	if sprinting:
+		return st["noise_sprint"]
+	if speed > 3.0:
+		return st["noise_run"]
+	if speed > 0.3:
+		return st["noise_sneak"] if sneaking else st["noise_walk"]
+	return 0.0
 
 
 ## True (once) if a counter is ready: the fighter doubles the next hit.
@@ -261,6 +293,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			heavy()
 		elif event.physical_keycode == KEY_R:
 			guard()
+		elif event.physical_keycode == KEY_C:
+			sneak()
 
 
 ## The action: something hurts the player (a boar charge). At 0 hearts they are knocked down
@@ -379,10 +413,14 @@ func _physics_process(delta: float) -> void:
 		$Effects.burst(true)              # a kick of dust as you take off
 	if sprinting:
 		stamina.drain(delta)
+	if sneaking and sprinting:
+		set_sneaking(false)                   # breaking into a sprint stands you up
 	if strength > 0.1:
 		var run := Balance.SPRINT_SPEED if sprinting else RUN_SPEED
 		run *= 1.0 + Armor.bonus_total("fleet") / 100.0
 		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
+		if sneaking:
+			target_speed = minf(target_speed, Balance.STEALTH["sneak_speed"])
 	# Controls already turned the stick into ground directions (relative to the camera).
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))

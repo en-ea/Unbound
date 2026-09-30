@@ -118,6 +118,8 @@ func _physics_process(delta: float) -> void:
 		_shock_mat.set_shader_parameter("t", _shock_t)
 	target = _nearest_enemy(BUTTON_REACH)
 	var new_verb := "Attack" if target or _since < STAY_ARMED else ""
+	if target and target.has_method("can_be_taken_down") and target.can_be_taken_down(player):
+		new_verb = "Takedown"
 	if new_verb != verb:
 		verb = new_verb
 		target_changed.emit(verb)
@@ -125,6 +127,9 @@ func _physics_process(delta: float) -> void:
 
 ## The action button near an enemy: one swing of the combo.
 func attack() -> void:
+	if verb == "Takedown" and _busy <= 0.0 and is_instance_valid(target):
+		_takedown(target)
+		return
 	if _busy > 0.0:
 		_queued = _busy < 0.25
 		return
@@ -148,6 +153,23 @@ func attack() -> void:
 	_audio.stream = _whoosh
 	_audio.pitch_scale = randf_range(0.9, 1.15)
 	_audio.play()
+
+
+## From behind an unaware bandit: one quick, quiet blow.
+func _takedown(t: Node3D) -> void:
+	var to := t.global_position - player.global_position
+	visual.rotation.y = atan2(to.x, to.z)
+	visual.show_tool("sword" if Gear.tier("sword") >= 0 else "")
+	visual.play_action("Sword_Regular_C", 1.5)
+	_busy = 0.55
+	_impact = -1.0
+	_since = 0.0
+	get_tree().create_timer(0.22).timeout.connect(func() -> void:
+		if is_instance_valid(t) and t.is_alive():
+			t.taken_down(player)
+			_play_once(preload("res://assets/sounds/sneak_kill.wav"), -2.0)
+			get_tree().call_group("camera_rig", "shake", 0.06)
+			Skills.add("combat", Balance.XP_PER_SWORD_HIT * 3))
 
 
 ## The Heavy button: one big blow. The player has already paid the stamina.

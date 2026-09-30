@@ -30,7 +30,7 @@ const REGIONS := {
 		"path": [Vector2(0, -125), Vector2(4, -100), Vector2(-2, -80), Vector2(0, -75), Vector2(-3, -52), Vector2(5, -36), Vector2(0, -20), Vector2(-9, -6),
 			Vector2(-4, 8), Vector2(6, 18), Vector2(12, 25), Vector2(18, 30)],
 		"clearings": [Vector3(0.0, -47.0, 5.0), Vector3(1.5, -83.0, 5.0),
-			Vector3(-70, -45, 9.0), Vector3(66, 52, 8.0), Vector3(-62, 74, 8.0)],     # camp + the places
+			Vector3(-70, -45, 9.0), Vector3(66, 52, 8.0), Vector3(-62, 74, 8.0), Vector3(74, 10, 16.0)],     # camp + the places + the Red Hand camp
 		"keep_clear": [Vector3(34, -18, 4.0), Vector3(-36, 30, 1.5), Vector3(-40, -40, 1.5)],
 	},
 }

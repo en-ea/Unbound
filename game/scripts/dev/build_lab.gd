@@ -152,6 +152,17 @@ func spawn(kind: String) -> void:
 				e.shadow = true
 			_spawns.add_child(e)
 			e.global_position = at + Vector3(0, 0.5, 0)
+		"cutthroat", "shield", "archer", "leader":         # a bandit, unaware, its back to you (sneak up, or wake it)
+			var b := Bandit.new()
+			b.kind = kind
+			b.player = player
+			b.post = at
+			var away := at - player.global_position
+			b.post_turn = atan2(away.x, away.z)
+			b.look = BanditLooks.make({"cutthroat": 0, "shield": 2, "archer": 3, "leader": 5}[kind], randi())
+			b.body_scale = 1.1 if kind == "leader" else 1.0
+			_spawns.add_child(b)
+			b.global_position = at + Vector3(0, 0.3, 0)
 		"chest":
 			_note_first()
 			treasure.add_chest(at, rad_to_deg(atan2(player.global_position.x - at.x, player.global_position.z - at.z)))

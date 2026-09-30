@@ -256,6 +256,80 @@ def anvil():
     return b
 
 
+def bandit_shield():
+    """A bandit's round shield: dark planks with a red-painted half, an iron rim and a domed boss. Faces -Y
+    (the front), about 0.62 m across, the grip at the origin (behind the boss)."""
+    b = Builder(["Item", "Glow"])
+    wood, red, iron, dark = (0.54, 0.4, 0.28), (0.72, 0.18, 0.14), (0.62, 0.62, 0.66), (0.34, 0.32, 0.32)
+    seg = 12
+    def disc(z, r, color, depth):
+        tube_faces(b, [V((0, z, 0)), V((0, z - depth, 0))], [(r, r)] * 2, color, seg=seg, ref=V((1, 0, 0)))
+    disc(0.0, 0.31, iron, 0.03)                                                  # rim
+    disc(-0.005, 0.29, wood, 0.035)                                              # planks
+    for f in b.bm.faces:                                                         # paint the left half red
+        f.normal_update()
+        c = f.calc_center_median()
+        if f.normal.y < -0.9 and c.x < -0.02 and c.z > -0.25:
+            b.paint([f], "Item", red)
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, -0.05, 0)), (0.08, 0.05, 0.08), 7, 4)), "Item", iron)   # boss
+    for k in range(6):                                                          # rivets round the rim
+        a = k * math.tau / 6
+        box(b, V((math.cos(a) * 0.26, -0.045, math.sin(a) * 0.26)), (0.03, 0.02, 0.03), dark)
+    box(b, V((0, 0.03, 0)), (0.04, 0.04, 0.2), (0.3, 0.18, 0.1))                 # the grip bar behind
+    return b
+
+
+def bandit_bow():
+    """A plain recurve bow: a dark wooden limb curving back at the tips, a leather grip, a taut string. The
+    grip is at the origin, the bow stands along Z, the string on the -Y side."""
+    b = Builder(["Item", "Glow"])
+    wood, grip, string = (0.5, 0.35, 0.24), (0.62, 0.38, 0.22), (0.9, 0.86, 0.76)
+    for s in (1, -1):
+        tube_faces(b, [V((0, 0, 0)), V((0, 0.05, s * 0.22)), V((0, 0.07, s * 0.44)), V((0, 0.03, s * 0.58)), V((0, -0.02, s * 0.63))],
+                   [(0.022, 0.018), (0.02, 0.016), (0.016, 0.013), (0.012, 0.01), (0.008, 0.008)], wood, seg=5, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, 0, -0.07)), V((0, 0, 0.07))], [(0.028, 0.024)] * 2, grip, seg=6, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, -0.02, -0.62)), V((0, -0.02, 0.62))], [(0.004, 0.004)] * 2, string, seg=3, ref=V((1, 0, 0)))
+    return b
+
+
+def arrow():
+    """An arrow along +Z (tip at +Z): a shaft, an iron head, red fletching."""
+    b = Builder(["Item", "Glow"])
+    tube_faces(b, [V((0, 0, -0.38)), V((0, 0, 0.32))], [(0.008, 0.008)] * 2, (0.55, 0.42, 0.28), seg=4, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, 0, 0.3)), V((0, 0, 0.42))], [(0.022, 0.012), (0.002, 0.002)], (0.4, 0.4, 0.44), seg=4, ref=V((1, 0, 0)))
+    for k in range(3):
+        a = k * math.tau / 3
+        d = V((math.cos(a), math.sin(a), 0))
+        b.paint(b.new_faces(lambda d=d: [b.bm.faces.new([b.bm.verts.new(V((0, 0, -0.36))), b.bm.verts.new(d * 0.035 + V((0, 0, -0.33))),
+                                                     b.bm.verts.new(d * 0.03 + V((0, 0, -0.22))), b.bm.verts.new(V((0, 0, -0.2)))])]), "Item", (0.62, 0.12, 0.1))
+    return b
+
+
+def black_seal():
+    """Varek's black seal: a heavy dark-iron signet on a short chain, a red stone set in it, a faint glow."""
+    b = Builder(["Item", "Glow"])
+    iron, dark = (0.2, 0.19, 0.22), (0.12, 0.11, 0.13)
+    tube_faces(b, [V((0, -0.03, 0)), V((0, 0.03, 0))], [(0.1, 0.1)] * 2, iron, seg=8, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, -0.035, 0)), V((0, -0.028, 0))], [(0.075, 0.075)] * 2, dark, seg=8, ref=V((1, 0, 0)))
+    b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0, -0.05, 0)), (0.035, 0.02, 0.035), 6, 4)), "Glow", (0.9, 0.12, 0.1))
+    for k in range(4):                                                          # a few chain links
+        tube_faces(b, [V((0, 0, 0.1 + k * 0.045)), V((0, 0, 0.135 + k * 0.045))], [(0.014, 0.014)] * 2, iron, seg=4, ref=V((1, 0, 0)))
+    return b
+
+
+def bandit_token():
+    """A torn strip of red cloth with a black hand painted on it: what the Red Hand bandits wear."""
+    b = Builder(["Item", "Glow"])
+    box(b, V((0, 0, 0)), (0.26, 0.02, 0.12), (0.6, 0.12, 0.1))
+    box(b, V((0.02, -0.012, 0)), (0.07, 0.01, 0.07), (0.1, 0.08, 0.08))
+    return b
+
+
+export("bandit_shield", bandit_shield(), OUT)
+export("bandit_bow", bandit_bow(), OUT)
+export("arrow", arrow(), OUT)
+export("black_seal", black_seal(), OUT)
+export("red_hand", bandit_token(), OUT)
 export("wood", log(), OUT)
 export("golem_hammer", golem_hammer(), OUT)
 export("anvil", anvil(), OUT)

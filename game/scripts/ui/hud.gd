@@ -27,6 +27,7 @@ var _action: Control
 var _roll: Control
 var _heavy: Control
 var _parry: Control
+var _sneak: Control
 var _slow_tint: ColorRect
 var _loot_card: Control
 var _corner: HBoxContainer
@@ -98,6 +99,14 @@ func _ready() -> void:
 	_parry.set_verb("Parry")
 	_parry.visible = false
 	_parry.pressed.connect(player.guard)
+	_sneak = Control.new()
+	_sneak.set_script(ACTION_BUTTON)
+	_sneak.radius = 40.0
+	_sneak.margin = Vector2(262, 236)
+	_sneak.font_size = 17
+	add_child(_sneak)
+	_sneak.set_verb("Sneak")
+	_sneak.pressed.connect(player.sneak)
 	player.stamina.refused.connect(func(cost: String) -> void:
 		({"heavy": _heavy, "guard": _parry}.get(cost, _roll) as Control).refuse())
 	_slow_tint = ColorRect.new()
@@ -340,6 +349,7 @@ func start_build_mode(room := false) -> void:
 	_roll.visible = false
 	_heavy.visible = false
 	_parry.visible = false
+	_sneak.visible = false
 	_corner.visible = false
 	Controls.locked = false
 	var ui := Control.new()
@@ -464,6 +474,13 @@ func _show_heavy() -> void:
 		_parry.set("_pulse", 1.0)
 	_heavy.visible = show
 	_parry.visible = show
+	_sneak.visible = _action.visible and not show
+
+
+## Sneaking on or off: the Sneak button lights up while you're crouched.
+func sneak_changed(on: bool) -> void:
+	_sneak.lit = on
+	_sneak.set_verb("Sneaking" if on else "Sneak")
 
 
 ## Slow motion (a perfect dodge or parry): a cool blue wash over the screen that fades as time returns.

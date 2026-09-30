@@ -24,6 +24,19 @@ const DEFS := {
 		"thanks": "Not bad at all. Better than my first. Keep the spare leaf, I've plenty, and take this for your trouble. Light one up when the day gets long.",
 		"reward": {"coins": 60, "items": {"tobacco": 5}},
 	},
+	"morrow_seal": {
+		"giver": "morrow", "name": "The Black Seal",
+		"offer": "You have a steady hand. Good. There is a man in the eastern wood who calls himself Varek. His Red Hand take from the road, and the road has had enough. I want him not to see another morning. And at his throat he wears a black seal on a chain. That you bring to me. Not to the trader. Not to the smith. To me.",
+		"accepted": "East, deep in the Whispering Wood, past the old hill. Stakes and red banners. They keep a lookout. Go quietly and you choose who dies first. Go loudly and they choose for you.",
+		"steps": [
+			{"kind": "have", "text": "Take Varek's black seal (Red Hand camp, east of the Whispering Wood)", "items": {"black_seal": 1},
+				"say": "Varek. The camp in the east of the wood. Crouch, stay out of their eyes, and they never know you were there. His seal, remember. Not his coin."},
+			{"kind": "turn_in", "text": "Bring the seal to Morrow", "items": {"black_seal": 1},
+				"say": "You have it. I can hear it from here. Give it to me."},
+		],
+		"thanks": "Cold. Still cold. It was never his, you know. It was lent, a long time ago, and the lender is patient. Take this for your trouble, and forget the shape of that seal. That part is important.",
+		"reward": {"coins": 180, "gear": ["sword", 3]},
+	},
 }
 
 var _state := {}       # quest id -> {"step": int, "done": bool}
@@ -92,6 +105,11 @@ func turn_in(id: String) -> bool:
 	Money.earn(reward.get("coins", 0))
 	for item: String in reward.get("items", {}):
 		Inventory.add(item, reward["items"][item])
+	if reward.has("gear"):                        # a piece of gear: [slot, rarity], rolled like a find
+		var g: Array = reward["gear"]
+		var piece := Gear._tool(maxi(Gear.tier(g[0]), 1), g[1], Loot.roll_bonuses("weapon" if g[0] == "sword" else "tool", g[1]))
+		Gear.take(g[0], piece)
+		get_tree().call_group("hud", "found_tool", g[0], piece)
 	_state[id]["done"] = true
 	completed.emit(id)
 	changed.emit()
