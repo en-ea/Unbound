@@ -22,7 +22,7 @@ func photo(label: String, at: Vector2) -> void:
 	var err := get_viewport().get_texture().get_image().save_png(folder.path_join(label + ".png"))
 	var live := get_tree().current_scene.get_node("VillageLive")
 	_index.append({"shot": label, "error": err, "seed": VillageSession.village.seed, "minute": VillageSession.village.runtime.now,
-		"event": live._event, "cue": live._label.text})
+		"event": live._event, "cue": live.last_hint})
 	print("CAPTURE ", label, " ", err)
 
 func replace(v: Runtime.S.Village, e: Dictionary) -> Node:

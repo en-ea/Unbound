@@ -119,6 +119,8 @@ func turn_in(id: String) -> bool:
 ## The talk screen for a villager: {text, options: [{label, do}]}. `do` runs when a button is pressed and
 ## returns the next screen in the same shape, or an empty Dictionary to end the talk.
 func talk(npc: String) -> Dictionary:
+	if npc.begins_with("resident:"):   # studio: a simulated villager talks through the same screen
+		return load("res://scripts/studio/village/resident_talk.gd").screen(npc)   # studio
 	var def := Npcs.get_def(npc)
 	for id: String in DEFS:
 		if DEFS[id]["giver"] != npc:

@@ -7,56 +7,34 @@ var registry: Node3D
 var _stage: Node3D
 var _event := -1
 var _revision := -1
-var _label: Label
 var _player: Node3D
-var _feedback := ""
-var _feedback_until := 0
-var _choices: HBoxContainer
-var _buttons := {}
+var _notice := ""
+var last_hint := ""
+var _spots := {}                     # "inspect" / "plant": the UseSpot at the place, made when a hearing opens
+var _spot_event := {}                # the event each of those was made for
 var _traces := {}
 var _storm_props := {}
 const Props := preload("res://scripts/studio/village/props.gd")
 const StageProps := preload("res://scripts/studio/village/stage_props.gd")
 const UseSpot := preload("res://scripts/world/use_spot.gd")
+const React := preload("res://scripts/studio/village/resident_react.gd")
+const Talk := preload("res://scripts/studio/village/resident_talk.gd")
+const C := preload("res://scripts/studio/village/sim/content.gd")
 
-static func on_device(_tree: SceneTree) -> void:
-	pass # main attaches the same normal-game authority and bridge for this launch argument
+static func on_device(tree: SceneTree) -> void:
+	# main attaches the same normal-game authority and bridge for this launch argument;
+	# --people-probe=<mode> also plays the game as a player would (people_probe.gd)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--people-probe="):
+			load("res://scripts/studio/village/people_probe.gd").on_device(tree)
 
 func _ready() -> void:
 	if not VillageSession.recovery_notice.is_empty():
-		_feedback = VillageSession.recovery_notice
-		_feedback_until = int(VillageSession.village.runtime.now) + 30
+		_notice = VillageSession.recovery_notice          # said once, on the first frame the player can read it
 		VillageSession.recovery_notice = ""
 	registry = Residents.new()
 	add_child(registry)
 	_player = get_tree().get_first_node_in_group("player")
-	var layer := CanvasLayer.new()
-	layer.layer = 8
-	add_child(layer)
-	_label = Label.new()
-	_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	_label.position = Vector2(210, 98)
-	_label.size = Vector2(820, 74)
-	_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_label.add_theme_font_size_override("font_size", 21)
-	_label.add_theme_color_override("font_outline_color", Color.BLACK)
-	_label.add_theme_constant_override("outline_size", 5)
-	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.add_child(_label)
-	_choices = HBoxContainer.new()
-	_choices.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_choices.position = Vector2(300, 510)
-	_choices.add_theme_constant_override("separation", 8)
-	layer.add_child(_choices)
-	for verb: String in ["listen", "testify", "bribe", "inspect", "plant", "offer"]:
-		var button := Button.new()
-		button.custom_minimum_size = Vector2(132, 50)
-		button.add_theme_font_size_override("font_size", 19)
-		button.text = {"listen": "Listen", "testify": "Testify", "bribe": "Offer 5 coins", "inspect": "Inspect trace", "plant": "Plant 1 wood", "offer": "Gesture: 1 wood"}[verb]
-		button.pressed.connect(_choose.bind(verb))
-		_choices.add_child(button)
-		_buttons[verb] = button
 
 func _process(_delta: float) -> void:
 	var v = VillageSession.village
@@ -124,10 +102,11 @@ func _open(e: Dictionary) -> void:
 		_stage._player = _player
 	_stage.action_authority = _act
 
-func _act(verb: String, parameters: Dictionary) -> Dictionary:
+func _act(verb: String, parameters: Dictionary, in_talk := false) -> Dictionary:
 	var v = VillageSession.village
 	var e := Runtime.event_by_id(v, _event)
-	if e.is_empty() or _stage == null or _stage._victim == null or Controls.locked or VillageSession.background or _player._down > 0.0:
+	# in_talk: asked from the talk screen (which locks the controls while it is open)
+	if e.is_empty() or _stage == null or _stage._victim == null or (Controls.locked and not in_talk) or VillageSession.background or _player._down > 0.0:
 		return {"accepted": false, "reason": "unavailable"}
 	var pos := _action_at(verb, parameters)
 	var distance := Vector2(_player.global_position.x, _player.global_position.z).distance_to(pos)
@@ -141,13 +120,6 @@ func _act(verb: String, parameters: Dictionary) -> Dictionary:
 	var context := {"distance_dm": int(ceil(distance * 10.0)), "coins": Money.coins, "wood": Inventory.count("wood"),
 		"witnesses": witnesses, "intercepted": parameters.get("intercepted", false)}
 	var result := Runtime.act(v, req, context)
-	_feedback = str(result.outcome) if result.accepted else str(result.reason)
-	if result.accepted and result.outcome in ["rescued", "spared"]:
-		_feedback = "Free! I'll hide in the far woods. I won't forget you."
-	elif result.accepted and result.has("clue"):
-		var clue: Dictionary = result.clue
-		_feedback = "Trace points to %s." % v.people[int(clue.culprit)].name if clue.via == "trace" else "%s's account names %s. One source, even when retold." % [v.people[int(clue.speaker)].name, v.people[int(clue.culprit)].name]
-	_feedback_until = int(v.runtime.now) + 20
 	if result.accepted and not result.get("duplicate", false):
 		if int(result.get("coins", 0)) > 0:
 			Money.spend(int(result.coins))
@@ -156,7 +128,22 @@ func _act(verb: String, parameters: Dictionary) -> Dictionary:
 		if int(result.get("damage", 0)) > 0:
 			_player.take_damage(int(result.damage))
 		SaveGame.save_game() # accepted state and existing inventory share the normal atomic save
+	if not in_talk:
+		_respond(verb, result, e)
 	return result
+
+## Feedback for what the player did with the world itself (not in a talk screen): the freed one says so, over
+## their head; the player's own doing is a hint.
+func _respond(verb: String, result: Dictionary, e: Dictionary) -> void:
+	var v = VillageSession.village
+	if result.accepted and result.outcome in ["rescued", "spared"]:
+		React.say(registry.bodies.get(int(e.victim)), "I'll hide in the far woods. I won't forget you.")
+	elif result.accepted and verb == "shield":
+		hint("You take the blow.")
+	elif result.accepted and verb == "inspect" and result.has("clue"):
+		hint(_trace_words(v, e, result.clue))
+	elif not result.accepted and verb in ["free", "shield", "inspect", "plant", "offer"]:
+		hint(_refusal(str(result.reason), true))
 
 func _actor_at(id: int) -> Vector2:
 	if registry.bodies.has(id):
@@ -203,30 +190,183 @@ func _parameters(verb: String) -> Dictionary:
 					return {"origin": clue.origin}
 	return {}
 
-func _choose(verb: String) -> void:
-	_act(verb, _parameters(verb))
+## What this person has to do with the event that is open, for their talk screen (resident_talk.gd screen):
+## {} when nothing, else {part: judge | witness | accuser | accused | leader, options: [{label, do}]} - the
+## verbs the buttons used to carry, now said to the right person. Each `do` sends the same verb with the same
+## parameters through _act, and answers with what that person says back.
+func talk_context(id: int) -> Dictionary:
+	if _stage == null:
+		return {}
+	var v = VillageSession.village
+	var e := Runtime.event_by_id(v, _event)
+	if e.is_empty() or Runtime.terminal(e) or e.type == "incident":
+		return {}
+	var now := int(v.runtime.now)
+	if now < int(e.from) or now >= int(e.deadline):
+		return {}
+	var options: Array = []
+	var part := ""
+	var roles: Dictionary = Runtime.staging(v, _event).roles
+	if _stage._authority != null and id == _stage._authority.id:
+		part = "leader" if e.type == "rite" else "judge"
+		if e.type == "hearing":
+			var params := _parameters("testify")
+			if params.has("origin"):
+				options.append({"label": "I have something to say", "do": func() -> Dictionary: return _ask("testify", params, id)})
+			if Money.coins >= 5 and str(e.bribe).is_empty():
+				options.append({"label": "A word in private... (5 coins)", "do": func() -> Dictionary: return _ask("bribe", {}, id)})
+		elif e.type == "rite" and Inventory.count("wood") >= 1 and str(e.bribe).is_empty():
+			options.append({"label": "I'll make an offering (1 wood)", "do": func() -> Dictionary: return _ask("offer", {}, id)})
+	if e.type != "rite" and e.witnesses.has(id) and id != int(e.victim):
+		if part == "":
+			part = "accuser" if id == int(roles.get("accuser", -1)) else "witness"
+		options.append({"label": "What did you see?", "do": func() -> Dictionary: return _ask("listen", {"speaker": id}, id)})
+	if part == "" and e.type == "hearing" and id == int(e.victim):
+		part = "accused"
+	return {"part": part, "options": options} if part != "" else {}
 
+## The player asks or tells (from a talk screen): the same verb through _act, and the answer as that person's words.
+func _ask(verb: String, params: Dictionary, speaker: int) -> Dictionary:
+	var v = VillageSession.village
+	var e := Runtime.event_by_id(v, _event)
+	var result := _act(verb, params, true)
+	var words := _reply(verb, v, result)
+	if result.accepted and result.outcome in ["rescued", "spared"]:
+		React.say(registry.bodies.get(int(e.victim)), "I'll hide in the far woods. I won't forget you.")
+	return Talk.answer(words, "Thank you", "Yes" if result.accepted and verb != "listen" else "")
+
+## What they say back, in their own words (never the rules' wording).
+func _reply(verb: String, v, result: Dictionary) -> String:
+	if not result.accepted:
+		return _refusal(str(result.reason), false)
+	var said := str(result.outcome)
+	match verb:
+		"listen":
+			var clue: Dictionary = result.get("clue", {})
+			if clue.is_empty():
+				return "I've nothing to tell you."
+			var who := _first(v.people[int(clue.culprit)].name)
+			if int(clue.strength) >= 700:
+				return "It was %s. I'd swear to it." % who
+			if int(clue.strength) >= 450:
+				return "It was %s, I'm fairly sure." % who
+			return "I think it was %s. Mostly what I've heard, mind." % who
+		"testify":
+			match said:
+				"That supports the accusation.":
+					return "Hm. That fits with what we've heard."
+				"That casts doubt on the accusation.":
+					return "Hm. That gives me pause."
+				"We already heard that account.":
+					return "So I've heard already. Nothing new there."
+		"bribe":
+			match said:
+				"I will weigh your request.":
+					return "Hm. Leave it with me. Quietly."
+				"Keep your coins. This is a hearing.":
+					return "Put that away. This is no market."
+		"offer":
+			if said == "spared":
+				return "Very well. Take them and go, before I think again."
+			return "*They look at the wood, then turn back to the fire.*"
+	return said
+
+## A refusal in plain words: as someone's answer (spoken) or as a hint (the player's own doing).
+func _refusal(reason: String, as_hint: bool) -> String:
+	if reason.begins_with("Their words are unfamiliar"):
+		return "*They speak, but the words slip past you. They point at the crowd.*"
+	match reason:
+		"I did not see it.":
+			return "I didn't see it happen. Ask someone else."
+		"no witness here", "no testimony":
+			return "I've nothing to tell you."
+		"already heard this source":
+			return "You've told me that already."
+		"offer already decided", "offering already decided":
+			return "You've made your offer." if not as_hint else "Already offered."
+		"requires 5 coins":
+			return "You'd need coin for that."
+		"requires 1 wood":
+			return "You've no wood for that."
+		"window closed", "hearing closed":
+			return "Too late for that."
+		"out of reach":
+			return "Too far." if as_hint else "Come closer."
+		"no trace here", "no open case":
+			return "Nothing here."
+		"trace already placed":
+			return "Already done."
+		"not at their doorstep":
+			return "Not here."
+		"participant unavailable", "no judge":
+			return "That's over now."
+		"unavailable":
+			return ""
+	return "..." if not as_hint else ""
+
+## What the player finds at the trace: what it is, and whose door it leads to.
+func _trace_words(v, e: Dictionary, clue: Dictionary) -> String:
+	var crime = v.crimes[v.cases[e.source.case_id].crime]
+	var trace: String = str(C.ACTS[crime.act]["trace"])
+	var mild := {"body": "Marks of a struggle", "bones": "Old bones", "blood": "Dark stains", "sick": "Something foul"}
+	var who := _first(v.people[int(clue.culprit)].name)
+	if trace.is_empty():
+		return "A trace. It leads to %s." % who
+	return "%s by the step. The trail leads to %s." % [str(mild.get(trace, trace.capitalize())), who]
+
+func _first(name: String) -> String:
+	return name.split(" ")[0]
+
+## A short message at the top of the screen (Enea's hint), for what the player's own action did.
+func hint(text: String) -> void:
+	if text.is_empty():
+		return
+	last_hint = text
+	get_tree().call_group("hud", "hint", text)
+
+## Inspect and Plant wood are places, not buttons: a spot at the trace and one at the accused's doorstep, found
+## by the same action button as everything else, only while a hearing is open and the player could use them.
 func _update_choices() -> void:
 	var v = VillageSession.village
 	var e := Runtime.event_by_id(v, _event)
-	for verb: String in _buttons:
-		var button: Button = _buttons[verb]
-		button.visible = false
-		if e.is_empty() or Runtime.terminal(e) or Controls.locked:
-			continue
-		if (verb in ["testify", "bribe", "inspect", "plant"] and e.type != "hearing") or (verb == "offer" and e.type != "rite"):
-			continue
-		if verb == "listen" and e.type == "rite":
-			continue # distant speech: a visible gesture/offer is the available social action
-		var params := _parameters(verb)
-		if verb in ["inspect", "plant"] and params.get("place", "").is_empty():
-			continue
-		var at := _action_at(verb, params)
-		button.visible = Vector2(_player.global_position.x, _player.global_position.z).distance_to(at) <= 2.5
-		button.disabled = (verb == "testify" and not params.has("origin")) or (verb == "bribe" and (Money.coins < 5 or not str(e.bribe).is_empty())) or (verb in ["plant", "offer"] and Inventory.count("wood") < 1)
-	_choices.position.x = (get_viewport().get_visible_rect().size.x - _choices.size.x) * 0.5
-	_choices.position.y = get_viewport().get_visible_rect().size.y - 210
-	_label.position.x = (get_viewport().get_visible_rect().size.x - _label.size.x) * 0.5
+	var open: bool = _stage != null and not e.is_empty() and e.type == "hearing" and not Runtime.terminal(e) \
+			and int(v.runtime.now) >= int(e.from) and int(v.runtime.now) < int(e.deadline)
+	for verb: String in ["inspect", "plant"]:
+		var spot: Node3D = _spots.get(verb)
+		if spot != null and int(_spot_event.get(verb, -1)) != _event:
+			spot.queue_free()
+			_spots.erase(verb)
+			spot = null
+		var place := str(_parameters(verb).get("place", "")) if open else ""
+		var want: bool = open and place != ""
+		if want and verb == "plant":
+			want = Inventory.count("wood") >= 1 and not _planted(v, e)
+		if want and spot == null:
+			spot = UseSpot.new()
+			add_child(spot)
+			var at: Vector2 = registry.place(place)
+			spot.setup(Vector3(at.x, WorldShape.new().height_at(at.x, at.y), at.y), "Inspect" if verb == "inspect" else "Plant wood", _use_spot.bind(verb), 2.4)
+			spot.set_meta("village_action", true)
+			_spots[verb] = spot
+			_spot_event[verb] = _event
+		if spot != null:
+			var offered := spot.is_in_group("interactable")
+			if want and not offered:
+				spot.add_to_group("interactable")
+			elif not want and offered:
+				spot.remove_from_group("interactable")
+
+func _planted(v, e: Dictionary) -> bool:
+	for t: Dictionary in v.runtime.get("traces", []):
+		if int(t.event) == int(e.id):
+			return true
+	return false
+
+## The player used one of those spots.
+func _use_spot(verb: String) -> void:
+	var result := _act(verb, _parameters(verb))
+	if result.accepted and verb == "plant":
+		hint("You leave the wood by the door. Someone saw you." if str(result.outcome).begins_with("Someone saw") else "You leave marked wood by the door.")
 
 func _update_traces() -> void:
 	var v = VillageSession.village
@@ -267,47 +407,12 @@ func _update_storms() -> void:
 		prop.position = Vector3(at.x, WorldShape.new().height_at(at.x, at.y), at.y)
 		_storm_props[storm.id] = prop
 
-func _update_cue(now: int) -> void:
-	_label.visible = not Controls.locked and not VillageSession.background
-	if not _label.visible:
+## The one-time notice (a damaged village record was replaced): a hint, once the player can read it.
+func _update_cue(_now: int) -> void:
+	if _notice.is_empty() or Controls.locked or VillageSession.background:
 		return
-	if now < _feedback_until:
-		_label.text = _feedback
-		return
-	var v = VillageSession.village
-	var nearest := -1
-	var distance := 6.0
-	for id: int in registry.bodies:
-		var body: Node3D = registry.bodies[id]
-		if not body.visible or not v.people[id].alive or not v.people[id].present:
-			continue
-		var d := _player.global_position.distance_to(body.global_position)
-		if d < distance:
-			nearest = id; distance = d
-	_label.text = ""
-	if nearest >= 0:
-		var p = v.people[nearest]
-		var memory: Dictionary = v.runtime.residents.get(str(nearest), {})
-		var detail: String = "You cut me loose. Thank you." if memory.has("rescued_by") else p.role.capitalize()
-		if p.ancestor >= 0:
-			detail = "Forebear of %s · unfamiliar words, familiar faces" % v.lineages[p.lineage].name
-		elif p.stress > 200:
-			detail = "There is grief in our house."
-		elif p.hunger > 400:
-			detail = "The cupboard is bare."
-		_label.text = "%s · %s" % [p.name, detail]
-	if _stage != null and _player.global_position.distance_to(Vector3(_stage.place_at().x, _player.global_position.y, _stage.place_at().y)) < 12.0:
-		var e := Runtime.event_by_id(v, _event)
-		var name: String = v.people[int(e.victim)].name
-		var cue: String = "Approach the restraint to Free; stand in a throw's path to shield."
-		if e.type == "hearing":
-			var cs = v.cases[e.source.case_id]
-			var crime = v.crimes[cs.crime]
-			var trace := "inspect the doorstep trace; " if crime.trace_at >= 0 else ""
-			cue = "Accused of %s. Hear witnesses; %sspeak to the elder before judgment." % [crime.act, trace]
-		elif e.type == "rite":
-			cue = "A captive at the old stone. Cut the rope before dawn, or offer wood by gesture."
-		_label.text = "%s · %s" % [name, cue if not Runtime.terminal(e) else e.outcome.capitalize()]
+	hint(_notice)
+	_notice = ""
 
 func _close() -> void:
 	if _stage != null:

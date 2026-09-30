@@ -26,6 +26,11 @@ extends Node3D
 ##   exile: the condemned's last walk goes out along the road and does not come back.
 ##   anyone the staging never sends home (the elder, in the simulation's stagings) leaves with the crowd.
 ##   content line: a throw by a child is not shown (nor its hit), and noted (notes()).
+##   incidents (INCIDENTS: theft, quarrel, kindness, alarm, gathering; sim/incidents.gd makes them): small
+##     scenes of 1-6 people for a few minutes, no device and no decision. Slots are small rings round the place
+##     (a quarrel: two, face to face); a `carry` picks its prop up and walks it to the spot; a `leave` with a
+##     prop takes it home with them (a goose, a sack); after handing bread over the giver leaves it on the step.
+##     The place may be a rules place (pen_cottage, a home, well, square...): the resident registry says where.
 ## The player can step in during a phase whose rescue is true (rescue_open): free the locked victim with
 ## the game's action button (a "Free" interactable at the device), or stand in a thrower's line and take
 ## the throw (no damage). Either emits player_intervened; inject() adds beats while playing.
@@ -90,6 +95,19 @@ const DEVICES := {
 		"way_in": [Vector2(-0.6, 2.4), Vector2(-0.6, 0.8)]},
 }
 const DEVICE_FACING := Vector2(0.0, 1.0)
+## The small scenes of the live village (Pass 2): no device, no decision, a few people for a few minutes.
+const INCIDENTS := ["theft", "quarrel", "kindness", "alarm", "gathering"]
+## Layout places with no entry in sites.gd, when there is no resident registry to ask (a stand-alone demo): the
+## pens beside the homes (sim/village.gd MEADOW), in metres.
+const LAYOUT_PLACES := {"pen_cottage": Vector2(-7.0, 10.0), "pen_cabin": Vector2(12.0, 15.0), "pen_round": Vector2(-10.0, 25.0),
+	"pen_hill": Vector2(10.0, 25.0), "pen_lodge": Vector2(-7.0, 32.0), "pen_loaf": Vector2(-14.0, 5.0)}
+## Slots of an incident: a ring round the place, open to the camera (its own side, +z): the angle steps out from
+## the far side, alternately left and right; a quarrel's two stand side-on to the camera, face to face.
+const RING_R := [1.5, 2.5, 3.5]
+const RING_STEP := 0.62       # radians between neighbours on a ring
+const QUARREL_HALF := 0.8     # metres from the place to each of the two who quarrel
+const THEFT_LOITER := Vector2(0.9, 1.3)   # where a thief who thinks better of it stands, off the pen
+const KIND_STOP := 1.1        # a giver stops this far off a door, on the camera's side, and hands the bread over
 const BESIDE := 1.4          # with no device, an official stands this far to the side of the place
 ## The trial: the elder's bench (Placeholders.bench, its front towards the accused), in metres from the
 ## place, the accused on the east, the elder behind the bench on the west: side-on to the camera.
@@ -136,6 +154,12 @@ const JOLT_TIME := 0.25
 ## Held props: a torch in the right hand (as CharacterVisual holds tools), carried wood across the chest.
 const HELD_IN_HAND := ["torch", "flower"]
 const CARRIED_AT := Vector3(0.0, 1.0, 0.34)
+## Where each carried prop sits on the body and how it is turned (a goose or a loaf across the chest, a basket
+## at the hip, a sack held to the chest); anything else is carried as CARRIED_AT.
+const CARRIED := {
+	"goose": [Vector3(0.0, 1.02, 0.36), PI / 2.0], "bread": [Vector3(0.0, 1.05, 0.34), PI / 2.0],
+	"sack": [Vector3(0.0, 0.98, 0.34), 0.0], "basket": [Vector3(0.36, 0.78, 0.18), 0.0],
+}
 ## The player stepping in: the Free button shows within FREE_REACH of the locked victim; a throw whose
 ## line passes within SHIELD_REACH of the player (between thrower and victim) hits the player instead.
 const FREE_REACH := 1.9
@@ -262,6 +286,7 @@ var _made_max_us := 0
 var _made_in_frame := 0
 var _latest := 0.0
 var _latest_beat := -1
+var _started := {}                    # beat index -> the game minute it began (for probes and shots)
 var _routes := 0                      # walks planned (each a small search), for stats
 var _detail_in := 0.0                 # real seconds until the next detail pass
 var _by_near: Array[Actor] = []       # out-of-door actors, reused by the detail pass
@@ -288,7 +313,7 @@ func play(staging: Dictionary, people: Array, speed: float = 1.0) -> void:
 	_outcome = staging.get("outcome", "")
 	_phases = staging.get("phases", [])
 	_place = staging["place"]
-	_centre = Sites.at(_place)
+	_centre = _resolve(_place)
 	_focus = Sites.PLACES[_place]["focus"] if Sites.PLACES.has(_place) else _centre
 	_info = DEVICES.get(_place, {})
 	if not _info.is_empty():
@@ -304,6 +329,10 @@ func play(staging: Dictionary, people: Array, speed: float = 1.0) -> void:
 		_bench.position = Vector3(at.x, _shape.height_at(at.x, at.y), at.y)
 		_bench.rotation.y = atan2(ACCUSED_AT.x - BENCH_AT.x, ACCUSED_AT.y - BENCH_AT.y)
 	_build_blocks()
+	if _kind in INCIDENTS:
+		_centre = _outside(_centre)         # a pen drawn inside a house's footprint: the scene stands just outside it
+		if not Sites.PLACES.has(_place):
+			_focus = _centre
 	for person: Dictionary in people:
 		_add_person(person)
 	_victim = _by_id.get(int(staging["roles"].get("victim", -1)))
@@ -313,12 +342,14 @@ func play(staging: Dictionary, people: Array, speed: float = 1.0) -> void:
 	_build_slots()
 	_pair_hits()
 	if external_clock:
-		# Predicted endings are suggestions only. Live outcomes arrive from the persisted authority.
+		# Predicted endings are suggestions only. Live outcomes arrive from the persisted authority. (An incident has
+		# no decision to wait for: its subject's leave - with the goose under an arm - is the scene.)
 		for i in _beats.size():
 			var b: Dictionary = _beats[i]
-			if _victim != null and ((b.who == _victim.id and b["do"] in ["fall", "leave"]) or (b["do"] == "release" and b.target == _victim.id)):
+			if _kind not in INCIDENTS and _victim != null and ((b.who == _victim.id and b["do"] in ["fall", "leave"]) or (b["do"] == "release" and b.target == _victim.id)):
 				_skip[i] = true
 	_screen_throws()
+	_screen_blows()
 	_plan_fire()
 	_player = get_tree().get_first_node_in_group("player") as Node3D if is_inside_tree() else null
 	_queue_bodies()
@@ -327,6 +358,10 @@ func play(staging: Dictionary, people: Array, speed: float = 1.0) -> void:
 
 ## Removes every body and prop; the stage can play again.
 func clear() -> void:
+	for a in _actors:
+		if a.held != null and is_instance_valid(a.held):
+			a.held.queue_free()               # a goose still under an arm must not stay on a body that goes back to its day
+		a.held = null
 	if is_instance_valid(resident_registry):
 		for a in _actors:
 			if is_instance_valid(a.body):
@@ -372,6 +407,7 @@ func clear() -> void:
 	_cost_max = 0
 	_latest = 0.0
 	_latest_beat = -1
+	_started.clear()
 	set_process(false)
 
 
@@ -526,6 +562,11 @@ func probe() -> Dictionary:
 		"rescued": _rescued, "fire": snappedf((_fire.get_child(0) as Node3D).scale.y, 0.01) if _fire != null else 0.0}
 
 
+## The game minute beat `index` (of beats()) began, or -1 while it has not: a beat can begin late (a walk to finish).
+func beat_started(index: int) -> float:
+	return _started.get(index, -1.0)
+
+
 ## The stage's own cost per frame (microseconds of _process) and the latest any beat started.
 func stats() -> Dictionary:
 	return {"frames": _cost_frames, "mean_us": roundi(float(_cost_sum) / maxi(_cost_frames, 1)), "max_us": _cost_max,
@@ -579,12 +620,26 @@ func _make_body(person: Dictionary) -> Body:
 	return body
 
 
-## A prop by name: the real set first, the placeholders for what it lacks.
+## A prop by name: the real set first, the placeholders for what it lacks, a small stone for a name nobody
+## made (an unknown prop is a dull grey lump, never a crash).
 func _make_prop(prop: String) -> Node3D:
 	if _real.has(prop):
 		return (_real[prop] as Callable).call() as Node3D
 	var source: GDScript = Placeholders
+	if not source.has_method(prop):
+		push_warning("stage: no prop " + prop)
+		return (_real["stone"] as Callable).call() as Node3D
 	return source.call(prop) as Node3D
+
+
+## Where a place is on the ground: the studio's places (sites.gd), else the layout's (the resident registry knows
+## pens, the forge, the woods...), else the pens this file knows for stand-alone runs; the origin if nobody does.
+func _resolve(place_name: String) -> Vector2:
+	if Sites.PLACES.has(place_name) or Sites.DOORS.has(place_name) or Sites.HOMES.has(place_name):
+		return Sites.at(place_name)
+	if is_instance_valid(resident_registry):
+		return resident_registry.place(place_name)
+	return LAYOUT_PLACES.get(place_name, Sites.at(place_name))
 
 
 func _add_person(person: Dictionary) -> void:
@@ -665,6 +720,9 @@ func _build_slots() -> void:
 	var needed := 0
 	for b: Dictionary in _beats:
 		needed = maxi(needed, int(b["slot"]) + 1)
+	if _kind in INCIDENTS:
+		_build_incident_slots(needed)
+		return
 	var k := 0
 	while _slots.size() < needed and k < needed * 4 + 40:
 		var at: Vector2 = Sites.cluster(_place, k) if _kind == "festival" else Sites.arc(_place, k)
@@ -677,6 +735,37 @@ func _build_slots() -> void:
 	while _slots.size() < needed:          # boxed in on every side: stand on the old rings
 		_slots.append(Sites.slot(_place, _slots.size()))
 		_slot_face.append(_centre)
+
+
+## An incident's slots: a quarrel's two face to face, a thief's loitering spot, else rings round the place open
+## to the camera. A slot inside a house is passed over for the next.
+func _build_incident_slots(needed: int) -> void:
+	var k := 0
+	var made := 0
+	while made < needed:
+		var at := _incident_slot(k)
+		k += 1
+		if _blocked(at) and k < needed * 4 + 12:
+			continue
+		_slots.append(at)
+		made += 1
+	for j in _slots.size():
+		if _kind == "quarrel" and j < 2:
+			_slot_face.append(_slots[1 - j])          # the two look at each other
+		else:
+			_slot_face.append(_centre)
+
+
+func _incident_slot(k: int) -> Vector2:
+	if _kind == "quarrel" and k < 2:
+		return _centre + Vector2(-QUARREL_HALF if k == 0 else QUARREL_HALF, 0.0)
+	if _kind == "theft" and k == 0:
+		return _centre + THEFT_LOITER
+	var n := k - (2 if _kind == "quarrel" else 1 if _kind == "theft" else 0)
+	var ring := mini(n / 7, RING_R.size() - 1)
+	var s := n % 7                                  # 0 straight ahead, then right, left, right...
+	var angle := 0.0 if s == 0 else float((s + 1) / 2) * RING_STEP * (1.0 if s % 2 == 1 else -1.0)
+	return _centre + Vector2(sin(angle), -cos(angle)) * float(RING_R[ring])
 
 
 func _blocked(p: Vector2) -> bool:
@@ -700,6 +789,21 @@ func _screen_throws() -> void:
 		if _react_of.has(i):
 			_skip[_react_of[i]] = true
 		_notes.append("content: %s (%d, a child) throws %s at minute %d - not shown" % [a.person.get("name", "?"), a.id, b["prop"], b["at"]])
+
+
+## The content line for the small scenes: no child is ever shoved or struck. A shove (or a hit) between a child and
+## anyone is not shown, and noted; the simulation should never ask.
+func _screen_blows() -> void:
+	for i in _beats.size():
+		var b: Dictionary = _beats[i]
+		var blow: bool = (b["do"] == "gesture" and b["anim"] == "Push") or b["do"] == "react"
+		if not blow:
+			continue
+		var by: Actor = _by_id.get(b["who"])
+		var to: Actor = _by_id.get(b["target"])
+		if (by != null and String(by.person.get("role", "")) == "child") or (to != null and String(to.person.get("role", "")) == "child"):
+			_skip[i] = true
+			_notes.append("content: a blow at minute %d involves a child - not shown" % b["at"])
 
 
 ## The fire at the stake: lit a while after the first torch is raised, or a while before the fall.
@@ -854,6 +958,7 @@ func _update(a: Actor, dt: float) -> void:
 		if late > _latest:
 			_latest = late
 			_latest_beat = a.pending[0]
+		_started[a.pending[0]] = minute()
 		a.pending.remove_at(0)
 		if a.inside:
 			break
@@ -876,6 +981,8 @@ func _begin(a: Actor, i: int) -> bool:
 			if action == "carry" and _device != null and b["prop"] != "":
 				_carry(a, int(b["slot"]), b["prop"])
 				return true
+			if action == "carry" and b["prop"] != "":
+				_hold(a, b["prop"])                      # no device: picked up here, carried to the spot
 			if _kind == "exile" and a == _victim and int(b["slot"]) < 0 and a.path.is_empty() \
 					and a.pos.distance_squared_to(_spot(a, -1)) < 0.25:
 				_walk_out(a, anim)       # already at the gate: this walk is out along the road
@@ -886,7 +993,12 @@ func _begin(a: Actor, i: int) -> bool:
 		"leave":
 			if a.locked:
 				return false
-			_drop_held(a)
+			if b["prop"] != "":
+				_hold(a, b["prop"])                      # takes it with them: a goose under an arm
+			elif _kind == "kindness" and a.held != null:
+				_drop_held(a, true)                      # the bread is left on the step as they go
+			else:
+				_drop_held(a)
 			a.going_home = true
 			a.rest_anim = "Idle"
 			_go(a, a.door, anim, Vector2.INF)
@@ -990,6 +1102,8 @@ func _spot(a: Actor, slot: int) -> Vector2:
 		if a == _authority:
 			return _centre + JUDGE_AT
 	if a == _victim:
+		if _device == null and _kind == "kindness":
+			return _centre + Vector2(0.0, KIND_STOP)     # the giver stops a step short of the door
 		return _approach() if _device != null else _centre
 	return _beside(a)
 
@@ -1226,8 +1340,9 @@ func _hold(a: Actor, prop: String) -> void:
 		node.position = CharacterVisual.TOOL_OFFSET + Vector3(0.0, 0.05, 0.0)
 	else:
 		a.body.add_child(node)
-		node.position = CARRIED_AT
-		node.rotation.y = PI / 2.0         # across the chest
+		var where: Array = CARRIED.get(prop, [CARRIED_AT, PI / 2.0])
+		node.position = where[0]
+		node.rotation.y = where[1]         # across the chest unless it sits square
 	a.held = node
 
 

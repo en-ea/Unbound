@@ -11,11 +11,13 @@ const VillagerBody := preload("res://scripts/studio/village/villager_body.gd")
 const BIG := ["pillory", "stocks", "stake", "gallows", "shrine", "notice_board"]
 const WIDTH := {"pillory": 1.5, "stocks": 1.4, "stake": 2.0, "gallows": 2.6, "shrine": 1.0, "notice_board": 1.6}
 const SMALL := ["cabbage", "turnip", "mud", "stone"]
+const INCIDENT := ["goose", "sack", "basket", "bread"]   # --props-incident: what the small scenes carry (Pass 2)
 const POSES := Props.VICTIM_POSE
 const GAP := 1.1              # metres between big props
 
 var _frame := 0
 var _small := false
+var _incident := false
 var _shot := false
 var _focus := ""
 
@@ -27,7 +29,8 @@ static func on_device(tree: SceneTree) -> void:
 
 func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
-	_small = args.has("--props-small")
+	_small = args.has("--props-small") or args.has("--props-incident")
+	_incident = args.has("--props-incident")
 	for arg in args:
 		if arg.begins_with("--shot="):
 			_shot = true
@@ -48,14 +51,14 @@ func _build() -> void:
 	player.visible = false
 	var shape := WorldShape.new()
 	var make := Props.all()
-	var names: Array = SMALL if _small else BIG
+	var names: Array = INCIDENT if _incident else SMALL if _small else BIG
 	var total := 0.0
 	for n: String in names:
-		total += 0.35 if _small else WIDTH[n] + GAP
+		total += (0.6 if _incident else 0.35) if _small else WIDTH[n] + GAP
 	var x := -total / 2.0
 	var focus_x := 0.0
 	for n: String in names:
-		var w: float = 0.35 if _small else WIDTH[n] + GAP
+		var w: float = (0.6 if _incident else 0.35) if _small else WIDTH[n] + GAP
 		var at := player.global_position + Vector3(x + w / 2.0, 0.0, 0.0)
 		at.y = shape.height_at(at.x, at.z)
 		var prop: Node3D = (make[n] as Callable).call()
@@ -69,6 +72,9 @@ func _build() -> void:
 			focus_x = x + w / 2.0
 		x += w
 	var rig := get_tree().current_scene.get_node("CameraRig")
+	if _incident:
+		rig.set_view(2.3, -10.0, Vector3(0.0, -0.62, 0.0), 0.01)
+		return
 	if _small:
 		rig.set_view(1.5, -28.0, Vector3(0.0, -0.88, 0.0), 0.01)
 		return
