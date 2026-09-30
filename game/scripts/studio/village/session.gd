@@ -90,7 +90,21 @@ func _process(delta: float) -> void:
 		r.fraction -= minutes
 		Runtime.advance(village, int(r.now) + minutes)
 
+## Probe runs (they set `background` themselves when they test it): on the desktop, a click in another window must
+## not freeze the village mid-check. Ordinary play and the phone keep freezing on focus out.
+const PROBE_ARGS := ["--village-lively-test", "--village-provoke-test", "--village-rescue-test", "--village-checks",
+	"--people-probe", "--village-webprobe", "--village-capture", "--village-measure"]
+
+func _probe_run() -> bool:
+	for arg in OS.get_cmdline_user_args():
+		for probe: String in PROBE_ARGS:
+			if arg.begins_with(probe):
+				return true
+	return false
+
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and _probe_run():
+		return
 	if what in [NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT]:
 		background = true
 	elif what in [NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_APPLICATION_FOCUS_IN]:

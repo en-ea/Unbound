@@ -21,6 +21,7 @@ const Lines := preload("res://scripts/studio/village/resident_lines.gd")
 const React := preload("res://scripts/studio/village/resident_react.gd")
 const Fixtures := preload("res://scripts/studio/village/sim/actions_test.gd")
 const Houses := preload("res://scripts/world/village.gd")
+const FightTarget := preload("res://scripts/studio/village/fight_target.gd")
 
 var mode := "talk"
 var dir := "user://people-shots"
@@ -623,6 +624,18 @@ func swing_at(id: int, tries := 8) -> bool:
 	return false
 
 
+## Enea's wild creatures (boars, wolves) roam into the village and would fight a player who stands still: a scenario
+## here tests the village's people, so the ground is cleared first (the creatures' own spawners bring them back later).
+func clear_creatures() -> void:
+	var gone := []
+	for n: Node in get_tree().get_nodes_in_group("enemy"):
+		if n is Node3D and n.get_script() != FightTarget and (n as Node3D).global_position.distance_to(_player.global_position) < 60.0:
+			gone.append("%s (%s)" % [n.name, (n.get_script() as Script).resource_path.get_file() if n.get_script() != null else "?"])
+			n.queue_free()
+	if not gone.is_empty():
+		print("PROBE cleared creatures from the village: ", gone)
+
+
 func provoke_run() -> void:
 	var v = VillageSession.village
 	var C = Runtime.C
@@ -630,6 +643,17 @@ func provoke_run() -> void:
 	Money.load_data(20)
 	Inventory.add("apple", 3)
 	var provoke: Node = _live.get_node("Provoke")
+	clear_creatures()
+	# every heart the player loses, and what was near (a probe run should not be hurt by anything but what it tests)
+	_player.health_changed.connect(func(health: int, _max: int) -> void:
+		var near := []
+		for n: Node3D in get_tree().get_nodes_in_group("enemy"):
+			if n.global_position.distance_to(_player.global_position) < 8.0:
+				near.append("%s %.1f m" % [n.name, n.global_position.distance_to(_player.global_position)])
+		var acting := []
+		for id: int in _live.registry._acts:
+			acting.append("%d %s" % [id, _live.registry._acts[id].state])
+		print("PROBE health %d at minute %d; enemies near: %s; answering: %s" % [health, int(VillageSession.village.runtime.now), str(near), str(acting)]))
 	var seen := {}
 	# --- children are never offered a fight, and a gift is offered ------------------------------------------------
 	var child := -1
@@ -707,11 +731,16 @@ func provoke_run() -> void:
 	var body_b: Node3D = _live.registry.bodies[b]
 	await stand_near(body_b)
 	var reg = _live.registry
-	provoke.square_up(b)
+	clear_creatures()
+	print("PROBE player health before B: %d of %d (then healed: B's test is the parry, not what came before)" % [_player.health, _player.MAX_HEALTH])
+	_player.heal_full()
+	var squared_b: Dictionary = provoke.square_up(b)
+	check(squared_b.get("accepted", false), "B squared up (%s)" % squared_b.get("reason", "accepted"))
 	await frames(10)
-	await swing_at(b)
+	var landed_b: bool = await swing_at(b)
 	await get_tree().create_timer(0.3).timeout
-	await swing_at(b)
+	landed_b = (await swing_at(b)) and landed_b
+	check(landed_b, "both blows on B landed")
 	var fight_state := react_state(b)
 	print("PROBE B second blow -> ", fight_state)
 	seen[fight_state] = true
@@ -724,11 +753,12 @@ func provoke_run() -> void:
 			var landed_result := [""]
 			act.attacker.blow_landed.connect(func(_who: int, result: String) -> void: landed_result[0] = result)
 			var waited := 0.0
-			while not glinted[0] and waited < 6.0 and react_state(b) == "fight_back":
+			while not glinted[0] and waited < 10.0 and react_state(b) == "fight_back":
 				await get_tree().process_frame
 				waited += get_process_delta_time()
 				_player.global_position = _player.global_position   # (keeps still)
-			print("PROBE the glint came (wind-up shown): %s after %.2f s" % [glinted[0], waited])
+			print("PROBE the glint came (wind-up shown): %s after %.2f s; the fight so far: %s; mode now %s, %.1f m from the player" % [glinted[0], waited, str(act.trace), act.mode, act.pos.distance_to(reg.player_xz())])
+			print("PROBE where: player %s, B's body %s (local %s), the act's pos %s, the act still current %s, registry at %s, player health %d" % [_player.global_position, body_b.global_position, body_b.position, act.pos, reg._acts.get(b) == act, reg.global_position, _player.health])
 			check(glinted[0], "a fight_back gives an honest wind-up and glint before the blow")
 			var glint_ms := Time.get_ticks_msec()
 			look_shot((_player.global_position + body_b.global_position) * 0.5, "provoke-7-B-glint", true)
@@ -743,17 +773,25 @@ func provoke_run() -> void:
 			check(act.staggered() or act.mode == "recover" or act.mode == "stagger", "the parried villager reels (stagger)")
 			await get_tree().create_timer(1.6).timeout
 			await look_shot((_player.global_position + body_b.global_position) * 0.5, "provoke-9-B-after")
+	# B fights on for a while (and would keep hitting the player beside C): let it end first
+	var fought := 0.0
+	while react_state(b) == "fight_back" and fought < 20.0:
+		await get_tree().process_frame
+		fought += get_process_delta_time()
 	# --- C: knocked down ------------------------------------------------------------------------------------------
 	var c := adult_at_work([a, b])
 	var pc = v.people[c]
 	pc.traits[C.BOLD] = 50
 	pc.hurt = 88
 	await stand_near(_live.registry.bodies[c])
-	provoke.square_up(c)
+	clear_creatures()
+	var squared_c: Dictionary = provoke.square_up(c)
+	check(squared_c.get("accepted", false), "C squared up (%s)" % squared_c.get("reason", "accepted"))
 	await frames(10)
-	await swing_at(c)
+	check(await swing_at(c), "the blow on C landed")
 	await get_tree().create_timer(0.9).timeout
 	print("PROBE C -> ", react_state(c), " down_until ", pc.down_until, " now ", int(v.runtime.now))
+	check(pc.down_until > int(v.runtime.now) or react_state(c) == "down", "C, already hurt, is knocked down")
 	seen[react_state(c)] = true
 	await look_shot(_live.registry.bodies[c].global_position, "provoke-10-C-down")
 	await get_tree().create_timer(1.5).timeout
@@ -769,6 +807,7 @@ func provoke_run() -> void:
 	check(reg._acts.get(c) == null, "the answer is over: the body is handed back to the day (%s)" % str(reg._carry.get(c, "no carry")))
 	await look_shot(_live.registry.bodies[c].global_position, "provoke-13-C-back-to-day")
 	# --- D: onlookers in a crowd ----------------------------------------------------------------------------------
+	clear_creatures()
 	await at_minute(1185)
 	var crowd_at := ""
 	var places := {}

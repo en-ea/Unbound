@@ -18,8 +18,10 @@ const TALK_REACH_DM := 30      # three metres
 const STRIKE_REACH_DM := 30    # a blow lands within three metres (the fighter steps in)
 const MEMORY_CAP := 12
 const DOWN_MINUTES := 60       # knocked down: an hour of game time (half a real minute) before they get up
-## how long each answer is acted out (game minutes; the presentation reads runtime.reactions)
-const REACT_MINUTES := {"puzzled": 4, "startled": 3, "protest": 6, "flee": 20, "call_help": 15, "fight_back": 10,
+## how long each answer is acted out (game minutes; the presentation reads runtime.reactions). A fight back runs
+## half an hour (about 15 real seconds: several exchanges through Enea's parry); it ends sooner when they are hurt enough
+## to flee, or when the next blow gets a new answer.
+const REACT_MINUTES := {"puzzled": 4, "startled": 3, "protest": 6, "flee": 20, "call_help": 15, "fight_back": 30,
 	"plead": 8, "down": DOWN_MINUTES, "intervene": 10, "shout": 5, "back_away": 5, "watch": 5}
 
 

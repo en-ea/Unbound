@@ -25,6 +25,7 @@ const SWING := 0.6
 const RECOVER := 0.9
 const PUSH := 3.5             # how hard a blow shoves the player
 const FLEE_HURT := 60         # hurt this much and a fighter turns to flee (sim/world_actions.gd hurt)
+const GIVE_UP := 12.0         # metres: a fighter lets the player go this far (provoke.gd LEAVE_DISTANCE)
 
 
 ## What Enea's defence talks to. player.receive_attack(attacker, damage, push) reads its position, and asks it to
@@ -64,6 +65,8 @@ class Act extends RefCounted:
 	var _swung := false
 	var _stagger := 0.0
 	var _up_at := -1.0            # down: when getting up began
+	var trace: Array[String] = [] # what the fight did, "seconds:step" (probes read it; a few entries per answer)
+	var age := 0.0                # seconds since the answer began
 
 	func staggered() -> bool:
 		return _stagger > 0.0
@@ -71,6 +74,7 @@ class Act extends RefCounted:
 	## Parried: the blow is stopped and the fighter reels (Enea's bandits do the same, Hit_Knockback).
 	func stagger(seconds: float) -> void:
 		_stagger = seconds
+		trace.append("%.2f:stagger" % age)
 		mode = "stagger"
 		t = 0.0
 		_swung = true
@@ -128,10 +132,13 @@ class Act extends RefCounted:
 	func done(now: int) -> bool:
 		if state == "down":
 			return now >= until and _up_at >= 0.0 and t - _up_at > 1.3
+		if state == "fight_back" and mode != "flee" and _to_player().length() > GIVE_UP:
+			return true   # the player ran off, or was knocked out and woke elsewhere: the fight is over
 		return now >= until
 
 	func update(delta: float, now: int) -> void:
 		t += delta
+		age += delta
 		if hidden:
 			return
 		match state:
@@ -257,6 +264,7 @@ class Act extends RefCounted:
 	func _fight(delta: float) -> void:
 		if reg.hurt_of(id) >= FLEE_HURT and mode != "stagger":
 			mode = "flee"                                       # (`flee` is acted on by update)
+			trace.append("%.2f:flee hurt %d" % [age, reg.hurt_of(id)])
 			_run_to(reg.door_of(id))
 			React.say(body, Lines.bark("flee", id, since + 7))
 			return
@@ -272,6 +280,7 @@ class Act extends RefCounted:
 					body.play_motion(JOG)
 				elif reg.player_can_be_hit():
 					mode = "windup"
+					trace.append("%.2f:windup at %.1f m" % [age, dist])
 					t = 0.0
 					_swung = false
 					body.play_loop("Punch_Jab", 0.1, 0.0, 0.15)      # the guard is up: nothing is hidden
@@ -283,6 +292,7 @@ class Act extends RefCounted:
 					if _overlay != null:
 						_overlay.glint()
 					attacker.blow_coming.emit(id)
+					trace.append("%.2f:glint" % age)
 				if t >= WINDUP:
 					mode = "swing"
 					t = 0.0
@@ -296,6 +306,7 @@ class Act extends RefCounted:
 						var dir := to.normalized()
 						result = reg.player().receive_attack(attacker, 1, Vector3(dir.x, 0.0, dir.y) * PUSH)
 					attacker.blow_landed.emit(id, result)
+					trace.append("%.2f:blow %s at %.1f m" % [age, result, dist])
 				if t >= SWING:
 					mode = "recover"
 					t = 0.0
