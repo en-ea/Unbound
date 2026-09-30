@@ -4,11 +4,13 @@ created: 2026-09-29
 type: master-goals
 voice: agent-draft
 author: Codex (Astra), grounded in Hilmi and Enea's intent and the original Opus conversation
-status: actionable programme; current implementation separated from intended behaviour
+status: superseded on 30 Sep by MASTER-GOALS-r2.md (kept as history; its goal cards in section 5 remain the detail for the B batches)
 next_step: an Opus lead selects the first bounded play loop in section 7, checks current branches, and implements it with at most two explicitly selected Sonnet helpers
 ---
 
 # Unbound master goals
+
+> **30 Sep: superseded by [MASTER-GOALS-r2.md](MASTER-GOALS-r2.md).** The revision adds the division of labour with Enea, the landing path, the `camera-test` baseline and the missing foundations. The goal cards in section 5 below still hold as detail.
 
 [design] Read the [intent](#1-the-game-we-are-building), [current baseline](#3-current-baseline-what-exists-and-what-does-not) and [goal index](#4-goals-and-initial-status) first. Implementation leads then use the [batch sequence](#7-work-in-related-playable-batches), [execution brief](#8-opus-lead--sonnet-helper-operating-brief) and [living ledger](#9-living-completion-ledger-and-open-choices). Detailed goal cards and source provenance follow in the same document.
 
