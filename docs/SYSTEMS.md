@@ -218,3 +218,55 @@ Brakk's anvil under his arm: `"carry"` in the villager entry (a second prop on a
 - Build lab: the Lab board's VILLAGERS section shows any villager on a turntable, with Close-up / Whole body framing
   (`build_lab.show_villager`). Dev: `--lab --villager=wren` (add `,far` for the whole body).
 - NPC walking (`world/npc.gd`): turns to face the next spot first, eases in and out; `"walk_speed"` per villager.
+
+## Update log (camera-test)
+`ui/update_log.gd` (`UpdateLog`): `ENTRIES`, newest first; opened from the title screen (bottom-left) and Settings.
+Add an entry with every published test build.
+
+## Music
+`audio/music.gd` (`Music`, made by ambience.gd): CC0 tracks in `assets/music/` (credits in LICENSE.txt there),
+one at a time with crossfades: village (near the houses), meadow, forest, fight (any enemy whose `is_engaged()`
+is true within 26 m), boss (any node in group "boss"/`is_awake()`; Varek uses `is_awake()` directly via the
+group check). Quieter at night/indoors; `Music.sting(stream)` ducks it for a story moment. Setting: Music on/off.
+
+## Hit feedback and loot flashes
+`world/float_text.gd` (`FloatText.spawn`): damage numbers and words over things. `fighter._hit_feedback`: crit ring,
+kill boom, slow motion on the last kill. `ui/banner.gd` (`Banner.show_now`): big top-of-screen moments (level up,
+class, target down). Rare+ gear lands with `tool_drop.sparks` + a chime; chests burst in the gear's colour.
+Sounds we make ourselves: `tools-src/make_fight_sounds.py` (level up, kill, crit, parry, block, bow, stab, spotted,
+fire, shrine, chest).
+
+## Parry, block, perfect dodge
+Every enemy blow goes through `player.receive_attack(attacker, damage, push)` → "perfect" | "dodge" | "parry" |
+"block" | "hit" | "miss"; enemies react (`parried(seconds)` → stunned and `is_open()` = double damage). Parry
+button (R): the first `Balance.DEFENCE.parry` s of the guard parries, later blocks for stamina. A roll whose first
+`perfect_dodge` s meets a blow = slow motion + a counter (`take_counter()` doubles the next hit). A swing's
+follow-through is cancelled by moving (`fighter.recovering()`). Dev: `--defencetest`.
+
+## Bandits and sneaking
+- `creatures/bandit.gd` (`Bandit`): kinds in `Balance.BANDITS` (cutthroat, shield, archer, leader Varek). Built on
+  CharacterVisual with `BanditLooks` (dark cloth, red accents, masks); sword via `show_tool` + `tint_tool`, shield/bow
+  via `hold_prop` on hand_l; overlay `EnemyOverlay` (glint, health bar, ?/! awareness). States POST (idle/beat) →
+  SUSPICIOUS/SEARCH → CIRCLE/WINDUP/ATTACK (glint always `GLINT_LEAD` before a blow)/RECOVER, AIM (archers, arrows
+  in `arrow.gd`), STAGGER, HURT, DEAD. Blocks from the front (`block` chance; shields always, heavy breaks it).
+- `creatures/bandit_camp.gd` (`BanditCamp`): forest camp at (74, 10) built from `assets/camp/*.glb`
+  (`tools-src/blender/make_camp.py`), roster of 8, attack turns (`Balance.BANDIT_TURNS`), `raise_alarm`, bodies
+  noticed, respawn after you've been away, Varek drops `black_seal` while Morrow's quest is active.
+- Sneaking (`player.sneak()`, button/C): crouch anims via `CharacterVisual.idle_anim/walk_anim`, slower, `noise()`
+  radius per action; bandits see in a cone (`Balance.STEALTH`), with a line-of-sight ray, less at night.
+  `can_be_taken_down()` → the action verb "Takedown". Lab spawns: Bandit, Shield bandit, Bandit archer, Varek.
+  Dev: `--lab --bandittest`, `--region=forest --sealtest`.
+
+## Story start and classes
+- `state/classes.gd` (autoload `Classes`): `awakened`, `current`, `CLASSES` (pyromancer + three sealed),
+  `ABILITIES` (cooldowns, texts), `use()`. Saved. `world/shrine.gd` (meadow hill): wakes when you come close
+  (pillar of light, lines, `awaken()`), then `hud.open_class_panel(true)` (`ui/class_panel.gd`). Before that the
+  quest tracker shows "A Strange Hum".
+- `player/abilities.gd`: Flame Dash (`player.dash()`, a fast roll: untouchable) and Meteor; fire in
+  `world/fire_fx.gd` (flames, burning ground, blast, `ignite()` → `creatures/burning.gd` calling `take_burn`).
+  HUD ability buttons above Heavy (Z/X on a keyboard). Test menu: Become Pyromancer, Reset story.
+  Dev: `--pyro`, `--classpanel`, `--lab --pyrotest`.
+
+## Morrow's quest: The Black Seal
+`Quests.DEFS["morrow_seal"]`: take Varek's seal (dropped by the camp's leader), hand it to Morrow; reward coins and
+an Epic sword (`reward.gear = [slot, rarity]`). Quest items can't be sold (`Items.QUEST_ITEMS`).

@@ -2,17 +2,23 @@ We're building my game "Unbound" (Godot 4.7.2, played on my iPhone as a web app)
 
 Branches: `main` is my real app. `camera-test` = main + the new low turning camera (drag the right half to turn, lock-on ring) and has its own test link: https://unbound-git-camera-test-en-eas-projects.vercel.app (separate save). Work on `main`; afterwards merge main into `camera-test`, export and push it too, so the test link stays current. Hilmi's `studio` branch: don't merge or build on it without my OK. Ideas I want kept (not scheduled): docs/IDEAS.md. Reference pictures: docs/Builds/characters/.
 
-This chat, two characters (build them properly, check each in a screenshot, make them look good, not basic):
-1. **Brakk the golem, a quick nice pass** (`tools-src/blender/make_golem.py`). Compare him to my original picture `docs/Builds/characters/golem-smith-brakk-original.png` and close the gaps: chunky faceted warm-grey stone blocks, small sunk head with a heavy brow and glowing eyes, glowing lava crack on the chest, glowing runes (chest, forearm, belt buckle), hex bolts on the big shoulder plates, horned boulder on one shoulder, leather belt and apron, stumpy legs with stone boots, a big block sledgehammer with a bolt, and if it works an anvil with a glowing hot blade held under the other arm.
-2. **New character: the Moss-Cap Seeker** (middle figure in `docs/Builds/characters/barkclad-warden-mosscap-seeker-frostpeak-guide.png`). Small, child height (the first small character: people should differ in size). A tall pointed leaf hood with a drooping tip, face lost in shadow with two glowing blue-white eyes, body a cone of layered pointed leaves, thin dark legs. A shy forest spirit who "seeks" lost things (a hint or small quest later is fine). Give them a tiny chirpy voice (`tools-src/make_voices.py`, only generate the new voice) and a place in the village or woods, and add them to the build lab's Villagers section.
+What's new on camera-test (30 Sep, built while I was away; see the in-game Update log): music, an Update log
+screen, better hit feel (move out of swings, damage numbers, kill finisher, level-up banner), loot flashes, Parry
+button and perfect dodge, the Red Hand bandits and their camp in the Whispering Wood, sneaking and takedowns,
+Morrow's dark quest "The Black Seal", and the story start (the shrine on the meadow hill wakes, the class screen,
+the Pyromancer with Flame Dash and Meteor). main doesn't have these yet: merge camera-test into main when I say.
 
-Also fix, from my playtest of the test link:
-3. **Minimap (camera-test):** right now the whole square map just spins in place. It should work like a proper game minimap: centred on me, scrolling as I move, turning around me with the camera (a round map would suit it), with the N marker on the edge.
-4. **Harder fights means more than health and damage.** The last chat only raised numbers (boar 20 hp and 2-heart charges, wolves quicker, slower heart regen, in `state/balance.gd`, `boar.gd`, `wolf.gd`). Make fights actually smarter and more demanding: e.g. varied attacks and combos, feints and delayed strikes, wolves that flank and coordinate, enemies that punish button-mashing, recovery windows you have to read. Suggest the best set, then build it. It should work with both the current camera and the camera-test one.
+Waiting on me: AI pictures of swords, bows, armour and the Hollowhorn sword (I'll send them; build the models
+from them then). The Brakk redo (chipped boulders + baked shading) is parked on branch `brakk-redo`, untested.
 
-Then tell me concisely what changed and what to test, and give me the updated options list (remove what's done, add a couple of new ones):
-- Polish: villager performance (village is the heaviest spot, ~480 draw calls); hats and masks quality pass; villager life (idle actions, routines, reactions); menus: a deeper pass if I say what bugs me; prices and drops balance.
-- Build on: bring the new camera to main once I'm happy with it; Morrow's purpose (quest or rare shop); two weapon slots and swap; second village project (harbour or stables); trader's rare stock; more dishes, furniture, house upgrades; tool tiers past Steel; main village in the Swoop style (needs my pictures).
-- New: class tree and first abilities with the story start; special companion; fishing; shrines and fast travel; a new region (highlands or caves); light rain and mist; night events; carcasses, scavengers and bait (docs/IDEAS.md) when we design new enemies; Hilmi's village-drama systems review.
+Then tell me concisely what changed and what to test, and give me the updated options list:
+- Polish: tune fight difficulty from my playtest; camp performance (~670 draw calls in view); villager
+  performance; hats and masks; villager life; menus; prices and drops.
+- Build on: more classes (I name them); class levels and more Pyromancer abilities; more quests; a forest boss
+  (Hollowhorn the Elder Stag, or Tuskfather / Greymaw / Thornmother / Lantern Moth Queen); two weapon slots and
+  bows; Morrow's next job; second village project; trader's rare stock.
+- New: Stumplings and Sporecaps (forest mobs); elite enemies; bounty board; dangerous nights; knock-out that costs
+  something; a small cave dungeon; a dog companion; challenges; shrines as fast travel; light rain and mist; fishing.
 
-How I like to work: I don't code; keep replies short and plain. Batch my requests into one go, commit after each working step, only screenshot when a visual check really matters, and watch usage (no waste, but good quality).
+How I like to work: I don't code; keep replies short and plain. Batch my requests into one go, commit after each
+working step, only screenshot when a visual check really matters, and watch usage (no waste, but good quality).
