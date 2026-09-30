@@ -105,6 +105,7 @@ const LAYOUT_PLACES := {"pen_cottage": Vector2(-7.0, 10.0), "pen_cabin": Vector2
 ## the far side, alternately left and right; a quarrel's two stand side-on to the camera, face to face.
 const RING_R := [1.5, 2.5, 3.5]
 const RING_STEP := 0.62       # radians between neighbours on a ring
+const CIRCLE_STEP := 1.2      # ... at a gathering (five people close a circle, the camera's side still open)
 const QUARREL_HALF := 0.8     # metres from the place to each of the two who quarrel
 const THEFT_LOITER := Vector2(0.9, 1.3)   # where a thief who thinks better of it stands, off the pen
 const KIND_STOP := 1.1        # a giver stops this far off a door, on the camera's side, and hands the bread over
@@ -764,7 +765,8 @@ func _incident_slot(k: int) -> Vector2:
 	var n := k - (2 if _kind == "quarrel" else 1 if _kind == "theft" else 0)
 	var ring := mini(n / 7, RING_R.size() - 1)
 	var s := n % 7                                  # 0 straight ahead, then right, left, right...
-	var angle := 0.0 if s == 0 else float((s + 1) / 2) * RING_STEP * (1.0 if s % 2 == 1 else -1.0)
+	var step := CIRCLE_STEP if _kind == "gathering" else RING_STEP     # a gathering closes into a circle, the rest stay open to the camera
+	var angle := 0.0 if s == 0 else float((s + 1) / 2) * step * (1.0 if s % 2 == 1 else -1.0)
 	return _centre + Vector2(sin(angle), -cos(angle)) * float(RING_R[ring])
 
 

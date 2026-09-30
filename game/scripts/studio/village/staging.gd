@@ -88,10 +88,10 @@ static func demo_pillory() -> Array:
 
 ## Hand-made small scenes, one of each incident kind, for building and checking the stage before the simulation
 ## sends its own (sim/incidents.gd): returns [staging, people] like demo_pillory. `kind` is a KINDS entry, or
-## "theft_abandoned" (the thief the player scared off). Six villagers; person 0 is at home at the cabin for the kindness.
+## "theft_abandoned" (the thief the player scared off). Six villagers; person 0 is at home at the hill house for the kindness.
 ##   theft      the thief walks to a pen, takes the goose (an Interact), leaves with it under an arm
 ##   quarrel    two meet at the well, face to face, shake their heads at each other, then a shove and a stagger
-##   kindness   a neighbour carries bread to the cabin door, hands it over (the host nods), leaves it on the step
+##   kindness   a neighbour carries bread to the hill house's door, hands it over (the host nods), leaves it on the step
 ##   alarm      someone runs to the square pointing and shouting; three neighbours run in, dismayed
 ##   gathering  five stand in a ring at the well, talking, nodding, one turning away
 static func demo_incident(kind: String) -> Array:
@@ -146,9 +146,9 @@ static func demo_incident(kind: String) -> Array:
 			beats.append(_beat(t + 12, 0, "leave", -1, -1, "Walk"))
 			beats.append(_beat(t + 14, 1, "leave", -1, -1, "Walk"))
 		"kindness":
-			place = "cabin"
-			homes[0] = "cabin"
-			homes[2] = "hill"
+			place = "hill"
+			homes[0] = "hill"
+			homes[2] = "cabin"
 			subject = 2
 			who_ids = [2, 0]
 			var t := t0 + _walk_min(homes[2], place) + 2

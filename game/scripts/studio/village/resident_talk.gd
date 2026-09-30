@@ -31,6 +31,7 @@ class Spot extends Node3D:
 	var verb := "Talk"
 	var reach := REACH
 	var resident := -1
+	var offered := false          # whether it is in the player's reach group now (residents.gd keeps this)
 
 	func interact() -> void:
 		get_tree().call_group("hud", "open_dialogue", PREFIX + str(resident))

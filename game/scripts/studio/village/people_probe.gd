@@ -18,6 +18,7 @@ const View := preload("res://scripts/studio/village/sim/view.gd")
 const Lines := preload("res://scripts/studio/village/resident_lines.gd")
 const React := preload("res://scripts/studio/village/resident_react.gd")
 const Fixtures := preload("res://scripts/studio/village/sim/actions_test.gd")
+const Houses := preload("res://scripts/world/village.gd")
 
 var mode := "talk"
 var dir := "user://people-shots"
@@ -26,6 +27,7 @@ var _player: Node3D
 var _hud: Node
 var _live: Node
 var _shape := WorldShape.new()
+var _freeze := false          # hold the game clock still (the hearing must not close while the probe looks about)
 
 
 static func on_device(tree: SceneTree) -> void:
@@ -41,6 +43,11 @@ func _ready() -> void:
 			dir = arg.trim_prefix("--people-shots=")
 	DirAccess.make_dir_recursive_absolute(dir)
 	run.call_deferred()
+
+
+func _process(_delta: float) -> void:
+	if _freeze and VillageSession.village != null:
+		VillageSession.village.runtime.fraction = 0.0
 
 
 func check(ok: bool, message: String) -> void:
@@ -81,6 +88,14 @@ func run() -> void:
 	while _live.registry.bodies.size() < _alive_count():
 		await get_tree().process_frame
 	await frames(30)
+	if mode == "hint":
+		_hud.hint("Needs a Stone Pickaxe")
+		await frames(10)
+		await shot("hint-enea-short")
+		_hud.hint("Feathers here. It leads to Hawise.")
+		await frames(10)
+		await shot("hint-mine")
+		print("PROBE hint label rect: ", _hud._hint.get_global_rect(), " viewport ", get_viewport().get_visible_rect().size)
 	match mode:
 		"talk":
 			await talk_run()
@@ -138,6 +153,7 @@ func stand_near(body: Node3D, gap := 1.0) -> void:
 	get_tree().call_group("camera_rig", "snap")
 	await get_tree().physics_frame
 	await get_tree().physics_frame
+	await frames(4)          # the residents offer their talk spots in _process: a frame or two after the player arrives
 	await get_tree().physics_frame
 
 
@@ -268,6 +284,7 @@ func hearing_run() -> void:
 	get_tree().current_scene.remove_child(old)
 	old.queue_free()
 	VillageSession.village = v
+	VillageSession.recovery_notice = "Village record damaged; your belongings were restored."   # the save's own words
 	_live = load("res://scripts/studio/village/live.gd").new()
 	_live.name = "VillageLive"
 	get_tree().current_scene.add_child(_live)
@@ -278,10 +295,12 @@ func hearing_run() -> void:
 	_live._stage.skip_to(float(int(v.runtime.now) - int(st.day) * 1440))
 	_live._stage._player = _player
 	await frames(60)
+	_freeze = true
 	Controls.locked = false
 	VillageSession.active = true
 	Money.load_data(31)
 	Inventory.add("wood", 2)
+	check(_live.last_hint == "Village record damaged; items restored." and VillageSession.recovery_notice.is_empty(), "the one-time recovery notice was a hint, said once")
 	check(_live.get_children().filter(func(c: Node) -> bool: return c is CanvasLayer or c is Control).is_empty(), "no button bar and no top label under VillageLive during the hearing")
 	# 1. a witness: What did you see?
 	var witness := -1
@@ -305,10 +324,10 @@ func hearing_run() -> void:
 	# 2. the trace: Inspect, from the same action button
 	var params: Dictionary = _live._parameters("inspect")
 	if params.get("place", "") != "":
-		var at: Vector2 = _live.registry.place(params.place)
-		_player.global_position = Vector3(at.x + 0.4, _shape.height_at(at.x, at.y), at.y + 1.0)
+		var spot_at: Vector3 = (_live._spots["inspect"] as Node3D).global_position
+		_player.global_position = Vector3(spot_at.x, spot_at.y + 0.05, spot_at.z + 0.5)
 		get_tree().call_group("camera_rig", "snap")
-		await frames(6)
+		await frames(8)
 		var station = _player.get("_station")
 		check(is_instance_valid(station) and station.verb == "Inspect", "the action button offers Inspect at the trace")
 		_player.act()
@@ -335,10 +354,10 @@ func hearing_run() -> void:
 	# 4. the doorstep: Plant wood
 	var plant: Dictionary = _live._parameters("plant")
 	if plant.get("place", "") != "":
-		var at: Vector2 = _live.registry.place(plant.place)
-		_player.global_position = Vector3(at.x + 0.4, _shape.height_at(at.x, at.y), at.y + 1.0)
+		var spot_at: Vector3 = (_live._spots["plant"] as Node3D).global_position
+		_player.global_position = Vector3(spot_at.x, spot_at.y + 0.05, spot_at.z + 0.5)
 		get_tree().call_group("camera_rig", "snap")
-		await frames(6)
+		await frames(8)
 		var station = _player.get("_station")
 		check(is_instance_valid(station) and station.verb == "Plant wood", "the action button offers Plant wood at the doorstep (wood in the bag)")
 		await shot("hearing-6-doorstep")
@@ -409,28 +428,51 @@ func daily_run() -> void:
 		# a close look at one of them at that: who, what they play
 		var subject: Node3D = null
 		var subject_id := -1
+		var fewest := 999
 		if pick != "":
 			for id: int in _live.registry.bodies:
 				var body: Node3D = _live.registry.bodies[id]
 				var d := View.describe(v, id)
 				if body.visible and d.activity.verb == stop[2] and d.activity.place == pick and not _live.registry.borrowed.has(id):
-					subject = body
-					subject_id = id
-					break
+					# the one with the clearest view: the fewest others within two metres (a chatter wants exactly one)
+					var near := 0
+					for other_id: int in _live.registry.bodies:
+						var other: Node3D = _live.registry.bodies[other_id]
+						if other != body and other.visible and other.global_position.distance_to(body.global_position) < 2.0:
+							near += 1
+					var score := absi(near - 1) if stop[2] == "chatting" else near
+					if score < fewest:
+						fewest = score
+						subject = body
+						subject_id = id
 		if subject != null:
-			var stand := subject.global_position + Vector3(0.6, 0.0, 3.2)
-			_player.global_position = Vector3(stand.x, _shape.height_at(stand.x, stand.z) + 0.05, stand.z)
-			get_tree().call_group("camera_rig", "snap")
-			var rig := get_tree().current_scene.get_node("CameraRig")
-			var off := subject.global_position - _player.global_position + Vector3(0.0, 1.0, 0.0)
-			rig.set_view(4.6, -9.0, off, 0.01)
-			await frames(25)
-			print("PROBE close-up %s: %s (%s) plays %s, tool %s, faces %s" % [stop[0], v.people[subject_id].name, v.people[subject_id].role,
-				_live.registry._picks.get(subject_id, {}).get("loop", "?"), _live.registry._picks.get(subject_id, {}).get("tool", ""), _live.registry._faces.get(subject_id, "-")])
-			print("PROBE   borrowed=%s applied=%s picked_at=%s now=%s moving_trip=%s" % [_live.registry.borrowed.has(subject_id), _live.registry._applied.get(subject_id, "-"),
-				_live.registry._pick_minute.get(subject_id, -1), int(v.runtime.now), _live.registry.destinations.get(subject_id, {})])
+			var cam := Camera3D.new()
+			cam.fov = 38.0
+			add_child(cam)
+			# a place to look from that is not inside a house (their footprints, grown a little), the game's side first
+			var chest := subject.global_position + Vector3(0.0, 1.0, 0.0)
+			var eye := subject.global_position + Vector3(0.5, 1.9, 3.6)
+			for k in 16:
+				var a := deg_to_rad(15.0 + k * 22.5)
+				var candidate := subject.global_position + Vector3(sin(a) * 3.6, 1.9, cos(a) * 3.6)
+				var inside := false
+				for h: Dictionary in Houses.HOUSES:
+					var size := Vector2(h["size"].x, h["size"].z)
+					if Rect2(h["at"] - size * 0.5, size).grow(0.8).has_point(Vector2(candidate.x, candidate.z)):
+						inside = true
+				if not inside:
+					eye = candidate
+					break
+			cam.global_position = eye
+			cam.look_at(chest)
+			cam.make_current()
+			await frames(30)
+			print("PROBE close-up %s: %s (%s) plays %s, tool %s, faces %s, borrowed %s" % [stop[0], v.people[subject_id].name, v.people[subject_id].role,
+				_live.registry._picks.get(subject_id, {}).get("loop", "?"), _live.registry._picks.get(subject_id, {}).get("tool", ""),
+				_live.registry._faces.get(subject_id, "-"), _live.registry.borrowed.has(subject_id)])
 			await shot(str(stop[0]) + "-close")
-			rig.reset_view(0.01)
+			get_tree().current_scene.get_node("CameraRig").camera.make_current()
+			cam.queue_free()
 			await frames(5)
 		if str(stop[0]).contains("night"):
 			check(out <= 2, "at night the residents are indoors (%d drawn)" % out)
@@ -472,6 +514,7 @@ func rescue_run() -> void:
 	Controls.locked = false
 	VillageSession.active = true
 	VillageSession.background = false
+	_freeze = true
 	await frames(40)
 	var spot: Vector2 = _live._stage.rescue_spot()
 	_player.global_position = Vector3(spot.x, _shape.height_at(spot.x, spot.y) + 0.05, spot.y)
@@ -511,6 +554,7 @@ func rite_run() -> void:
 	_live._stage.skip_to(float(int(v.runtime.now) - int(st.day) * 1440))
 	_live._stage._player = _player
 	await frames(60)
+	_freeze = true
 	Controls.locked = false
 	VillageSession.active = true
 	Inventory.add("wood", 2)

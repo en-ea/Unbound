@@ -25,13 +25,11 @@ static func say(body: Node3D, text: String, seconds := 0.0) -> Label3D:
 	bubble.text = text
 	bubble.seconds = seconds if seconds > 0.0 else maxf(MIN_SECONDS, text.split(" ", false).size() * SECONDS_PER_WORD)
 	var size := body.scale.y if body.scale.y > 0.0 else 1.0
-	bubble.position = Vector3(0.0, BUBBLE_HEIGHT * size / size, 0.0) if size == 1.0 else Vector3(0.0, BUBBLE_HEIGHT, 0.0)
-	body.add_child(bubble)
-	# Counter the body's own scale (a child is drawn smaller), so every bubble reads the same size.
+	# Counter the body's own scale (a child is drawn smaller), so every bubble reads the same size, and sit it just
+	# over the head: 2.35 m for a grown person, lower for a child.
 	bubble.scale = Vector3.ONE / size
-	bubble.position = Vector3(0.0, BUBBLE_HEIGHT / size * minf(size, 1.0) + (0.0 if size >= 1.0 else 0.0), 0.0)
-	if size < 1.0:
-		bubble.position.y = (BUBBLE_HEIGHT * 0.78) / size
+	bubble.position = Vector3(0.0, BUBBLE_HEIGHT * (1.0 if size >= 1.0 else 0.78) / size, 0.0)
+	body.add_child(bubble)
 	return bubble
 
 

@@ -20,6 +20,8 @@ const UseSpot := preload("res://scripts/world/use_spot.gd")
 const React := preload("res://scripts/studio/village/resident_react.gd")
 const Talk := preload("res://scripts/studio/village/resident_talk.gd")
 const C := preload("res://scripts/studio/village/sim/content.gd")
+const SPOT_SIDE := 0.9                # metres either side of a door for Inspect and Plant wood
+const SPOT_REACH := 1.5               # (0.9 across and 0.4 out, 1.5 reach: 2.48 m from the door at most; the rules allow 2.5)
 
 static func on_device(tree: SceneTree) -> void:
 	# main attaches the same normal-game authority and bridge for this launch argument;
@@ -30,7 +32,8 @@ static func on_device(tree: SceneTree) -> void:
 
 func _ready() -> void:
 	if not VillageSession.recovery_notice.is_empty():
-		_notice = VillageSession.recovery_notice          # said once, on the first frame the player can read it
+		# said once, on the first frame the player can read it (a hint is one short line: Enea's label does not wrap)
+		_notice = "Village record damaged; items restored." if VillageSession.recovery_notice.length() > 40 else VillageSession.recovery_notice
 		VillageSession.recovery_notice = ""
 	registry = Residents.new()
 	add_child(registry)
@@ -233,7 +236,7 @@ func _ask(verb: String, params: Dictionary, speaker: int) -> Dictionary:
 	var words := _reply(verb, v, result)
 	if result.accepted and result.outcome in ["rescued", "spared"]:
 		React.say(registry.bodies.get(int(e.victim)), "I'll hide in the far woods. I won't forget you.")
-	return Talk.answer(words, "Thank you", "Yes" if result.accepted and verb != "listen" else "")
+	return Talk.answer(words if not words.is_empty() else "...", "Thank you", "Yes" if result.accepted and verb != "listen" else "")
 
 ## What they say back, in their own words (never the rules' wording).
 func _reply(verb: String, v, result: Dictionary) -> String:
@@ -308,11 +311,11 @@ func _refusal(reason: String, as_hint: bool) -> String:
 func _trace_words(v, e: Dictionary, clue: Dictionary) -> String:
 	var crime = v.crimes[v.cases[e.source.case_id].crime]
 	var trace: String = str(C.ACTS[crime.act]["trace"])
-	var mild := {"body": "Marks of a struggle", "bones": "Old bones", "blood": "Dark stains", "sick": "Something foul"}
+	var mild := {"body": "Marks", "bones": "Old bones", "blood": "Dark stains", "sick": "Foul traces"}
 	var who := _first(v.people[int(clue.culprit)].name)
 	if trace.is_empty():
 		return "A trace. It leads to %s." % who
-	return "%s by the step. The trail leads to %s." % [str(mild.get(trace, trace.capitalize())), who]
+	return "%s here. It leads to %s." % [str(mild.get(trace, trace.capitalize())), who]
 
 func _first(name: String) -> String:
 	return name.split(" ")[0]
@@ -344,8 +347,10 @@ func _update_choices() -> void:
 		if want and spot == null:
 			spot = UseSpot.new()
 			add_child(spot)
-			var at: Vector2 = registry.place(place)
-			spot.setup(Vector3(at.x, WorldShape.new().height_at(at.x, at.y), at.y), "Inspect" if verb == "inspect" else "Plant wood", _use_spot.bind(verb), 2.4)
+			# a step to one side of the door each (the same door can hold both: the button offers the nearer), and
+			# close enough that anyone in reach of the spot is in reach of the door for the rules (2.5 m)
+			var at: Vector2 = registry.place(place) + Vector2(-SPOT_SIDE if verb == "inspect" else SPOT_SIDE, 0.4)
+			spot.setup(Vector3(at.x, WorldShape.new().height_at(at.x, at.y), at.y), "Inspect" if verb == "inspect" else "Plant wood", _use_spot.bind(verb), SPOT_REACH)
 			spot.set_meta("village_action", true)
 			_spots[verb] = spot
 			_spot_event[verb] = _event
@@ -366,7 +371,7 @@ func _planted(v, e: Dictionary) -> bool:
 func _use_spot(verb: String) -> void:
 	var result := _act(verb, _parameters(verb))
 	if result.accepted and verb == "plant":
-		hint("You leave the wood by the door. Someone saw you." if str(result.outcome).begins_with("Someone saw") else "You leave marked wood by the door.")
+		hint("Someone saw you leave the wood." if str(result.outcome).begins_with("Someone saw") else "You leave marked wood by the door.")
 
 func _update_traces() -> void:
 	var v = VillageSession.village
