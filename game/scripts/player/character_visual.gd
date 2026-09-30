@@ -277,10 +277,10 @@ func _attach_hero() -> void:
 
 
 ## Puts a model in the right hand (an NPC's prop: shears). `grip` turns it, `offset` moves it from the wrist.
-func hold_prop(item: String, grip: Vector3, offset := TOOL_OFFSET) -> Node3D:
+func hold_prop(item: String, grip: Vector3, offset := TOOL_OFFSET, bone := "hand_r") -> Node3D:
 	var hand := BoneAttachment3D.new()
-	hand.name = "PropHand"
-	hand.bone_name = "hand_r"
+	hand.name = "PropHand" if bone == "hand_r" else "Prop_" + bone
+	hand.bone_name = bone
 	_skeleton.add_child(hand)
 	var prop := MeshInstance3D.new()
 	prop.mesh = Items.mesh(item)

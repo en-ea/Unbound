@@ -140,6 +140,8 @@ func attack() -> void:
 	_impact = length * 0.45
 	_heavy = false
 	_swing_target = target
+	if target and target.has_method("sense_swing"):
+		target.sense_swing()     # a wary enemy may hop out of reach
 	_since = -length * 0.85      # the chain window opens when this swing ends
 	_audio.stream = _whoosh
 	_audio.pitch_scale = randf_range(0.9, 1.15)
@@ -183,6 +185,8 @@ func cancel() -> void:
 func step_velocity() -> Vector3:
 	if _impact <= 0.0 or not is_instance_valid(_swing_target):
 		return Vector3.ZERO
+	if _swing_target.has_method("is_evading") and _swing_target.is_evading():
+		return Vector3.ZERO
 	var to := _swing_target.global_position - player.global_position
 	to.y = 0.0
 	var gap := to.length() - STEP_TO
@@ -198,8 +202,10 @@ func _land_hit() -> void:
 		return
 	var t := _swing_target if is_instance_valid(_swing_target) else _nearest_enemy(REACH)
 	if t == null or not is_instance_valid(t) or not t.is_alive():
+		Wolf.open_up()           # a swing at nothing leaves you open
 		return
-	if t.global_position.distance_to(player.global_position) > REACH + 0.8:
+	if t.global_position.distance_to(player.global_position) > REACH + 0.8 or (t.has_method("is_evading") and t.is_evading()):
+		Wolf.open_up()
 		return
 	var hit := Gear.hit_damage()
 	t.take_hit(player.global_position, hit[0])
