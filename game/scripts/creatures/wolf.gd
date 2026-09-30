@@ -15,7 +15,7 @@ const LEASH := 22.0
 const MAX_HEALTH := 6          # the real value comes from Balance (set in _ready)
 
 const GRAVITY := 20.0
-const WINDUP := 0.6            # seconds of warning before a lunge
+const WINDUP := 0.5            # seconds of warning before a lunge
 const AIM_LOCK := 0.5          # after this part of the wind-up it stops turning (and glints)
 const SOUNDS := {
 	"growl": preload("res://assets/sounds/wolf_growl.wav"),
@@ -112,7 +112,7 @@ func _physics_process(delta: float) -> void:
 			if lost:
 				_give_up()
 			elif _t > _circle_time and dist < CIRCLE_RADIUS + 2.0 and _now() >= _lunge_free_at:
-				_lunge_free_at = _now() + 1.6
+				_lunge_free_at = _now() + 1.1
 				_enter(State.WINDUP)
 			elif is_on_wall():
 				_side = -_side
@@ -235,7 +235,7 @@ func _enter(new_state: State) -> void:
 		visual.tell = 0.0
 	visual.crouch = new_state == State.WINDUP
 	if new_state == State.CIRCLE:
-		_circle_time = randf_range(1.2, 2.6)
+		_circle_time = randf_range(0.8, 1.8)
 	visual.mode = {State.ALERT: "alert", State.CIRCLE: "stalk", State.WINDUP: "alert", State.LUNGE: "charge",
 		State.HURT: "hurt", State.DEAD: "dead"}.get(new_state, "walk")
 	if new_state == State.ALERT:

@@ -1,7 +1,7 @@
 extends Control
 ## A small map in the top-right corner: the whole meadow (painted once from WorldShape: grass,
 ## hill, pond, path, trees), you as an arrow, the landmark, and creatures close by.
-## Up on the map is up on screen (the camera never turns).
+## It turns with the camera, so up on the map is always the way the camera looks; an N marks north.
 
 const SIZE := 150.0
 const SPAN := 120.0             # metres shown across the map (the play area plus a rim)
@@ -40,6 +40,7 @@ func setup(shape: WorldShape, trees: Array[Vector2]) -> void:
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	clip_contents = true            # the turned map stays inside the frame
 	custom_minimum_size = Vector2(SIZE, SIZE)
 	size = Vector2(SIZE, SIZE)
 	_frame.bg_color = Color(0, 0, 0, 0)
@@ -58,8 +59,11 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if _tex == null or player == null:
 		return
+	var mid := Vector2(SIZE, SIZE) * 0.5
+	draw_rect(Rect2(Vector2.ZERO, Vector2(SIZE, SIZE)), Color(0.1, 0.12, 0.1, 0.75))
+	# Everything on the map is drawn turned about its centre by the camera's turn.
+	draw_set_transform(mid - mid.rotated(Controls.cam_yaw), Controls.cam_yaw)
 	draw_texture_rect(_tex, Rect2(Vector2(3, 3), Vector2(SIZE - 6, SIZE - 6)), false, Color(1, 1, 1, 0.9))
-	draw_style_box(_frame, Rect2(Vector2.ZERO, Vector2(SIZE, SIZE)))
 	# All the fills first, then all the outlines as one line list, so they draw in two batches.
 	var edges := PackedVector2Array()
 	for n: Node3D in get_tree().get_nodes_in_group("map_building"):     # houses, workbench...
@@ -83,6 +87,10 @@ func _draw() -> void:
 	var arrow := PackedVector2Array([at + fwd * 8.0, at - fwd * 5.0 + side * 5.0, at - fwd * 2.5, at - fwd * 5.0 - side * 5.0])
 	draw_colored_polygon(arrow, Color.WHITE)
 	draw_polyline(arrow + PackedVector2Array([arrow[0]]), Color(0.1, 0.1, 0.15), 1.5, true)
+	draw_set_transform(Vector2.ZERO)
+	draw_style_box(_frame, Rect2(Vector2.ZERO, Vector2(SIZE, SIZE)))
+	var north := mid + Vector2(0, -1).rotated(Controls.cam_yaw) * (SIZE * 0.5 - 12.0)
+	draw_string(get_theme_default_font(), north + Vector2(-5, 5), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 0.95, 0.84))
 
 
 ## Map fraction (0..1) to world x/z.

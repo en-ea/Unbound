@@ -17,7 +17,7 @@ var _pick := {}          # slot -> the tier this card is showing
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var shade := ColorRect.new()
-	shade.color = Color(0, 0, 0, 0.45)
+	shade.color = Color(0, 0, 0, 0.6)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	shade.gui_input.connect(func(e: InputEvent) -> void:
 		if e is InputEventMouseButton and e.pressed:
@@ -143,7 +143,7 @@ func _bag_card() -> Control:
 func _card_box() -> VBoxContainer:
 	var card := PanelContainer.new()
 	var box := StyleBoxFlat.new()
-	box.bg_color = Color(0.1, 0.09, 0.13, 0.88)
+	box.bg_color = Color(0.1, 0.09, 0.13, 0.96)
 	box.set_corner_radius_all(22)
 	box.border_color = Color(1, 1, 1, 0.12)
 	box.set_border_width_all(2)
