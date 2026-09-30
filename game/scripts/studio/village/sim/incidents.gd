@@ -30,6 +30,12 @@ static func show(V: S.Village, it: Dictionary, result: Dictionary) -> void:
 		"kindness":
 			if done:
 				st = _kindness(V, it)
+		"chat", "help":
+			if done:
+				st = _pair(V, it)
+		"play":
+			if done:
+				st = _play(V, it)
 	if st.is_empty():
 		return
 	V.stagings.append(st)
@@ -108,6 +114,46 @@ static func _quarrel(V: S.Village, it: Dictionary, blows: bool) -> Dictionary:
 		_beat(st, t + 8, b.id, "react", 1, a.id, "Hit_Chest")
 	_beat(st, t + 11, a.id, "leave", -1, -1, "Walk")
 	_beat(st, t + 13, b.id, "leave", -1, -1, "Walk")
+	return st
+
+
+## Two who get on: a word and a laugh where they meet (chat); or one carries a sack to the other's door (help).
+static func _pair(V: S.Village, it: Dictionary) -> Dictionary:
+	var a := V.people[int(it.actor)]
+	var b := V.people[int(it.other)]
+	var place := int(it.place)
+	var start := int(it.minute)
+	var t := start + maxi(_walk_minutes(V, a, start, place), _walk_minutes(V, b, start, place)) + 1
+	var chat: bool = it.kind == "chat"
+	var st := _base(V, it.kind, place, start, t + 14, a.id, [a.id, b.id], "done",
+		("%s and %s laughing at the %s" % [a.name, b.name, V.place_names[place]]) if chat else ("%s carrying a sack to %s's door" % [a.name, b.name]))
+	if chat:
+		_beat(st, start, a.id, "walk_to", 0, -1, "Walk")
+		_beat(st, start, b.id, "walk_to", 1, -1, "Walk")
+		_beat(st, t, a.id, "stand", 0, b.id, "Idle_Talking")
+		_beat(st, t, b.id, "stand", 1, a.id, "Idle_Talking")
+		_beat(st, t + 4, b.id, "gesture", 1, a.id, "Yes")
+	else:
+		_beat(st, start, a.id, "carry", -1, -1, "Walk_Carry", "sack")
+		_beat(st, start, b.id, "walk_to", 0, -1, "Walk")
+		_beat(st, t, a.id, "gesture", -1, b.id, "Interact")
+		_beat(st, t + 1, b.id, "gesture", 0, a.id, "Yes")
+	_beat(st, t + 9, a.id, "leave", -1, -1, "Walk")
+	_beat(st, t + 10, b.id, "leave", -1, -1, "Walk")
+	return st
+
+
+## Children chasing about near the player.
+static func _play(V: S.Village, it: Dictionary) -> Dictionary:
+	var kids: Array = it.others
+	var place := int(it.place)
+	var start := int(it.minute)
+	var st := _base(V, "play", place, start, start + 26, int(kids[0]), kids, "done", "children shrieking, running rings round the %s" % V.place_names[place])
+	for round_i in 3:
+		for i in kids.size():
+			_beat(st, start + round_i * 6 + i, int(kids[i]), "walk_to", (i + round_i) % 4, -1, "Jog_Fwd")
+	for i in kids.size():
+		_beat(st, start + 20 + i, int(kids[i]), "leave", -1, -1, "Jog_Fwd")
 	return st
 
 

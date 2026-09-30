@@ -472,6 +472,15 @@ static func run_intent(V: S.Village, it: Dictionary) -> Dictionary:
 			return {"done": true}
 		"kindness":
 			return kindness(V, p, int(it.target), seen)
+		"chat", "help":
+			var q := V.people[int(it.other)]
+			if not q.alive or not q.present or q.locked:
+				return {"abandoned": true}
+			Village.set_opinion(V, p.id, q.id, Village.opinion(V, p.id, q.id) + (3 if it.kind == "chat" else 2))
+			Village.set_opinion(V, q.id, p.id, Village.opinion(V, q.id, p.id) + (3 if it.kind == "chat" else 6))
+			return {"done": true, "watched": seen}
+		"play":
+			return {"done": true, "watched": seen}
 		"report":
 			# someone who saw the player strike a villager tells the village's authority
 			var elder := V.people[int(it.other)]

@@ -107,8 +107,8 @@ static func focus_day(V: S.Village, k: int) -> void:
 # The director never makes anyone act against their motives. It picks a tension that already exists and chooses
 # when and where it comes to a head: a theft someone planned for later today, now and at a pen near the player;
 # two people who dislike each other meeting where the player is; a kind neighbour on their way to a hungry house.
-const ATTENTION_MINUTES := [480, 600, 720, 840, 960, 1080, 1200]
-const QUIET := 480            # game minutes (4 real minutes) with nothing shown near the player
+const ATTENTION_MINUTES := [420, 480, 540, 600, 660, 720, 780, 840, 900, 960, 1020, 1080, 1140, 1200, 1260]   # the waking day, hourly
+const QUIET := 360            # game minutes (3 real minutes) with nothing shown near the player
 const NEAR_DM := 400          # "near": the nearest public place within 40 m of the player
 const LEAD := 15              # minutes from the choice to the moment (people have to walk there)
 const NEAR_PLACES := ["well", "square", "field", "pasture", "mill", "forge", "shrine"]
@@ -129,13 +129,27 @@ static func attention(V: S.Village) -> Dictionary:
 		return {}
 	var k := R.key(R.key(V.base, Village.P_CYCLE), now)
 	var near := _nearest_place(V, pl)
-	var brought := _bring_theft(V, pl, minute)
+	var last: String = V.runtime.get("last_scene", "")
+	var brought := {} if last == "theft" else _bring_theft(V, pl, minute)
 	if brought.is_empty() and near >= 0:
-		brought = _bring_quarrel(V, near, minute, k) if R.pick(k, 2) == 0 else _bring_kindness(V, minute, k)
-		if brought.is_empty():
-			brought = _bring_kindness(V, minute, k) if R.pick(k, 2) == 0 else _bring_quarrel(V, near, minute, k)
+		# the rest in a keyed order, skipping whatever was shown last (the village has more than one mood)
+		var kinds := ["quarrel", "kindness", "chat", "play", "help"]
+		var start := R.pick(k, kinds.size())
+		for i in kinds.size():
+			var kind: String = kinds[(start + i) % kinds.size()]
+			if kind == last:
+				continue
+			match kind:
+				"quarrel": brought = _bring_quarrel(V, near, minute, k)
+				"kindness": brought = _bring_kindness(V, minute, k)
+				"chat": brought = _bring_pair(V, near, minute, k, "chat")
+				"play": brought = _bring_play(V, near, minute, k)
+				"help": brought = _bring_pair(V, near, minute, k, "help")
+			if not brought.is_empty():
+				break
 	if not brought.is_empty():
 		V.runtime.quiet_since = now
+		V.runtime.last_scene = brought.kind
 		Village.add_intent(V, brought)
 	return brought
 
@@ -226,6 +240,42 @@ static func _bring_kindness(V: S.Village, minute: int, k: int) -> Dictionary:
 	var home := V.households[target].home_place
 	Village.plan_insert(V.people[giver], minute - 5, minute + 20, home)
 	return {"kind": "kindness", "actor": giver, "target": target, "minute": minute, "k": R.key(k, 4), "place": home, "near": true, "tries": 0}
+
+
+## Two who get on (a friendly word; or one helping the other carry something home).
+static func _bring_pair(V: S.Village, near: int, minute: int, k: int, kind: String) -> Dictionary:
+	var pairs: Array = []
+	for p in V.people:
+		if not _free(V, p):
+			continue
+		for i in p.rel_k.size():
+			var o := p.rel_k[i]
+			if o > p.id and p.rel_v[i] >= 30 and _free(V, V.people[o]):
+				pairs.append([p.id, o])
+	if pairs.is_empty():
+		return {}
+	var pair: Array = pairs[R.pick(R.key(k, 5), pairs.size())]
+	var place := near if kind == "chat" else V.households[V.people[pair[1]].household].home_place
+	for id: int in pair:
+		Village.plan_insert(V.people[id], minute - 5, minute + 25, place)
+	return {"kind": kind, "actor": pair[0], "other": pair[1], "minute": minute, "k": R.key(k, 6), "place": place, "near": true, "tries": 0}
+
+
+## Children at play near the player (two or three, chasing about).
+static func _bring_play(V: S.Village, near: int, minute: int, k: int) -> Dictionary:
+	var kids: Array = []
+	for p in V.people:
+		if p.alive and p.present and not p.locked and p.authored == "" and Village.age_of(V, p) >= 5 and Village.age_of(V, p) < 14:
+			kids.append(p.id)
+	if kids.size() < 2:
+		return {}
+	var first := R.pick(R.key(k, 7), kids.size())
+	var group: Array = [kids[first], kids[(first + 1) % kids.size()]]
+	if kids.size() >= 3:
+		group.append(kids[(first + 2) % kids.size()])
+	for id: int in group:
+		Village.plan_insert(V.people[id], minute - 5, minute + 25, near)
+	return {"kind": "play", "actor": group[0], "others": group, "minute": minute, "k": R.key(k, 8), "place": near, "near": true, "tries": 0}
 
 
 ## An adult who is here, free and not in any event.
