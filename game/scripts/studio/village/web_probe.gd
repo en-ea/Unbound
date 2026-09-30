@@ -14,7 +14,9 @@ extends Node
 ##   WEBPROBE {"frame_ms":{"p50":..,"p95":..,"max":..,"over50":..},"static_mb":..,...}
 ## and writes the same JSON to user://studio-webprobe-<label>.json. On desktop it then quits; in a browser it
 ## keeps running so the player is not thrown out (--webprobe-keep does the same on desktop).
-## Options: --webprobe-label=<name>, --webprobe-at=x,z (put the player there first: the village square is 1.5,18).
+## Options: --webprobe-label=<name>, --webprobe-at=x,z (put the player there first: the village square is 1.5,18),
+## --webprobe-longsave=<days> (also drives a separate village that many game days, seed 1, and reports what saving
+## and loading it costs here: the autosave of a long game, on this platform).
 const WARMUP := 10.0
 
 var frames: Array[float] = []
@@ -30,6 +32,7 @@ var video_peak := 0.0
 var _seconds := 60.0
 var _label := "web"
 var _keep := false
+var _long_days := 0
 var _last := 0
 var _start := 0
 var _done := false
@@ -42,6 +45,8 @@ func _ready() -> void:
 			_seconds = clampf(float(arg.trim_prefix("--village-webprobe=")), 10.0, 3600.0)
 		elif arg.begins_with("--webprobe-label="):
 			_label = arg.trim_prefix("--webprobe-label=").validate_filename()
+		elif arg.begins_with("--webprobe-longsave="):
+			_long_days = clampi(int(arg.trim_prefix("--webprobe-longsave=")), 0, 1000)
 		elif arg == "--webprobe-keep":
 			_keep = true
 		elif arg.begins_with("--webprobe-at="):
@@ -135,7 +140,19 @@ func _finish(live: Node) -> void:
 		"platform": OS.get_name(), "model": OS.get_model_name(), "godot": Engine.get_version_info().string, "debug": OS.is_debug_build(),
 		"renderer": RenderingServer.get_current_rendering_method(), "viewport": str(get_viewport().get_visible_rect().size),
 	}
-	summary["save"] = _save_cost()
+	summary["save"] = _save_cost(VillageSession.village)
+	if _long_days > 0:
+		var runtime: GDScript = VillageSession.Runtime
+		var long_village: Object = runtime.create(1)
+		var t := Time.get_ticks_usec()
+		while int(long_village.runtime.now) < _long_days * 1440:
+			runtime.advance(long_village, mini(_long_days * 1440, int(long_village.runtime.now) + 1440))
+		var drive_ms := float(Time.get_ticks_usec() - t) / 1000.0
+		summary["long_save"] = _save_cost(long_village)
+		summary["long_save"]["days"] = _long_days
+		summary["long_save"]["people"] = long_village.people.size()
+		summary["long_save"]["events"] = long_village.events.size()
+		summary["long_save"]["drive_ms"] = snappedf(drive_ms, 1.0)
 	var text := JSON.stringify(summary)
 	print("WEBPROBE ", text)
 	var file := FileAccess.open("user://studio-webprobe-%s.json" % _label, FileAccess.WRITE)
@@ -148,12 +165,12 @@ func _finish(live: Node) -> void:
 		get_tree().quit()
 
 
-## One save and one load of the village, as the game does them (SaveGame writes the JSON text of to_data).
-func _save_cost() -> Dictionary:
-	if VillageSession.village == null:
+## One save and one load of a village, as the game does them (SaveGame writes the JSON text of to_data).
+func _save_cost(village: Object) -> Dictionary:
+	if village == null:
 		return {}
 	var t := Time.get_ticks_usec()
-	var text := JSON.stringify(VillageSession.to_data())
+	var text := JSON.stringify(VillageSession.Save.to_data(village))
 	var save_ms := float(Time.get_ticks_usec() - t) / 1000.0
 	var parsed: Variant = JSON.parse_string(text)
 	t = Time.get_ticks_usec()
