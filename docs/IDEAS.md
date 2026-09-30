@@ -3,6 +3,8 @@
 Nothing here is decided or scheduled. One day the owner picks if and when to add each. Small versions are fine.
 
 ## Kills, carcasses and bait (30 Sep, from "what if a wolf kill stayed there")
+First version built on camera-test (docs/SYSTEMS.md "Hunting"). Still open: shoulder-carrying small animals, snares
+and bait items, feeding companions, shrine offerings, repeat village requests, NPCs physically carrying things off.
 - **Carcasses stay** after a kill (big animals). Small animals keep instant drops.
 - **Carve on the spot** (quick, basic meat and hide) **or take the whole body** (better pay, rare parts:
   clean pelts, tusks, trophies).

@@ -8,6 +8,12 @@ button and perfect dodge, the Red Hand bandits and their camp in the Whispering 
 Morrow's dark quest "The Black Seal", and the story start (the shrine on the meadow hill wakes, the class screen,
 the Pyromancer with Flame Dash and Meteor). main doesn't have these yet: merge camera-test into main when I say.
 
+Also on camera-test (30 Sep evening, from my playtest): buttons that stay put (Compact flick option), sword on the
+back, the quest system (Story/Job tags, foldable tracker, quest log, guide beam), bag Drop, quiet sneaking,
+Cinderburst + a 12-talent Pyromancer tree, hunting (stags, bodies you carve/drag/cart to the butcher, rot, crows,
+scavenging wolves, the Duskmaw called by three bodies at night, the ox cart, Wren's Harvest Supper), six more
+houses and a second inside (layout + feel, changeable). I may send more mob pictures (medium/big) to build.
+
 Waiting on me: AI pictures of swords, bows, armour and the Hollowhorn sword (I'll send them; build the models
 from them then). The Brakk redo (chipped boulders + baked shading) is parked on branch `brakk-redo`, untested.
 
