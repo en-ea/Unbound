@@ -13,6 +13,7 @@ const E := preload("res://scripts/studio/village/sim/events.gd")
 const Village := preload("res://scripts/studio/village/sim/village.gd")
 const Justice := preload("res://scripts/studio/village/sim/justice.gd")
 const Director := preload("res://scripts/studio/village/sim/director.gd")
+const WorldActions := preload("res://scripts/studio/village/sim/world_actions.gd")
 
 const TRACE_ORIGIN := 1000000  # origins at or above this are traces (feathers, bones), not people
 const MAX_BELIEFS := 8
@@ -471,6 +472,15 @@ static func run_intent(V: S.Village, it: Dictionary) -> Dictionary:
 			return {"done": true}
 		"kindness":
 			return kindness(V, p, int(it.target), seen)
+		"report":
+			# someone who saw the player strike a villager tells the village's authority
+			var elder := V.people[int(it.other)]
+			if not elder.alive or not elder.present:
+				return {"abandoned": true}
+			WorldActions.remember(V, elder.id, "told_about_you", -15)
+			E.log_event(V, "report", p.id, elder.id, {"about": int(it.about), "motive": "duty"}, PackedInt32Array(),
+				"%s speaking low to %s, pointing towards the stranger" % [E.name_of(V, p.id), E.name_of(V, elder.id)])
+			return {"done": true}
 	return {"abandoned": true}
 
 

@@ -457,6 +457,8 @@ static func run_phase(V: S.Village) -> Dictionary:
 			return {"kind": "attention", "intent": brought}
 		"end":
 			minds(V)
+			for p in V.people:
+				p.hurt = maxi(0, p.hurt - 25)   # bruises fade
 			V.day += 1
 			V.phases = []
 			V.intents = []

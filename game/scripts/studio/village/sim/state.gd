@@ -70,6 +70,9 @@ class Person:
 	var ancestor := -1
 	var lost_to_storm := -1
 	var faded := false
+	# the live village: bruising from the player's blows (0..100, fades), and knocked down until this minute
+	var hurt := 0
+	var down_until := -1
 
 
 class Household:

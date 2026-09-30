@@ -1,5 +1,5 @@
 extends RefCounted
-## The one door presentation uses for world actions (talk now; strike, shove, give in Pass 2 stage 2): builds
+## The one door presentation uses for world actions (talk, square_up, strike, shove, give): builds
 ## the request, measures the distance from the player's body to the resident's body, asks the village, then
 ## charges any costs and saves the normal game at once (accepted state and belongings share one save).
 ##
@@ -23,9 +23,19 @@ static func request(player: Node3D, registry: Node, verb: String, target: int, p
 	var req := {"action_id": "%s:%d:%s" % [verb, target, press],
 		"player_id": "player:local", "village_id": v.runtime.village, "logical_time": v.runtime.now,
 		"verb": verb, "target": target, "parameters": parameters}
-	var result := WorldActions.act(v, req, {"distance_dm": int(ceil(distance * 10.0)), "witnesses": parameters.get("witnesses", [])})
+	var context := {"distance_dm": int(ceil(distance * 10.0)), "witnesses": parameters.get("witnesses", [])}
+	if verb == "give":
+		var item: String = parameters.get("item", "")
+		context.have = Money.coins if item == "coins" else Inventory.count(item)
+		context.food = Food.FOODS.has(item)
+	var result := WorldActions.act(v, req, context)
 	if result.accepted and not result.get("duplicate", false):
 		if int(result.get("coins", 0)) > 0:
 			Money.spend(int(result.coins))
+		if verb == "give":   # the gift leaves the player's bag or purse
+			if result.item == "coins":
+				Money.spend(int(result.count))
+			else:
+				Inventory.remove(str(result.item), int(result.count))
 		SaveGame.save_game()
 	return result
