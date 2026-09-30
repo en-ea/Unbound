@@ -629,8 +629,8 @@ static func _semantic(v: S.Village, strict: bool) -> bool:
 		for a: Variant in r[list]:
 			if not a is Dictionary or not a.get("s") is S.Sched or not have.has(int(a.get("staging", -1))):
 				return false
-	for e: Dictionary in r.events:
-		if not TERMINAL.has(e.phase) or int(e.end) > int(r.now):
+	for e: Dictionary in r.events:   # (an incident is the lead's to define: its staging is not demanded here)
+		if e.type != "incident" and (not TERMINAL.has(e.phase) or int(e.end) > int(r.now)):
 			if not have.has(int(e.get("staging", e.id))):
 				return false
 	return v.authority < v.people.size() and v.priest < v.people.size()
