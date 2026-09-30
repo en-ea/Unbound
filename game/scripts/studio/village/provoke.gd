@@ -38,6 +38,11 @@ func _ready() -> void:
 					_authored_nodes[p.id] = node
 	for line in Authored.drift(Npcs.NPCS):
 		push_warning("studio village: Enea's characters changed, the rules' copy needs updating: " + line)
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--village-lively-test=") and not VillageSession.has_node("LivelyProbe"):
+			var lively: Node = load("res://scripts/studio/village/lively_probe.gd").new()
+			lively.name = "LivelyProbe"
+			VillageSession.add_child(lively)
 	if "--village-provoke-test" in OS.get_cmdline_user_args() and not VillageSession.has_node("ProvokeProbe"):
 		var probe: Node = load("res://scripts/studio/village/provoke_probe.gd").new()
 		probe.name = "ProvokeProbe"
