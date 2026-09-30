@@ -29,7 +29,11 @@ const DEFS := {
 	"tobacco": {"name": "Wild Tobacco", "color": Color(0.5, 0.66, 0.26), "rarity": Rarity.COMMON},
 	"cigarette": {"name": "Cigarette", "color": Color(0.96, 0.92, 0.82), "rarity": Rarity.COMMON},
 	"stew": {"name": "Forest Stew", "color": Color(0.6, 0.36, 0.2), "rarity": Rarity.UNCOMMON},
+	"red_hand": {"name": "Red Hand Rag", "color": Color(0.62, 0.14, 0.12), "rarity": Rarity.COMMON},
+	"black_seal": {"name": "Varek's Black Seal", "color": Color(0.5, 0.1, 0.1), "rarity": Rarity.RARE},
 }
+## Quest items: the trader won't take them.
+const QUEST_ITEMS := ["black_seal"]
 
 ## What each item is for, in a few words (shown in the Bag).
 const DESC := {
@@ -42,7 +46,9 @@ const DESC := {
 	"tusk": "A boar's tusk. The trader likes it.", "pelt": "Wolf pelt for packs and Iron swords.",
 	"fang": "A wolf fang for the best swords.",
 	"tobacco": "Wild leaves. Roll them into cigarettes at a campfire.",
-	"cigarette": "Take a smoke, nice and slow. Just for the look of it.", "shadow_pelt": "From shadow wolves. Steel swords.",
+	"cigarette": "Take a smoke, nice and slow. Just for the look of it.",
+	"red_hand": "Torn from a Red Hand bandit. The trader pays a little for proof.",
+	"black_seal": "Heavy, cold, and it hums against your palm. Morrow wants it.", "shadow_pelt": "From shadow wolves. Steel swords.",
 }
 ## Loot: things you win from enemies and rare finds (the rest are materials or food).
 const LOOT := ["hide", "tusk", "pelt", "fang", "shadow_pelt", "shard", "glowcap", "resin"]

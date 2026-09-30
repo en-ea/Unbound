@@ -17,7 +17,27 @@ const REGEN_EVERY := 9.0          # then one heart this often
 ## Stamina: sprinting (hold Roll), rolling and heavy attacks use it; it refills after a short pause.
 ## Run it empty and you are winded: no sprint, roll or heavy until it is back to `winded_until`.
 const STAMINA := {"max": 100.0, "regen": 34.0, "delay": 0.6, "sprint": 20.0, "roll": 26.0, "heavy": 34.0,
-	"winded_until": 35.0}
+	"guard": 10.0, "block": 24.0, "winded_until": 35.0}
+## The Red Hand bandits (creatures/bandit.gd): hit points, damage (hearts), run speed, how far they
+## circle, how often they block a hit from the front, combo length, XP and coins dropped.
+const BANDITS := {
+	"cutthroat": {"hp": 14, "damage": 1, "speed": 3.8, "circle": 3.0, "block": 0.3, "combo": [2, 3], "rest": [1.0, 2.2], "xp": 30, "coins": [4, 10]},
+	"shield": {"hp": 20, "damage": 1, "speed": 3.1, "circle": 2.5, "block": 1.0, "combo": [1, 2], "rest": [1.4, 2.6], "xp": 35, "coins": [5, 11]},
+	"archer": {"hp": 9, "damage": 1, "speed": 4.0, "range": [7.0, 13.0], "aim": 1.1, "rest": [1.6, 2.8], "xp": 25, "coins": [3, 8]},
+	"leader": {"hp": 48, "damage": 2, "speed": 4.4, "circle": 2.8, "block": 0.45, "combo": [3, 4], "rest": [0.7, 1.5], "xp": 160, "coins": [40, 70]},
+}
+const BANDIT_TURNS := 2          # how many bandits may attack you at once (the rest circle and wait)
+## Sneaking and being seen: sight range standing / sneaking, at night (times), the view cone (dot), how
+## fast they notice you up close (per second), how fast they forget, how far noise carries, the shout
+## that alerts the camp, and reach for a takedown from behind.
+const STEALTH := {"sight": 15.0, "sight_sneak": 6.0, "night": 0.6, "fov": 0.25, "notice": 1.6, "forget": 0.3,
+	"noise_walk": 4.5, "noise_run": 9.0, "noise_sprint": 14.0, "noise_fight": 12.0, "noise_sneak": 1.2,
+	"shout": 22.0, "takedown": 1.9, "sneak_speed": 2.2, "give_up": 32.0}
+
+## Parry and perfect dodge (player.gd): guard length, the perfect-parry part of it, the pause before the
+## next guard, the start of a roll that counts as a perfect dodge, slow motion after one, the counter window.
+const DEFENCE := {"guard": 0.55, "parry": 0.22, "guard_rest": 0.35, "perfect_dodge": 0.26, "slow": 0.3,
+	"slow_secs": 0.9, "counter_secs": 2.5, "parry_stun": 1.6}
 const SPRINT_SPEED := 7.6         # m/s (a run is 5.4)
 const HEAVY_DAMAGE := 2.5         # a heavy attack does this many times a normal hit (rounded up)
 const HEAVY_PUSH := 2.2           # and knocks the enemy back this much further
@@ -195,6 +215,7 @@ const VALUES := {
 	"wood": 1, "stone": 1, "apple": 2, "mushroom": 2, "flower": 1, "flint": 3, "resin": 8, "glowcap": 10,
 	"shard": 12, "hide": 4, "tusk": 8, "copper": 3, "iron": 5, "pelt": 6, "fang": 12, "pinewood": 3,
 	"shadow_pelt": 25, "tobacco": 2, "cigarette": 3, "raw_meat": 3, "roast_meat": 6, "skewer": 6, "apple_tart": 8, "stew": 15,
+	"red_hand": 6,
 }
 ## What the trader may stock: [item, amount, price]. "tool" = a found tool with a bonus.
 const STOCK_POOL := [["flint", 3, 18], ["raw_meat", 2, 15], ["glowcap", 1, 40], ["resin", 1, 30],

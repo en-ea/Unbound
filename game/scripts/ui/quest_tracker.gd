@@ -22,12 +22,18 @@ func _ready() -> void:
 	_title.add_theme_color_override("font_color", Color(1.0, 0.86, 0.5))
 	_step = UIStyle.label(column, "", 16)
 	Quests.changed.connect(_refresh)
+	Classes.changed.connect(_refresh)
 	Inventory.changed.connect(func(_i: String, _c: int) -> void: _refresh.call_deferred())
 	_refresh()
 
 
 func _refresh() -> void:
 	var ids := Quests.active()
+	if not Classes.awakened:                  # the story's first beat, before any quest
+		visible = true
+		_title.text = "A Strange Hum"
+		_step.text = "The standing stones on the meadow hill are humming. Go and see (follow the beams of light)."
+		return
 	visible = not ids.is_empty()
 	if visible:
 		_title.text = Quests.DEFS[ids[0]]["name"]

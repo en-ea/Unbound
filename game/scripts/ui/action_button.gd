@@ -15,6 +15,7 @@ var sub := ""                # small second line under the verb (a hint like "ho
 var meter := 1.0             # 0..1: a thin arc round the rim while below 1 (stamina)
 var meter_color := Color(0.62, 0.9, 0.38)
 var lit := false             # glows while its hold action is on (sprinting)
+var lit_fill := Color(0.2, 0.3, 0.16, 0.75)     # its colour then (abilities: the class's colour)
 var dim := false             # can't be used right now
 var _held := -1
 var _held_for := 0.0
@@ -56,6 +57,11 @@ func _center() -> Vector2:
 func _update_safe() -> void:
 	_safe = preload("res://scripts/ui/safe_area.gd").rect(get_viewport())
 	queue_redraw()
+
+
+## True if a touch here would press this button (the camera drag leaves those alone).
+func covers(pos: Vector2) -> bool:
+	return is_visible_in_tree() and pos.distance_to(_center()) < radius * 1.25
 
 
 func _input(event: InputEvent) -> void:
@@ -102,7 +108,7 @@ func _draw() -> void:
 	var r := radius * (1.0 - 0.08 * _pulse)
 	var fill := Color(0.08, 0.1, 0.16, 0.62 if active else 0.3)
 	if lit:
-		fill = Color(0.2, 0.3, 0.16, 0.75)
+		fill = lit_fill
 	draw_circle(c + Vector2(0, 4), r, Color(0, 0, 0, 0.2), true, -1.0, true)
 	draw_circle(c, r, fill, true, -1.0, true)
 	draw_arc(c, r, 0.0, TAU, 64, Color(1, 0.95, 0.8, 0.85 if active else 0.25), 3.0, true)

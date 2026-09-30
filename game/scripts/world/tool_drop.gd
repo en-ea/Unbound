@@ -7,6 +7,7 @@ const DROP := preload("res://scripts/world/drop.gd")
 const GRAVITY := 14.0
 const PICK_RANGE := 1.3
 const SOUND := preload("res://assets/sounds/rare.wav")
+const LAND_SOUND := preload("res://assets/sounds/chest_burst.wav")
 
 var slot := ""
 var tool := {}
@@ -59,6 +60,8 @@ func _process(delta: float) -> void:
 		if global_position.y <= _ground_y + 0.3 and _velocity.y < 0.0:
 			global_position.y = _ground_y + 0.3
 			_landed = true
+			if _found and tool["rarity"] >= Loot.RARE:
+				_land_flash(tool["rarity"])
 	else:
 		_model.position.y = 0.1 + sin(_age * 2.5) * 0.06
 	_model.rotation.y += delta * 1.2
@@ -67,6 +70,22 @@ func _process(delta: float) -> void:
 		_armed = (_found and _landed and _age > 0.6) or (not _found and near > 2.5)
 	elif near < PICK_RANGE:
 		_pick_up()
+
+
+## Rare and better gear lands with a flash in its colour, a ring of sparks and a chime; Legendary and
+## Mythic also shake the ground and call out their rarity.
+func _land_flash(r: int) -> void:
+	var tint := Loot.rarity_color(r)
+	sparks(self, global_position, tint, 16 + 10 * r, 3.0 + r)
+	var chime := AudioStreamPlayer3D.new()
+	chime.stream = LAND_SOUND
+	chime.unit_size = 8.0
+	chime.pitch_scale = 1.0 - 0.06 * (r - Loot.RARE)
+	add_child(chime)
+	chime.play()
+	if r >= Loot.LEGENDARY:
+		get_tree().call_group("camera_rig", "shake", 0.12)
+		FloatText.spawn(get_tree(), global_position + Vector3(0, 1.6, 0), Loot.rarity_name(r) + "!", tint, true)
 
 
 func _pick_up() -> void:
@@ -81,6 +100,34 @@ func _pick_up() -> void:
 	sound.play()
 	sound.finished.connect(sound.queue_free)
 	queue_free()
+
+
+## A one-off burst of glowing sparks in `tint` at `at` (gear landing, a chest opening on good gear).
+static func sparks(parent: Node, at: Vector3, tint: Color, amount: int, speed: float) -> void:
+	var p := CPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 1.0
+	p.amount = amount
+	p.lifetime = 0.9
+	p.local_coords = false
+	p.direction = Vector3.UP
+	p.spread = 70.0
+	p.gravity = Vector3(0, -3, 0)
+	p.initial_velocity_min = 2.0
+	p.initial_velocity_max = speed
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * 0.08
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.albedo_color = Color(tint.lightened(0.3) * 2.2, 1.0)
+	quad.material = mat
+	p.mesh = quad
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(p)
+	p.global_position = at
+	p.emitting = true
+	p.finished.connect(p.queue_free)
 
 
 ## Throws a tool into the world at `from` (used by chests, enemies and the player).

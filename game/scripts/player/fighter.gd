@@ -20,6 +20,8 @@ const HEAVY_FIST := {"anim": "Punch_Cross", "speed": 0.75, "impact": 0.22, "busy
 const HEAVY_REACH := 2.8       # a heavy blow hits every enemy this close in front of you
 const SHOCK_SHADER := preload("res://shaders/shockwave.gdshader")
 const THUD := preload("res://assets/sounds/tree_thud.wav")
+const CRIT_SOUND := preload("res://assets/sounds/crit.wav")
+const KILL_SOUND := preload("res://assets/sounds/kill.wav")
 
 @onready var player: CharacterBody3D = get_parent()
 @onready var visual: CharacterVisual = get_parent().get_node("Visual")
@@ -70,6 +72,9 @@ func _ready() -> void:
 	quad.material = mat
 	_sparks.mesh = quad
 	player.add_child.call_deferred(_sparks)
+	var marker := LockMarker.new()
+	marker.fighter = self
+	player.add_child.call_deferred(marker)
 	_thud = AudioStreamPlayer3D.new()
 	_thud.stream = THUD
 	_thud.unit_size = 8.0
@@ -113,6 +118,8 @@ func _physics_process(delta: float) -> void:
 		_shock_mat.set_shader_parameter("t", _shock_t)
 	target = _nearest_enemy(BUTTON_REACH)
 	var new_verb := "Attack" if target or _since < STAY_ARMED else ""
+	if target and target.has_method("can_be_taken_down") and target.can_be_taken_down(player):
+		new_verb = "Takedown"
 	if new_verb != verb:
 		verb = new_verb
 		target_changed.emit(verb)
@@ -120,6 +127,9 @@ func _physics_process(delta: float) -> void:
 
 ## The action button near an enemy: one swing of the combo.
 func attack() -> void:
+	if verb == "Takedown" and _busy <= 0.0 and is_instance_valid(target):
+		_takedown(target)
+		return
 	if _busy > 0.0:
 		_queued = _busy < 0.25
 		return
@@ -145,6 +155,23 @@ func attack() -> void:
 	_audio.play()
 
 
+## From behind an unaware bandit: one quick, quiet blow.
+func _takedown(t: Node3D) -> void:
+	var to := t.global_position - player.global_position
+	visual.rotation.y = atan2(to.x, to.z)
+	visual.show_tool("sword" if Gear.tier("sword") >= 0 else "")
+	visual.play_action("Sword_Regular_C", 1.5)
+	_busy = 0.55
+	_impact = -1.0
+	_since = 0.0
+	get_tree().create_timer(0.22).timeout.connect(func() -> void:
+		if is_instance_valid(t) and t.is_alive():
+			t.taken_down(player)
+			_play_once(preload("res://assets/sounds/sneak_kill.wav"), -2.0)
+			get_tree().call_group("camera_rig", "shake", 0.06)
+			Skills.add("combat", Balance.XP_PER_SWORD_HIT * 3))
+
+
 ## The Heavy button: one big blow. The player has already paid the stamina.
 func heavy() -> void:
 	var armed := Gear.tier("sword") >= 0
@@ -165,6 +192,18 @@ func heavy() -> void:
 	_audio.stream = _whoosh
 	_audio.pitch_scale = randf_range(0.7, 0.78)
 	_audio.play()
+
+
+## After the blow has landed, the rest of the swing is only follow-through: moving cuts it short, so
+## you're never stuck slow after an attack.
+func recovering() -> bool:
+	return _busy > 0.0 and _impact < 0.0 and not _heavy and not _queued
+
+
+func end_recovery() -> void:
+	_busy = 0.0
+	visual.stop_action()
+	visual.show_tool("")
 
 
 ## Stops a swing (a roll cancels it).
@@ -205,8 +244,11 @@ func _land_hit() -> void:
 		Wolf.open_up()
 		return
 	var hit := Gear.hit_damage()
+	if player.take_counter() or (t.has_method("is_open") and t.is_open()):
+		hit = [hit[0] * 2, true]           # a counter after a parry or perfect dodge, or a stunned foe
 	t.take_hit(player.global_position, hit[0])
 	_after_hit(hit[1])
+	_hit_feedback(t, hit[0], hit[1])
 	Skills.add("combat", Balance.XP_PER_SWORD_HIT)
 	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
 	_sparks.amount = 12
@@ -218,10 +260,34 @@ func _land_hit() -> void:
 	_audio.play()
 
 
+## Every blow that lands: its damage floats up (gold and bigger for a critical, with a sharp ring), and
+## a kill gets a finisher: a deep boom, a harder shake, and a moment of slow motion on the last enemy.
+func _hit_feedback(t: Node3D, damage: int, crit: bool) -> void:
+	var at := t.global_position + Vector3(0, 1.4, 0)
+	FloatText.spawn(get_tree(), at, str(damage) + ("!" if crit else ""), Color(1.0, 0.82, 0.3) if crit else Color(1, 0.97, 0.92), crit)
+	if crit:
+		_play_once(CRIT_SOUND, -4.0)
+	if t.has_method("is_alive") and not t.is_alive():
+		_play_once(KILL_SOUND, -2.0)
+		get_tree().call_group("camera_rig", "shake", 0.16)
+		var others := get_tree().get_nodes_in_group("enemy").filter(func(e: Node) -> bool:
+			return e != t and e.is_alive() and e.has_method("is_engaged") and e.is_engaged())
+		if others.is_empty():
+			Engine.time_scale = 0.25
+			get_tree().create_timer(0.28, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+
+
+func _play_once(stream: AudioStream, db: float) -> void:
+	var p := AudioStreamPlayer.new()
+	p.stream = stream
+	p.volume_db = db
+	player.add_child(p)
+	p.play()
+	p.finished.connect(p.queue_free)
+
+
 ## Weapon bonuses after a hit lands: a critical shows, Vampiric may heal a heart.
 func _after_hit(crit: bool) -> void:
-	if crit:
-		get_tree().call_group("hud", "hint", "Critical!")
 	if randf() < Gear.lifesteal():
 		player.heal(1)
 
@@ -232,6 +298,8 @@ func _land_heavy() -> void:
 	var facing := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
 	var hit_any := false
 	var hit := Gear.hit_damage(Balance.HEAVY_DAMAGE)
+	if player.take_counter():
+		hit = [hit[0] * 2, true]
 	var damage: int = hit[0]
 	for e in get_tree().get_nodes_in_group("enemy"):
 		var to: Vector3 = (e as Node3D).global_position - player.global_position
@@ -241,6 +309,7 @@ func _land_heavy() -> void:
 		e.take_hit(player.global_position, damage, Balance.HEAVY_PUSH)
 		if not hit_any:
 			_after_hit(hit[1])
+		_hit_feedback(e, damage, hit[1])
 		hit_any = true
 		_sparks.global_position = (e as Node3D).global_position + Vector3(0, 0.8, 0)
 	var ground := player.global_position + facing * 1.1
@@ -263,6 +332,11 @@ func _land_heavy() -> void:
 	# Hit-stop for everything: the world nearly stops for a moment, then carries on.
 	Engine.time_scale = 0.05
 	get_tree().create_timer(0.11, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+
+
+## The closest living enemy within `reach` metres, or null (the camera and the lock marker use it).
+func nearest_enemy(reach: float) -> Node3D:
+	return _nearest_enemy(reach)
 
 
 func _nearest_enemy(reach: float) -> Node3D:

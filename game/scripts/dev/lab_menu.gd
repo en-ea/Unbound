@@ -7,8 +7,9 @@ signal closed
 
 const PANEL_W := 470.0
 const SPAWNS := [["Boar", "boar"], ["Wolf", "wolf"], ["Shadow wolf", "shadow"], ["Tree", "tree"], ["Pine", "pine"],
-	["Apple tree", "apple"], ["Rock", "rock"], ["Copper ore", "copper"], ["Iron ore", "iron"], ["Chest", "chest"]]
-const ENEMIES := ["boar", "wolf", "shadow"]
+	["Apple tree", "apple"], ["Rock", "rock"], ["Copper ore", "copper"], ["Iron ore", "iron"], ["Chest", "chest"],
+	["Bandit", "cutthroat"], ["Shield bandit", "shield"], ["Bandit archer", "archer"], ["Varek", "leader"]]
+const ENEMIES := ["boar", "wolf", "shadow", "cutthroat", "shield", "archer", "leader"]
 
 var lab: Node
 var _name: Label

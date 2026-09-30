@@ -54,6 +54,7 @@ var _swiped := false
 var _recharged := false       # a wounded boar charges again once, then rests
 var _poise := 0.0             # recent light hits; too many and it braces
 var _recover := 1.0
+var _daze_for := 0.0          # how long this daze lasts
 var _audio: AudioStreamPlayer3D
 @onready var visual: BoarVisual = $Visual
 
@@ -68,6 +69,35 @@ func _ready() -> void:
 	max_health = roundi(Balance.BOAR["hp"] * tough["hp"])
 	health = max_health
 	_damage = Balance.BOAR["damage"] + tough["damage"]
+
+
+## True while it has noticed you and is fighting (the music switches to the fight tune).
+func is_engaged() -> bool:
+	return state != State.WANDER and state != State.DEAD
+
+
+## Fire damage (a Pyromancer's flames): no stagger, just health.
+func take_burn(damage: int) -> void:
+	if state == State.DEAD:
+		return
+	health -= damage
+	visual.flash()
+	visual.show_health(float(health) / max_health, max_health / 2)
+	FloatText.spawn(get_tree(), global_position + Vector3(0, 1.2, 0), str(damage), Color(1.0, 0.55, 0.2))
+	if health <= 0:
+		_die()
+
+
+## A parry knocked it off balance: dazed and open (double damage) for a while.
+func parried(seconds: float) -> void:
+	_daze_for = seconds
+	_push = -Vector3(sin(rotation.y), 0, cos(rotation.y)) * 4.0
+	_play("thud", 1.3)
+	_enter(State.DAZED)
+
+
+func is_open() -> bool:
+	return state == State.DAZED
 
 
 func is_alive() -> bool:
@@ -103,7 +133,7 @@ func _physics_process(delta: float) -> void:
 					_t = 0.0
 		State.ALERT:
 			_face(to_player, delta * 6.0)
-			if not player.can_be_targeted() or _home_distance() > LEASH:
+			if player.is_down() or _home_distance() > LEASH:
 				_goal = home
 				_enter(State.WANDER)
 			elif _t > 0.35:
@@ -121,22 +151,27 @@ func _physics_process(delta: float) -> void:
 					rotation.y = atan2(_charge_dir.x, _charge_dir.z)     # square on to you as the aim locks
 					visual.glint()
 			visual.tell = clampf(_t / _windup, 0.0, 1.0)
-			if not player.can_be_targeted() or _home_distance() > LEASH:
+			if player.is_down() or _home_distance() > LEASH:
 				_goal = home
 				_enter(State.WANDER)
 			elif _t > _windup:
 				_enter(State.CHARGE)
 		State.CHARGE:
 			want = _charge_dir * CHARGE_SPEED
-			if dist < 1.3 and not player.is_rolling():
-				player.knockback(_charge_dir * 9.0)
-				player.take_damage(_damage)
+			var result := ""
+			if dist < 1.3 and not _swiped:          # one try per charge; a dodged charge thunders on past
+				_swiped = true
+				result = player.receive_attack(self, _damage, _charge_dir * 9.0)
+			if result == "parry":
+				pass
+			elif result == "hit" or result == "block":
 				get_tree().call_group("camera_rig", "shake", 0.12)
 				_recover = 1.1
 				_enter(State.RECOVER)
 			elif _t > 0.2 and is_on_wall():            # ran into a tree or a wall: dazed, a long opening
 				_play("thud", 0.8)
 				get_tree().call_group("camera_rig", "shake", 0.06)
+				_daze_for = Balance.FIGHT["boar_daze"]
 				_enter(State.DAZED)
 			elif _t > 1.5:
 				if health * 2 < max_health and not _recharged and randf() < Balance.FIGHT["boar_recharge"]:
@@ -162,16 +197,16 @@ func _physics_process(delta: float) -> void:
 					visual.mode = "swipe"
 					_push = Vector3(sin(rotation.y), 0, cos(rotation.y)) * 3.0     # a lurch forward
 					_play("snort", 1.3)
-				if not _swiped and dist < Balance.FIGHT["swipe_reach"] + 0.3 and _in_front(to_player) and not player.is_rolling():
+				if not _swiped and dist < Balance.FIGHT["swipe_reach"] + 0.3 and _in_front(to_player):
 					_swiped = true
-					player.knockback(to_player.normalized() * 6.0)
-					player.take_damage(maxi(1, _damage - 1))
-					get_tree().call_group("camera_rig", "shake", 0.08)
-				if _t > _swipe_tell + SWIPE_STRIKE:
+					var result: String = player.receive_attack(self, maxi(1, _damage - 1), to_player.normalized() * 6.0)
+					if result == "hit" or result == "block":
+						get_tree().call_group("camera_rig", "shake", 0.08)
+				if state == State.SWIPE and _t > _swipe_tell + SWIPE_STRIKE:
 					_recover = 0.8
 					_enter(State.RECOVER)
 		State.DAZED:
-			if _t > Balance.FIGHT["boar_daze"]:
+			if _t > _daze_for:
 				_enter(State.ALERT if dist < SIGHT else State.WANDER)
 		State.HURT:
 			if _t > _hurt_time:
@@ -296,6 +331,8 @@ func _enter(new_state: State) -> void:
 		_play("snort", randf_range(0.9, 1.1))
 	if new_state == State.WANDER:
 		_recharged = false
+	if new_state == State.CHARGE:
+		_swiped = false
 
 
 func _face(dir: Vector3, weight: float) -> void:

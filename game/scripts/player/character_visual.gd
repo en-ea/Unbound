@@ -18,7 +18,7 @@ const SPRINT := "Sprint"
 ## Ground speed (m/s) each animation was made for, so feet don't slide.
 ## The jog's real pace is 5.36 m/s, but its long strides looked like lunging, so it plays ~30%
 ## faster (quicker, shorter-looking steps).
-const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2, "Sprint": 6.6}
+const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2, "Sprint": 6.6, "Crouch_Fwd": 1.3}
 
 const TOOLS := {"axe": "res://assets/items/axe.glb", "pickaxe": "res://assets/items/pickaxe.glb",
 	"sword": "res://assets/items/sword.glb"}
@@ -37,6 +37,8 @@ const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw", "sunhat", "
 var hero_look := CharacterLook.load_saved()
 var body_model := ""            # a different body on the same rig (Brakk the golem), instead of the hero
 var is_player_look := true      # the player takes height/build from the look; NPCs set their own scale
+var idle_anim := ""             # instead of the plain idle (sneaking: Crouch_Idle; a guard: Idle_FoldArms)
+var walk_anim := ""             # instead of the walk (sneaking: Crouch_Fwd)
 var wear_gear := false          # show the player's worn armour over the look (off in the look picker)
 var _metal_tint := Color(0, 0, 0, 0)
 
@@ -123,13 +125,13 @@ func stop_action() -> void:
 func play_motion(speed: float) -> void:
 	if _action_left > 0.0:
 		return
-	var anim_name := IDLE
+	var anim_name := idle_anim if idle_anim != "" else IDLE
 	if speed > 6.4:
 		anim_name = SPRINT
 	elif speed > 3.0:
 		anim_name = RUN
 	elif speed > 0.2:
-		anim_name = WALK
+		anim_name = walk_anim if walk_anim != "" else WALK
 	if anim_name != _current:
 		_current = anim_name
 		_anim.play(anim_name, 0.2)
@@ -179,6 +181,24 @@ func show_tool(tool_name: String) -> void:
 		_tools[t].visible = t == tool_name
 	if _tool_metal.has(tool_name):              # the head shows the tool's tier (stone, copper, iron)
 		(_tool_metal[tool_name] as StandardMaterial3D).albedo_color = Gear.color(tool_name)
+
+
+## Makes an animation loop (stances used as idles: Sword_Idle).
+func loop_animation(anim_name: String) -> void:
+	if _anim.has_animation(anim_name):
+		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
+
+
+## The red-hot warning glow before an attack (0..1), like the creatures' wind-up.
+func set_warn(amount: float) -> void:
+	for m: ShaderMaterial in _slot_materials.values():
+		m.set_shader_parameter("warn", amount)
+
+
+## Colours a shown tool's metal (bandits' plain iron swords) instead of the player's tier colour.
+func tint_tool(tool_name: String, color: Color) -> void:
+	if _tool_metal.has(tool_name):
+		(_tool_metal[tool_name] as StandardMaterial3D).albedo_color = color
 
 
 ## Shows the hero's chosen parts and applies its colours.

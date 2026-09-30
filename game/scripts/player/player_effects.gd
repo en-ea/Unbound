@@ -58,6 +58,44 @@ func burst(start: bool) -> void:
 		p.restart()
 
 
+## A column of gold sparks rising around you (a level-up, a class awakening). `tint` changes the colour.
+func glow_burst(tint := Color(1.0, 0.82, 0.4), amount := 60) -> void:
+	var p := CPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 0.6
+	p.amount = amount
+	p.lifetime = 1.4
+	p.local_coords = false
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_RING
+	p.emission_ring_axis = Vector3.UP
+	p.emission_ring_radius = 0.9
+	p.emission_ring_inner_radius = 0.6
+	p.emission_ring_height = 0.1
+	p.direction = Vector3.UP
+	p.spread = 12.0
+	p.gravity = Vector3(0, 1.5, 0)
+	p.initial_velocity_min = 1.5
+	p.initial_velocity_max = 3.2
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE * 0.09
+	var mat := StandardMaterial3D.new()
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	mat.vertex_color_use_as_albedo = true
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	quad.material = mat
+	p.mesh = quad
+	var fade := Gradient.new()
+	fade.set_color(0, Color(tint.lightened(0.4) * 2.0, 1.0))
+	fade.set_color(1, Color(tint, 0.0))
+	p.color_ramp = fade
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	player.get_parent().add_child(p)
+	p.global_position = player.global_position + Vector3(0, 0.1, 0)
+	p.emitting = true
+	p.finished.connect(p.queue_free)
+
+
 func _take() -> CPUParticles3D:
 	var p := _puffs[_next]
 	_next = (_next + 1) % POOL

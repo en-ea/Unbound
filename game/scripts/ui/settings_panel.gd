@@ -56,6 +56,8 @@ func _refresh() -> void:
 		_cheat_page()
 		return
 	_row("Sound", "On" if Settings.sound_on else "Off", func() -> void: Settings.set_sound_on(not Settings.sound_on))
+	_row("Music", "On" if Settings.music_on else "Off", func() -> void: Settings.set_music_on(not Settings.music_on))
+	_row("Update log", "Open", func() -> void: UpdateLog.open(self))
 	_row("Codes", "Enter", func() -> void: _page = "code")
 
 
@@ -175,6 +177,14 @@ func _cheat_page() -> void:
 				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])
 			Money.earn(Balance.HOME["coins"])],
 		["Full hearts", func() -> void: get_tree().call_group("player", "heal_full")],
+		["Become Pyromancer", func() -> void:
+			Classes.choose("pyromancer")
+			get_tree().call_group("hud", "_on_class_chosen", "pyromancer")],
+		["Reset story (shrine)", func() -> void: Classes.reset()],
+		["Morrow's job: done up to the seal", func() -> void:
+			if Quests.status("morrow_seal") == "new":
+				Quests.accept("morrow_seal")
+			Inventory.add("black_seal", 1)],
 		["Go to other area", func() -> void:
 			var gate: Dictionary = Region.GATES[Region.current][0]
 			_close()

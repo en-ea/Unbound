@@ -9,10 +9,13 @@ extends Node
 ##   --showcase        line up one of every tree/bush model in front of the player
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
+##   --defencetest     a boar charges: parry the first, perfect-dodge the second (prints what happened)
 ##   --lab --packtest  three wolves against you swinging now and then (prints lowest health, states seen)
 ##   --telltest        a boar frozen mid-warning (glint), a heavy blow's shockwave, stamina part used (screenshots)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
 ##   --cam=d,pitch,fov[,yaw]  try another camera framing (distance, pitch, lens, turn), with a far view
+##   --census / --hudcost  print draw calls, meshes per world part, and each HUD piece's draw calls
+##   --hide=Scatter,HUD    hide parts of the scene (cost checks); --noshadow turns sun shadows off
 ##   --lineup[=N]      stand 7 outfit presets (from the Nth) in a row in front of the camera
 ##   --outfit=Mage     wear a ready-made outfit
 ##   --title           keep the title screen (otherwise any dev argument skips it)
@@ -208,6 +211,18 @@ func _ready() -> void:
 				picker[0]._show_tab(tab))
 		elif arg == "--fighttest":
 			_fight_test = true
+		elif arg == "--pyrotest":                     # with --lab: meteor and flame dash on three foes
+			add_child(preload("res://scripts/dev/pyro_test.gd").new())
+		elif arg == "--classpanel":                   # open the class screen as the shrine would
+			get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").open_class_panel(true))
+		elif arg == "--sealtest":                     # with --region=forest: Varek drops Morrow's seal
+			add_child(preload("res://scripts/dev/seal_test.gd").new())
+		elif arg == "--pyro":                         # be a Pyromancer (abilities on Z/X too)
+			Classes.choose.call_deferred("pyromancer")
+		elif arg == "--bandittest":                   # with --lab: sneak-kill a bandit, then fight two
+			add_child(preload("res://scripts/dev/bandit_test.gd").new())
+		elif arg == "--defencetest":                  # parry a boar's charge, perfect-dodge the next
+			add_child(preload("res://scripts/dev/defence_test.gd").new())
 		elif arg == "--telltest":
 			_tell_test = true
 		elif arg == "--lockmock":                     # with --telltest: a mock lock-on marker on the boar
@@ -235,11 +250,21 @@ func _ready() -> void:
 		elif arg.begins_with("--cam="):               # --cam=d,pitch,fov[,yaw]: try other camera framings
 			var v := arg.trim_prefix("--cam=").split(",")
 			var rig := get_node("../CameraRig")
-			rig.set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01)
-			rig.camera.fov = float(v[2])
+			rig.set_view.call_deferred(float(v[0]), float(v[1]), Vector3.ZERO, 0.01, float(v[2]))
 			rig.camera.far = 600.0
 			if v.size() > 3:
-				rig.rotation.y = deg_to_rad(float(v[3]))
+				rig.turn.call_deferred(deg_to_rad(float(v[3])))
+		elif arg.begins_with("--hide="):              # hide parts of the world (cost checks): --hide=Scatter,Village
+			for n in arg.trim_prefix("--hide=").split(","):
+				get_node("../" + n).visible = false
+		elif arg == "--noshadow":                     # cost check: no sun shadows
+			get_tree().create_timer(2.0).timeout.connect(func() -> void:
+				for l in get_tree().root.find_children("*", "DirectionalLight3D", true, false):
+					(l as DirectionalLight3D).shadow_enabled = false)
+		elif arg == "--hudcost":                      # cost check: draw calls of each HUD piece
+			get_tree().create_timer(3.0).timeout.connect(_hud_cost)
+		elif arg == "--census":                       # print how many meshes each part of the world adds
+			get_tree().create_timer(3.0).timeout.connect(_census)
 		elif arg == "--touchtest":
 			_touch_test = true
 		elif arg == "--kernel-bench":                   # studio branch: the world kernel's conformance and timings, then quit
@@ -286,6 +311,8 @@ func _process(_delta: float) -> void:
 	if _touch_test:
 		_run_touch_test()
 		return
+	if _frames == _shot_frame and OS.get_cmdline_user_args().has("--census"):
+		print("DRAWS ", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME))
 	if _frames == _shot_frame and _shot_path != "":
 		get_viewport().get_texture().get_image().save_png(_shot_path)
 		get_tree().quit()
@@ -435,6 +462,41 @@ func _add_lock_mock(target: Node3D) -> void:
 	arrow.material_override = mat
 	arrow.position = Vector3(0, 2.0, 0)
 	target.add_child(arrow)
+
+
+func _hud_cost() -> void:
+	var info := RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME
+	for c in get_node("../HUD").get_children():
+		if not c is CanvasItem or not c.visible:
+			continue
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var before := RenderingServer.get_rendering_info(info)
+		c.visible = false
+		await get_tree().process_frame
+		await get_tree().process_frame
+		var after := RenderingServer.get_rendering_info(info)
+		c.visible = true
+		var what: String = c.get_script().resource_path.get_file() if c.get_script() else c.get_class()
+		print("HUDCOST ", what, " ", before - after)
+
+
+func _census() -> void:
+	var main := get_parent()
+	for top in main.get_children():
+		var meshes := top.find_children("*", "MeshInstance3D", true, false).size()
+		var mms := top.find_children("*", "MultiMeshInstance3D", true, false).size()
+		var surf := 0
+		for m in top.find_children("*", "MeshInstance3D", true, false):
+			if (m as MeshInstance3D).mesh:
+				surf += (m as MeshInstance3D).mesh.get_surface_count()
+		if meshes + mms > 0:
+			print("CENSUS ", top.name, ": ", meshes, " meshes (", surf, " surfaces), ", mms, " multimeshes")
+		if top.name == "Village":
+			for c in top.get_children():
+				var n := c.find_children("*", "MeshInstance3D", true, false).size()
+				if n >= 5:
+					print("   ", c.name, " ", c.get_class(), ": ", n)
 
 
 func _build_lineup() -> void:

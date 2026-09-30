@@ -35,7 +35,7 @@ var _stock_block := -1
 
 ## The action: sell some of an item to the trader.
 func sell(item: String, amount := 1) -> bool:
-	if not Inventory.remove(item, amount):
+	if item in Items.QUEST_ITEMS or not Inventory.remove(item, amount):
 		return false
 	earn(Items.value_of(item) * amount)
 	return true

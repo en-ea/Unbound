@@ -31,6 +31,7 @@ Money="*res://scripts/state/money.gd"
 Projects="*res://scripts/state/projects.gd"
 Home="*res://scripts/state/home.gd"
 Quests="*res://scripts/state/quests.gd"
+Classes="*res://scripts/state/classes.gd"
 Region="*res://scripts/core/region.gd"
 VillageSession="*res://scripts/studio/village/session.gd"
 

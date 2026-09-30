@@ -84,6 +84,10 @@ func _on_opened(id: int, drops: Array) -> void:
 	if randf() < Balance.CHEST_TOOL:          # often a chest holds a piece of gear
 		var found := Gear.roll_found("chest")
 		TOOL_DROP.spawn(self, found[0], found[1], at, player)
+		var r: int = found[1]["rarity"]
+		TOOL_DROP.sparks(self, at + Vector3(0, 0.6, 0), Loot.rarity_color(r) if r > 0 else Color(1.0, 0.9, 0.6), 20 + 12 * r, 3.5 + r)
+		if r >= Loot.RARE:
+			get_tree().call_group("camera_rig", "shake", 0.05 + 0.03 * r)
 	for i in drops.size():
 		var drop := Node3D.new()
 		drop.set_script(DROP)

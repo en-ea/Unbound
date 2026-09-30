@@ -1,5 +1,5 @@
 extends Node
-## Player settings (frame cap, stats overlay, sound, camera zoom, render scale), saved on the device.
+## Player settings (frame cap, stats overlay, sound, music, camera zoom, render scale), saved on the device.
 
 signal changed
 
@@ -12,6 +12,7 @@ var fps_cap := 30
 var show_stats := true
 var show_map := true
 var sound_on := true
+var music_on := true
 var zoom := 1.0
 var render_scale := 0.8
 
@@ -23,6 +24,7 @@ func _ready() -> void:
 		show_stats = cfg.get_value("video", "show_stats", show_stats)
 		show_map = cfg.get_value("video", "show_map", show_map)
 		sound_on = cfg.get_value("audio", "sound_on", sound_on)
+		music_on = cfg.get_value("audio", "music_on", music_on)
 		zoom = cfg.get_value("video", "zoom", zoom)
 	apply()
 
@@ -51,6 +53,11 @@ func set_sound_on(value: bool) -> void:
 	_save_and_apply()
 
 
+func set_music_on(value: bool) -> void:
+	music_on = value
+	_save_and_apply()
+
+
 func next_zoom() -> void:
 	var keys := ZOOMS.keys()
 	zoom = keys[(keys.find(zoom) + 1) % keys.size()]
@@ -76,6 +83,7 @@ func _save_and_apply() -> void:
 	cfg.set_value("video", "show_stats", show_stats)
 	cfg.set_value("video", "show_map", show_map)
 	cfg.set_value("audio", "sound_on", sound_on)
+	cfg.set_value("audio", "music_on", music_on)
 	cfg.set_value("video", "zoom", zoom)
 	SafeFile.save_config(cfg, PATH)
 	apply()

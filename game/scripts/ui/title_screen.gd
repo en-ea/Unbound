@@ -112,6 +112,14 @@ func _ready() -> void:
 		build_lab.emit()
 		queue_free())
 
+	var log_button := UIStyle.button(self, "Update log", Vector2(170, 44), 18)
+	log_button.anchor_top = 1.0
+	log_button.anchor_bottom = 1.0
+	log_button.offset_left = 276
+	log_button.offset_top = -120
+	log_button.offset_bottom = -76
+	log_button.pressed.connect(func() -> void: UpdateLog.open(self))
+
 	var version := UIStyle.label(self, VERSION, 16, true)
 	version.anchor_top = 1.0
 	version.anchor_bottom = 1.0
@@ -121,6 +129,8 @@ func _ready() -> void:
 
 	modulate.a = 0.0
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.8)
+	if "--updatelog" in OS.get_cmdline_user_args():        # dev: --title --updatelog
+		UpdateLog.open.call_deferred(self)
 
 
 func _on_play() -> void:
