@@ -29,6 +29,10 @@ func _ready() -> void:
 		VillageSession.recovery_notice = ""
 	registry = Residents.new()
 	add_child(registry)
+	var provoke: Node = preload("res://scripts/studio/village/provoke.gd").new()   # picking a fight (Pass 2, M2)
+	provoke.name = "Provoke"
+	provoke.registry = registry
+	add_child(provoke)
 	_player = get_tree().get_first_node_in_group("player")
 	var layer := CanvasLayer.new()
 	layer.layer = 8
