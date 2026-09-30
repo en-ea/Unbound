@@ -285,14 +285,33 @@ func _show_detail() -> void:
 	info.add_child(worth)
 	UIStyle.label(worth, "Trader pays", 14, true)
 	UIStyle.price(worth, Items.value_of(item), 15)
+	var actions := VBoxContainer.new()
+	actions.add_theme_constant_override("separation", 6)
+	actions.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	h.add_child(actions)
 	if Food.is_food(item):
-		var eat := UIStyle.button(h, "Eat", Vector2(110, 56), 20)
-		eat.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var eat := UIStyle.button(actions, "Eat", Vector2(110, 48), 20)
 		eat.pressed.connect(func() -> void: get_tree().call_group("player", "eat", item))
 	elif item == "cigarette":
-		var smoke := UIStyle.button(h, "Smoke", Vector2(110, 56), 20)
-		smoke.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		var smoke := UIStyle.button(actions, "Smoke", Vector2(110, 48), 20)
 		smoke.pressed.connect(func() -> void: get_tree().call_group("player", "smoke"))
+	if item in Items.QUEST_ITEMS:
+		UIStyle.label(actions, "Quest item", 14, true)
+		return
+	var drops := HBoxContainer.new()
+	drops.add_theme_constant_override("separation", 6)
+	actions.add_child(drops)
+	UIStyle.button(drops, "Drop", Vector2(80, 40), 16).pressed.connect(func() -> void: _drop(item, 1))
+	if Inventory.count(item) > 1:
+		UIStyle.button(drops, "All", Vector2(60, 40), 16).pressed.connect(func() -> void: _drop(item, Inventory.count(item)))
+
+
+## Throw items away (they're gone; the bag frees the space).
+func _drop(item: String, amount: int) -> void:
+	Inventory.remove(item, amount)
+	if Inventory.count(item) <= 0:
+		_selected = ""
+	_show_detail()
 
 
 ## The item's rendered picture, or a colour dot while it is still being drawn.

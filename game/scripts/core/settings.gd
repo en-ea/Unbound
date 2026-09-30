@@ -14,6 +14,7 @@ var sound_on := true
 var music_on := true
 var zoom := 1.0
 var render_scale := 0.8
+var tracker_small := false      # the quest tracker folded down to a small tab
 
 
 func _ready() -> void:
@@ -25,6 +26,7 @@ func _ready() -> void:
 		sound_on = cfg.get_value("audio", "sound_on", sound_on)
 		music_on = cfg.get_value("audio", "music_on", music_on)
 		zoom = cfg.get_value("video", "zoom", zoom)
+		tracker_small = cfg.get_value("ui", "tracker_small", tracker_small)
 	apply()
 
 
@@ -57,6 +59,11 @@ func set_music_on(value: bool) -> void:
 	_save_and_apply()
 
 
+func set_tracker_small(value: bool) -> void:
+	tracker_small = value
+	_save_and_apply()
+
+
 func next_zoom() -> void:
 	var keys := ZOOMS.keys()
 	zoom = keys[(keys.find(zoom) + 1) % keys.size()]
@@ -79,5 +86,6 @@ func _save_and_apply() -> void:
 	cfg.set_value("audio", "sound_on", sound_on)
 	cfg.set_value("audio", "music_on", music_on)
 	cfg.set_value("video", "zoom", zoom)
+	cfg.set_value("ui", "tracker_small", tracker_small)
 	cfg.save(PATH)
 	apply()

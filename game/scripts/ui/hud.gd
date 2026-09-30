@@ -391,9 +391,12 @@ func show_quest_complete(id: String) -> void:
 
 ## Talking to a villager (world/npc.gd).
 func open_dialogue(npc: String) -> void:
-	_tracker.visible = false                               # it would sit behind the portrait
+	_tracker.set("hidden_for_talk", true)                       # it would sit behind the portrait
+	_tracker.call("refresh")
 	var panel := _modal(preload("res://scripts/ui/dialogue_panel.gd"), {"npc": npc})
-	panel.closed.connect(func() -> void: _tracker.visible = true)
+	panel.closed.connect(func() -> void:
+		_tracker.set("hidden_for_talk", false)
+		_tracker.call("refresh"))
 
 
 func open_bag() -> void:
@@ -405,9 +408,15 @@ func open_menu() -> void:
 	menu.open_character.connect(open_look_picker)
 	menu.open_class.connect(func() -> void: open_class_panel(false))
 	menu.open_settings.connect(open_settings)
+	menu.open_quests.connect(open_quests)
 	menu.to_title.connect(func() -> void:
 		SaveGame.save_game()
 		show_title())
+
+
+## The quest log: every quest you're on and have done; pick the one to follow.
+func open_quests() -> void:
+	_modal(preload("res://scripts/ui/quest_log.gd"))
 
 
 func open_settings() -> void:

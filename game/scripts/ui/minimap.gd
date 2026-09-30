@@ -97,6 +97,15 @@ func _draw() -> void:
 	var dot := 1.0 / scale_px
 	if landmark:
 		_dot_or_edge(Vector2(landmark.global_position.x, landmark.global_position.z) - here, 4.0 * dot, Color(1.0, 0.85, 0.4), reach)
+	var g := Quests.guide_point(Quests.tracked_quest())
+	if not g.is_empty():                  # where the quest you follow wants you: a gold diamond
+		var q: Vector2 = g["at"] - here
+		if q.length() > reach - 6.0 * dot:
+			q = q.normalized() * (reach - 6.0 * dot)
+		var k := 6.0 * dot
+		var diamond := PackedVector2Array([q + Vector2(0, -k), q + Vector2(k, 0), q + Vector2(0, k), q + Vector2(-k, 0)])
+		draw_colored_polygon(diamond, Color(1.0, 0.8, 0.3))
+		draw_polyline(diamond + PackedVector2Array([diamond[0]]), Color(0.2, 0.12, 0.05), 1.5 * dot)
 	for e in get_tree().get_nodes_in_group("enemy"):
 		var n := e as Node3D
 		if e.is_alive() and n.visible and n.global_position.distance_to(player.global_position) < ENEMY_RANGE:
