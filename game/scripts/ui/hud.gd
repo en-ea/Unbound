@@ -274,9 +274,9 @@ func _on_skill_gained(skill: String, _amount: int) -> void:
 
 
 func _on_skill_leveled(skill: String, level: int) -> void:
-	hint("%s level %d!  %s" % [Skills.SKILLS[skill], level, Skills.perk_text(skill)])
-	_fanfare.pitch_scale = 1.1
-	_fanfare.play()
+	hint(Skills.perk_text(skill))
+	Banner.show_now(self, "LEVEL UP", "%s  %d" % [Skills.SKILLS[skill], level], Color(1.0, 0.82, 0.38), preload("res://assets/sounds/level_up.wav"))
+	get_tree().call_group("player", "level_glow")
 
 
 ## Gear turned up in a chest or on an enemy: a card with its stats (see loot_card.gd). Rarer finds

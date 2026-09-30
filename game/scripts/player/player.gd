@@ -163,6 +163,10 @@ func smoke() -> void:
 		smoking.start()
 
 
+func level_glow() -> void:
+	$Effects.glow_burst()
+
+
 func heal(hearts: int) -> void:
 	if _down <= 0.0 and health < MAX_HEALTH:
 		health = mini(health + hearts, MAX_HEALTH)
@@ -231,11 +235,15 @@ func _physics_process(delta: float) -> void:
 		sprinting = false
 		_special_move(delta)
 		return
-	# Gathering roots you in place; swinging the sword only slows you (and steps you in).
+	# Gathering roots you in place. A swing commits you only until its blow lands (a short step in);
+	# after that, pushing the stick cancels the follow-through and you move at full speed.
+	var stick := Controls.get_move()
+	if fighter.recovering() and stick.length() > 0.3:
+		fighter.end_recovery()
 	var swinging: bool = fighter.is_busy()
-	var move := Controls.get_move() if not gatherer.is_busy() else Vector2.ZERO
+	var move := stick if not gatherer.is_busy() else Vector2.ZERO
 	if swinging:
-		move *= 0.45
+		move *= 0.35
 	var strength := move.length()
 	var target_speed := 0.0
 	# Holding Roll after the roll keeps you sprinting while stamina lasts.

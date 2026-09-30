@@ -5,6 +5,17 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "30 Sep", "title": "Fights feel better", "lines": [
+		"No more slow-mo walking after you swing: a swing only holds you until the blow lands. Push the stick after that and you move at full speed straight away.",
+		"Damage numbers pop up on every hit. Critical hits are big and gold, with a sharp ring.",
+		"Kills land with a deep boom and a harder shake. The last enemy of a fight goes down in a moment of slow motion.",
+		"Level-ups get a big LEVEL UP banner, a fanfare and a burst of gold sparks around you.",
+	]},
+	{"when": "30 Sep", "title": "Loot shines", "lines": [
+		"Rare, Epic, Legendary and Mythic gear lands with a flash and a ring of sparks in its colour, plus a chime.",
+		"Legendary and Mythic shake the ground and shout their rarity.",
+		"Chests with gear inside burst open in that gear's colour.",
+	]},
 	{"when": "30 Sep", "title": "Music", "lines": [
 		"The game has music now: a gentle folk tune in the village, a calm one out in the meadow, a mysterious one in the Whispering Wood.",
 		"When an enemy comes for you it switches to a fight tune, then drifts back once you're safe (a boss tune is ready for bosses).",

@@ -20,6 +20,8 @@ const HEAVY_FIST := {"anim": "Punch_Cross", "speed": 0.75, "impact": 0.22, "busy
 const HEAVY_REACH := 2.8       # a heavy blow hits every enemy this close in front of you
 const SHOCK_SHADER := preload("res://shaders/shockwave.gdshader")
 const THUD := preload("res://assets/sounds/tree_thud.wav")
+const CRIT_SOUND := preload("res://assets/sounds/crit.wav")
+const KILL_SOUND := preload("res://assets/sounds/kill.wav")
 
 @onready var player: CharacterBody3D = get_parent()
 @onready var visual: CharacterVisual = get_parent().get_node("Visual")
@@ -170,6 +172,18 @@ func heavy() -> void:
 	_audio.play()
 
 
+## After the blow has landed, the rest of the swing is only follow-through: moving cuts it short, so
+## you're never stuck slow after an attack.
+func recovering() -> bool:
+	return _busy > 0.0 and _impact < 0.0 and not _heavy and not _queued
+
+
+func end_recovery() -> void:
+	_busy = 0.0
+	visual.stop_action()
+	visual.show_tool("")
+
+
 ## Stops a swing (a roll cancels it).
 func cancel() -> void:
 	_heavy = false
@@ -210,6 +224,7 @@ func _land_hit() -> void:
 	var hit := Gear.hit_damage()
 	t.take_hit(player.global_position, hit[0])
 	_after_hit(hit[1])
+	_hit_feedback(t, hit[0], hit[1])
 	Skills.add("combat", Balance.XP_PER_SWORD_HIT)
 	_sparks.global_position = t.global_position + Vector3(0, 0.8, 0)
 	_sparks.amount = 12
@@ -221,10 +236,34 @@ func _land_hit() -> void:
 	_audio.play()
 
 
+## Every blow that lands: its damage floats up (gold and bigger for a critical, with a sharp ring), and
+## a kill gets a finisher: a deep boom, a harder shake, and a moment of slow motion on the last enemy.
+func _hit_feedback(t: Node3D, damage: int, crit: bool) -> void:
+	var at := t.global_position + Vector3(0, 1.4, 0)
+	FloatText.spawn(get_tree(), at, str(damage) + ("!" if crit else ""), Color(1.0, 0.82, 0.3) if crit else Color(1, 0.97, 0.92), crit)
+	if crit:
+		_play_once(CRIT_SOUND, -4.0)
+	if t.has_method("is_alive") and not t.is_alive():
+		_play_once(KILL_SOUND, -2.0)
+		get_tree().call_group("camera_rig", "shake", 0.16)
+		var others := get_tree().get_nodes_in_group("enemy").filter(func(e: Node) -> bool:
+			return e != t and e.is_alive() and e.has_method("is_engaged") and e.is_engaged())
+		if others.is_empty():
+			Engine.time_scale = 0.25
+			get_tree().create_timer(0.28, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+
+
+func _play_once(stream: AudioStream, db: float) -> void:
+	var p := AudioStreamPlayer.new()
+	p.stream = stream
+	p.volume_db = db
+	player.add_child(p)
+	p.play()
+	p.finished.connect(p.queue_free)
+
+
 ## Weapon bonuses after a hit lands: a critical shows, Vampiric may heal a heart.
 func _after_hit(crit: bool) -> void:
-	if crit:
-		get_tree().call_group("hud", "hint", "Critical!")
 	if randf() < Gear.lifesteal():
 		player.heal(1)
 
@@ -244,6 +283,7 @@ func _land_heavy() -> void:
 		e.take_hit(player.global_position, damage, Balance.HEAVY_PUSH)
 		if not hit_any:
 			_after_hit(hit[1])
+		_hit_feedback(e, damage, hit[1])
 		hit_any = true
 		_sparks.global_position = (e as Node3D).global_position + Vector3(0, 0.8, 0)
 	var ground := player.global_position + facing * 1.1
