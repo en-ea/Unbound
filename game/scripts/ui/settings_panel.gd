@@ -191,6 +191,9 @@ func _cheat_page() -> void:
 			Classes.choose("pyromancer")
 			get_tree().call_group("hud", "_on_class_chosen", "pyromancer")],
 		["Reset story (shrine)", func() -> void: Classes.reset()],
+		["+5 talent points", func() -> void:
+			Classes.bonus_points += 5
+			Classes.changed.emit()],
 		["Morrow's job: done up to the seal", func() -> void:
 			if Quests.status("morrow_seal") == "new":
 				Quests.accept("morrow_seal")

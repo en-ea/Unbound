@@ -39,7 +39,8 @@ func _ready() -> void:
 		open_character.emit()
 		queue_free())
 	if Classes.awakened:
-		UIStyle.menu_button(column, "Class").pressed.connect(func() -> void:
+		var free := Classes.points_free()
+		UIStyle.menu_button(column, "Class" + ("  (%d talent point%s)" % [free, "" if free == 1 else "s"] if free > 0 else "")).pressed.connect(func() -> void:
 			open_class.emit()
 			queue_free())
 	UIStyle.menu_button(column, "Settings").pressed.connect(func() -> void:

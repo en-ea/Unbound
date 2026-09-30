@@ -323,7 +323,10 @@ func _on_skill_gained(skill: String, _amount: int) -> void:
 
 
 func _on_skill_leveled(skill: String, level: int) -> void:
-	hint(Skills.perk_text(skill))
+	if skill == "combat" and Classes.current != "":
+		hint("+1 talent point: Menu > Class > Talents")
+	else:
+		hint(Skills.perk_text(skill))
 	Banner.show_now(self, "LEVEL UP", "%s  %d" % [Skills.SKILLS[skill], level], Color(1.0, 0.82, 0.38), preload("res://assets/sounds/level_up.wav"))
 	get_tree().call_group("player", "level_glow")
 

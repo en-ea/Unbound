@@ -143,6 +143,12 @@ func _ready() -> void:
 			elif bits.size() > 1:
 				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
+		elif arg == "--talents":                          # a Pyromancer with a few talents, on the talent screen
+			Classes.choose("pyromancer")
+			Classes.bonus_points = 5
+			Classes.talents.assign(["scorched_path", "second_wind", "greater_star"])
+			var hud := get_node("../HUD")
+			hud._modal.call_deferred(preload("res://scripts/ui/talent_panel.gd"))
 		elif arg.begins_with("--cheats"):                 # the settings test menu; --cheats=code shows the code page
 			var hud := get_node("../HUD")
 			hud._modal.call_deferred(hud.SETTINGS_PANEL, {"_page": "code" if arg.ends_with("=code") else "cheats"})

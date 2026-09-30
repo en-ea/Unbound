@@ -75,6 +75,8 @@ static func burning_ground(parent: Node, at: Vector3, radius: float, seconds: fl
 	light.position = Vector3(0, 0.8, 0)
 	patch.add_child(light)
 	var tree := parent.get_tree()
+	if Classes.has_talent("white_heat"):
+		damage *= 2
 	var ticks := int(seconds / 0.5)
 	for i in ticks:
 		tree.create_timer(0.5 * (i + 1)).timeout.connect(func() -> void:
@@ -95,6 +97,8 @@ static func burning_ground(parent: Node, at: Vector3, radius: float, seconds: fl
 
 ## Sets an enemy burning for `seconds` (1 damage every half second, flames on it). Refreshes if already alight.
 static func ignite(enemy: Node, seconds: float) -> void:
+	if Classes.has_talent("slow_burn"):
+		seconds *= 1.5
 	var b := enemy.get_node_or_null("Burning")
 	if b:
 		b.left = maxf(b.left, seconds)

@@ -5,6 +5,13 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "30 Sep", "title": "Pyromancer talents", "lines": [
+		"Menu > Class > Talents: 12 talents in four branches (Flame Dash, Meteor, Cinderburst, Kindling), learned top to bottom.",
+		"Points: one from the shrine and one more for every combat level. Menu > Class shows how many you have to spend.",
+		"Reset is free, so you can try different builds.",
+		"Highlights: Flashpoint (your dash ends in a blast), Twin Stars (a second meteor), Chain Reaction (explosions set off more explosions), Rekindle (burning kills bring your abilities back sooner).",
+		"Test: Settings > Codes > Paladin > '+5 talent points'.",
+	]},
 	{"when": "30 Sep", "title": "Controls, quests, Cinderburst", "lines": [
 		"Buttons stay put now: Attack, Heavy, Parry, Roll and Sneak are always in the same spots (no more waiting for them to pop up). Attack always works, even swinging at the air.",
 		"Settings > Buttons > Compact: hides Heavy and Parry. Flick Attack up for a Heavy, left to Parry.",
