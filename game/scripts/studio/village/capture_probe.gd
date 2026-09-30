@@ -51,7 +51,7 @@ func theft_hearing() -> Array:
 	for seed in range(1, 25):
 		var v := Runtime.create(seed, {"anchored": true})
 		for _day in 100:
-			Runtime.advance(v, v.day * 1440)
+			Runtime.advance(v, Runtime.next_dawn(v))
 			for e: Dictionary in v.runtime.events:
 				if e.type != "hearing" or Runtime.terminal(e):
 					continue
@@ -81,7 +81,7 @@ func run() -> void:
 	v = Runtime.create(1)
 	e = {}
 	for _day in 150:
-		Runtime.advance(v, v.day * 1440)
+		Runtime.advance(v, Runtime.next_dawn(v))
 		for candidate: Dictionary in v.runtime.events:
 			if candidate.type == "public" and not Runtime.terminal(candidate) and candidate.place in ["pillory", "gallows", "stake"]:
 				e = candidate; break

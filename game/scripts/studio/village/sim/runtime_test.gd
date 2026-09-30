@@ -6,7 +6,7 @@ static func report() -> PackedStringArray:
 	var v := Runtime.create(16838)
 	var event := {}
 	for _i in 150:
-		Runtime.advance(v, v.day * 1440)
+		Runtime.advance(v, Runtime.next_dawn(v))
 		for e: Dictionary in v.runtime.events:
 			if e.type == "public" and not Runtime.terminal(e) and e.deadline > v.runtime.now:
 				event = e

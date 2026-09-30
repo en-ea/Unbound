@@ -18,7 +18,7 @@ const NOTABLE := {
 const TYPE_LIST := ["birth", "death", "marriage", "crime", "sighting", "rumour", "accusation", "trial", "confession",
 	"ordeal", "verdict", "public_act", "crowd_turned", "mob", "exile", "return", "exoneration", "veneration",
 	"festival", "omen", "famine", "feud", "storm", "epithet", "violent_death", "funeral", "rite", "wedding",
-	"arrival", "discovery", "harvest", "rivalry"]
+	"arrival", "discovery", "harvest", "rivalry", "quarrel", "kindness"]
 
 
 static func log_event(V: S.Village, type: String, who: int, other: int, data: Dictionary, causes: PackedInt32Array, cue: String) -> int:

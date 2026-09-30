@@ -8,6 +8,8 @@ const Bridge := preload("res://scripts/studio/village/sim/storm_bridge.gd")
 const Crime := preload("res://scripts/studio/village/sim/crime.gd")
 const Events := preload("res://scripts/studio/village/sim/events.gd")
 const C := preload("res://scripts/studio/village/sim/content.gd")
+const Incidents := preload("res://scripts/studio/village/sim/incidents.gd")
+const WorldActions := preload("res://scripts/studio/village/sim/world_actions.gd")
 
 static func create(seed: int = 1, opts: Dictionary = {}) -> S.Village:
 	var settings := {"pace": 10, "focus": true, "live": true}
@@ -22,7 +24,9 @@ static func attach(v: S.Village, minute: int = 432) -> void:
 	v.live = true
 	v.runtime = {"version": 1, "village": "wenbrook:%d" % v.seed, "now": v.day * 1440,
 		"events": [], "receipts": {}, "sequence": 0, "residents": {}, "players": {}, "fraction": 0.0,
-		"hearings": [], "rites": [], "traces": [], "resolving": false, "challenge": false, "storm_cycle": 0}
+		"hearings": [], "rites": [], "traces": [], "resolving": false, "challenge": false, "storm_cycle": 0,
+		"day_open": false, "incidents": [], "player": {"present": false, "x": 0, "z": 0}, "quiet_since": v.day * 1440,
+		"acquaintance": {}}
 	advance(v, v.day * 1440 + minute)
 
 static func terminal(e: Dictionary) -> bool:
@@ -46,6 +50,7 @@ static func sync_events(v: S.Village) -> void:
 	all.append_array(v.pending)
 	all.append_array(r.hearings)
 	all.append_array(r.rites)
+	all.append_array(r.get("incidents", []))
 	for a in all:
 		var staging_id: int = a.staging
 		if not event_by_id(v, staging_id).is_empty():
@@ -69,10 +74,15 @@ static func sync_events(v: S.Village) -> void:
 		for beat: Dictionary in st.beats:
 			if (int(beat.who) == int(a.victim) and beat["do"] in ["fall", "leave"]) or (beat["do"] == "release" and int(beat.target) == int(a.victim)):
 				deadline = mini(deadline, int(beat.at))
-		if a is Dictionary:
+		if a is Dictionary and r.get("incidents", []).has(a):
+			type = "incident"   # shown, then over: no decision window
+			deadline = int(st.end)
+		elif a is Dictionary:
 			type = "hearing" if r.hearings.has(a) else "rite"
 			deadline = int(a.deadline)
 		var raw_crowd: Array = a.attend.duplicate() if type == "public" else st.roles.get("crowd", []).duplicate()
+		if type == "incident":
+			raw_crowd = a.actors.duplicate()
 		var crowd: Array[int] = []
 		for witness: int in raw_crowd:
 			if witness >= 0 and not crowd.has(witness):
@@ -81,10 +91,10 @@ static func sync_events(v: S.Village) -> void:
 		if accuser >= 0 and not crowd.has(accuser):
 			crowd.append(accuser)
 		var actors: Array[int] = []
-		for actor: int in [int(a.victim), int(st.roles.get("authority", -1)), int(st.roles.get("accuser", -1))]:
+		for actor: int in ([int(a.victim), int(st.roles.get("authority", -1)), int(st.roles.get("accuser", -1))] if type != "incident" else a.actors):
 			if actor >= 0 and not actors.has(actor):
 				actors.append(actor)
-		var source: Variant = null if type == "public" else a.s
+		var source: Variant = null if type in ["public", "incident"] else a.s
 		var e := {"id": st.id, "revision": 0, "type": type, "victim": a.victim, "place": st.place,
 			"from": int(st.day) * 1440 + first, "deadline": int(st.day) * 1440 + deadline,
 			"end": int(st.day) * 1440 + int(st.end), "phase": "prepared", "outcome": "", "shields": [],
@@ -113,14 +123,20 @@ static func sync_events(v: S.Village) -> void:
 static func advance(v: S.Village, target: int) -> void:
 	var r := v.runtime
 	assert(target >= int(r.now), "clock must advance monotonically")
+	_migrate(v)
 	while true:
 		sync_events(v)
 		var due := {}
 		for e: Dictionary in r.events:
 			if not terminal(e) and (due.is_empty() or e.deadline < due.deadline or (e.deadline == due.deadline and e.id < due.id)):
 				due = e
-		var dawn := v.day * 1440
-		var trace_at := 9223372036854775807
+		var never := 9223372036854775807
+		# the day opens at its midnight; while it is open, its phases run at their minutes (village.gd begin_day)
+		var dawn := never if r.day_open else v.day * 1440
+		var phase_at := never
+		if r.day_open and Village.next_phase_at(v) >= 0:
+			phase_at = v.day * 1440 + Village.next_phase_at(v)
+		var trace_at := never
 		for trace: Dictionary in r.traces:
 			if not trace.discovered:
 				trace_at = mini(trace_at, int(trace.discover_at))
@@ -128,32 +144,28 @@ static func advance(v: S.Village, target: int) -> void:
 		for event: Dictionary in r.events:
 			if event.phase == "prepared" and (opening.is_empty() or event.from < opening.from or (event.from == opening.from and event.id < opening.id)):
 				opening = event
-		var opening_at := int(opening.from) if not opening.is_empty() else 9223372036854775807
-		var next := mini(mini(dawn, int(due.deadline) if not due.is_empty() else 9223372036854775807), mini(trace_at, opening_at))
+		var opening_at := int(opening.from) if not opening.is_empty() else never
+		var due_at := int(due.deadline) if not due.is_empty() else never
+		var next := mini(mini(dawn, phase_at), mini(due_at, mini(trace_at, opening_at)))
 		if next > target:
 			break
 		r.now = maxi(int(r.now), next)
 		if not opening.is_empty() and opening_at == next:
 			activate(v, opening)
-		elif trace_at <= dawn and (due.is_empty() or trace_at <= int(due.deadline)):
+		elif trace_at == next:
 			discover_traces(v)
-		elif not due.is_empty() and int(due.deadline) <= dawn:
+		elif not due.is_empty() and due_at == next:
 			resolve(v, due)
+		elif phase_at == next:
+			var ran := Village.run_phase(v)
+			if ran.kind == "incident":
+				Incidents.show(v, ran.intent, ran.result)
+			elif ran.kind == "end":
+				r.day_open = false
 		else:
-			Village.step_day(v)
-			sync_events(v)
-			if not v.anchored and v.day >= int(r.storm_cycle) + 4:
-				r.storm_cycle = v.day
-				var eligible: Array[int] = []
-				for h in v.households:
-					if h.home in ["round", "hill"]:
-						eligible.append(h.id)
-				var cycle := v.day / 4
-				var transition := Bridge.transition(v.seed, cycle)
-				if not eligible.is_empty() and not transition.is_empty():
-					var sid := Storm.storm_hits(v, eligible[(cycle - 1) % eligible.size()], 3)
-					if sid >= 0:
-						v.storms[sid].kernel = transition
+			Village.begin_day(v)
+			r.day_open = true
+		sync_events(v)
 		discover_traces(v)
 		for e: Dictionary in r.events:
 			if not terminal(e) and not valid_participants(v, e):
@@ -162,14 +174,50 @@ static func advance(v: S.Village, target: int) -> void:
 	for e: Dictionary in r.events:
 		if terminal(e):
 			continue
-		var p := v.people[int(e.victim)]
 		if not valid_participants(v, e):
 			cancel(v, e, "participant unavailable")
 		elif target >= int(e.from):
 			activate(v, e)
 	r.events = r.events.filter(func(e: Dictionary) -> bool: return not terminal(e) or int(e.end) > target - 7 * 1440)
 
+
+## Older saves ran the day at once at its midnight (the day number then already pointed at tomorrow); from their
+## next midnight they run phased. Adds the fields later passes introduced.
+static func _migrate(v: S.Village) -> void:
+	var r := v.runtime
+	if not r.has("day_open"):
+		r.day_open = false
+	for key: String in ["incidents"]:
+		if not r.has(key):
+			r[key] = []
+	if not r.has("player"):
+		r.player = {"present": false, "x": 0, "z": 0}
+	if not r.has("quiet_since"):
+		r.quiet_since = int(r.now)
+	if not r.has("acquaintance"):
+		r.acquaintance = {}
+
+
+## The next midnight (when the next day opens): for waiting until "tomorrow".
+static func next_dawn(v: S.Village) -> int:
+	return (v.day + 1) * 1440 if v.runtime.get("day_open", false) else v.day * 1440
+
+
+## The live village tells the rules where the player is (decimetres, the village's own frame) and whether they are
+## in the village at all. Their eyes count at the moment a deed is done (crime.gd player_sees).
+static func set_player(v: S.Village, present: bool, x_dm: int, z_dm: int) -> void:
+	var pl: Dictionary = v.runtime.get_or_add("player", {"present": false, "x": 0, "z": 0})
+	if present and not pl.get("present", false):
+		v.runtime.quiet_since = int(v.runtime.now)   # arriving is not the moment for something to happen at once
+	pl.present = present
+	pl.x = x_dm
+	pl.z = z_dm
+
 static func resolve(v: S.Village, e: Dictionary) -> void:
+	if e.type == "incident":
+		e.phase = "resolved"; e.outcome = "done"; e.revision += 1
+		v.runtime.incidents = v.runtime.incidents.filter(func(a: Dictionary) -> bool: return int(a.staging) != int(e.id))
+		return
 	var p := v.people[int(e.victim)]
 	if not valid_participants(v, e):
 		cancel(v, e, "participant unavailable")
@@ -202,8 +250,11 @@ static func cancel(v: S.Village, e: Dictionary, reason: String) -> void:
 	v.pending = v.pending.filter(func(a: S.PublicAct) -> bool: return a.staging != int(e.id))
 	v.runtime.hearings = v.runtime.hearings.filter(func(a: Dictionary) -> bool: return int(a.staging) != int(e.id))
 	v.runtime.rites = v.runtime.rites.filter(func(a: Dictionary) -> bool: return int(a.staging) != int(e.id))
+	if v.runtime.has("incidents"):
+		v.runtime.incidents = v.runtime.incidents.filter(func(a: Dictionary) -> bool: return int(a.staging) != int(e.id))
 	e.phase = "cancelled"; e.outcome = reason; e.revision += 1
-	v.people[int(e.victim)].locked = false
+	if e.type != "incident":
+		v.people[int(e.victim)].locked = false
 
 static func valid_participants(v: S.Village, e: Dictionary) -> bool:
 	for actor: int in e.actors:
@@ -220,7 +271,9 @@ static func activate(v: S.Village, e: Dictionary) -> void:
 		cancel(v, e, "participant unavailable")
 		return
 	e.phase = "active"
-	if e.type != "hearing":
+	if v.runtime.get("player", {}).get("present", false):
+		v.runtime.quiet_since = int(v.runtime.now)
+	if e.type != "hearing" and e.type != "incident":
 		var p := v.people[int(e.victim)]
 		p.locked = true; p.locked_at = v.place_ids.get(e.place, -1)
 
@@ -311,6 +364,7 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 		var judge_id := int(staging(v, e.id).roles.get("authority", -1))
 		if judge_id < 0 or not v.people[judge_id].alive or not v.people[judge_id].present:
 			return fail("no judge")
+		WorldActions.remember(v, judge_id, "you_testified")
 		var known := false
 		for b in v.people[judge_id].beliefs:
 			if b.crime == cs.crime and b.origin == clue.origin and b.culprit == clue.culprit:
@@ -337,10 +391,9 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 		if e.bribe == "accepted":
 			var cs := v.cases[e.source.case_id]
 			cs.evidence = maxi(0, cs.evidence - 350)
+			WorldActions.remember(v, judge_id, "you_offered_coins", 5)
 		else:
-			player.standing -= 5
-			if judge.traits[C.HONESTY] >= 70 and not player.enemies.has(judge_id):
-				player.enemies.append(judge_id)
+			WorldActions.remember(v, judge_id, "you_offered_coins", -30 if judge.traits[C.HONESTY] >= 70 else -10)
 		e.revision += 1
 		return accept(r, e, request, "I will weigh your request." if e.bribe == "accepted" else "Keep your coins. This is a hearing.",
 			{"coins": 5 if e.bribe == "accepted" else 0})
@@ -373,7 +426,8 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 		var beat: Dictionary = st.beats[beat_id]
 		if beat["do"] != "throw" or not context.get("intercepted", false) or int(r.now) < int(st.day) * 1440 + int(beat.at):
 			return fail("no contact")
-		e.shields.append(beat_id); player.standing += 2
+		e.shields.append(beat_id)
+		WorldActions.remember(v, p.id, "you_shielded", 15)
 		var pending: S.PublicAct = null
 		for a in v.pending:
 			if a.staging == e.id:
@@ -408,7 +462,8 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 			{"rite": "sacrifice", "outcome": "rescued", "by": request.player_id}, e.source.causes,
 			"the rope cut; the captive running towards refuge")
 		if not ritual_offer:
-			Justice.remember(leader, -2, ev); player.enemies.append(leader.id)
+			Justice.remember(leader, -2, ev)
+			WorldActions.remember(v, leader.id, "angered", -50)
 		r.rites = r.rites.filter(func(a: Dictionary) -> bool: return int(a.staging) != int(e.id))
 	else:
 		var pending: S.PublicAct = null
@@ -416,16 +471,16 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 			if a.staging == e.id:
 				pending = a; break
 		Justice.resolve_public(v, int(e.id), "free")
-		player.standing -= int(C.PUBLIC[pending.kind]["shame"]) * 10
 		for actor: int in e.actors:
-			if actor != p.id and not player.enemies.has(actor):
-				player.enemies.append(actor)
+			if actor != p.id:
+				WorldActions.remember(v, actor, "angered", -40)
 	p.present = true; p.locked = false; p.locked_at = -1
 	v.outlaws.erase(p.id)
 	v.schedule = v.schedule.filter(func(s: S.Sched) -> bool:
 		return not ((s.kind == "return" and s.who == p.id) or
 			(s.case_id >= 0 and v.cases[s.case_id].accused == p.id)))
 	r.residents[str(p.id)] = {"refuge_until": int(r.now) + 2880, "rescued_by": request.player_id, "destination": "far_woods", "departed": r.now, "from": e.place}
+	WorldActions.remember(v, p.id, "freed_by_you", 60)
 	for other: Dictionary in r.events:
 		if other.id != e.id and other.victim == p.id and not terminal(other):
 			cancel(v, other, "rescued")
@@ -499,10 +554,7 @@ static func discover_traces(v: S.Village) -> void:
 			t.discover_at = int(r.now) + 15; continue
 		t.discovered = true
 		if not t.observers.is_empty():
-			var player: Dictionary = r.players[t.planted_by]
-			player.standing -= 10
 			for observer: int in t.observers:
-				if not player.enemies.has(observer):
-					player.enemies.append(observer)
+				WorldActions.remember(v, observer, "saw_you_plant", -30)
 		else:
 			Crime.give_belief(v, finder, t.crime, t.culprit, 350, t.origin, 0, -1)

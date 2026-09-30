@@ -133,6 +133,7 @@ func boundaries() -> void:
 	Region.travel("forest", Vector2(0, -86))
 	await get_tree().create_timer(1.5).timeout
 	VillageSession.active = false
+	runtime.set_player(headless, false, 0, 0)   # (the player has left the village; the clone must know that too)
 	runtime.advance(v, int(e.deadline) + 1)
 	runtime.advance(headless, int(e.deadline) + 1)
 	# Scene frames may have advanced fractions while fading in. Only logical advances are compared.

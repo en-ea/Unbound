@@ -40,7 +40,7 @@ func attach(scene: Node) -> void:
 		Runtime.attach(village, initial_minute)
 		if "--village-soon" in OS.get_cmdline_user_args():
 			for _i in 150:
-				Runtime.advance(village, village.day * 1440)
+				Runtime.advance(village, Runtime.next_dawn(village))
 				var chosen := -1
 				for pending in village.pending:
 					if pending.kind in ["pillory", "stocks", "hanging", "bonfire"]:

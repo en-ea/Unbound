@@ -63,6 +63,8 @@ func _process(_delta: float) -> void:
 	if v == null:
 		return
 	var now := int(v.runtime.now)
+	# the rules count the player's eyes where deeds are done (crime.gd player_sees): tell them where the player is
+	Runtime.set_player(v, _player != null and not VillageSession.background, int(_player.global_position.x * 10.0), int(_player.global_position.z * 10.0))
 	if _stage != null:
 		var e := Runtime.event_by_id(v, _event)
 		if e.is_empty() or e.phase == "cancelled" or now >= int(e.end):
@@ -87,11 +89,18 @@ func _process(_delta: float) -> void:
 				elif Runtime.terminal(e):
 					var resident = v.people[int(e.victim)]
 					_stage.show_outcome(e.outcome, resident.alive, resident.present)
-	if _stage == null:
-		for e: Dictionary in v.runtime.events:
-			if not Runtime.terminal(e) and now >= int(e.from) - 20 and now < int(e.deadline):
-				_open(e)
-				break
+	# one stage at a time: a hearing, public act or rite outranks a small scene (an incident gives way to it)
+	var wanted := {}
+	for e: Dictionary in v.runtime.events:
+		if not Runtime.terminal(e) and now >= int(e.from) - 20 and now < int(e.deadline):
+			if wanted.is_empty() or (wanted.type == "incident" and e.type != "incident"):
+				wanted = e
+	if _stage != null and not wanted.is_empty() and int(wanted.id) != _event and wanted.type != "incident":
+		var shown := Runtime.event_by_id(v, _event)
+		if not shown.is_empty() and shown.type == "incident":
+			_close()
+	if _stage == null and not wanted.is_empty():
+		_open(wanted)
 	_update_cue(now)
 	_update_choices()
 	_update_traces()
@@ -318,6 +327,8 @@ func _close() -> void:
 	_event = -1
 
 func _exit_tree() -> void:
+	if VillageSession.village != null:
+		Runtime.set_player(VillageSession.village, false, 0, 0)   # the player has left the village
 	# Scene teardown frees both registry and stage; no reparenting or delayed state callbacks.
 	if is_instance_valid(_stage):
 		_stage.action_authority = Callable()

@@ -361,6 +361,136 @@ static func step_day(V: S.Village) -> void:
 	V.day += 1
 
 
+# ---------- the phased day: the live village runs the same rules at their minutes ----------
+# step_day (above) decides a whole day at once: the chronicle and every headless run. The live village (a runtime,
+# runtime.gd) instead opens the day at midnight and runs each step at its minute, so what happens can depend on
+# who is where at that moment, the player included, and nothing is gossiped before it has happened:
+#
+#   00:00 begin_day   food, life, the director, plans, today's trials and public acts; deeds planned (intents)
+#   each deed         at its minute: done, put off or dropped (crime.gd run_intent)
+#   11:00 13:00 21:00 gossip at the holy-day service, the midday meal and the evening (crime.gd SOCIAL)
+#   21:10             cases (accusations)
+#   08:00 .. 20:00    the director's attention (director.gd): something near the player after a quiet stretch
+#   23:59 end         minds; the day ends
+const PHASE_ORDER := {"incident": 0, "gossip": 1, "cases": 2, "attention": 3, "end": 9}
+const CASES_AT := 1270
+const END_AT := 1439
+
+
+static func begin_day(V: S.Village) -> void:
+	var doy := V.day % YEAR
+	if doy == 0:
+		year_start(V)
+	food(V)
+	life(V)
+	Director.director_day(V)
+	plan_day(V)
+	Justice.run_scheduled(V)
+	var carried: Array = V.intents_next
+	V.intents_next = []
+	V.intents = []
+	V.planning = true
+	Crime.crimes_today(V)
+	V.planning = false
+	V.intents.append_array(carried)
+	if V.storms.size() > 0 or V.storm_plan.size() > 0:
+		Storm.storm_day(V)
+	Crime.discover_crimes(V)
+	V.phases = []
+	for i in V.intents.size():
+		V.phases.append({"at": int(V.intents[i].minute), "kind": "incident", "i": i})
+	for w in Crime.SOCIAL.size():
+		V.phases.append({"at": int(Crime.SOCIAL[w][1]), "kind": "gossip", "i": w})
+	V.phases.append({"at": CASES_AT, "kind": "cases", "i": 0})
+	for m: int in Director.ATTENTION_MINUTES:
+		V.phases.append({"at": m, "kind": "attention", "i": 0})
+	V.phases.append({"at": END_AT, "kind": "end", "i": 0})
+	sort_phases(V)
+
+
+static func sort_phases(V: S.Village) -> void:
+	V.phases.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if int(a.at) != int(b.at):
+			return int(a.at) < int(b.at)
+		if a.kind != b.kind:
+			return int(PHASE_ORDER[a.kind]) < int(PHASE_ORDER[b.kind])
+		return int(a.i) < int(b.i))
+
+
+## The minute of today (0..1439) the next phase is due, or -1 when the day has none left.
+static func next_phase_at(V: S.Village) -> int:
+	return int(V.phases[0].at) if V.phases.size() > 0 else -1
+
+
+## Adds a deed for later today (the director's attention does this) and queues it.
+static func add_intent(V: S.Village, it: Dictionary) -> void:
+	V.intents.append(it)
+	V.phases.append({"at": int(it.minute), "kind": "incident", "i": V.intents.size() - 1})
+	sort_phases(V)
+
+
+## Runs the next phase. -> {"kind", "intent", "result"} so the live runtime can show what happened.
+static func run_phase(V: S.Village) -> Dictionary:
+	var ph: Dictionary = V.phases.pop_front()
+	match ph.kind:
+		"incident":
+			var it: Dictionary = V.intents[int(ph.i)]
+			if it.kind == "moved":
+				return {"kind": "moved"}   # the director brought this deed near the player (a new intent carries it)
+			# the village holds its gravest scenes for the player: while no one is there, a fight or a killing
+			# waits one day (once); after that it happens whether or not anyone comes
+			if it.kind in ["brawl", "murder"] and not V.runtime.is_empty() and V.focus and not V.runtime.get("player", {}).get("present", false) and not it.get("held", false):
+				it.held = true
+				V.intents_next.append(it)
+				return {"kind": "held", "intent": it}
+			var result := Crime.run_intent(V, it)
+			if result.get("postponed", false):
+				V.phases.append({"at": int(it.minute), "kind": "incident", "i": int(ph.i)})
+				sort_phases(V)
+			return {"kind": "incident", "intent": it, "result": result}
+		"gossip":
+			Crime.gossip_window(V, Crime.SOCIAL[int(ph.i)])
+		"cases":
+			Crime.check_cases(V)
+		"attention":
+			var brought := Director.attention(V)
+			return {"kind": "attention", "intent": brought}
+		"end":
+			minds(V)
+			V.day += 1
+			V.phases = []
+			V.intents = []
+	return {"kind": ph.kind}
+
+
+## A stretch of a day plan handed to something else (a quarrel, a visit): [from, to) at place, the rest kept.
+static func plan_insert(p: S.Person, from: int, to: int, place: int) -> void:
+	var out := PackedInt32Array()
+	var i := 0
+	var placed := false
+	while i < p.plan.size():
+		var a := p.plan[i]
+		var b := p.plan[i + 1]
+		var at := p.plan[i + 2]
+		if b <= from or a >= to:
+			if a >= to and not placed:
+				out.append_array([from, to, place])
+				placed = true
+			out.append_array([a, b, at])
+		else:
+			if a < from:
+				out.append_array([a, from, at])
+			if not placed:
+				out.append_array([from, to, place])
+				placed = true
+			if b > to:
+				out.append_array([to, b, at])
+		i += 3
+	if not placed:
+		out.append_array([from, to, place])
+	p.plan = out
+
+
 static func run(V: S.Village, days: int) -> S.Village:
 	for i in days:
 		step_day(V)

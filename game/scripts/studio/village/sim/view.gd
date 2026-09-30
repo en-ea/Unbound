@@ -7,9 +7,9 @@ extends RefCounted
 ##   activity(v, id)  -> what they are doing now: {verb, place, moving, since, until}
 ##   toward_player(v, id) -> {met, feeling (-100..100), memories: [token]}
 ##
-## Memory tokens (append-only list; presentation maps them to words): "met", "freed_by_you", "you_testified",
-## "you_offered_coins", "you_planted", "saw_you_plant", "angered". More arrive with Pass 2 stage 2
-## ("hit_by_you", "saw_you_hit", "told_about_you").
+## Memory tokens (append-only list; presentation maps them to words): "met", "freed_by_you", "you_shielded",
+## "you_testified", "you_offered_coins", "saw_you_plant", "angered". More arrive with Pass 2 stage 2
+## ("hit_by_you", "saw_you_hit", "told_about_you", "helped_by_you").
 const S := preload("res://scripts/studio/village/sim/state.gd")
 const Village := preload("res://scripts/studio/village/sim/village.gd")
 const Runtime := preload("res://scripts/studio/village/sim/runtime.gd")
@@ -94,8 +94,8 @@ static func _verb_at(v: S.Village, p: S.Person, place: String, minute: int) -> S
 	return "idle"
 
 
-## What this resident thinks of the player. Until Pass 2 unifies the record (L3), this reads the two
-## existing sources: the runtime's player account (enemies) and its resident memory (rescue).
+## What this resident thinks of the player: runtime.acquaintance (world_actions.gd remember). Saves made before
+## Pass 2 kept it elsewhere (the player account's enemies, the rescue memory); those are read too.
 static func toward_player(v: S.Village, id: int) -> Dictionary:
 	var memories: Array[String] = []
 	var feeling := 0

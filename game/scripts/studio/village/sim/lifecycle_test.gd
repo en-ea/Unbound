@@ -14,7 +14,7 @@ static func _find(type: String, throws_needed: int = 0) -> Array:
 	for seed in range(1, 30):
 		var v := Runtime.create(seed)
 		for _day in 90:
-			Runtime.advance(v, v.day * 1440)
+			Runtime.advance(v, Runtime.next_dawn(v))
 			for e: Dictionary in v.runtime.events:
 				if e.type != type or Runtime.terminal(e):
 					continue

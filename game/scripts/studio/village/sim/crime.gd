@@ -48,6 +48,13 @@ static func try_poaching(V: S.Village, p: S.Person, k: int) -> void:
 	var inhib := inhibition(V, p, "poaching") + R.idiv(p.values[C.V_TRADITION], 2)
 	if motive <= inhib or not R.chance(k, (motive - inhib) * 700):
 		return
+	if V.planning:
+		V.intents.append({"kind": "poaching", "actor": p.id, "minute": 300, "k": k, "place": V.pl_woods})
+		return
+	commit_poaching(V, p, k)
+
+
+static func commit_poaching(V: S.Village, p: S.Person, k: int) -> void:
 	V.households[p.household].food += 6
 	var crime := add_crime(V, "poaching", p.id, -1, -1, 300, V.pl_woods, "a deer", PackedInt32Array(), "a snare in the elder's woods, blood on the moss", {"motive": "hunger" if p.hunger >= 300 else "boldness"})
 	sightings(V, crime, k)
@@ -150,6 +157,15 @@ static func try_theft(V: S.Village, p: S.Person, k: int) -> void:
 			fewest = eyes; when = m
 	if fewest > (3 if p.hunger > 800 else 1):
 		return  # too many eyes; not today
+	if V.planning:
+		V.intents.append({"kind": "theft", "actor": p.id, "minute": when, "k": k, "target": target, "place": place,
+			"allow": 3 if p.hunger > 800 else 1, "tries": 0})
+		return
+	commit_theft(V, p, k, target, place, when)
+
+
+static func commit_theft(V: S.Village, p: S.Person, k: int, target: int, place: int, when: int) -> S.Crime:
+	var h := V.households[target]
 	var item := "goose" if h.geese > 0 else "grain"
 	if item == "goose":
 		h.geese -= 1
@@ -162,6 +178,7 @@ static func try_theft(V: S.Village, p: S.Person, k: int) -> void:
 	sightings(V, crime, k)
 	# the trace: goose feathers blow about the thief's door, or spilled grain leads to it
 	crime.trace_at = V.households[p.household].home_place
+	return crime
 
 
 # ---------- brawls (assault): grudges meeting in the evening ----------
@@ -171,7 +188,6 @@ static func try_brawl(V: S.Village, p: S.Person, k: int) -> void:
 	var evening := Village.place_at(p, 1150)
 	if evening < 0 or V.place_pen[evening]:
 		return
-	var ev_name := V.place_names[evening]
 	for i in p.rel_k.size():
 		var o := p.rel_k[i]
 		var v := p.rel_v[i]
@@ -184,26 +200,38 @@ static func try_brawl(V: S.Village, p: S.Person, k: int) -> void:
 		var motive := -v + p.traits[C.TEMPER]
 		if motive <= inhib or not R.chance(R.key(k, o), (motive - inhib) * 800 * V.pace):
 			continue
-		var gi := p.grudge_k.find(o)
-		var why := p.grudge_v[gi] if gi >= 0 else -1
-		var why_causes := PackedInt32Array([why]) if gi >= 0 else PackedInt32Array()
-		# a brawl between deep enemies can end in a death (the blow that went too far), in the director's on-cycles
-		var cold := p.traits[C.TEMPER] + p.traits[C.BOLD] - p.traits[C.HONESTY] - R.idiv(p.traits[C.COMPASSION], 2)
-		var strong: bool = C.ROLES[p.role]["strong"] if C.ROLES.has(p.role) else false
-		if v <= -80 and cold >= 40 and V.director.on and R.chance(R.key(k, 9000 + o), 180000 + (100000 if strong else 0)):
-			var crime := add_crime(V, "murder", p.id, q.household, o, 1150, evening, "", why_causes, "a brawl at the %s that ended with someone not getting up" % ev_name, {"motive": "revenge" if gi >= 0 else "rage"})
-			crime.death_event = Village.die(V, o, "murder", PackedInt32Array([crime.event]), "blood on the ground at the %s, and a crowd gone silent" % ev_name)
-			sightings(V, crime, k, true)
-			crime.discovered = true
+		if V.planning:
+			V.intents.append({"kind": "brawl", "actor": p.id, "other": o, "minute": 1150, "k": k, "place": evening})
 			return
-		var crime := add_crime(V, "assault", p.id, q.household, o, 1150, evening, "", why_causes, "a scuffle at the %s" % ev_name, {"motive": "grudge"})
-		q.stress = clampi(q.stress + 60, 0, 400)
-		Village.set_opinion(V, o, p.id, Village.opinion(V, o, p.id) - 30)
-		# the victim saw who did it; so did everyone there
-		give_belief(V, o, crime.id, p.id, 900, o, 0, -1)
+		commit_brawl(V, p, q, k, evening)
+		return
+
+
+static func commit_brawl(V: S.Village, p: S.Person, q: S.Person, k: int, evening: int, minute: int = 1150) -> S.Crime:
+	var o := q.id
+	var ev_name := V.place_names[evening]
+	var v := Village.opinion(V, p.id, o)
+	var gi := p.grudge_k.find(o)
+	var why := p.grudge_v[gi] if gi >= 0 else -1
+	var why_causes := PackedInt32Array([why]) if gi >= 0 else PackedInt32Array()
+	# a brawl between deep enemies can end in a death (the blow that went too far), in the director's on-cycles
+	var cold := p.traits[C.TEMPER] + p.traits[C.BOLD] - p.traits[C.HONESTY] - R.idiv(p.traits[C.COMPASSION], 2)
+	var strong: bool = C.ROLES[p.role]["strong"] if C.ROLES.has(p.role) else false
+	if v <= -80 and cold >= 40 and V.director.on and R.chance(R.key(k, 9000 + o), 180000 + (100000 if strong else 0)):
+		var crime := add_crime(V, "murder", p.id, q.household, o, minute, evening, "", why_causes, "a brawl at the %s that ended with someone not getting up" % ev_name, {"motive": "revenge" if gi >= 0 else "rage"})
+		crime.death_event = Village.die(V, o, "murder", PackedInt32Array([crime.event]), "blood on the ground at the %s, and a crowd gone silent" % ev_name)
 		sightings(V, crime, k, true)
 		crime.discovered = true
-		return
+		return crime
+	var crime := add_crime(V, "assault", p.id, q.household, o, minute, evening, "", why_causes, "a scuffle at the %s" % ev_name, {"motive": "grudge"})
+	q.stress = clampi(q.stress + 60, 0, 400)
+	Village.set_opinion(V, o, p.id, Village.opinion(V, o, p.id) - 30)
+	# the victim saw who did it; so did everyone there
+	give_belief(V, o, crime.id, p.id, 900, o, 0, -1)
+	sightings(V, crime, k, true)
+	crime.discovered = true
+	return crime
+	return null
 
 
 # ---------- murder: rare, and only when everything lines up ----------
@@ -245,13 +273,22 @@ static func try_murder(V: S.Village, p: S.Person, k: int) -> void:
 			break
 		if minute < 0:
 			continue
-		var gi := p.grudge_k.find(o)
-		var why_causes := PackedInt32Array([p.grudge_v[gi]]) if gi >= 0 else PackedInt32Array()
-		var pname := V.place_names[place]
-		var crime := add_crime(V, "murder", p.id, q.household, o, minute, place, "", why_causes, "a body at the %s" % pname, {"motive": "revenge" if gi >= 0 else "grudge"})
-		crime.death_event = Village.die(V, o, "murder", PackedInt32Array([crime.event]), "crows over the %s" % pname)
-		sightings(V, crime, k)
+		if V.planning:
+			V.intents.append({"kind": "murder", "actor": p.id, "other": o, "minute": minute, "k": k, "place": place, "tries": 0})
+			return
+		commit_murder(V, p, q, k, place, minute)
 		return
+
+
+static func commit_murder(V: S.Village, p: S.Person, q: S.Person, k: int, place: int, minute: int) -> S.Crime:
+	var o := q.id
+	var gi := p.grudge_k.find(o)
+	var why_causes := PackedInt32Array([p.grudge_v[gi]]) if gi >= 0 else PackedInt32Array()
+	var pname := V.place_names[place]
+	var crime := add_crime(V, "murder", p.id, q.household, o, minute, place, "", why_causes, "a body at the %s" % pname, {"motive": "revenge" if gi >= 0 else "grudge"})
+	crime.death_event = Village.die(V, o, "murder", PackedInt32Array([crime.event]), "crows over the %s" % pname)
+	sightings(V, crime, k)
+	return crime
 
 
 # ---------- famine and the unspeakable ----------
@@ -271,6 +308,14 @@ static func try_famine_rite(V: S.Village, p: S.Person, k: int) -> void:
 	var inhib := inhibition(V, p, "cannibal_famine")
 	if not R.chance(k, maxi(0, 1100 - inhib * 4)):
 		return
+	if V.planning:
+		V.intents.append({"kind": "famine_rite", "actor": p.id, "other": dead.id, "minute": 60, "k": k, "place": Village.place_id(V, "pen_" + h.home)})
+		return
+	commit_famine_rite(V, p, dead, k)
+
+
+static func commit_famine_rite(V: S.Village, p: S.Person, dead: S.Person, k: int) -> void:
+	var h := V.households[p.household]
 	dead.eaten = true
 	h.food += 12
 	var crime := add_crime(V, "cannibal_famine", p.id, p.household, dead.id, 60, Village.place_id(V, "pen_" + h.home), "the dead", famine_cause(V, p),
@@ -325,6 +370,143 @@ static func witch_fear(V: S.Village, dk: int) -> void:
 		give_belief(V, q.id, open.id, target, 450 + R.idiv(V.fear, 4), q.id, 3, -1)
 		open.discovered = true
 
+
+# ---------- the phased day (the live village): deeds done at their minute ----------
+const PLAYER_ORIGIN := 5000000   # + crime: what the player saw with their own eyes (a clue they can testify with)
+
+
+## Does the player see this place now? The live village writes the player's position (runtime.player, in dm).
+static func player_sees(V: S.Village, place: int, minute: int) -> bool:
+	if V.runtime.is_empty() or place < 0 or not V.place_has_pos[place]:
+		return false
+	var pl: Dictionary = V.runtime.get("player", {})
+	if not pl.get("present", false):
+		return false
+	var r := C.SEE_NIGHT if minute < 360 or minute >= 1260 else C.SEE_DAY
+	var dx := V.place_x[place] - int(pl.x)
+	var dz := V.place_z[place] - int(pl.z)
+	return dx * dx + dz * dz <= r * r
+
+
+## The player saw it done: a clue of their own, kept with what they have learned (runtime.gd testify uses it).
+static func player_witness(V: S.Village, crime: S.Crime) -> void:
+	if crime == null:
+		return
+	var account: Dictionary = V.runtime.players.get_or_add("player:local", {"knowledge": [], "standing": 0, "enemies": []})
+	var knowledge: Array = account.knowledge
+	knowledge.append({"crime": crime.id, "culprit": crime.culprit, "origin": PLAYER_ORIGIN + crime.id, "strength": 1000,
+		"via": "seen", "speaker": -1})
+	if knowledge.size() > 32:
+		account.knowledge = knowledge.slice(-32)
+
+
+## A planned deed at its minute. The moment is checked again as it is now (who is where, and whether the player is
+## watching): done, put off (the caller queues it again at it.minute), or dropped.
+## -> {done, crime (S.Crime or absent), postponed, abandoned, watched, blows}
+static func run_intent(V: S.Village, it: Dictionary) -> Dictionary:
+	var p := V.people[int(it.actor)]
+	if not p.alive or not p.present or p.locked:
+		return {"abandoned": true}
+	var minute: int = it.minute
+	var k: int = it.k
+	var seen := player_sees(V, int(it.place), minute)
+	match it.kind:
+		"theft":
+			var h := V.households[int(it.target)]
+			if h.geese <= 0 and h.food < 10:
+				return {"abandoned": true, "watched": seen}
+			# a stranger watching counts as two pairs of eyes
+			var eyes := Village.witnesses_at(V, int(it.place), minute, p.id).size() + (2 if seen else 0)
+			if eyes > int(it.allow):
+				if int(it.tries) < 2 and minute + 60 <= 1020:
+					it.tries = int(it.tries) + 1
+					it.minute = minute + 60
+					return {"postponed": true, "watched": seen}
+				return {"abandoned": true, "watched": seen}
+			var theft := commit_theft(V, p, k, int(it.target), int(it.place), minute)
+			if seen:
+				player_witness(V, theft)
+			return {"done": true, "crime": theft, "watched": seen}
+		"brawl", "quarrel":
+			var q := V.people[int(it.other)]
+			if not q.alive or not q.present or q.locked:
+				return {"abandoned": true}
+			if it.kind == "quarrel":
+				return quarrel(V, p, q, k, int(it.place), minute, seen)
+			if Village.place_at(p, minute) != int(it.place) or Village.place_at(q, minute) != int(it.place):
+				return {"abandoned": true}
+			var fight := commit_brawl(V, p, q, k, int(it.place), minute)
+			if seen:
+				player_witness(V, fight)
+			return {"done": fight != null, "crime": fight, "watched": seen}
+		"murder":
+			var q := V.people[int(it.other)]
+			if not q.alive or not q.present:
+				return {"abandoned": true}
+			var near := 0
+			for w in Village.witnesses_at(V, int(it.place), minute, p.id):
+				if w != q.id:
+					near += 1
+			if seen or near > 1:
+				# a killer waits for a lonelier moment later today, or lets the day pass
+				for mm: int in MURDER_MINUTES:
+					var at := Village.place_at(q, mm)
+					if mm > minute and at >= 0 and at != V.pl_square and at != V.pl_shrine and not V.homes.has(V.place_names[at]) and not V.place_pen[at] and int(it.tries) < 3:
+						it.tries = int(it.tries) + 1
+						it.minute = mm
+						it.place = at
+						return {"postponed": true, "watched": seen}
+				return {"abandoned": true, "watched": seen}
+			return {"done": true, "crime": commit_murder(V, p, q, k, int(it.place), minute), "watched": false}
+		"famine_rite":
+			var dead := V.people[int(it.other)]
+			if dead.eaten or seen:
+				return {"abandoned": true, "watched": seen}
+			commit_famine_rite(V, p, dead, k)
+			return {"done": true}
+		"poaching":
+			if seen:
+				return {"abandoned": true, "watched": true}
+			commit_poaching(V, p, k)
+			return {"done": true}
+		"kindness":
+			return kindness(V, p, int(it.target), seen)
+	return {"abandoned": true}
+
+
+## Words between two who dislike each other (the director brings these near the player). Hard words deepen the
+## dislike; between a hot temper and a deep enemy they come to blows (an assault, a crime like any other).
+static func quarrel(V: S.Village, p: S.Person, q: S.Person, k: int, place: int, minute: int, seen: bool) -> Dictionary:
+	var worst := mini(Village.opinion(V, p.id, q.id), Village.opinion(V, q.id, p.id))
+	if worst <= -60 and p.traits[C.TEMPER] >= 60 and R.chance(R.key(k, 31), 400000):
+		var fight := commit_brawl(V, p, q, k, place, minute)
+		if seen:
+			player_witness(V, fight)
+		return {"done": true, "crime": fight, "blows": true, "watched": seen}
+	Village.set_opinion(V, p.id, q.id, Village.opinion(V, p.id, q.id) - 8)
+	Village.set_opinion(V, q.id, p.id, Village.opinion(V, q.id, p.id) - 8)
+	p.stress = clampi(p.stress + 15, 0, 400)
+	q.stress = clampi(q.stress + 15, 0, 400)
+	E.log_event(V, "quarrel", p.id, q.id, {"place": V.place_names[place], "motive": "grudge"}, PackedInt32Array(),
+		"%s and %s shouting at the %s" % [E.name_of(V, p.id), E.name_of(V, q.id), V.place_names[place]])
+	return {"done": true, "watched": seen}
+
+
+## A neighbour brings food to a hungry house: food moves, and the house remembers who came.
+static func kindness(V: S.Village, p: S.Person, target: int, seen: bool) -> Dictionary:
+	var mine := V.households[p.household]
+	var theirs := V.households[target]
+	if mine.food < 16 or target == p.household:
+		return {"abandoned": true}
+	mine.food -= 6
+	theirs.food += 6
+	for m in theirs.members:
+		var q := V.people[m]
+		if q.alive and q.present:
+			Village.set_opinion(V, m, p.id, Village.opinion(V, m, p.id) + 10)
+	E.log_event(V, "kindness", p.id, -1, {"household": target, "motive": "compassion"}, PackedInt32Array(),
+		"%s at the %s door with bread" % [E.name_of(V, p.id), theirs.home])
+	return {"done": true, "watched": seen}
 
 static func famine_cause(V: S.Village, p: S.Person) -> PackedInt32Array:
 	if p.hunger < 300:
@@ -463,100 +645,106 @@ const SOCIAL := [[720, 780], [1080, 1260], [540, 660]]  # meals, evenings, the h
 
 @warning_ignore("integer_division")
 static func gossip(V: S.Village) -> void:
+	for window: Array in SOCIAL:
+		gossip_window(V, window)
+
+
+## One gathering window (a meal, the evening, the holy-day service): who is together talks.
+@warning_ignore("integer_division")
+static func gossip_window(V: S.Village, window: Array) -> void:
 	var gk := R.key(R.key(V.base, Village.P_GOSSIP), V.day)
 	var people := V.people
 	var pace := V.pace
 	var lang := V.lang
 	var min_born := V.day - 12 * Village.YEAR   # (port) age_of(p) >= 12 is p.born <= V.day - 720
-	for window: Array in SOCIAL:
-		var from: int = window[0]
-		var to: int = window[1]
-		# who is together: one group per place, in people order; the places are taken in string order of their
-		# names (the reference sorts the group keys), so the groups are kept by the place's name rank
-		var groups := []
-		groups.resize(V.n_places)
-		for p in people:
-			if not p.alive or not p.present or p.locked or p.born > min_born:
-				continue
-			# place_at(p, from + 10) and place_at(p, to - 10), inlined
-			var pl := p.plan
-			var at := -1
-			var at2 := -1
-			var pi := 0
-			while pi < pl.size():
-				if from + 10 >= pl[pi] and from + 10 < pl[pi + 1]:
-					at = pl[pi + 2]
-				if to - 10 >= pl[pi] and to - 10 < pl[pi + 1]:
-					at2 = pl[pi + 2]
-				pi += 3
-			if at < 0 or at2 != at:
-				continue
-			var r := V.place_rank[at]
-			if groups[r] == null:
-				var fresh: Array[int] = []
-				groups[r] = fresh
-			(groups[r] as Array[int]).append(p.id)
-		for group: Variant in groups:
-			if group == null:
-				continue
-			var ids: Array[int] = group
-			var n := ids.size()
-			for i in n:
-				var a := ids[i]
-				var sp := people[a]
-				var t := sp.traits
-				var ka := a * 4099 + from
-				# mingle's terms that depend on the speaker only
-				var slight0 := t[C.TEMPER] * 60 - t[C.COMPASSION] * 20
-				var warm := (20000 + t[C.SOCIABLE] * 300) * pace
-				var lang_row := sp.era * 3
-				var rk := sp.rel_k   # (a's feelings do not change while a speaks: only listeners' do)
-				var rv := sp.rel_v
-				# tell() has nothing to say unless the speaker holds a belief about an open, unsettled crime (a pure
-				# check on the speaker's beliefs, which do not change while they speak): skip it otherwise
-				var tellable := false
-				for bf in sp.beliefs:
-					var cr := V.crimes[bf.crime]
-					if not cr.closed and (cr.case_open or V.day - cr.day <= 30):
-						tellable = true
-						break
-				for j in n:
-					if i == j:
-						continue
-					var b := ids[j]
-					# k = key(gk, ids[i] * 4099 + ids[j] + from), and key(k, 77) for mingle (rng.gd key, inlined: this
-					# loop runs for every pair in every group three times a day)
-					var k := (gk ^ (ka + b)) & R.M32
-					k = ((k ^ (k >> 16)) * 0x7feb352d) & R.M32
-					k ^= k >> 15
-					k = (k * 0x046ca68b + ((k & 1) << 31)) & R.M32
-					k ^= k >> 16
-					if tellable:
-						tell(V, a, b, k)
-					# mingle(V, a, b, key(k, 77)), inlined
-					var k2 := k ^ 77
-					k2 = ((k2 ^ (k2 >> 16)) * 0x7feb352d) & R.M32
-					k2 ^= k2 >> 15
-					k2 = (k2 * 0x046ca68b + ((k2 & 1) << 31)) & R.M32
-					k2 ^= k2 >> 16
-					var ls := people[b]
-					var op := 0   # opinion(V, a, b)
-					var ri := rk.find(b)
-					if ri >= 0:
-						op = rv[ri]
-					elif sp.household == ls.household or sp.lineage == ls.lineage or sp.spouse == b or sp.father == b or sp.mother == b or ls.father == a or ls.mother == a:
-						op = 50
-					var slight := slight0 + maxi(0, -op) * 450 + lang[lang_row + ls.era] * 60
-					if slight > 0 and ((k2 * 1000000) >> 32) < slight * pace:
-						Village.set_opinion(V, b, a, Village.opinion(V, b, a) - 4 - ls.traits[C.TEMPER] / 12)   # (temper >= 0: idiv is /)
-						continue
-					var k3 := k2 ^ 1
-					k3 = ((k3 ^ (k3 >> 16)) * 0x7feb352d) & R.M32
-					k3 ^= k3 >> 15
-					k3 = (k3 * 0x046ca68b + ((k3 & 1) << 31)) & R.M32
-					k3 ^= k3 >> 16
-					if ((k3 * 1000000) >> 32) < warm:
-						Village.set_opinion(V, b, a, Village.opinion(V, b, a) + 2)
+	var from: int = window[0]
+	var to: int = window[1]
+	# who is together: one group per place, in people order; the places are taken in string order of their
+	# names (the reference sorts the group keys), so the groups are kept by the place's name rank
+	var groups := []
+	groups.resize(V.n_places)
+	for p in people:
+		if not p.alive or not p.present or p.locked or p.born > min_born:
+			continue
+		# place_at(p, from + 10) and place_at(p, to - 10), inlined
+		var pl := p.plan
+		var at := -1
+		var at2 := -1
+		var pi := 0
+		while pi < pl.size():
+			if from + 10 >= pl[pi] and from + 10 < pl[pi + 1]:
+				at = pl[pi + 2]
+			if to - 10 >= pl[pi] and to - 10 < pl[pi + 1]:
+				at2 = pl[pi + 2]
+			pi += 3
+		if at < 0 or at2 != at:
+			continue
+		var r := V.place_rank[at]
+		if groups[r] == null:
+			var fresh: Array[int] = []
+			groups[r] = fresh
+		(groups[r] as Array[int]).append(p.id)
+	for group: Variant in groups:
+		if group == null:
+			continue
+		var ids: Array[int] = group
+		var n := ids.size()
+		for i in n:
+			var a := ids[i]
+			var sp := people[a]
+			var t := sp.traits
+			var ka := a * 4099 + from
+			# mingle's terms that depend on the speaker only
+			var slight0 := t[C.TEMPER] * 60 - t[C.COMPASSION] * 20
+			var warm := (20000 + t[C.SOCIABLE] * 300) * pace
+			var lang_row := sp.era * 3
+			var rk := sp.rel_k   # (a's feelings do not change while a speaks: only listeners' do)
+			var rv := sp.rel_v
+			# tell() has nothing to say unless the speaker holds a belief about an open, unsettled crime (a pure
+			# check on the speaker's beliefs, which do not change while they speak): skip it otherwise
+			var tellable := false
+			for bf in sp.beliefs:
+				var cr := V.crimes[bf.crime]
+				if not cr.closed and (cr.case_open or V.day - cr.day <= 30):
+					tellable = true
+					break
+			for j in n:
+				if i == j:
+					continue
+				var b := ids[j]
+				# k = key(gk, ids[i] * 4099 + ids[j] + from), and key(k, 77) for mingle (rng.gd key, inlined: this
+				# loop runs for every pair in every group three times a day)
+				var k := (gk ^ (ka + b)) & R.M32
+				k = ((k ^ (k >> 16)) * 0x7feb352d) & R.M32
+				k ^= k >> 15
+				k = (k * 0x046ca68b + ((k & 1) << 31)) & R.M32
+				k ^= k >> 16
+				if tellable:
+					tell(V, a, b, k)
+				# mingle(V, a, b, key(k, 77)), inlined
+				var k2 := k ^ 77
+				k2 = ((k2 ^ (k2 >> 16)) * 0x7feb352d) & R.M32
+				k2 ^= k2 >> 15
+				k2 = (k2 * 0x046ca68b + ((k2 & 1) << 31)) & R.M32
+				k2 ^= k2 >> 16
+				var ls := people[b]
+				var op := 0   # opinion(V, a, b)
+				var ri := rk.find(b)
+				if ri >= 0:
+					op = rv[ri]
+				elif sp.household == ls.household or sp.lineage == ls.lineage or sp.spouse == b or sp.father == b or sp.mother == b or ls.father == a or ls.mother == a:
+					op = 50
+				var slight := slight0 + maxi(0, -op) * 450 + lang[lang_row + ls.era] * 60
+				if slight > 0 and ((k2 * 1000000) >> 32) < slight * pace:
+					Village.set_opinion(V, b, a, Village.opinion(V, b, a) - 4 - ls.traits[C.TEMPER] / 12)   # (temper >= 0: idiv is /)
+					continue
+				var k3 := k2 ^ 1
+				k3 = ((k3 ^ (k3 >> 16)) * 0x7feb352d) & R.M32
+				k3 ^= k3 >> 15
+				k3 = (k3 * 0x046ca68b + ((k3 & 1) << 31)) & R.M32
+				k3 ^= k3 >> 16
+				if ((k3 * 1000000) >> 32) < warm:
+					Village.set_opinion(V, b, a, Village.opinion(V, b, a) + 2)
 
 
 # Everyday friction and warmth (RimWorld's chitchat and slights): the hot-tempered give offence, the

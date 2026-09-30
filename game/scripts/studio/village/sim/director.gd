@@ -103,6 +103,136 @@ static func focus_day(V: S.Village, k: int) -> void:
 		Justice.remember(V.people[b], a, ev)
 
 
+# ---------- attention: the village the player is in brings something near after a quiet stretch ----------
+# The director never makes anyone act against their motives. It picks a tension that already exists and chooses
+# when and where it comes to a head: a theft someone planned for later today, now and at a pen near the player;
+# two people who dislike each other meeting where the player is; a kind neighbour on their way to a hungry house.
+const ATTENTION_MINUTES := [480, 600, 720, 840, 960, 1080, 1200]
+const QUIET := 480            # game minutes (4 real minutes) with nothing shown near the player
+const NEAR_DM := 400          # "near": the nearest public place within 40 m of the player
+const LEAD := 15              # minutes from the choice to the moment (people have to walk there)
+const NEAR_PLACES := ["well", "square", "field", "pasture", "mill", "forge", "shrine"]
+
+
+## -> the intent brought near (Dictionary), or {} if nothing was.
+static func attention(V: S.Village) -> Dictionary:
+	if V.runtime.is_empty() or not V.focus:
+		return {}
+	var pl: Dictionary = V.runtime.get("player", {})
+	if not pl.get("present", false):
+		return {}
+	var now := int(V.runtime.now)
+	if now - int(V.runtime.get("quiet_since", now)) < QUIET:
+		return {}
+	var minute := now % 1440 + LEAD
+	if minute >= 1380:
+		return {}
+	var k := R.key(R.key(V.base, Village.P_CYCLE), now)
+	var near := _nearest_place(V, pl)
+	var brought := _bring_theft(V, pl, minute)
+	if brought.is_empty() and near >= 0:
+		brought = _bring_quarrel(V, near, minute, k) if R.pick(k, 2) == 0 else _bring_kindness(V, minute, k)
+		if brought.is_empty():
+			brought = _bring_kindness(V, minute, k) if R.pick(k, 2) == 0 else _bring_quarrel(V, near, minute, k)
+	if not brought.is_empty():
+		V.runtime.quiet_since = now
+		Village.add_intent(V, brought)
+	return brought
+
+
+static func _nearest_place(V: S.Village, pl: Dictionary) -> int:
+	var best := -1
+	var best_d := NEAR_DM * NEAR_DM
+	for name: String in NEAR_PLACES:
+		var id: int = V.place_ids.get(name, -1)
+		if id < 0 or not V.place_has_pos[id]:
+			continue
+		var dx := V.place_x[id] - int(pl.x)
+		var dz := V.place_z[id] - int(pl.z)
+		if dx * dx + dz * dz < best_d:
+			best_d = dx * dx + dz * dz
+			best = id
+	return best
+
+
+## A theft planned for later today comes now, at the eligible pen nearest the player (the same thief, the same want).
+static func _bring_theft(V: S.Village, pl: Dictionary, minute: int) -> Dictionary:
+	for it: Dictionary in V.intents:
+		if it.kind != "theft" or int(it.minute) <= minute:
+			continue
+		var p := V.people[int(it.actor)]
+		var best := -1
+		var best_d := NEAR_DM * NEAR_DM * 4
+		for h in V.households:
+			if h.id == p.household or h.lineage == p.lineage or h.food + h.geese * 15 < 12:
+				continue
+			var pen := Village.place_id(V, "pen_" + h.home)
+			if pen < 0 or not V.place_has_pos[pen]:
+				continue
+			var dx := V.place_x[pen] - int(pl.x)
+			var dz := V.place_z[pen] - int(pl.z)
+			if dx * dx + dz * dz < best_d:
+				best_d = dx * dx + dz * dz
+				best = h.id
+		if best < 0:
+			continue
+		# the moved deed replaces the planned one (the old phase finds it already done)
+		var moved := it.duplicate()
+		it.minute = -1
+		it.kind = "moved"
+		moved.target = best
+		moved.place = Village.place_id(V, "pen_" + V.households[best].home)
+		moved.minute = minute
+		moved.near = true
+		return moved
+	return {}
+
+
+static func _bring_quarrel(V: S.Village, near: int, minute: int, k: int) -> Dictionary:
+	var pairs: Array = []
+	for p in V.people:
+		if not _free(V, p):
+			continue
+		for i in p.rel_k.size():
+			var o := p.rel_k[i]
+			if o > p.id and p.rel_v[i] <= -25 and _free(V, V.people[o]):
+				pairs.append([p.id, o])
+	if pairs.is_empty():
+		return {}
+	var pair: Array = pairs[R.pick(R.key(k, 1), pairs.size())]
+	for id: int in pair:
+		Village.plan_insert(V.people[id], minute - 5, minute + 25, near)
+	return {"kind": "quarrel", "actor": pair[0], "other": pair[1], "minute": minute, "k": R.key(k, 2), "place": near, "near": true, "tries": 0}
+
+
+static func _bring_kindness(V: S.Village, minute: int, k: int) -> Dictionary:
+	var hungry: Array = []
+	for h in V.households:
+		for m in h.members:
+			var q := V.people[m]
+			if q.alive and q.present and q.hunger >= 300:
+				hungry.append(h.id)
+				break
+	if hungry.is_empty():
+		return {}
+	var target: int = hungry[R.pick(R.key(k, 3), hungry.size())]
+	var giver := -1
+	for p in V.people:
+		if _free(V, p) and p.household != target and p.traits[C.COMPASSION] >= 60 and V.households[p.household].food >= 16:
+			if giver < 0 or p.traits[C.COMPASSION] > V.people[giver].traits[C.COMPASSION]:
+				giver = p.id
+	if giver < 0:
+		return {}
+	var home := V.households[target].home_place
+	Village.plan_insert(V.people[giver], minute - 5, minute + 20, home)
+	return {"kind": "kindness", "actor": giver, "target": target, "minute": minute, "k": R.key(k, 4), "place": home, "near": true, "tries": 0}
+
+
+## An adult who is here, free and not in any event.
+static func _free(V: S.Village, p: S.Person) -> bool:
+	return p.alive and p.present and not p.locked and p.ancestor < 0 and Village.age_of(V, p) >= 16
+
+
 static func lethal_allowed(V: S.Village) -> bool:
 	return V.director.on and V.director.lethal < 1 and V.day >= V.director.cooldown
 

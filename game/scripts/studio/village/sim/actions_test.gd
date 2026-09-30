@@ -19,7 +19,7 @@ static func _hearing() -> Array:
 	for seed in range(1, 30):
 		var v := Runtime.create(seed, {"anchored": true})
 		for _day in 60:
-			Runtime.advance(v, v.day * 1440)
+			Runtime.advance(v, Runtime.next_dawn(v))
 			for e: Dictionary in v.runtime.events:
 				if e.type == "hearing" and not Runtime.terminal(e):
 					Runtime.advance(v, maxi(int(v.runtime.now), int(e.from)))
@@ -28,6 +28,7 @@ static func _hearing() -> Array:
 
 static func _rite() -> Array:
 	var v := Runtime.create(16838, {"anchored": false})
+	Runtime.advance(v, Runtime.next_dawn(v))   # (phased day: the rite is staged for the day now opening, its dawn still ahead)
 	var sid := Storm.storm_hits(v, 2, 3)
 	if sid < 0:
 		return []
@@ -51,7 +52,7 @@ static func _rite() -> Array:
 	Runtime.sync_events(v)
 	for e: Dictionary in v.runtime.events:
 		if e.type == "rite":
-			Runtime.advance(v, int(e.from))
+			Runtime.advance(v, maxi(int(v.runtime.now), int(e.from)))
 			return [v, e, storm]
 	return []
 
@@ -150,8 +151,8 @@ static func report() -> PackedStringArray:
 		pst.people = pst.people.filter(func(person: Dictionary) -> bool: return int(person.id) != finder)
 		Runtime.advance(p_v, int(p_v.runtime.now) + 16)
 		if not p_v.runtime.traces[0].discovered: return ["FAIL actions: local discovery"]
-		var player: Dictionary = p_v.runtime.players["player:local"]
-		if player.enemies.has(judge_id) != watched: return ["FAIL actions: witness consequence"]
+		var memories: Array = p_v.runtime.get("acquaintance", {}).get(str(judge_id), {}).get("memories", [])
+		if memories.has("saw_you_plant") != watched: return ["FAIL actions: witness consequence"]
 	for rescue in [true, false]:
 		var triple := _rite()
 		if triple.is_empty(): return ["FAIL actions: no rite"]
@@ -179,7 +180,7 @@ static func report() -> PackedStringArray:
 		if _request(ov, oe, "offer").get("wood", 0) != 1 or Runtime.terminal(oe) != accepts:
 			return ["FAIL actions: differentiated rite offering"]
 		if not _request(ov, oe, "offer").get("duplicate", false): return ["FAIL actions: offer replay"]
-		if ov.runtime.players["player:local"].enemies.has(leader.id): return ["FAIL actions: gesture created authority grudge"]
+		if ov.runtime.get("acquaintance", {}).get(str(leader.id), {}).get("memories", []).has("angered"): return ["FAIL actions: gesture created authority grudge"]
 		if not accepts and not _request(ov, oe, "free").accepted: return ["FAIL actions: refused offering blocked rescue"]
 	var triple := _rite()
 	var rv: S.Village = triple[0]

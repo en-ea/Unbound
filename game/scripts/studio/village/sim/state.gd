@@ -281,3 +281,10 @@ class Village:
 	var stranger := Stranger.new()
 	# focus: this is the village the player is in (the live game's director paces it by play time, director.gd)
 	var focus := false
+	# the phased day (village.gd begin_day / run_phase): the live village runs its rules at their minutes.
+	# planning: crime.gd records intents instead of acting at once; intents: today's planned deeds, each done
+	# (or put off) at its minute; phases: today's timed steps, sorted; intents_next: deeds put off to tomorrow
+	var planning := false
+	var intents: Array = []
+	var intents_next: Array = []
+	var phases: Array = []
