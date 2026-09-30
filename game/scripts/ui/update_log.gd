@@ -5,7 +5,7 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
-	{"when": "1 Oct", "title": "Controls, quests, Cinderburst", "lines": [
+	{"when": "30 Sep", "title": "Controls, quests, Cinderburst", "lines": [
 		"Buttons stay put now: Attack, Heavy, Parry, Roll and Sneak are always in the same spots (no more waiting for them to pop up). Attack always works, even swinging at the air.",
 		"Settings > Buttons > Compact: hides Heavy and Parry. Flick Attack up for a Heavy, left to Parry.",
 		"Your sword rides on your back and comes out in a fight, then goes back a few seconds after. Settings > Sword > Always in hand keeps it out.",
