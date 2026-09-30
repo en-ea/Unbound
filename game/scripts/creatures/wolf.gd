@@ -52,6 +52,8 @@ var _circle_time := 0.0
 var _side := 1.0                    # circling direction
 var _lunge_dir := Vector3.FORWARD
 var _bit := false
+var _tried := false          # this lunge has reached you (hit, blocked, dodged or parried)
+var _stumble_for := 0.6      # how long this stumble lasts
 var _hurt_time := 0.3         # longer after a heavy blow
 var _windup := WINDUP         # this wind-up's length (with its hold)
 var _feint := false
@@ -97,7 +99,7 @@ func _physics_process(delta: float) -> void:
 	var toward := to_player / maxf(dist, 0.01)
 	var want := Vector3.ZERO
 	var face := Vector3.ZERO
-	var lost: bool = not player.can_be_targeted() or _home_distance() > LEASH
+	var lost: bool = player.is_down() or _home_distance() > LEASH
 	match state:
 		State.WANDER:
 			if _t > 4.0:
@@ -153,6 +155,8 @@ func _physics_process(delta: float) -> void:
 				_give_up()
 			elif _t > _windup:
 				_bit = false
+				_tried = false
+				_stumble_for = Balance.FIGHT["wolf_stumble"]
 				if _feint:
 					_play("snap", randf_range(1.1, 1.25))
 					_enter(State.FEINT)
@@ -172,16 +176,17 @@ func _physics_process(delta: float) -> void:
 					_enter(State.CIRCLE)
 		State.LUNGE:
 			want = _lunge_dir * LUNGE_SPEED
-			if not _bit and dist < 1.1 and not player.is_rolling():
-				_bit = true
+			if not _tried and dist < 1.1:
+				_tried = true
 				_play("snap", randf_range(0.95, 1.1))
-				player.knockback(_lunge_dir * 5.0)
-				player.take_damage(_damage)
-				get_tree().call_group("camera_rig", "shake", 0.08)
-			if _t > 0.4 or (_t > 0.1 and is_on_wall()):
-				_enter(State.RETREAT if _bit else State.STUMBLE)
+				var result: String = player.receive_attack(self, _damage, _lunge_dir * 5.0)
+				_bit = result == "hit" or result == "block"
+				if _bit:
+					get_tree().call_group("camera_rig", "shake", 0.08)
+			if state == State.LUNGE and (_t > 0.4 or (_t > 0.1 and is_on_wall())):
+				_enter(State.RETREAT if _bit else State.STUMBLE)       # dodged or missed: it stumbles, open
 		State.STUMBLE:
-			if _t > Balance.FIGHT["wolf_stumble"]:     # missed: it skids and stumbles, open to a counter
+			if _t > _stumble_for:     # missed: it skids and stumbles, open to a counter
 				_enter(State.RETREAT)
 		State.DODGE:
 			face = toward
@@ -244,6 +249,18 @@ func sense_swing() -> void:
 
 
 ## True while it is hopping clear (a swing started at it misses).
+## A parry sent it sprawling: it stumbles, open (double damage), for a while.
+func parried(seconds: float) -> void:
+	_stumble_for = seconds
+	_push = -_lunge_dir * 4.0
+	_play("yelp", 1.2)
+	_enter(State.STUMBLE)
+
+
+func is_open() -> bool:
+	return state == State.STUMBLE
+
+
 func is_evading() -> bool:
 	return state == State.DODGE
 

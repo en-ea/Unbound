@@ -222,6 +222,8 @@ func _land_hit() -> void:
 		Wolf.open_up()
 		return
 	var hit := Gear.hit_damage()
+	if player.take_counter() or (t.has_method("is_open") and t.is_open()):
+		hit = [hit[0] * 2, true]           # a counter after a parry or perfect dodge, or a stunned foe
 	t.take_hit(player.global_position, hit[0])
 	_after_hit(hit[1])
 	_hit_feedback(t, hit[0], hit[1])
@@ -274,6 +276,8 @@ func _land_heavy() -> void:
 	var facing := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
 	var hit_any := false
 	var hit := Gear.hit_damage(Balance.HEAVY_DAMAGE)
+	if player.take_counter():
+		hit = [hit[0] * 2, true]
 	var damage: int = hit[0]
 	for e in get_tree().get_nodes_in_group("enemy"):
 		var to: Vector3 = (e as Node3D).global_position - player.global_position

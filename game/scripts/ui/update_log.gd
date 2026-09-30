@@ -5,6 +5,13 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "30 Sep", "title": "Parry and perfect dodge", "lines": [
+		"New Parry button in fights (R on a keyboard). Press it just as a blow lands (the glint is your cue): PARRY! The enemy is knocked off balance and stunned, and your next hit is a double-damage counter.",
+		"Press it too early or late and you still block, but it costs stamina and shoves you back. Run out of stamina and your guard breaks.",
+		"Perfect dodge: roll at the very last moment before a hit lands and time slows down (blue tint). Your next hit is a double-damage counter.",
+		"Stunned enemies take double damage from every hit.",
+		"Enemies no longer give up their attack when you roll or blink after a hit. They keep coming, so fights are harder.",
+	]},
 	{"when": "30 Sep", "title": "Fights feel better", "lines": [
 		"No more slow-mo walking after you swing: a swing only holds you until the blow lands. Push the stick after that and you move at full speed straight away.",
 		"Damage numbers pop up on every hit. Critical hits are big and gold, with a sharp ring.",

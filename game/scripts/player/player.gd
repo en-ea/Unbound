@@ -44,6 +44,14 @@ var _since_hit := 99.0
 var _regen := 0.0
 var _down := 0.0
 var _safe := 0.0
+var _roll_age := 0.0
+var _guard := 0.0               # guard up (the Parry button): the first part of it is a perfect parry
+var _guard_age := 0.0
+var _guard_rest := 0.0
+var _counter_until := 0.0       # after a perfect dodge or a parry: the next hit is a counter (double, critical)
+const PARRY_SOUND := preload("res://assets/sounds/parry.wav")
+const BLOCK_SOUND := preload("res://assets/sounds/block.wav")
+const DODGE_SOUND := preload("res://assets/sounds/perfect_dodge.wav")
 
 
 func is_rolling() -> bool:
@@ -56,6 +64,115 @@ func heavy() -> void:
 		return
 	if stamina.use("heavy"):
 		fighter.heavy()
+
+
+## The Parry button: raise the sword to meet a blow. Timed just as it lands (the glint is your cue), it
+## parries: the attacker is knocked off balance and open, and your next hit is a counter. A late guard
+## still blocks, but costs stamina and shoves you back.
+func guard() -> void:
+	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or _guard_rest > 0.0 or Controls.locked:
+		return
+	if not stamina.use("guard"):
+		return
+	fighter.cancel()
+	var d: Dictionary = Balance.DEFENCE
+	_guard = d["guard"]
+	_guard_age = 0.0
+	_guard_rest = d["guard"] + d["guard_rest"]
+	var foe: Node3D = fighter.nearest_enemy(6.0)
+	if foe:
+		var to := foe.global_position - global_position
+		visual.rotation.y = atan2(to.x, to.z)
+	visual.show_tool("sword" if Gear.tier("sword") >= 0 else "")
+	visual.play_action("Sword_Block", visual.animation_length("Sword_Block") / (d["guard"] + 0.25))
+
+
+func is_down() -> bool:
+	return _down > 0.0
+
+
+## True (once) if a counter is ready: the fighter doubles the next hit.
+func take_counter() -> bool:
+	if Time.get_ticks_msec() / 1000.0 < _counter_until:
+		_counter_until = 0.0
+		return true
+	return false
+
+
+## Every enemy blow goes through here. Returns what happened, so the attacker can react:
+## "perfect" (a perfect dodge: slow motion, a counter), "dodge" (rolled clear), "parry" (it is stunned),
+## "block" (a late guard), "hit", or "miss" (you're down).
+func receive_attack(attacker: Node3D, damage: int, push: Vector3) -> String:
+	if _down > 0.0:
+		return "miss"
+	var d: Dictionary = Balance.DEFENCE
+	if _roll > 0.0:
+		if _roll_age < d["perfect_dodge"]:
+			_perfect_dodge()
+			return "perfect"
+		return "dodge"
+	var to := attacker.global_position - global_position
+	to.y = 0.0
+	var facing := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
+	if _guard > 0.0 and facing.dot(to.normalized()) > -0.2:
+		if _guard_age < d["parry"]:
+			_parry(attacker)
+			return "parry"
+		_play(BLOCK_SOUND, -2.0)
+		stamina._spend(Balance.STAMINA["block"])
+		FloatText.spawn(get_tree(), global_position + Vector3(0, 2.0, 0), "Blocked", Color(0.8, 0.85, 0.95))
+		if not stamina.winded:
+			_knock = push * 0.35
+			_stun = 0.2
+			return "block"
+		get_tree().call_group("hud", "hint", "Guard broken!")      # out of stamina: the blow gets through
+		_guard = 0.0
+	knockback(push)
+	take_damage(damage)
+	return "hit"
+
+
+func _parry(attacker: Node3D) -> void:
+	var d: Dictionary = Balance.DEFENCE
+	_guard = 0.0
+	_guard_rest = 0.15
+	_counter_until = Time.get_ticks_msec() / 1000.0 + d["counter_secs"]
+	stamina.value = minf(stamina.value + Balance.STAMINA["guard"] * 2.0, stamina.max_value())
+	if attacker.has_method("parried"):
+		attacker.parried(d["parry_stun"])
+	_play(PARRY_SOUND, 0.0)
+	var at := (global_position + attacker.global_position) * 0.5 + Vector3(0, 1.2, 0)
+	TOOL_DROP.sparks(get_parent(), at, Color(1.0, 0.85, 0.5), 30, 5.0)
+	FloatText.spawn(get_tree(), global_position + Vector3(0, 2.1, 0), "PARRY!", Color(1.0, 0.85, 0.4), true)
+	get_tree().call_group("camera_rig", "shake", 0.14)
+	_slow_motion(0.12, 0.2)
+
+
+func _perfect_dodge() -> void:
+	var d: Dictionary = Balance.DEFENCE
+	if Engine.time_scale < 1.0:
+		return          # already slowed by another perfect dodge
+	_counter_until = Time.get_ticks_msec() / 1000.0 + d["counter_secs"] + d["slow_secs"]
+	stamina.value = minf(stamina.value + Balance.STAMINA["roll"], stamina.max_value())
+	_play(DODGE_SOUND, -1.0)
+	FloatText.spawn(get_tree(), global_position + Vector3(0, 2.0, 0), "Perfect!", Color(0.55, 0.9, 1.0), true)
+	_slow_motion(d["slow"], d["slow_secs"])
+
+
+## Slows the whole world for `seconds` of real time (tinting the screen while it lasts).
+func _slow_motion(scale: float, seconds: float) -> void:
+	Engine.time_scale = scale
+	get_tree().call_group("hud", "slow_tint", seconds)
+	get_tree().create_timer(seconds, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+
+
+func _play(stream: AudioStream, db: float) -> void:
+	var p := AudioStreamPlayer.new()
+	p.stream = stream
+	p.volume_db = db
+	add_child(p)
+	p.play()
+	p.finished.connect(p.queue_free)
 
 
 ## The action button: fight if an enemy is in reach, otherwise gather.
@@ -110,6 +227,8 @@ func roll() -> void:
 	if not stamina.use("roll"):
 		return
 	fighter.cancel()        # a roll cuts a swing short
+	_guard = 0.0
+	_roll_age = 0.0
 	var m := Controls.get_move()
 	if m.length() > 0.1:
 		_roll_dir = Vector3(m.x, 0, m.y).normalized()
@@ -140,6 +259,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			roll()
 		elif event.physical_keycode == KEY_F:
 			heavy()
+		elif event.physical_keycode == KEY_R:
+			guard()
 
 
 ## The action: something hurts the player (a boar charge). At 0 hearts they are knocked down
@@ -203,6 +324,11 @@ func take_damage(amount: int) -> void:
 func _physics_process(delta: float) -> void:
 	_since_hit += delta
 	_roll_rest = maxf(_roll_rest - delta, 0.0)
+	_roll_age += delta
+	_guard_rest = maxf(_guard_rest - delta, 0.0)
+	if _guard > 0.0:
+		_guard -= delta
+		_guard_age += delta
 	if _safe > 0.0:
 		_safe -= delta
 		visual.visible = _safe <= 0.0 or fmod(_safe, 0.2) > 0.1      # blink while protected
@@ -240,7 +366,7 @@ func _physics_process(delta: float) -> void:
 	var stick := Controls.get_move()
 	if fighter.recovering() and stick.length() > 0.3:
 		fighter.end_recovery()
-	var swinging: bool = fighter.is_busy()
+	var swinging: bool = fighter.is_busy() or _guard > 0.0
 	var move := stick if not gatherer.is_busy() else Vector2.ZERO
 	if swinging:
 		move *= 0.35

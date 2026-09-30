@@ -9,6 +9,7 @@ extends Node
 ##   --showcase        line up one of every tree/bush model in front of the player
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
+##   --defencetest     a boar charges: parry the first, perfect-dodge the second (prints what happened)
 ##   --lab --packtest  three wolves against you swinging now and then (prints lowest health, states seen)
 ##   --telltest        a boar frozen mid-warning (glint), a heavy blow's shockwave, stamina part used (screenshots)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
@@ -204,6 +205,8 @@ func _ready() -> void:
 				picker[0]._show_tab(tab))
 		elif arg == "--fighttest":
 			_fight_test = true
+		elif arg == "--defencetest":                  # parry a boar's charge, perfect-dodge the next
+			add_child(preload("res://scripts/dev/defence_test.gd").new())
 		elif arg == "--telltest":
 			_tell_test = true
 		elif arg == "--lockmock":                     # with --telltest: a mock lock-on marker on the boar

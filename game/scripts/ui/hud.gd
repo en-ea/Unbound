@@ -26,6 +26,8 @@ var _camera_drag: Control
 var _action: Control
 var _roll: Control
 var _heavy: Control
+var _parry: Control
+var _slow_tint: ColorRect
 var _loot_card: Control
 var _corner: HBoxContainer
 var _furnish: Button               # only indoors, in your home
@@ -87,8 +89,23 @@ func _ready() -> void:
 	_heavy.visible = false
 	_heavy.pressed.connect(player.heavy)
 	player.fighter.target_changed.connect(func(_v: String) -> void: _show_heavy())
+	_parry = Control.new()
+	_parry.set_script(ACTION_BUTTON)
+	_parry.radius = 40.0
+	_parry.margin = Vector2(262, 236)
+	_parry.font_size = 17
+	add_child(_parry)
+	_parry.set_verb("Parry")
+	_parry.visible = false
+	_parry.pressed.connect(player.guard)
 	player.stamina.refused.connect(func(cost: String) -> void:
-		(_heavy if cost == "heavy" else _roll).refuse())
+		({"heavy": _heavy, "guard": _parry}.get(cost, _roll) as Control).refuse())
+	_slow_tint = ColorRect.new()
+	_slow_tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_slow_tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_slow_tint.color = Color(0.35, 0.6, 1.0, 0.0)
+	add_child(_slow_tint)
+	move_child(_slow_tint, 0)
 
 	_corner = HBoxContainer.new()
 	_corner.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -322,6 +339,7 @@ func start_build_mode(room := false) -> void:
 	_action.visible = false
 	_roll.visible = false
 	_heavy.visible = false
+	_parry.visible = false
 	_corner.visible = false
 	Controls.locked = false
 	var ui := Control.new()
@@ -443,7 +461,16 @@ func _show_heavy() -> void:
 	var show: bool = _action.visible and player.fighter.verb == "Attack"
 	if show and not _heavy.visible:
 		_heavy.set("_pulse", 1.0)
+		_parry.set("_pulse", 1.0)
 	_heavy.visible = show
+	_parry.visible = show
+
+
+## Slow motion (a perfect dodge or parry): a cool blue wash over the screen that fades as time returns.
+func slow_tint(seconds: float) -> void:
+	_slow_tint.color.a = 0.16
+	var t := create_tween().set_ignore_time_scale(true)
+	t.tween_property(_slow_tint, "color:a", 0.0, seconds)
 
 
 func _on_settings_changed() -> void:

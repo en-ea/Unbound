@@ -17,7 +17,11 @@ const REGEN_EVERY := 9.0          # then one heart this often
 ## Stamina: sprinting (hold Roll), rolling and heavy attacks use it; it refills after a short pause.
 ## Run it empty and you are winded: no sprint, roll or heavy until it is back to `winded_until`.
 const STAMINA := {"max": 100.0, "regen": 34.0, "delay": 0.6, "sprint": 20.0, "roll": 26.0, "heavy": 34.0,
-	"winded_until": 35.0}
+	"guard": 10.0, "block": 24.0, "winded_until": 35.0}
+## Parry and perfect dodge (player.gd): guard length, the perfect-parry part of it, the pause before the
+## next guard, the start of a roll that counts as a perfect dodge, slow motion after one, the counter window.
+const DEFENCE := {"guard": 0.55, "parry": 0.22, "guard_rest": 0.35, "perfect_dodge": 0.26, "slow": 0.3,
+	"slow_secs": 0.9, "counter_secs": 2.5, "parry_stun": 1.6}
 const SPRINT_SPEED := 7.6         # m/s (a run is 5.4)
 const HEAVY_DAMAGE := 2.5         # a heavy attack does this many times a normal hit (rounded up)
 const HEAVY_PUSH := 2.2           # and knocks the enemy back this much further
