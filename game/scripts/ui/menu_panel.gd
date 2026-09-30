@@ -5,6 +5,7 @@ extends Control
 signal closed
 signal open_character
 signal open_settings
+signal open_class
 signal to_title
 
 @export var day_night: Node
@@ -33,6 +34,10 @@ func _ready() -> void:
 	UIStyle.menu_button(column, "Character").pressed.connect(func() -> void:
 		open_character.emit()
 		queue_free())
+	if Classes.awakened:
+		UIStyle.menu_button(column, "Class").pressed.connect(func() -> void:
+			open_class.emit()
+			queue_free())
 	UIStyle.menu_button(column, "Settings").pressed.connect(func() -> void:
 		open_settings.emit()
 		queue_free())

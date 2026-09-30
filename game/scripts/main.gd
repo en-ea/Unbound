@@ -55,6 +55,12 @@ func _ready() -> void:
 	places.player = player
 	add_child(places)
 	places.build(shape)
+	if meadow:
+		var shrine := Node3D.new()
+		shrine.set_script(preload("res://scripts/world/shrine.gd"))
+		shrine.player = player
+		add_child(shrine)
+		shrine.build(shape)
 	var camp := BanditCamp.new()
 	camp.player = player
 	camp.day_night = $WorldEnvironment

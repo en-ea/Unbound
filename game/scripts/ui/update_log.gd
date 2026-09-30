@@ -5,6 +5,15 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "30 Sep", "title": "The story begins: the shrine and the Pyromancer", "lines": [
+		"Top-left says 'A Strange Hum': the standing stones on the meadow hill are humming. Walk up to them.",
+		"The shrine wakes: a pillar of light, a deep chord, a few words, then the class screen. The Pyromancer is open; the other three paths are sealed until later in the story.",
+		"Flame Dash (5 s): burst through enemies in a streak of fire. You can't be hit mid-dash (time it as a blow lands for a perfect dodge too). Everything you pass through catches fire, and the ground behind you burns.",
+		"Meteor (12 s): a glowing ring marks the nearest enemy, then a burning star crashes down. Huge damage, throws them back, breaks shield guards, and leaves the ground on fire.",
+		"Burning enemies take damage over time (orange numbers).",
+		"The ability buttons sit above Heavy, and their rings refill as they cool down. Menu > Class shows your path again.",
+		"Quick test: Settings > Codes > Paladin > 'Become Pyromancer' (or 'Reset story (shrine)' to see the shrine wake again).",
+	]},
 	{"when": "30 Sep", "title": "Morrow's job: The Black Seal", "lines": [
 		"Morrow (by the spawn, with the skull staff) has a dark job for you: kill Varek, leader of the Red Hand bandits, and bring back the black seal he wears. For Morrow. Not the trader.",
 		"Reward: coins and an Epic sword. His last words about the seal are worth reading.",

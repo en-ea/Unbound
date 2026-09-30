@@ -197,6 +197,20 @@ func take_hit(from: Vector3, damage := 1, push := 1.0) -> void:
 		visual.play_action("Hit_Chest", 1.3)
 
 
+## Fire damage (a Pyromancer's flames): no stagger, and it wakes them.
+func take_burn(damage: int) -> void:
+	if state == State.DEAD:
+		return
+	if not alerted:
+		_alert(true)
+	health -= damage
+	visual.flash()
+	_overlay.show_health(float(health) / max_health, max_health / 3)
+	FloatText.spawn(get_tree(), global_position + Vector3(0, 1.8, 0), str(damage), Color(1.0, 0.55, 0.2))
+	if health <= 0:
+		_die(false)
+
+
 func parried(seconds: float) -> void:
 	_stagger(seconds)
 

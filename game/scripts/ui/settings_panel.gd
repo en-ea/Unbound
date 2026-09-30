@@ -177,6 +177,14 @@ func _cheat_page() -> void:
 				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])
 			Money.earn(Balance.HOME["coins"])],
 		["Full hearts", func() -> void: get_tree().call_group("player", "heal_full")],
+		["Become Pyromancer", func() -> void:
+			Classes.choose("pyromancer")
+			get_tree().call_group("hud", "_on_class_chosen", "pyromancer")],
+		["Reset story (shrine)", func() -> void: Classes.reset()],
+		["Morrow's job: done up to the seal", func() -> void:
+			if Quests.status("morrow_seal") == "new":
+				Quests.accept("morrow_seal")
+			Inventory.add("black_seal", 1)],
 		["Go to other area", func() -> void:
 			var gate: Dictionary = Region.GATES[Region.current][0]
 			_close()

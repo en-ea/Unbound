@@ -46,6 +46,9 @@ var _regen := 0.0
 var _down := 0.0
 var _safe := 0.0
 var _roll_age := 0.0
+var _roll_speed := ROLL_SPEED
+var _roll_time := ROLL_TIME
+var abilities: Abilities
 var _guard := 0.0               # guard up (the Parry button): the first part of it is a perfect parry
 var _guard_age := 0.0
 var _guard_rest := 0.0
@@ -228,6 +231,9 @@ func _ready() -> void:
 	smoking = Smoking.new()
 	smoking.name = "Smoking"
 	add_child(smoking)
+	abilities = Abilities.new()
+	abilities.name = "Abilities"
+	add_child(abilities)
 	visual.wear_gear = true               # worn armour shows over your look
 	Armor.changed.connect(visual.apply_hero_look)
 	visual.apply_hero_look.call_deferred()
@@ -269,7 +275,23 @@ func roll() -> void:
 	visual.rotation.y = atan2(_roll_dir.x, _roll_dir.z)
 	visual.play_action("Roll", visual.animation_length("Roll") / ROLL_TIME)
 	_roll = ROLL_TIME
+	_roll_time = ROLL_TIME
+	_roll_speed = ROLL_SPEED
 	$Sounds.play_roll()
+	$Effects.burst(true)
+
+
+## A fast dash (Flame Dash): like a roll (untouchable, perfect-dodge timing) but quicker and further.
+func dash(dir: Vector3, speed: float, time: float) -> void:
+	fighter.cancel()
+	_guard = 0.0
+	_roll_age = 0.0
+	_roll_dir = dir
+	_roll = time
+	_roll_time = time
+	_roll_speed = speed
+	visual.rotation.y = atan2(dir.x, dir.z)
+	visual.play_action("Sword_Dash", visual.animation_length("Sword_Dash") / (time + 0.25))
 	$Effects.burst(true)
 
 
@@ -295,6 +317,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			guard()
 		elif event.physical_keycode == KEY_C:
 			sneak()
+		elif event.physical_keycode in [KEY_Z, KEY_X] and Classes.abilities().size() > (0 if event.physical_keycode == KEY_Z else 1):
+			abilities.use(Classes.abilities()[0 if event.physical_keycode == KEY_Z else 1])
 
 
 ## The action: something hurts the player (a boar charge). At 0 hearts they are knocked down
@@ -448,8 +472,8 @@ func _special_move(delta: float) -> void:
 		if m.length() > 0.3:                   # a little steering, not a full turn
 			_roll_dir = _roll_dir.slerp(Vector3(m.x, 0, m.y).normalized(), clampf(3.0 * delta, 0.0, 1.0)).normalized()
 			visual.rotation.y = atan2(_roll_dir.x, _roll_dir.z)
-		var t := 1.0 - _roll / ROLL_TIME       # 0 at the start of the roll, 1 at the end
-		flat = _roll_dir * ROLL_SPEED * lerpf(1.0, 0.6, t * t)
+		var t := 1.0 - _roll / _roll_time      # 0 at the start of the roll, 1 at the end
+		flat = _roll_dir * _roll_speed * lerpf(1.0, 0.6, t * t)
 	else:
 		_stun -= delta
 		flat = _knock

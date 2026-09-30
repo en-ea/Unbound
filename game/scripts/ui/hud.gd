@@ -9,6 +9,7 @@ const PICKUP_FEED := preload("res://scripts/ui/pickup_feed.gd")
 const TITLE_SCREEN := preload("res://scripts/ui/title_screen.gd")
 const MENU_PANEL := preload("res://scripts/ui/menu_panel.gd")
 const SETTINGS_PANEL := preload("res://scripts/ui/settings_panel.gd")
+const CLASS_PANEL := preload("res://scripts/ui/class_panel.gd")
 const CRAFTING_PANEL := preload("res://scripts/ui/crafting_panel.gd")
 const HOLD_TO_SPRINT := 0.18     # Roll button: shorter than this is a roll, longer is a sprint
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
@@ -28,6 +29,7 @@ var _roll: Control
 var _heavy: Control
 var _parry: Control
 var _sneak: Control
+var _ability_buttons := {}         # ability id -> button (your class's abilities)
 var _slow_tint: ColorRect
 var _loot_card: Control
 var _corner: HBoxContainer
@@ -107,6 +109,22 @@ func _ready() -> void:
 	add_child(_sneak)
 	_sneak.set_verb("Sneak")
 	_sneak.pressed.connect(player.sneak)
+	var spots := [Vector2(112, 404), Vector2(232, 360)]
+	for i in 2:
+		var b := Control.new()
+		b.set_script(ACTION_BUTTON)
+		b.radius = 42.0
+		b.margin = spots[i]
+		b.font_size = 16
+		b.visible = false
+		add_child(b)
+		b.set_meta("slot", i)
+		b.pressed.connect(func() -> void:
+			var list := Classes.abilities()
+			if b.get_meta("slot") < list.size():
+				player.abilities.use(list[b.get_meta("slot")]))
+		_ability_buttons[i] = b
+	Classes.changed.connect(_update_ability_buttons)
 	player.stamina.refused.connect(func(cost: String) -> void:
 		({"heavy": _heavy, "guard": _parry}.get(cost, _roll) as Control).refuse())
 	_slow_tint = ColorRect.new()
@@ -226,6 +244,7 @@ func _show_buffs() -> void:
 
 func _process(delta: float) -> void:
 	_update_roll_button()
+	_update_ability_buttons()
 	_buff_tick -= delta
 	if _buff_tick <= 0.0 and _buffs.get_child_count() > 0:
 		_buff_tick = 1.0
@@ -384,6 +403,7 @@ func open_bag() -> void:
 func open_menu() -> void:
 	var menu := _modal(MENU_PANEL, {"day_night": day_night, "character": character})
 	menu.open_character.connect(open_look_picker)
+	menu.open_class.connect(func() -> void: open_class_panel(false))
 	menu.open_settings.connect(open_settings)
 	menu.to_title.connect(func() -> void:
 		SaveGame.save_game()
@@ -481,6 +501,45 @@ func _show_heavy() -> void:
 func sneak_changed(on: bool) -> void:
 	_sneak.lit = on
 	_sneak.set_verb("Sneaking" if on else "Sneak")
+
+
+## Your class's ability buttons: named, with a ring that fills back up as the cooldown ends.
+func _update_ability_buttons() -> void:
+	var list := Classes.abilities()
+	for i: int in _ability_buttons:
+		var b: Control = _ability_buttons[i]
+		var show: bool = i < list.size() and _action.visible
+		b.visible = show
+		if not show:
+			continue
+		var id: String = list[i]
+		if b.get_meta("id", "") != id:
+			b.set_meta("id", id)
+			b.set_verb(Classes.ABILITIES[id]["short"])
+			b.meter_color = Classes.color()
+			b.lit_fill = Color(Classes.color().darkened(0.55), 0.8)
+		var left := Classes.cooldown_left(id)
+		b.set_meter(1.0 - left)
+		var dim := left > 0.0
+		if dim != b.dim:
+			b.dim = dim
+			b.queue_redraw()
+		b.lit = not dim
+
+
+func open_class_panel(from_shrine: bool) -> void:
+	var panel := _modal(CLASS_PANEL, {"from_shrine": from_shrine})
+	panel.chosen.connect(_on_class_chosen)
+
+
+## You took a class: its name across the screen and fire bursting out around you.
+func _on_class_chosen(id: String) -> void:
+	var def: Dictionary = Classes.CLASSES[id]
+	Banner.show_now(self, String(def["name"]).to_upper(), "The flame answers you", def["color"], preload("res://assets/sounds/fire_burst.wav"), 2.4)
+	player.get_node("Effects").glow_burst(def["color"], 120)
+	FireFX.flames(player.get_parent(), player.global_position + Vector3(0, 0.4, 0), 1.2, 60, 1.0, true, 0.8)
+	get_tree().call_group("camera_rig", "shake", 0.15)
+	_update_ability_buttons()
 
 
 ## Slow motion (a perfect dodge or parry): a cool blue wash over the screen that fades as time returns.

@@ -76,6 +76,18 @@ func is_engaged() -> bool:
 	return state != State.WANDER and state != State.DEAD
 
 
+## Fire damage (a Pyromancer's flames): no stagger, just health.
+func take_burn(damage: int) -> void:
+	if state == State.DEAD:
+		return
+	health -= damage
+	visual.flash()
+	visual.show_health(float(health) / max_health, max_health / 2)
+	FloatText.spawn(get_tree(), global_position + Vector3(0, 1.2, 0), str(damage), Color(1.0, 0.55, 0.2))
+	if health <= 0:
+		_die()
+
+
 ## A parry knocked it off balance: dazed and open (double damage) for a while.
 func parried(seconds: float) -> void:
 	_daze_for = seconds

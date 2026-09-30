@@ -54,9 +54,10 @@ func _ready() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 4)
 	banner.add_child(column)
-	var t := _label(column, title, 40, color, DISPLAY_FONT)
-	t.add_theme_color_override("font_outline_color", Color(color.darkened(0.75), 1.0))
-	t.add_theme_constant_override("outline_size", 8)
+	if title != "":
+		var t := _label(column, title, 40, color, DISPLAY_FONT)
+		t.add_theme_color_override("font_outline_color", Color(color.darkened(0.75), 1.0))
+		t.add_theme_constant_override("outline_size", 8)
 	if subtitle != "":
 		_label(column, subtitle, 28, Color(1, 0.96, 0.88), TITLE_FONT)
 	if sound:
