@@ -20,10 +20,10 @@ const ROOM_PULL := 0.3
 const CLOSE_FOV := 32.0
 const KEY_TURN := 2.2              # radians a second with the arrow keys
 const HELP_TURN := 1.1             # radians a second when turning to show an enemy behind you
-const HELP_RANGE := 9.0            # enemies this close get turned into view
-const HELP_WAIT := 2.0             # seconds after you turn it yourself before it helps again
+const HELP_RANGE := 5.0            # enemies this close get turned into view
+const HELP_WAIT := 4.0             # seconds after you turn it yourself before it helps again
 const GROUND_CLEAR := 0.9          # keep the lens and the line of sight this far above the ground
-const TURN_EASE := 14.0            # how fast the view catches up with your drag (touches come in unevenly)
+const TURN_EASE := 20.0            # how fast the view catches up with your drag (touches come in unevenly)
 const FAR := 130.0                 # draw distance: the fog has covered the land by here
 
 @onready var camera: Camera3D = $Camera3D
@@ -40,6 +40,7 @@ var _yaw_goal := 0.0
 var _lift := 0.0                     # metres the camera is raised to clear a hill (eased)
 var _outdoor_yaw := 0.0
 var _since_turn := HELP_WAIT
+var held := false                    # a finger is on the turn area (set by the camera drag): never help then
 var _shape := WorldShape.new()
 
 
@@ -73,7 +74,8 @@ func set_view(d: float, pitch: float, offset: Vector3, time := 0.6, lens := CLOS
 func turn(amount: float) -> void:
 	if _room != Vector3.INF:
 		return
-	_yaw_goal += amount
+	# The view can only lag so far behind, so a very fast swipe never takes the short way round (backwards).
+	_yaw_goal = _yaw + clampf(angle_difference(_yaw, _yaw_goal) + amount, -2.0, 2.0)
 	_since_turn = 0.0
 
 
@@ -163,7 +165,7 @@ func _process(delta: float) -> void:
 		var keys := float(Input.is_physical_key_pressed(KEY_LEFT)) - float(Input.is_physical_key_pressed(KEY_RIGHT))
 		if keys != 0.0:
 			turn(keys * KEY_TURN * delta)
-		elif _since_turn > HELP_WAIT:
+		elif _since_turn > HELP_WAIT and not held:
 			_show_enemy(delta)
 	if not is_equal_approx(_yaw, _yaw_goal):
 		var y := lerp_angle(_yaw, _yaw_goal, 1.0 - exp(-TURN_EASE * delta))

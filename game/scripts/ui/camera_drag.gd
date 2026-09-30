@@ -20,10 +20,12 @@ func _input(event: InputEvent) -> void:
 		var touch := event as InputEventScreenTouch
 		if not touch.pressed and touch.index == _finger:
 			_finger = -1
+			camera_rig.held = false
 		elif touch.pressed and _finger == -1 and _can_turn() \
 				and touch.position.x >= get_viewport().get_visible_rect().size.x * 0.5 \
 				and not _on_button(touch.position):
 			_finger = touch.index
+			camera_rig.held = true
 	elif event is InputEventScreenDrag:
 		var drag := event as InputEventScreenDrag
 		if drag.index == _finger and drag.relative.length() <= MAX_JUMP and _can_turn():
@@ -53,3 +55,5 @@ func _on_button(pos: Vector2) -> bool:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_VISIBILITY_CHANGED:
 		_finger = -1
+		if camera_rig:
+			camera_rig.held = false
