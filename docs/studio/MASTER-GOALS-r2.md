@@ -49,6 +49,11 @@ Village drama is optional side fun: "it shouldn’t make the game too focused on
 
 Until D-A is answered, the studio builds nothing in Enea's column.
 
+**30 Sep, later: Hilmi settled both** `[chat]`: "why can't we just merge them whenever possible but into our own branches? as in my new things get copied into his when hes working and his work is copied into ours when we notice it there and we work from there? we are working towards the same goals and should see his work as a creative partner."
+- **The flow runs both ways.** The studio merges `main` and `camera-test` whenever new work appears. Enea merges `studio` while he works.
+- **The table above is read as a partnership, not a wall.** His work is the base; the studio extends his systems through small marked hooks. The landing is continuous merging, made safe by a "Living village" switch and by running his checks before every push.
+- **The plan:** `plan/PASS-2-PLAN-2026-09-30.md` (studio repository).
+
 ## 3. Where we are (30 Sep)
 
 | Area | State | Owner |
@@ -196,7 +201,8 @@ The B items keep the goal cards of the 29 Sep document (`MASTER-GOALS.md`, secti
 | Master goals, 29 Sep | Whole vision | Superseded by this revision | `MASTER-GOALS.md` (b16438c) |
 | `main` 0709565 merged into studio | Reconcile Enea's drift | Done locally, `df6f214`: import clean, kernel 420/420, village golden, live and storm twins, save/input 20/20, rescue boundaries, smoke render | Unpushed |
 | B1 selection (30 Sep, `77afe3b`) | Provoke a person | Withdrawn before starting: its prerequisites F1-F4 were missing, and its control belongs to Enea's lock-on | This revision |
-| H hygiene | H1-H4 | Selected 30 Sep; next | Base `df6f214`, files under `scripts/studio/` only |
+| H hygiene | H1-H4 | Folded into Pass 2 | See Pass 2 |
+| Pass 2, "the village around you" | Events near the player (a player-aware director, the village minute by minute), people you can meet, one population, provoke a person, clean foundations (H, F1-F5, B5-lite, B1) | Proposed 30 Sep; waiting for Hilmi's go | `plan/PASS-2-PLAN-2026-09-30.md`; the lead plus two explicit Sonnet helpers |
 
 **Record for each batch:** batch, date and lead; the bounded player outcome; the base commit and files; the contracts; the state; commits and the build; the checks and results; performance; owner feedback (only if received); and the next action and publication status.
 
