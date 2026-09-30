@@ -107,7 +107,9 @@ built from simple shapes; their ground is a clearing in `WorldShape.REGIONS`.
   scatter, enemies and treasure lists. Dev: `--region=forest`.
 
 ## Minimap
-Anything in group `"map_building"` with a `"map_size"` meta (Vector2 footprint) shows as a building.
+`ui/minimap.gd`: round, centred on the player, turns with `Controls.cam_yaw` (fixed on main's camera), N on the rim.
+The ground is painted once into a texture covering `SPAN` (200 m) and drawn as a round textured polygon; `VIEW` =
+metres across. Anything in group `"map_building"` with a `"map_size"` meta (Vector2 footprint) shows as a building.
 
 ## Stamina and fighting moves
 - `player/stamina.gd` (a child of the player): `use("roll"|"heavy")`, `drain()` while sprinting, `winded` when
@@ -202,6 +204,12 @@ GV_ANGLE=-20 GV_DIST=5.5 ... res://scenes/tmp_view.tscn` (writes /tmp/claude-0/s
 - Masks: the "mask" slot in `CharacterLook.PARTS` (Face tab): kitsune, oni, hollow, built in make_hero.py (`plate()` follows the
   head; pieces `H_mask_<name>[_extra]` with fixed colours). Materials ending in "Glow" shine. Random looks get a mask 20% of the time.
 - Wren: `sun_hat` (level, wide brim, rounded crown), `leaf_cloak` (five rows of big leaves) + `leaf_ribs`.
+
+## The Moss-Cap Seeker (the first small villager)
+`tools-src/blender/make_seeker.py` → `assets/characters/seeker.glb` (UAL rig, no arms showing: a leaf hood with a
+drooping tip, a shadowed face with glowing eyes, a bell of pointed leaves, thin legs). Villager "seeker" (scale 0.56,
+by the pond, searches the grass; chatter hints at the meadow chests). Voice: `CHIRPS` in make_voices.py.
+Brakk's anvil under his arm: `"carry"` in the villager entry (a second prop on another bone; build lab only).
 
 ## Two-handed props, lab villagers
 - `player/two_hand_hold.gd`: a skeleton modifier that bends both arms (two-bone IK) so the hands grip a prop held low in
