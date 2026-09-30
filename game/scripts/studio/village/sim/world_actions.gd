@@ -140,6 +140,8 @@ static func remember(v: S.Village, id: int, token: String, feeling_change: int =
 static func _can_target(v: S.Village, p: S.Person) -> String:
 	if Village.age_of(v, p) < 14:
 		return "never a child"
+	if p.authored != "":
+		return "not them"   # Enea's own characters: their stories are protected
 	if p.down_until > int(v.runtime.now):
 		return "they are already down"
 	if p.locked:

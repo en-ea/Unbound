@@ -256,7 +256,7 @@ static func make_trial_staging(V: S.Village, cs: S.Case, judge: int, via: String
 	# the village comes to hear it (grown people; the closest two dozen by id order), each showing where they stand
 	var crowd: Array[int] = []
 	for q in V.people:
-		if crowd.size() < 24 and q.alive and q.present and not q.locked and Village.age_of(V, q) >= 14 \
+		if crowd.size() < 24 and q.alive and q.present and not q.locked and q.authored == "" and Village.age_of(V, q) >= 14 \
 				and q.id != accused and q.id != accuser and q.id != judge and q.id != champ:
 			crowd.append(q.id)   # (people are in id order: the reference's sort and slice)
 	var gathered := hear
@@ -426,7 +426,7 @@ static func public_act(V: S.Village, s: S.Sched) -> void:
 	# the crowd: everyone old enough comes, except kin who cannot bear to watch
 	var attend: Array[int] = []
 	for q in V.people:
-		if not q.alive or not q.present or q.id == victim.id or q.locked:
+		if not q.alive or not q.present or q.id == victim.id or q.locked or q.authored != "":
 			continue
 		if V.tier == "store" and Village.age_of(V, q) < 12 and lethal:
 			continue
@@ -779,7 +779,7 @@ static func gathering(V: S.Village, kind: String, s: S.Sched) -> void:
 	var k := R.key(R.key(V.base, Village.P_FESTIVAL), V.day)
 	var folk: Array[S.Person] = []
 	for q in Village.living(V):
-		if not q.locked:
+		if not q.locked and q.authored == "":
 			folk.append(q)
 	for q in folk:
 		q.stress = clampi(q.stress - (60 if kind == "festival" else 30), 0, 400)

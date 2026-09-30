@@ -29,7 +29,7 @@ static func inhibition(V: S.Village, p: S.Person, act: String) -> int:
 static func crimes_today(V: S.Village) -> void:
 	var dk := R.key(R.key(V.base, Village.P_CRIME), V.day)
 	for p in V.people:
-		if not p.alive or not p.present or p.locked or Village.age_of(V, p) < 14:
+		if not p.alive or not p.present or p.locked or Village.age_of(V, p) < 14 or p.authored != "":
 			continue
 		var k := R.key(dk, p.id)
 		try_theft(V, p, k)
@@ -195,7 +195,7 @@ static func try_brawl(V: S.Village, p: S.Person, k: int) -> void:
 		if v > -40:
 			continue
 		var q := V.people[o]
-		if not q.alive or not q.present or Village.place_at(q, 1150) != evening or Village.age_of(V, q) < 14:
+		if not q.alive or not q.present or Village.place_at(q, 1150) != evening or Village.age_of(V, q) < 14 or q.authored != "":
 			continue
 		var inhib := inhibition(V, p, "assault")
 		var motive := -v + p.traits[C.TEMPER]
@@ -252,8 +252,8 @@ static func try_murder(V: S.Village, p: S.Person, k: int) -> void:
 		if v > -70:
 			continue
 		var q := V.people[o]
-		if not q.alive or not q.present or Village.age_of(V, q) < 16:
-			continue  # never a child, in any tier
+		if not q.alive or not q.present or Village.age_of(V, q) < 16 or q.authored != "":
+			continue  # never a child, in any tier (nor one of the story's own)
 		if not R.chance(R.key(k, o), (cold + (-v - 70) * 3) * 300 * V.pace):
 			continue
 		# alone somewhere: at dawn, at work, or walking home at dusk, with no one near
@@ -333,7 +333,7 @@ static func witch_fear(V: S.Village, dk: int) -> void:
 	var target := -1
 	var best := -1
 	for q in V.people:
-		if not q.alive or not q.present or Village.age_of(V, q) < 16 or q.id == V.authority:
+		if not q.alive or not q.present or Village.age_of(V, q) < 16 or q.id == V.authority or q.authored != "":
 			continue
 		var other := 100 - q.traits[C.SOCIABLE]
 		if q.outsider:
@@ -616,7 +616,7 @@ static func suspect(V: S.Village, pid: int, c: S.Crime) -> void:
 	var who := -1
 	var best := 30
 	for q in V.people:
-		if not q.alive or not q.present or q.id == pid or Village.is_kin(V, pid, q.id) or Village.age_of(V, q) < 14:
+		if not q.alive or not q.present or q.id == pid or Village.is_kin(V, pid, q.id) or Village.age_of(V, q) < 14 or q.authored != "":
 			continue
 		var s := -Village.opinion(V, pid, q.id) + q.offences * 40 + (25 if q.outsider else 0) + (40 if q.marks.get("branded", 0) else 0) + R.idiv(q.hunger, 25)
 		if q.cleared_day >= 0 and V.day - q.cleared_day < 3 * Village.YEAR:
@@ -824,7 +824,7 @@ static func tell(V: S.Village, a: int, b: int, k: int) -> void:
 		for i in rk.size():
 			var o := rk[i]
 			var v := rv[i]
-			if v < worst and V.people[o].alive and V.people[o].present and o != a and o != b:
+			if v < worst and V.people[o].alive and V.people[o].present and o != a and o != b and V.people[o].authored == "":
 				worst = v; enemy = o
 		if enemy >= 0:
 			culprit = enemy; origin = b; via = 3

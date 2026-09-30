@@ -12,6 +12,7 @@ extends Node
 ## Lives under VillageLive (live.gd adds it); registry is live.gd's resident registry.
 const PlayerActs := preload("res://scripts/studio/village/player_acts.gd")
 const FightTarget := preload("res://scripts/studio/village/fight_target.gd")
+const Authored := preload("res://scripts/studio/village/sim/authored.gd")
 
 const LEAVE_DISTANCE := 12.0   # metres: walk this far away and it is over
 const QUIET_SECONDS := 20.0    # this long with no blow and it is over
@@ -23,8 +24,20 @@ var _id := -1
 var _since_hit := 0.0
 
 
+var _authored_nodes := {}      # resident id -> Enea's npc.gd node (Wren, Brakk, Morrow, the Seeker)
+
+
 func _ready() -> void:
 	_player = get_tree().get_first_node_in_group("player")
+	# Enea's characters are residents too (authored.gd): find their bodies, and say if his table has moved on
+	var v = VillageSession.village
+	for node in get_tree().current_scene.find_children("*", "Node3D", true, false):
+		if node.get("_id") is String and v != null:
+			for p in v.people:
+				if p.authored == node.get("_id"):
+					_authored_nodes[p.id] = node
+	for line in Authored.drift(Npcs.NPCS):
+		push_warning("studio village: Enea's characters changed, the rules' copy needs updating: " + line)
 	if "--village-provoke-test" in OS.get_cmdline_user_args() and not VillageSession.has_node("ProvokeProbe"):
 		var probe: Node = load("res://scripts/studio/village/provoke_probe.gd").new()
 		probe.name = "ProvokeProbe"
@@ -71,10 +84,15 @@ func witnesses(target: int) -> Array:
 		reach *= st["night"]
 	var at := _player.global_position
 	var space := _player.get_world_3d().direct_space_state
+	var looking := {}
 	for id: int in registry.bodies:
+		looking[id] = registry.bodies[id]
+	for id: int in _authored_nodes:
+		looking[id] = _authored_nodes[id]   # (their facing is their own; treated as looking about)
+	for id: int in looking:
 		if id == target:
 			continue
-		var body: Node3D = registry.bodies[id]
+		var body: Node3D = looking[id]
 		var p = VillageSession.village.people[id]
 		if not body.visible or not p.alive or not p.present:
 			continue
@@ -84,7 +102,7 @@ func witnesses(target: int) -> Array:
 		if d > reach:
 			continue
 		var facing := Vector3(sin(body.rotation.y), 0.0, cos(body.rotation.y))
-		if d > 3.0 and facing.dot(to.normalized()) < st["fov"]:
+		if d > 3.0 and not _authored_nodes.has(id) and facing.dot(to.normalized()) < st["fov"]:
 			continue   # looking the other way (close by, a scuffle is noticed anyway)
 		var q := PhysicsRayQueryParameters3D.create(body.global_position + Vector3(0, 1.6, 0), at + Vector3(0, 1.0, 0))
 		q.exclude = [(_player as CollisionObject3D).get_rid()]

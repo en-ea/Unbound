@@ -10,6 +10,7 @@ const Events := preload("res://scripts/studio/village/sim/events.gd")
 const C := preload("res://scripts/studio/village/sim/content.gd")
 const Incidents := preload("res://scripts/studio/village/sim/incidents.gd")
 const WorldActions := preload("res://scripts/studio/village/sim/world_actions.gd")
+const Authored := preload("res://scripts/studio/village/sim/authored.gd")
 
 static func create(seed: int = 1, opts: Dictionary = {}) -> S.Village:
 	var settings := {"pace": 10, "focus": true, "live": true}
@@ -27,6 +28,7 @@ static func attach(v: S.Village, minute: int = 432) -> void:
 		"hearings": [], "rites": [], "traces": [], "resolving": false, "challenge": false, "storm_cycle": 0,
 		"day_open": false, "incidents": [], "player": {"present": false, "x": 0, "z": 0}, "quiet_since": v.day * 1440,
 		"acquaintance": {}}
+	Authored.join(v)   # Enea's own characters are residents of the live village
 	advance(v, v.day * 1440 + minute)
 
 static func terminal(e: Dictionary) -> bool:
@@ -196,6 +198,8 @@ static func _migrate(v: S.Village) -> void:
 		r.quiet_since = int(r.now)
 	if not r.has("acquaintance"):
 		r.acquaintance = {}
+	if not r.has("authored"):
+		Authored.join(v)
 
 
 ## The next midnight (when the next day opens): for waiting until "tomorrow".

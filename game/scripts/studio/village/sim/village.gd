@@ -16,6 +16,7 @@ const Crime := preload("res://scripts/studio/village/sim/crime.gd")
 const Justice := preload("res://scripts/studio/village/sim/justice.gd")
 const Director := preload("res://scripts/studio/village/sim/director.gd")
 const Storm := preload("res://scripts/studio/village/sim/storm.gd")
+const Authored := preload("res://scripts/studio/village/sim/authored.gd")
 
 const YEAR := 60  # days in a village year: four seasons of 15
 const DAY := 1440  # minutes
@@ -155,6 +156,14 @@ static func make_places(V: S.Village, layout: Dictionary) -> void:
 		place_id(V, "pen_" + h)
 
 
+## The layout tables after a save is decoded (they are not saved): the meadow, then the live village's extra
+## places (Enea's characters' spots, authored.gd) in the order they were added.
+static func rebuild_places(V: S.Village) -> void:
+	make_places(V, MEADOW)
+	if not V.runtime.is_empty():
+		Authored.rebuild_places(V)
+
+
 static func _add_place(V: S.Village, nm: String, x: int, z: int, has_pos: bool) -> int:
 	var id := V.place_names.size()
 	V.place_names.append(nm)
@@ -270,12 +279,12 @@ static func elect_authorities(V: S.Village) -> void:
 	var elder := -1
 	var priest := -1
 	for p in V.people:
-		if not p.alive or not p.present or p.era != V.age or age_of(V, p) < 30:
+		if not p.alive or not p.present or p.era != V.age or age_of(V, p) < 30 or p.authored != "":
 			continue
 		if elder < 0 or p.born < V.people[elder].born or (p.born == V.people[elder].born and p.id < elder):
 			elder = p.id
 	for p in V.people:
-		if not p.alive or not p.present or p.id == elder or p.era != V.age or age_of(V, p) < 20:
+		if not p.alive or not p.present or p.id == elder or p.era != V.age or age_of(V, p) < 20 or p.authored != "":
 			continue
 		if priest < 0 or p.traits[C.PIETY] > V.people[priest].traits[C.PIETY]:
 			priest = p.id
@@ -549,7 +558,7 @@ static func food(V: S.Village) -> void:
 			var p := V.people[id]
 			if not p.alive:
 				continue
-			p.hunger = clampi(p.hunger + (60 if hungry else -80), 0, 1000)
+			p.hunger = 0 if p.authored != "" else clampi(p.hunger + (60 if hungry else -80), 0, 1000)
 	V.hardship = clampi(V.hardship - 5, 0, 1000)
 	V.fear = clampi(V.fear - 8, 0, 1000)
 
@@ -557,7 +566,7 @@ static func food(V: S.Village) -> void:
 static func life(V: S.Village) -> void:
 	var death_day := R.key(R.key(V.base, P_DEATH), V.day)
 	for p in V.people:
-		if not p.alive or not p.present:
+		if not p.alive or not p.present or p.authored != "":
 			continue
 		var a := age_of(V, p)
 		var k := R.key(death_day, p.id)
@@ -628,7 +637,7 @@ static func die(V: S.Village, id: int, cause: String, causes: PackedInt32Array, 
 static func marriages(V: S.Village) -> void:
 	var single: Array[S.Person] = []
 	for p in V.people:
-		if p.alive and p.present and p.spouse < 0 and age_of(V, p) >= 18 and age_of(V, p) <= 45 and p.era == V.age:
+		if p.alive and p.present and p.spouse < 0 and age_of(V, p) >= 18 and age_of(V, p) <= 45 and p.era == V.age and p.authored == "":
 			single.append(p)
 	for m in single:
 		if m.sex != 0 or m.spouse >= 0:
@@ -737,6 +746,9 @@ static func plan_day(V: S.Village) -> void:
 				p.plan = PackedInt32Array()
 			continue
 		var home := households[p.household].home_place
+		if p.authored != "":
+			p.plan = PackedInt32Array([0, DAY, home])   # Enea's own stand where their stories put them
+			continue
 		if not V.runtime.is_empty():
 			var refuge: Dictionary = V.runtime.residents.get(str(p.id), {})
 			if not refuge.is_empty() and int(refuge.refuge_until) > int(V.runtime.now):

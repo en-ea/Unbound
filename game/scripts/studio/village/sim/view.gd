@@ -32,7 +32,7 @@ static func describe(v: S.Village, id: int) -> Dictionary:
 		"forebear": p.ancestor >= 0, "outsider": p.outsider,
 		"marks": p.marks.keys(), "epithet": p.epithets[p.epithets.size() - 1] if p.epithets.size() > 0 else "",
 		"mood": mood(v, id), "activity": activity(v, id), "toward_player": toward_player(v, id),
-		"protected": false,   # authored story characters (Pass 2, L5) will say true
+		"protected": p.authored != "", "authored": p.authored,   # Enea's own characters (authored.gd)
 		"look": {"outfit": int(Justice.person_entry(v, id).get("outfit", 0))},   # the outfit index residents.gd dresses
 	}
 

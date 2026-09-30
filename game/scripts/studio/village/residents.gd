@@ -60,7 +60,7 @@ func _process(delta: float) -> void:
 		return
 	# Preparation is included in measured frame work, never subtracted from the stage's cost.
 	for p in v.people:
-		if p.alive and p.present and not bodies.has(p.id):
+		if p.alive and p.present and not bodies.has(p.id) and p.authored == "":   # (Enea's own characters have their own bodies)
 			ensure(Justice.person_entry(v, p.id))
 			break
 	ready_for_play = true

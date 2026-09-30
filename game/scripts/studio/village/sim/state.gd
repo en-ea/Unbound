@@ -73,6 +73,8 @@ class Person:
 	# the live village: bruising from the player's blows (0..100, fades), and knocked down until this minute
 	var hurt := 0
 	var down_until := -1
+	# one of Enea's own characters (their Npcs id: "wren", ...), protected by the rules (authored.gd); "" for others
+	var authored := ""
 
 
 class Household:

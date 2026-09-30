@@ -230,7 +230,7 @@ static func _bring_kindness(V: S.Village, minute: int, k: int) -> Dictionary:
 
 ## An adult who is here, free and not in any event.
 static func _free(V: S.Village, p: S.Person) -> bool:
-	return p.alive and p.present and not p.locked and p.ancestor < 0 and Village.age_of(V, p) >= 16
+	return p.alive and p.present and not p.locked and p.ancestor < 0 and p.authored == "" and Village.age_of(V, p) >= 16
 
 
 static func lethal_allowed(V: S.Village) -> bool:

@@ -154,7 +154,7 @@ static func rite_today(V: S.Village, st: S.Storm) -> void:
 	var victim := -1
 	var worst := 1000
 	for q in V.people:
-		if not q.alive or not q.present or q.ancestor >= 0 or q.locked or Village.age_of(V, q) < 16 or q.lineage == L.lineage:
+		if not q.alive or not q.present or q.ancestor >= 0 or q.locked or Village.age_of(V, q) < 16 or q.lineage == L.lineage or q.authored != "":
 			continue
 		var o := Village.opinion(V, leader, q.id) + R.pick(R.key(k, 100 + q.id), 20)
 		if o < worst or (o == worst and q.id < victim):
