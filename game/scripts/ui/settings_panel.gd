@@ -57,6 +57,7 @@ func _refresh() -> void:
 		return
 	_row("Sound", "On" if Settings.sound_on else "Off", func() -> void: Settings.set_sound_on(not Settings.sound_on))
 	_row("Music", "On" if Settings.music_on else "Off", func() -> void: Settings.set_music_on(not Settings.music_on))
+	_row("Living village", "On" if Settings.living_village else "Off", func() -> void: Settings.set_living_village(not Settings.living_village))   # studio
 	_row("Update log", "Open", func() -> void: UpdateLog.open(self))
 	_row("Codes", "Enter", func() -> void: _page = "code")
 

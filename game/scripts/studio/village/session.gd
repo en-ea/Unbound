@@ -9,13 +9,32 @@ var background := false
 var initial_minute := 432
 var recovery_notice := ""
 
+var _scene: Node = null   # the current region scene (for the Living village switch)
+
 func _ready() -> void:
 	process_priority = -50
+	Settings.changed.connect(_on_settings)
+
+## The Living village switch (Settings): off leaves Enea's village as it is; the village waits, unchanged.
+func _on_settings() -> void:
+	if not is_instance_valid(_scene):
+		return
+	if Settings.living_village and not active:
+		attach(_scene)
+	elif not Settings.living_village and active:
+		active = false
+		var live := _scene.get_node_or_null("VillageLive")
+		if live != null:
+			live.queue_free()
+		_scene.get_node("WorldEnvironment").village_clock = false
 
 func attach(scene: Node) -> void:
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--studio=") and arg != "--studio=village/live":
 			return
+	_scene = scene
+	if not Settings.living_village:
+		return
 	if village == null:
 		village = Runtime.Village.create_village(1, {"pace": 10, "focus": true, "live": true})
 		Runtime.attach(village, initial_minute)

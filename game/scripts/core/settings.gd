@@ -15,6 +15,7 @@ var sound_on := true
 var music_on := true
 var zoom := 1.0
 var render_scale := 0.8
+var living_village := true   # studio: the simulated villagers, their day and their events (off: Enea's village only)
 
 
 func _ready() -> void:
@@ -26,6 +27,7 @@ func _ready() -> void:
 		sound_on = cfg.get_value("audio", "sound_on", sound_on)
 		music_on = cfg.get_value("audio", "music_on", music_on)
 		zoom = cfg.get_value("video", "zoom", zoom)
+		living_village = cfg.get_value("studio", "living_village", living_village)
 	apply()
 
 
@@ -50,6 +52,11 @@ func set_show_stats(value: bool) -> void:
 
 func set_sound_on(value: bool) -> void:
 	sound_on = value
+	_save_and_apply()
+
+
+func set_living_village(value: bool) -> void:   # studio
+	living_village = value
 	_save_and_apply()
 
 
@@ -85,5 +92,6 @@ func _save_and_apply() -> void:
 	cfg.set_value("audio", "sound_on", sound_on)
 	cfg.set_value("audio", "music_on", music_on)
 	cfg.set_value("video", "zoom", zoom)
+	cfg.set_value("studio", "living_village", living_village)
 	SafeFile.save_config(cfg, PATH)
 	apply()
