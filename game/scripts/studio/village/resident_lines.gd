@@ -92,7 +92,10 @@ const FREED := ["You cut me loose. I won't forget it.", "There's a place at my f
 const ANGERED := ["You've got some nerve, showing your face here.", "Keep walking, stranger.",
 	"I've nothing to say to you.", "We remember what you did.", "Turn around. There's no welcome here."]
 const HIT := ["You struck me. Keep your distance.", "My ribs still ache. Thank you for that.", "Don't come near me again."]
-const SAW_HIT := ["I saw you strike him. That's not how we do things here.", "Keep your hands to yourself. Everyone saw."]
+const SHOVED := ["You shoved me. I've not forgotten.", "Put your hands on me again and see what happens.", "Mind where you push, stranger."]
+const THREATENED := ["You squared up to me once. I remember.", "Try that again and you'll regret it.", "I don't forget who raises a fist at me."]
+const SAW_SHOVE := ["I saw you shove that poor soul. Shameful.", "Pushing folk about. That's not welcome here."]
+const SAW_HIT := ["I saw what you did. That's not how we do things here.", "Keep your hands to yourself. Everyone saw."]
 const SAW_PLANT := ["I saw you at that door. I'll say nothing. For now.", "I know what you left at his door.",
 	"Choose your friends carefully. I saw what you did."]
 const PLANTED := ["Someone marked my door. I'll find out who.", "Wood on my step, and nobody knows why."]
@@ -101,6 +104,11 @@ const PLANTED := ["Someone marked my door. I'll find out who.", "Wood on my step
 const MET := ["Back again? Good to see you.", "Ah, it's you. How goes the road?", "You again. Welcome.", "Still about, then?"]
 const SHIELDED := ["You stepped in front of those stones. I remember.", "Nobody else moved. You did.",
 	"That took nerve, standing there for me.", "I saw who stood in the way. Thank you."]
+## A gift is a way back: said after a wrong, or on its own.
+const MENDING := ["I've not forgotten. But that was kindly meant.", "You strike me, then feed me. I don't know what to think.",
+	"Thank you. It doesn't undo it, but thank you.", "Well. That's a start."]
+const GIFT := ["I still have what you gave me. Thank you.", "That was generous of you. It didn't go unnoticed.",
+	"Kind of you, before. Not everyone would."]
 const HELPED := ["You helped us. The village remembers.", "That was kind, before. It's not forgotten."]
 const TESTIFIED := ["You spoke up when it counted. Not everyone would.", "Your words are still being chewed over in every kitchen.",
 	"Some thank you for speaking up. Some don't."]
@@ -210,6 +218,30 @@ const TRADE := {
 const OLD := ["My knees know the weather before the sky does.", "I've walked this path since before you were born.",
 	"Young legs. Enjoy them.", "Everything was better when I was young. Even the mud.", "The old stories are true. Mostly."]
 
+## The little words a villager says as they answer the player: keyed by what they are doing (sim/reactions.gd states).
+const BARKS := {
+	"puzzled": ["Hm? Was that meant for me?", "What was that for?", "Did you mean to do that?", "Eh? Watch yourself."],
+	"startled": ["Whoa! Easy now!", "Hey! Careful!", "Steady! What are you doing?", "Ah! Keep back!"],
+	"protest": ["Here! What's that for?", "Enough of that!", "How dare you!", "I've done nothing to you!"],
+	"flee": ["Leave me be!", "Somebody stop them!", "Let me go home!", "Keep away from me!"],
+	"call_help": ["Help! Over here!", "Somebody! Please!", "Come quick! Help me!", "Help! I'm being attacked!"],
+	"plead": ["Please, no more!", "I've done nothing to you.", "Stop, please. I beg you.", "Have mercy. Please."],
+	"down": ["Ow... what...", "Ugh... my head...", "What happened?...", "Oh... the sky's spinning."],
+	"fight_back": ["You'll not do that again!", "Come on, then!", "You asked for this!", "Right. Let's have it out."],
+	"intervene": ["That's enough.", "Leave them be!", "Not while I'm standing here.", "Step back. Now."],
+	"shout": ["Stop that! Stop!", "Stop it at once!", "Someone, stop them!", "What are you doing?"],
+	"flee_onlooker": ["Oh no! Run!", "Run home!", "I'm getting out of here!", "Mama!"],
+	"back_away": ["Easy, easy...", "Keep away from me.", "I want no part of this.", "Not my business."],
+	"watch": ["Hm.", "Well now.", "I saw that.", "Hmph."],
+}
+## What they say when handed something (gift replies), by what it was and whether there was a quarrel.
+const THANKS := {
+	"food": ["Thank you kindly. I was hungry.", "Bless you. I'll not refuse that.", "That's good of you. Thank you.", "Food! You're a kind one."],
+	"coins": ["That's generous. Thank you.", "I'll not say no. Thank you.", "Coin's welcome. Thank you, friend."],
+	"after_wrong": ["I... didn't expect that. Thank you.", "After what happened? Well. Thank you.", "Hm. I'll take it. Don't think it's forgotten."],
+	"child": ["Thank you for the present!", "Is it for me? Thank you!"],
+}
+
 const TIME := {
 	"morning": ["Morning. Frost's off the grass already.", "Sun's up, and so is everyone.", "Early birds, us. Or fools.",
 		"The day smells of woodsmoke."],
@@ -262,6 +294,27 @@ static func part_of_day(minute: int) -> String:
 	return "evening"
 
 
+## A bark: a few words as they answer the player. state is a sim/reactions.gd state; onlooker true for someone who
+## saw it (a child, or an adult who runs, says the running words). `key` (the reaction's start minute) varies it.
+static func bark(state: String, id: int, key: int, onlooker := false) -> String:
+	var pool_key := "flee_onlooker" if onlooker and state == "flee" else state
+	if not BARKS.has(pool_key):
+		return ""
+	return _pick(BARKS[pool_key], _mix(id, key))
+
+
+## What they say when handed something. item: an item id or "coins"; wronged: they have a quarrel with the player.
+static func thanks(d: Dictionary, item: String, day: int) -> String:
+	var known: Array = (d.toward_player as Dictionary).memories
+	var id := int(d.id)
+	var wronged: bool = known.has("hit_by_you") or known.has("shoved_by_you") or known.has("threatened_by_you")
+	if d.age_group == "child":
+		return _spread(THANKS.child, id, day, 6)
+	if wronged:
+		return _spread(THANKS.after_wrong, id, day, 7)
+	return _spread(THANKS.coins if item == "coins" else THANKS.food, id, day, 8)
+
+
 ## The main line. `d` is sim/view.gd describe(); day is the game day, minute the minute of the day.
 static func line(d: Dictionary, day: int, minute: int) -> String:
 	var id := int(d.id)
@@ -280,7 +333,11 @@ static func line(d: Dictionary, day: int, minute: int) -> String:
 	# a strong memory of the player comes first
 	if known.has("freed_by_you"):
 		return _fill(_pick(FREED, h), name)
-	for pair: Array in [["hit_by_you", HIT], ["saw_you_hit", SAW_HIT], ["saw_you_plant", SAW_PLANT], ["angered", ANGERED], ["you_planted", PLANTED]]:
+	var wronged: bool = known.has("hit_by_you") or known.has("shoved_by_you") or known.has("threatened_by_you")
+	if wronged and known.has("gift_from_you") and _chance(h, 13, 70):
+		return _fill(_pick(MENDING, h >> 3), name)
+	for pair: Array in [["hit_by_you", HIT], ["shoved_by_you", SHOVED], ["threatened_by_you", THREATENED], ["saw_you_hit", SAW_HIT],
+			["saw_you_shove", SAW_SHOVE], ["saw_you_plant", SAW_PLANT], ["angered", ANGERED], ["you_planted", PLANTED]]:
 		if known.has(pair[0]):
 			return _fill(_pick(pair[1], h), name)
 	if not met and _chance(h, 1, 45):
@@ -325,8 +382,10 @@ static func _child(id: int, day: int, known: Array, mood: String, part: String, 
 		return _pick(CHILD.freed, h)
 	if mood in ["hungry", "grieving", "afraid", "uneasy", "wary", "hostile"]:
 		return _pick(CHILD[mood], h >> 4)
-	if known.has("angered"):
+	if known.has("angered") or known.has("saw_you_hit") or known.has("saw_you_shove"):
 		return _pick(CHILD.wary, h >> 4)
+	if known.has("gift_from_you") and _chance(h, 6, 60):
+		return _pick(THANKS.child, h >> 3)
 	if known.has("helped_by_you") and _chance(h, 1, 60):
 		return _pick(CHILD.helped, h >> 3)
 	if known.has("told_about_you") and _chance(h, 2, 40):
@@ -346,6 +405,8 @@ static func _child(id: int, day: int, known: Array, mood: String, part: String, 
 static func _mild(known: Array, h: int) -> String:
 	if known.has("you_shielded") and _chance(h, 12, 75):
 		return _pick(SHIELDED, h >> 3)
+	if known.has("gift_from_you") and _chance(h, 14, 65):
+		return _pick(GIFT, h >> 3)
 	if known.has("helped_by_you") and _chance(h, 7, 65):
 		return _pick(HELPED, h >> 3)
 	if known.has("you_testified") and _chance(h, 8, 60):
@@ -362,7 +423,7 @@ static func _mild(known: Array, h: int) -> String:
 ## Every line the module can say (with {name} and {culprit} left in), for the checks.
 static func all_lines() -> Array[String]:
 	var out: Array[String] = []
-	for pool: Variant in [FOREBEAR, CHILD, STRANGER, FREED, ANGERED, HIT, SAW_HIT, SAW_PLANT, PLANTED, MET, SHIELDED, HELPED, TESTIFIED,
+	for pool: Variant in [FOREBEAR, CHILD, STRANGER, FREED, ANGERED, HIT, SAW_HIT, SAW_PLANT, PLANTED, SHOVED, THREATENED, SAW_SHOVE, MENDING, GIFT, BARKS, THANKS, MET, SHIELDED, HELPED, TESTIFIED,
 			OFFERED_COINS, TOLD, MOOD, AUTHORITY, PRIEST, VERBS, TRADE, OLD, TIME, EVENT]:
 		_collect(pool, out)
 	return out

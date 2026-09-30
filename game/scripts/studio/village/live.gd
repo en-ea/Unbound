@@ -20,6 +20,8 @@ const UseSpot := preload("res://scripts/world/use_spot.gd")
 const React := preload("res://scripts/studio/village/resident_react.gd")
 const Talk := preload("res://scripts/studio/village/resident_talk.gd")
 const C := preload("res://scripts/studio/village/sim/content.gd")
+const Sites := preload("res://scripts/studio/village/sites.gd")
+const BELL := preload("res://assets/sounds/village_bell.wav")
 const SPOT_SIDE := 0.9                # metres either side of a door for Inspect and Plant wood
 const SPOT_REACH := 1.5               # (0.9 across and 0.4 out, 1.5 reach: 2.48 m from the door at most; the rules allow 2.5)
 
@@ -105,7 +107,7 @@ func _open(e: Dictionary) -> void:
 	var people := []
 	for person: Dictionary in st.people:
 		var p = v.people[int(person.id)]
-		if p.alive and p.present:
+		if p.alive and p.present and not registry.is_protected(int(person.id)):     # Enea's own characters are never borrowed
 			people.append(person)
 	_stage.play(st, people)
 	var minute := float(int(v.runtime.now) - int(st.day) * 1440)
@@ -117,6 +119,28 @@ func _open(e: Dictionary) -> void:
 		_stage.skip_to(minute)
 		_stage._player = _player
 	_stage.action_authority = _act
+	if minute <= float(st.start) and e.type != "incident":
+		_ring_bell()                            # the cue: the bell at the square, and the villagers walking there
+
+## The village bell at the square, rung three times: something is about to happen there (a hearing, a public act,
+## a rite). Sound only; the walking crowd is the rest of the cue.
+func _ring_bell() -> void:
+	var at := Sites.at("square")
+	var bell := AudioStreamPlayer3D.new()
+	bell.stream = BELL
+	bell.unit_size = 22.0
+	bell.max_distance = 150.0
+	bell.volume_db = -3.0
+	add_child(bell)
+	bell.global_position = Vector3(at.x, WorldShape.new().height_at(at.x, at.y) + 3.5, at.y)
+	bell.play()
+	for stroke in [1, 2]:
+		get_tree().create_timer(1.7 * stroke).timeout.connect(func() -> void:
+			if is_instance_valid(bell):
+				bell.play())
+	get_tree().create_timer(7.0).timeout.connect(func() -> void:
+		if is_instance_valid(bell):
+			bell.queue_free())
 
 func _act(verb: String, parameters: Dictionary, in_talk := false) -> Dictionary:
 	var v = VillageSession.village

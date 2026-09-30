@@ -26,7 +26,7 @@ extends Node3D
 ##   exile: the condemned's last walk goes out along the road and does not come back.
 ##   anyone the staging never sends home (the elder, in the simulation's stagings) leaves with the crowd.
 ##   content line: a throw by a child is not shown (nor its hit), and noted (notes()).
-##   incidents (INCIDENTS: theft, quarrel, kindness, alarm, gathering; sim/incidents.gd makes them): small
+##   incidents (INCIDENTS: theft, quarrel, kindness, alarm, gathering, chat, help, play; sim/incidents.gd makes them): small
 ##     scenes of 1-6 people for a few minutes, no device and no decision. Slots are small rings round the place
 ##     (a quarrel: two, face to face); a `carry` picks its prop up and walks it to the spot; a `leave` with a
 ##     prop takes it home with them (a goose, a sack); after handing bread over the giver leaves it on the step.
@@ -96,7 +96,7 @@ const DEVICES := {
 }
 const DEVICE_FACING := Vector2(0.0, 1.0)
 ## The small scenes of the live village (Pass 2): no device, no decision, a few people for a few minutes.
-const INCIDENTS := ["theft", "quarrel", "kindness", "alarm", "gathering"]
+const INCIDENTS := ["theft", "quarrel", "kindness", "alarm", "gathering", "chat", "help", "play"]
 ## Layout places with no entry in sites.gd, when there is no resident registry to ask (a stand-alone demo): the
 ## pens beside the homes (sim/village.gd MEADOW), in metres.
 const LAYOUT_PLACES := {"pen_cottage": Vector2(-7.0, 10.0), "pen_cabin": Vector2(12.0, 15.0), "pen_round": Vector2(-10.0, 25.0),
@@ -751,18 +751,18 @@ func _build_incident_slots(needed: int) -> void:
 		_slots.append(at)
 		made += 1
 	for j in _slots.size():
-		if _kind == "quarrel" and j < 2:
+		if _kind in ["quarrel", "chat"] and j < 2:
 			_slot_face.append(_slots[1 - j])          # the two look at each other
 		else:
 			_slot_face.append(_centre)
 
 
 func _incident_slot(k: int) -> Vector2:
-	if _kind == "quarrel" and k < 2:
+	if _kind in ["quarrel", "chat"] and k < 2:
 		return _centre + Vector2(-QUARREL_HALF if k == 0 else QUARREL_HALF, 0.0)
 	if _kind == "theft" and k == 0:
 		return _centre + THEFT_LOITER
-	var n := k - (2 if _kind == "quarrel" else 1 if _kind == "theft" else 0)
+	var n := k - (2 if _kind in ["quarrel", "chat"] else 1 if _kind == "theft" else 0)
 	var ring := mini(n / 7, RING_R.size() - 1)
 	var s := n % 7                                  # 0 straight ahead, then right, left, right...
 	var step := CIRCLE_STEP if _kind == "gathering" else RING_STEP     # a gathering closes into a circle, the rest stay open to the camera

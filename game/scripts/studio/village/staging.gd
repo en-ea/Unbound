@@ -19,7 +19,8 @@ extends RefCounted
 const Sites := preload("res://scripts/studio/village/sites.gd")
 const KINDS := ["pillory", "stoning", "hanging", "bonfire", "trial", "trial_by_combat", "exile", "sacrifice",
 	"festival", "funeral", "gossip", "mob",
-	"theft", "quarrel", "kindness", "alarm", "gathering"]   # appended (Pass 2): small scenes of 1-6 people, 5-30 minutes, no device, no decision
+	"theft", "quarrel", "kindness", "alarm", "gathering",   # appended (Pass 2): small scenes of 1-6 people, 5-30 minutes, no device, no decision
+	"chat", "help", "play"]
 ## What a body can be told to do. "walk_to" and "stand" use slot (a crowd slot at the place, sites.slot) or,
 ## with slot -1, the place itself; "throw" hurls prop at target; "lock"/"release" put the victim in or out of
 ## the place's device (pillory, stake); "leave" walks home.

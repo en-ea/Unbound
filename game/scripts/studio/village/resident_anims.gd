@@ -3,7 +3,7 @@ extends RefCounted
 ## resident view says they are doing (sim/view.gd activity), their trade and the minute. Pure: the same
 ## inputs give the same loop, so the village looks the same to every observer.
 ##
-##   pick(verb, role, age_group, id, minute, partner) -> {loop, tool, hidden, face}
+##   pick(verb, role, age_group, id, minute, partner, inside) -> {loop, tool, hidden, face}
 ##
 ##   loop    an animation the villager body can loop (VillagerBody.play_loop): UAL1 and UAL2 names
 ##   tool    a tool in the hand ("axe", "pickaxe") or "" (VillagerBody.show_tool)
@@ -48,9 +48,11 @@ const SPELL := 45
 
 ## verb, role, age_group as sim/view.gd gives them; id the resident's id; minute the minute of the game;
 ## partner the resident they are chatting with (-1 none).
-static func pick(verb: String, role: String, age_group: String, id: int, minute: int, partner := -1) -> Dictionary:
+static func pick(verb: String, role: String, age_group: String, id: int, minute: int, partner := -1, inside := false) -> Dictionary:
 	if verb in ["sleeping", "away", "held"]:
 		return {"loop": "Idle", "tool": "", "hidden": verb != "held", "face": ""}
+	if inside and verb in ["at_home", "eating"]:
+		return {"loop": "Idle", "tool": "", "hidden": true, "face": ""}        # indoors, at their own door
 	var loop := "Idle"
 	if verb == "chatting":
 		loop = _chat(id, minute, partner, age_group)
@@ -70,6 +72,14 @@ static func pick(verb: String, role: String, age_group: String, id: int, minute:
 	if role == "priest" and verb == "praying":
 		loop = "Spell_Simple_Idle"                # the keeper of the shrine keeps to the prayer; the others come and go
 	return {"loop": loop, "tool": String(TOOLS.get(verb, "")), "hidden": false, "face": face}
+
+
+## Whether someone at their own home stays indoors for this stretch (out of sight) or is out in the yard about a chore.
+## By id and day, and always indoors when the day is over (evening, night) or not yet begun.
+static func stays_in(id: int, minute: int, day: int) -> bool:
+	if minute >= 1080 or minute < 420:
+		return true
+	return posmod(id * 7 + day * 3, 10) < 5
 
 
 ## Two who chat take turns: one speaks (Idle_Talking) while the other listens (arms folded, a nod), swapping
