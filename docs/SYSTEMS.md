@@ -121,6 +121,20 @@ Anything in group `"map_building"` with a `"map_size"` meta (Vector2 footprint) 
   and when their aim locks (`AIM_LOCK`) `visual.glint()` flares a star at the eyes with a "ting"
   (`shaders/glint.gdshader`, `assets/sounds/tell_glint.wav`, made by us). Dev: `--telltest`.
 
+## How enemies fight (smarter fights)
+Numbers in `Balance.FIGHT`. The glint is the one honest signal: it always comes the same beat before a real
+attack; the red glow before it can be held (random hold) or faked.
+- Boar (`boar.gd`): charge with a random hold; tusk swipe (SWIPE) when you are close in front; can't be
+  interrupted in WINDUP/CHARGE/SWIPE (only a heavy blow staggers); a charge into a wall/tree = DAZED (free hits);
+  a wounded boar may charge again at once; poise: `boar_poise` light hits in a row and it braces and counters.
+- Wolves (`wolf.gd`): spread apart (`_spread`) and circle round behind you (`_flank_side`); wolves beside or
+  behind you (`_in_view`) strike first; FEINT (no glint, a hop and a snap, often a quick real strike after);
+  pincer (the next wolf may go right after); `sense_swing()` from `fighter.attack()` lets a circling wolf hop
+  clear (DODGE, `is_evading()` makes the swing miss); a swing at nothing calls `Wolf.open_up()` and a circling
+  wolf pounces; a missed lunge = STUMBLE (your opening); a flurry on one wolf makes it leap away.
+- Nothing depends on the camera (flanking uses the player's facing), so it works with both cameras.
+- Dev: `--fighttest` (mash a boar), `--lab --packtest` (three wolves; prints the lowest health and states seen).
+
 ## Add an enemy
 Copy the boar pattern: a model made of parts with pivots (`tools-src/blender/make_boar.py`), a
 visual script that animates the parts in code (`boar_visual.gd`), a behaviour script with a small

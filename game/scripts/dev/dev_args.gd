@@ -9,6 +9,7 @@ extends Node
 ##   --showcase        line up one of every tree/bush model in front of the player
 ##   --gathertest      stand by the nearest tree and chop it (checks tools, hits, drops)
 ##   --fighttest       stand by a boar and fight it (prints its health and the loot)
+##   --lab --packtest  three wolves against you swinging now and then (prints lowest health, states seen)
 ##   --telltest        a boar frozen mid-warning (glint), a heavy blow's shockwave, stamina part used (screenshots)
 ##   --view=d,pitch    camera distance and pitch (e.g. 5,-12 for a side-on look at animations)
 ##   --cam=d,pitch,fov[,yaw]  try another camera framing (distance, pitch, lens, turn), with a far view
@@ -57,6 +58,23 @@ func _ready() -> void:
 				var v := arg.trim_prefix("--lab=").split(",")
 				spot = Vector2(float(v[0]), float(v[1]))
 			get_tree().call_group.call_deferred("build_lab", "enter", spot)
+			if "--packtest" in OS.get_cmdline_user_args():     # three wolves against you swinging now and then (prints states)
+				get_tree().create_timer(1.0).timeout.connect(func() -> void:
+					var lab := get_tree().get_first_node_in_group("build_lab")
+					for i in 3:
+						lab.spawn("wolf")
+					var player := get_node("../Player")
+					var seen := {}
+					var lowest: int = player.health
+					for k in 60:
+						await get_tree().create_timer(0.25).timeout
+						if k % 2 == 0:
+							player.act()
+						lowest = mini(lowest, player.health)
+						for w in get_tree().get_nodes_in_group("enemy"):
+							seen[Wolf.State.keys()[w.state]] = true
+					print("PACKTEST lowest health ", lowest, " now ", player.health, " states seen ", seen.keys())
+					get_tree().quit())
 			if "--labtest" in OS.get_cmdline_user_args():      # spawn one of everything, then clear it (prints counts)
 				get_tree().create_timer(1.0).timeout.connect(func() -> void:
 					var lab := get_tree().get_first_node_in_group("build_lab")

@@ -11,7 +11,8 @@ const GLINT_SHADER := preload("res://shaders/glint.gdshader")
 const GLINT_SOUND := preload("res://assets/sounds/tell_glint.wav")
 
 var speed := 0.0            # ground speed, set by Boar
-var mode := "walk"          # walk / alert / windup / stalk / charge / hurt / dead
+var mode := "walk"          # walk / alert / windup / stalk / charge / swipe / dazed / hurt / dead
+var _head_turn := 0.0      # a sideways turn of the head (the tusk toss, a dazed sway)
 var tell := 0.0             # 0..1 through an attack's wind-up: a red-hot pulse
 ## Other creatures reuse this script (see wolf_visual.gd) with their own model and sizes.
 var model_scene: PackedScene = preload("res://assets/creatures/boar.glb")
@@ -182,6 +183,7 @@ func _process(delta: float) -> void:
 	var swing := sin(_phase) * lerpf(0.0, 0.7, clampf(speed / 1.5, 0.0, 1.0))
 	var bob := absf(sin(_phase)) * 0.05 * clampf(speed, 0.0, 1.5)
 	var head_pitch := sin(_time * 1.6) * 0.04
+	_head_turn = 0.0
 	match mode:
 		"charge":
 			head_pitch = 0.35          # head down, tusks forward
@@ -197,12 +199,20 @@ func _process(delta: float) -> void:
 				_parts["Leg_FR"].transform = _rest["Leg_FR"] * Transform3D(Basis(Vector3.RIGHT, -0.75 * maxf(sin(_time * 16.0), 0.0)), Vector3.ZERO)
 		"hurt":
 			head_pitch = -0.3
+		"swipe":         # a hard toss of the tusks, up and to the side
+			head_pitch = -0.55
+			_head_turn = 0.55
+			swing = 0.0
+		"dazed":         # head low and swaying, legs wobbly
+			head_pitch = 0.2
+			_head_turn = sin(_time * 4.5) * 0.4
+			swing = sin(_time * 3.0) * 0.12
 	_pose(swing, bob, head_pitch, stride)
 
 
 func _pose(swing: float, bob: float, head_pitch: float, stride: float) -> void:
 	_parts["Body"].transform = _rest["Body"] * Transform3D(Basis(Vector3.RIGHT, stride * 0.06), Vector3(0, bob, 0))
-	_parts["Head"].transform = _rest["Head"] * Transform3D(Basis(Vector3.RIGHT, head_pitch), Vector3(0, bob, 0))
+	_parts["Head"].transform = _rest["Head"] * Transform3D(Basis(Vector3.UP, _head_turn) * Basis(Vector3.RIGHT, head_pitch), Vector3(0, bob, 0))
 	for leg: String in ["Leg_FL", "Leg_BR"]:
 		_parts[leg].transform = _rest[leg] * Transform3D(Basis(Vector3.RIGHT, swing), Vector3.ZERO)
 	for leg: String in ["Leg_FR", "Leg_BL"]:
