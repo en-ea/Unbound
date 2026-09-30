@@ -22,9 +22,7 @@ Plan: `plan/PASS-2-PLAN-2026-09-30.md` (studio repository). Contracts: `docs/stu
 
 Enea's four characters are residents the village knows about, and their stories are protected.
 
-`[run]` Every check passes at `951b215` (section 4). Two measurements are still open:
-- **web frame times on this PC** (the one run was void: the browser pane was hidden and throttled to 0.8 fps);
-- **the iPhone.**
+`[run]` Every check passes at `951b215` (section 4). In the web build on this PC, the whole game runs at about 20 fps in the browser pane. Almost all of that is the world itself: the title screen alone is 46 ms a frame, and the villagers cost 0.8 ms. **The iPhone is still to be measured.**
 
 `[repo]` All work is on `studio`. It is pushed once, at the end of the pass, as Hilmi authorised. There has been no merge into `main` and no message to Enea.
 
@@ -86,7 +84,7 @@ Enea's four characters are residents the village knows about, and their stories 
 | | people probe: daily (work, meals, chatting, indoors at night, back in the morning) | 0 failures `[run]` |
 | Enea's own | `--lab --packtest`, `--lab --pyrotest`, `--lab --bandittest`, `--defencetest`, `--fighttest`, `--gathertest` | all ran clean (they print figures, not verdicts) `[run]` |
 | Web, on this PC | save and reload on the web platform | 7.2 KB, saved in 11 ms, loaded in 8 ms, the same after reload `[run]` |
-| | frame times | **void:** the pane was hidden, so the browser throttled the page (0.8 fps). To be rerun with the pane showing |
+| | frame times: 60 s in play in the village, the browser pane showing (1 Oct) | 19.6 fps; frames p50 49.1 ms, p95 56.9 ms; video memory 94 MB; 430 draw calls. The title screen alone: p50 45.9 ms. **The villagers' own cost: p50 0.8 ms, p95 1.0 ms.** Hitches: one frame of 1,041 ms around pressing Play; the first villager body built in 267 ms `[run]` |
 
 ## 5. Found and fixed on the way
 
@@ -135,7 +133,7 @@ Settings has a "Living village" switch: off means Enea's village only.
 | M1 save under 100 KB at 150 days; old saves load | met `[run]` |
 | M1 Enea's flows still work | met (his six tests, the normal checks) `[run]` |
 | M2 deliberate only; varied reactions; one witness chain with a report; robustness; remembered | met (provoke test, provoke integration, people probe) `[run]` |
-| Performance on web (PC) and the S10; the iPhone route | **open:** web frames void; S10 not run; the route is section 6 |
+| Performance on web (PC) and the S10; the iPhone route | web on PC measured: the villagers cost 0.8 ms of a 49 ms frame `[run]`. S10 not run; the iPhone route is section 6 |
 | Stage 3 stretch: the player summoned to a hearing | not started |
 
 ## 8. For Enea when he merges `studio`
@@ -156,7 +154,7 @@ Settings has a "Living village" switch: off means Enea's village only.
 
 ## 9. Next
 
-1. **The web frame measurement** with the pane showing (about 90 seconds); then the iPhone route, run by Hilmi or Enea.
+1. **The iPhone.** Watch the two hitches measured on the PC: about 1 s when Play is pressed, and 267 ms for the first villager body (shader and mesh preparation, worth warming at load). The web build is a release build, so the web probe cannot skip the title: press Play within 10 seconds of loading.
 2. **Live observation** (lesson L015): position, health, clock rate, focus and errors streamed to the agent, and readable by Hilmi. HQ's foundations v2 (sections 4 and 5) already design this contract. So Unbound builds a Godot adapter to it once HQ's Stage A has settled it, not a studio-shaped tool ahead of it.
 3. **Enea's hauling** (carry, drag, cart) as the base for carrying a person (G08) and captivity (B4). **His quest guide beam** as the way a gathering catches the eye.
 4. The stretch left from this pass: the player reported and summoned to a hearing; an apology or restitution as a way back.
