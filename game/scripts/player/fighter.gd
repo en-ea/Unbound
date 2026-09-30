@@ -9,6 +9,8 @@ const REACH := 2.2
 const BUTTON_REACH := 3.4     # the Attack button shows this far out; the swing steps you in
 const STEP_TO := 1.3          # stepping in stops at this distance
 const STAY_ARMED := 1.2       # seconds the Attack button stays after a swing, even with no target
+const DRAWN_FOR := 3.0        # seconds the sword stays in hand after a swing with nobody near
+const FIGHT_NEAR := 8.0       # an enemy this close keeps it drawn
 const COMBO := ["Sword_Regular_A", "Sword_Regular_B", "Sword_Regular_C"]
 const FIST_COMBO := ["Punch_Jab", "Punch_Cross"]    # with no sword
 const SPEED := 1.25
@@ -104,8 +106,12 @@ func _physics_process(delta: float) -> void:
 			if _queued:
 				_queued = false
 				attack()
-			if _busy <= 0.0:
+			if _busy <= 0.0 and visual.tool_shown != "sword":
 				visual.show_tool("")
+	# The sword stays drawn while the fight is on (someone close, or you swung lately), then goes on your back.
+	if _busy <= 0.0 and visual.tool_shown == "sword" and not visual.hand_sword and _since > DRAWN_FOR \
+			and nearest_enemy(FIGHT_NEAR) == null:
+		visual.show_tool("")
 	if _impact >= 0.0:
 		_impact -= delta
 		if _heavy:

@@ -13,8 +13,6 @@ const USE_SPOT := preload("res://scripts/world/use_spot.gd")
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const DOOR_SOUND := preload("res://assets/kenney_impact/impactWood_medium_002.ogg")
 const AT := Vector3(300, -300, 0)       # far east of the map and far below it
-const HEARTH := Vector3(-2.4, 0.0, -3.0)
-const WINDOW := Vector3(2.55, 2.1, -3.2)
 const ENTRY := Vector3(0.0, 0.15, 2.9)
 const MAX_LAMPS := 4
 
@@ -47,7 +45,7 @@ func _ready() -> void:
 	add_child(_audio)
 	Home.furniture_changed.connect(_place_furniture)
 	Home.changed.connect(func() -> void:
-		if _room_for != "" and Home.owned() and _room_for != Home.house:
+		if _room_for != "" and Home.owned() and _room_for != _room_key():
 			_build_room())
 
 
@@ -79,7 +77,7 @@ func resume(pos: Vector3, facing: float) -> void:
 
 
 func _go_in() -> void:
-	if _room_for != Home.house:
+	if _room_for != _room_key():
 		_build_room()
 	active = true
 	visible = true
@@ -153,13 +151,18 @@ func _update_windows() -> void:
 
 # --- building the room --------------------------------------------------------------------
 
+## Which room is built (the model: feel and layout).
+func _room_key() -> String:
+	return Home.room_model() if Home.owned() else ""
+
+
 func _build_room() -> void:
 	if is_instance_valid(_room):
 		_room.queue_free()
-	_room_for = Home.house
+	_room_for = _room_key()
 	_room = Node3D.new()
 	add_child(_room)
-	var shell := TREASURE._solid((load("res://assets/interior/room_%s.glb" % Home.house) as PackedScene).instantiate())
+	var shell := TREASURE._solid((load(Home.room_model()) as PackedScene).instantiate())
 	_room.add_child(shell)
 	for mi: MeshInstance3D in shell.find_children("*", "MeshInstance3D", true, false):
 		for i in mi.mesh.get_surface_count():            # softer glow: flames stay orange, not white
@@ -174,12 +177,14 @@ func _build_room() -> void:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_void()
 	_walls()
-	_fire = _light(HEARTH + Vector3(0, 0.9, 0.6), Color(1.0, 0.64, 0.36), 1.7, 7.5)
-	_daylight = _light(WINDOW + Vector3(0, 0, 0.6), Color(0.8, 0.88, 1.0), 1.3, 6.5)
+	var lay := Home.room_layout()
+	var hearth_at: Vector3 = lay["hearth"]
+	_fire = _light(hearth_at + Vector3(0, 0.9, 0) + (lay["cook"] - hearth_at) * 0.6, Color(1.0, 0.64, 0.36), 1.7, 7.5)
+	_daylight = _light(lay["window"] + Vector3(0, 0, 0.6), Color(0.8, 0.88, 1.0), 1.3, 6.5)
 	var hearth := Node3D.new()
 	hearth.set_script(STATION)
 	_room.add_child(hearth)
-	hearth.setup(AT + HEARTH + Vector3(0, 0, 0.9), "Cook", {"mode": "cook"})
+	hearth.setup(AT + lay["cook"], "Cook", {"mode": "cook"})
 	hearth.reach = 1.9
 	var mat := Node3D.new()
 	mat.set_script(USE_SPOT)
@@ -219,7 +224,7 @@ func _walls() -> void:
 		_box(body, Vector3(s * (hx + 0.8) / 2.0, 1.5, hz + 0.15), Vector3(hx - 0.8, 3, 0.3))
 		_box(body, Vector3(s * 0.95, 1.5, hz + 1.0), Vector3(0.3, 3, 1.8))
 	_box(body, Vector3(0, 1.5, hz + 1.95), Vector3(2.2, 3, 0.3))
-	for r: Rect2 in Home.ROOM_BUILT_IN:
+	for r: Rect2 in Home.room_layout()["built_in"]:
 		_box(body, Vector3(r.get_center().x, 0.6, r.get_center().y), Vector3(r.size.x, 1.2, r.size.y))
 
 

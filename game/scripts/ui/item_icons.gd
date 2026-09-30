@@ -52,7 +52,11 @@ func _ready() -> void:
 		_queue.append(item)
 
 
+## An item's picture (null until drawn). "house:<id>" draws a home's model, on first ask.
 func icon(item: String) -> Texture2D:
+	if item.begins_with("house:") and not _icons.has(item) and item != _current and not item in _queue:
+		_queue.push_front(item)
+		set_process(true)
 	return _icons.get(item)
 
 
@@ -68,6 +72,11 @@ func _process(_delta: float) -> void:
 		_current = _queue.pop_front()
 		for c in _holder.get_children():
 			c.queue_free()
+		if _current.begins_with("house:"):
+			_house_model(_current.trim_prefix("house:"))
+			_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+			_frames = 0
+			return
 		var mi := MeshInstance3D.new()
 		var tilt := Vector3(8, 35, 0)
 		if _current.begins_with("tool:"):
@@ -108,3 +117,21 @@ func _tool_mesh(mi: MeshInstance3D, slot: String, tier: int) -> void:
 			tinted.albedo_color = (Armor.TIERS if armor else Gear.TIERS)[tier]["color"]
 			mi.set_surface_override_material(s, tinted)
 	scene.free()
+
+
+## A home's whole model, fitted into the picture and turned a little so you see its front and side.
+func _house_model(id: String) -> void:
+	var turn := Node3D.new()
+	turn.rotation_degrees = Vector3(10, -30, 0)
+	_holder.add_child(turn)
+	var scene := preload("res://scripts/world/treasure.gd")._solid((load(Home.HOUSES[id][1]) as PackedScene).instantiate()) as Node3D
+	turn.add_child(scene)
+	var box := AABB()
+	var first := true
+	for mi: MeshInstance3D in scene.find_children("*", "MeshInstance3D", true, false):
+		var b := (scene.global_transform.affine_inverse() * mi.global_transform) * mi.get_aabb()
+		box = b if first else box.merge(b)
+		first = false
+	var fit := 0.46 / maxf(box.size.x, maxf(box.size.y, box.size.z))
+	scene.scale = Vector3.ONE * fit
+	scene.position = -box.get_center() * fit

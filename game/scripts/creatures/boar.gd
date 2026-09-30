@@ -6,7 +6,7 @@ extends CharacterBody3D
 ## tusks instead (a short tell). It can't be knocked out of a wind-up or charge (only a heavy blow
 ## staggers it); a charge that misses leaves it skidding, one into a tree or wall leaves it dazed (the
 ## openings). Wounded, it may charge again straight away. Hit it too many times in a row and it braces
-## and counters. Dies with a squeal, drops hide (and sometimes a tusk), and comes back later.
+## and counters. Dies with a squeal into a body you carve or haul (carcass.gd), and comes back later.
 ## Numbers: Balance.BOAR and Balance.FIGHT.
 
 const WALK_SPEED := 1.3
@@ -31,6 +31,7 @@ const SOUNDS := {
 }
 const DROP := preload("res://scripts/world/drop.gd")
 const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
+const CARCASS := preload("res://scripts/world/carcass.gd")
 
 enum State { WANDER, ALERT, WINDUP, CHARGE, RECOVER, SWIPE, DAZED, HURT, DEAD }
 
@@ -266,28 +267,10 @@ func _die() -> void:
 		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.2))
-	for item in _loot():
-		var drop := Node3D.new()
-		drop.set_script(DROP)
-		get_parent().add_child(drop)
-		var dir := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(1.0, 2.0)
-		drop.launch(item, global_position + Vector3(0, 0.8, 0), dir + Vector3(0, randf_range(3.5, 5.0), 0), global_position.y, player)
-	var gone := create_tween()
-	gone.tween_interval(2.5)
-	gone.tween_property(visual, "scale", Vector3.ONE * 0.01, 0.5)
-	gone.tween_callback(func() -> void: visible = false)
+	# The body stays (world/carcass.gd): carve it or take it whole. The living boar hides until it respawns.
+	visible = false
+	CARCASS.spawn(get_parent(), "boar", global_position, rotation.y, player)
 	get_tree().create_timer(Balance.BOAR["respawn"]).timeout.connect(_respawn)
-
-
-func _loot() -> Array[String]:
-	var items: Array[String] = ["hide"]
-	if randf() < Balance.MEAT_CHANCE["boar"]:
-		items.append("raw_meat")
-	if randf() < 0.5:
-		items.append("hide")
-	if randf() < 0.3:
-		items.append("tusk")
-	return items
 
 
 func _start_windup(length: float) -> void:

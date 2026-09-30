@@ -149,6 +149,14 @@ func _ready() -> void:
 			elif bits.size() > 1:
 				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
+		elif arg.begins_with("--hunt"):                   # by the butcher: a live stag, bodies, the cart (--hunt=ride sits you on it)
+			_hunt_test.call_deferred(arg.trim_prefix("--hunt").trim_prefix("="))
+		elif arg == "--talents":                          # a Pyromancer with a few talents, on the talent screen
+			Classes.choose("pyromancer")
+			Classes.bonus_points = 5
+			Classes.talents.assign(["scorched_path", "second_wind", "greater_star"])
+			var hud := get_node("../HUD")
+			hud._modal.call_deferred(preload("res://scripts/ui/talent_panel.gd"))
 		elif arg.begins_with("--cheats"):                 # the settings test menu; --cheats=code shows the code page
 			var hud := get_node("../HUD")
 			hud._modal.call_deferred(hud.SETTINGS_PANEL, {"_page": "code" if arg.ends_with("=code") else "cheats"})
@@ -167,6 +175,10 @@ func _ready() -> void:
 			get_tree().call_group.call_deferred("home_interior", "enter", true)
 			if "--furnish" in OS.get_cmdline_user_args():
 				get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").start_build_mode(true))
+		elif arg.begins_with("--layout="):                # the inside's layout (after --inside): --layout=bright
+			Home.set_layout(arg.trim_prefix("--layout="))
+		elif arg.begins_with("--feel="):                  # the inside's feel: --feel=hill
+			Home.set_feel(arg.trim_prefix("--feel="))
 		elif arg == "--home":                             # own the home, a few pieces built, build mode on
 			Home.house = "lodge"
 			Home.pieces = [{"id": "campfire", "x": -44.0, "z": 42.0, "turn": 0.0}, {"id": "bench", "x": -44.0, "z": 44.5, "turn": 0.0},
@@ -316,6 +328,45 @@ func _process(_delta: float) -> void:
 	if _frames == _shot_frame and _shot_path != "":
 		get_viewport().get_texture().get_image().save_png(_shot_path)
 		get_tree().quit()
+
+
+## Hunting test (--hunt): by the butcher's rack with the ox cart, a stag body beside you and a live stag.
+func _hunt_test(mode: String) -> void:
+	await get_tree().create_timer(0.3).timeout
+	var player := get_node("../Player") as Node3D
+	var shape := Carcass.shape
+	var at := Vector2(-16.0, 31.0)
+	player.global_position = Vector3(at.x, shape.height_at(at.x, at.y) + 0.2, at.y)
+	player.visual.rotation.y = PI * 0.8
+	var body := Carcass.spawn(get_parent(), "stag", Vector3(-14.0, shape.height_at(-14.0, 29.0), 29.0), 1.2, player)
+	Carcass.spawn(get_parent(), "boar", Vector3(-17.5, shape.height_at(-17.5, 29.0), 29.0), 2.4, player, 380.0)
+	var stag := Stag.new()
+	stag.player = player
+	stag.home = Vector3(-12.0, shape.height_at(-12.0, 40.0), 40.0)
+	get_node("../Enemies").add_child(stag)
+	stag.global_position = stag.home + Vector3(0, 0.5, 0)
+	get_tree().get_first_node_in_group("camera_rig").snap()
+	if mode == "ride":
+		player.hauling.mount(get_tree().get_first_node_in_group("ox_cart"))
+	elif mode == "choices":
+		player.global_position = body.global_position + Vector3(1.5, 0.2, 1.0)
+		body.interact()
+	elif mode == "wild":                          # crows on the body, the Duskmaw walking in
+		player.global_position = body.global_position + Vector3(9.0, 0.2, 6.0)
+		for i in 3:
+			var crow := Node3D.new()
+			crow.set_script(preload("res://scripts/world/crow.gd"))
+			crow.carcass = body
+			crow.player = player
+			get_parent().add_child(crow)
+		var beast := preload("res://scenes/wolf.tscn").instantiate() as Wolf
+		beast.player = player
+		beast.duskmaw = true
+		beast.home = body.global_position
+		get_parent().add_child(beast)
+		beast.global_position = body.global_position + Vector3(-5.0, 1.0, 3.0)
+	elif mode == "drag":
+		player.hauling.start_carry(body)
 
 
 func _run_touch_test() -> void:

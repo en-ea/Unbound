@@ -215,8 +215,18 @@ const VALUES := {
 	"wood": 1, "stone": 1, "apple": 2, "mushroom": 2, "flower": 1, "flint": 3, "resin": 8, "glowcap": 10,
 	"shard": 12, "hide": 4, "tusk": 8, "copper": 3, "iron": 5, "pelt": 6, "fang": 12, "pinewood": 3,
 	"shadow_pelt": 25, "tobacco": 2, "cigarette": 3, "raw_meat": 3, "roast_meat": 6, "skewer": 6, "apple_tart": 8, "stew": 15,
-	"red_hand": 6,
+	"red_hand": 6, "stag_hide": 10, "antler": 14, "crown_antlers": 60, "duskmaw_fang": 90,
 }
+## Hunting (world/carcass.gd, state/hunting.gd): how long a body stays fresh, then rots away (seconds);
+## scavengers; the stag; the Duskmaw that three bodies at night call up.
+const HUNT := {
+	"fresh_for": 180.0, "rot_time": 300.0, "max_carcasses": 6,
+	"crows_after": 25.0, "wolves_after": 40.0, "wolf_smell": 40.0, "village_takes_after": 60.0,
+	"drag_speed": 0.55, "carve_time": 1.2, "cart_speed": 6.0, "cart_slots": 3,
+	"summon_count": 3, "summon_spread": 10.0, "summon_wait": 12.0,
+}
+const STAG := {"hp": 24, "damage": 2, "respawn": 90.0, "xp": 30, "sight": 16.0, "sight_sneak": 5.0, "flee_speed": 8.0}
+const DUSKMAW := {"hp": 160, "damage": 3, "xp": 250, "size": 2.1}
 ## What the trader may stock: [item, amount, price]. "tool" = a found tool with a bonus.
 const STOCK_POOL := [["flint", 3, 18], ["raw_meat", 2, 15], ["glowcap", 1, 40], ["resin", 1, 30],
 	["shard", 1, 50], ["stew", 1, 55], ["iron", 4, 40], ["copper", 5, 25], ["cigarette", 5, 20], ["tool", 1, 150]]
@@ -251,6 +261,7 @@ const HOME_FURNITURE := {
 	"trunk": {"wood": 6, "copper": 2},
 	"plant": {"flower": 3, "stone": 2},
 	"lamp": {"wood": 3, "resin": 1},
+	"trophy": {"crown_antlers": 1, "wood": 2},
 	"rug_round": {"hide": 3, "flower": 2},
 	"rug_long": {"pelt": 2, "hide": 2},
 }

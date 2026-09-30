@@ -127,6 +127,41 @@ def fang():
     return b
 
 
+def antler_beam(b, base, s, scale, color=(0.93, 0.86, 0.72)):
+    """One pale antler: a curving beam with three tines (the stag's, from make_stag.py, in small)."""
+    pts = [base + V((s * x, 0, z)) * scale for x, z in [(0, 0), (0.08, 0.1), (0.2, 0.24), (0.28, 0.4), (0.24, 0.55), (0.14, 0.62)]]
+    tube_faces(b, pts, [(0.03 * scale, 0.03 * scale), (0.026 * scale, 0.026 * scale), (0.022 * scale, 0.022 * scale),
+                        (0.018 * scale, 0.018 * scale), (0.012 * scale, 0.012 * scale), (0.003, 0.003)], color, seg=5, ref=V((0, 1, 0)))
+    for i, (dx, dz, ln) in {1: (0.02, 0.14, 0.12), 2: (-0.04, 0.16, 0.14), 3: (0.07, 0.15, 0.13)}.items():
+        p = pts[i]
+        d = V((s * dx, -0.04, dz)).normalized() * ln * scale
+        tube_faces(b, [p, p + d], [(0.014 * scale, 0.014 * scale), (0.002, 0.002)], color, seg=4, ref=V((0, 1, 0)))
+
+
+def antler():
+    b = Builder(["Item"])
+    antler_beam(b, V((-0.08, 0, -0.12)), 1, 0.55)
+    return b
+
+
+def crown_antlers():
+    """The whole crown on a dark wooden plaque: a trophy."""
+    b = Builder(["Item"])
+    b.paint(b.new_faces(lambda: rk.tube(b.bm, [V((0, 0.02, -0.14)), V((0, 0.02, -0.02))], [(0.1, 0.03), (0.1, 0.03)], ref=V((1, 0, 0)), seg=6)),
+            "Item", (0.36, 0.22, 0.14))
+    for s in (1, -1):
+        antler_beam(b, V((s * 0.03, 0, -0.06)), s, 0.42)
+    return b
+
+
+def duskmaw_fang():
+    b = Builder(["Item", "Glow"])
+    pts = [V((0.0, 0, -0.1)), V((0.03, 0, 0.0)), V((0.02, 0, 0.09)), V((-0.03, 0, 0.15))]
+    tube_faces(b, pts, [(0.04, 0.03), (0.032, 0.024), (0.018, 0.014), (0.002, 0.002)], (0.16, 0.13, 0.2), seg=5, ref=V((0, 1, 0)))
+    tube_faces(b, [V((0.0, 0, -0.1)), V((0.0, 0, -0.13))], [(0.03, 0.03), (0.02, 0.02)], (0.9, 0.2, 0.25), seg=5, mat="Glow", ref=V((0, 1, 0)))
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials(COLORS, roughness=0.7)
 os.makedirs(OUT, exist_ok=True)
@@ -351,6 +386,10 @@ export("pelt", hide((0.6, 0.64, 0.72)), OUT)
 export("copper", ore_chunk((0.93, 0.55, 0.3), 5), OUT)
 export("iron", ore_chunk((0.8, 0.84, 0.92), 6), OUT)
 export("fang", fang(), OUT)
+export("antler", antler(), OUT)
+export("crown_antlers", crown_antlers(), OUT)
+export("duskmaw_fang", duskmaw_fang(), OUT)
+export("stag_hide", hide((0.86, 0.5, 0.26)), OUT)
 export("pinewood", log((0.36, 0.24, 0.17), (0.93, 0.78, 0.5)), OUT)
 export("shadow_pelt", hide((0.2, 0.19, 0.3)), OUT)
 export("raw_meat", meat((0.86, 0.42, 0.42)), OUT)

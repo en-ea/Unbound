@@ -31,6 +31,10 @@ const DEFS := {
 	"stew": {"name": "Forest Stew", "color": Color(0.6, 0.36, 0.2), "rarity": Rarity.UNCOMMON},
 	"red_hand": {"name": "Red Hand Rag", "color": Color(0.62, 0.14, 0.12), "rarity": Rarity.COMMON},
 	"black_seal": {"name": "Varek's Black Seal", "color": Color(0.5, 0.1, 0.1), "rarity": Rarity.RARE},
+	"stag_hide": {"name": "Stag Hide", "color": Color(0.86, 0.5, 0.26), "rarity": Rarity.COMMON},
+	"antler": {"name": "Antler", "color": Color(0.93, 0.86, 0.72), "rarity": Rarity.UNCOMMON},
+	"crown_antlers": {"name": "Crown Antlers", "color": Color(0.95, 0.88, 0.74), "rarity": Rarity.RARE},
+	"duskmaw_fang": {"name": "Duskmaw Fang", "color": Color(0.5, 0.2, 0.35), "rarity": Rarity.RARE},
 }
 ## Quest items: the trader won't take them.
 const QUEST_ITEMS := ["black_seal"]
@@ -49,9 +53,14 @@ const DESC := {
 	"cigarette": "Take a smoke, nice and slow. Just for the look of it.",
 	"red_hand": "Torn from a Red Hand bandit. The trader pays a little for proof.",
 	"black_seal": "Heavy, cold, and it hums against your palm. Morrow wants it.", "shadow_pelt": "From shadow wolves. Steel swords.",
+	"stag_hide": "A stag's warm coat. The trader pays well for a clean one.",
+	"antler": "A stag's antler. Handles, charms, and the trader likes them.",
+	"crown_antlers": "A whole stag's crown, mounted. A trophy for your wall (Furnish).",
+	"duskmaw_fang": "From the thing that comes for the dead. It is still cold.",
 }
 ## Loot: things you win from enemies and rare finds (the rest are materials or food).
-const LOOT := ["hide", "tusk", "pelt", "fang", "shadow_pelt", "shard", "glowcap", "resin"]
+const LOOT := ["hide", "tusk", "pelt", "fang", "shadow_pelt", "shard", "glowcap", "resin", "stag_hide", "antler",
+	"crown_antlers", "duskmaw_fang"]
 const RARITY_NAMES := {Rarity.COMMON: "Common", Rarity.UNCOMMON: "Uncommon", Rarity.RARE: "Rare"}
 
 const MODELS := "res://assets/items/%s.glb"      # tools-src/blender/make_items.py

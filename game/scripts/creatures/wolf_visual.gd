@@ -36,6 +36,11 @@ func _pose(swing: float, bob: float, head_pitch: float, stride: float) -> void:
 		"hurt":
 			jaw_open = 0.35
 			tail_lift = -0.5
+		"eat":             # head down in the body, tearing
+			head_pitch = 0.55 + sin(_time * 7.0) * 0.08
+			jaw_open = 0.2 + maxf(sin(_time * 9.0), 0.0) * 0.3
+			tail_wag = sin(_time * 5.0) * 0.1
+			swing = 0.0
 		"dead":
 			tail_wag = 0.0
 	if crouch:             # low and coiled, jaws open

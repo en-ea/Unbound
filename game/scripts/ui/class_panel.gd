@@ -80,7 +80,7 @@ func _card(id: String) -> Control:
 	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for a: String in def["abilities"]:
 		var ab: Dictionary = Classes.ABILITIES[a]
-		var name := _label(col, "%s  ·  %ds" % [ab["name"], int(ab["cooldown"])], 19, Color(1.0, 0.8, 0.5), TITLE_FONT)
+		var name := _label(col, "%s  ·  %ss" % [ab["name"], str(snappedf(Classes.cooldown_of(a), 0.1))], 19, Color(1.0, 0.8, 0.5), TITLE_FONT)
 		name.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var desc := _label(col, ab["desc"], 14, Color(1, 0.95, 0.88, 0.75), null)
 		desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -90,6 +90,14 @@ func _card(id: String) -> Control:
 	col.add_child(gap)
 	if Classes.current == id:
 		_label(col, "Your path", 20, tint, DISPLAY_FONT)
+		var free := Classes.points_free()
+		var talents := UIStyle.button(col, "Talents" + ("  (%d to spend)" % free if free > 0 else ""), Vector2(0, 48), 20)
+		talents.pressed.connect(func() -> void:
+			var panel := Control.new()
+			panel.set_script(preload("res://scripts/ui/talent_panel.gd"))
+			add_child(panel)
+			panel.closed.connect(func() -> void:
+				talents.text = "Talents" + ("  (%d to spend)" % Classes.points_free() if Classes.points_free() > 0 else "")))
 	else:
 		var take := UIStyle.button(col, "Take the flame", Vector2(0, 48), 20)
 		take.pressed.connect(func() -> void:

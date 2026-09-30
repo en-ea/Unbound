@@ -3,6 +3,8 @@ extends Node
 ## scene built from a different WorldShape (see WorldShape.use). Travelling saves, fades to black,
 ## rebuilds the scene for the new region and fades back in with the region's name.
 
+signal leaving(to: String, arrive: Vector2)
+
 const NAMES := {"meadow": "Home Meadow", "forest": "Whispering Wood"}
 ## Gates: region -> [{to, at (x, z) of the gate trigger, arrive (x, z) in the other region, radius}].
 const GATES := {
@@ -48,6 +50,7 @@ func travel(to: String, arrive_at: Vector2) -> void:
 		return
 	_busy = true
 	Controls.locked = true
+	leaving.emit(to, arrive_at)          # what comes along (a dragged body, the ox cart you ride)
 	SaveGame.save_game()
 	var t := create_tween()
 	t.tween_property(_fade, "color:a", 1.0, 0.45)

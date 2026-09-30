@@ -20,6 +20,10 @@ func _physics_process(delta: float) -> void:
 	if _tick <= 0.0:
 		_tick = 0.5
 		if enemy.is_alive() and enemy.has_method("take_burn"):
-			enemy.take_burn(1)
-	if left <= 0.0 or not enemy.is_alive():
+			enemy.take_burn(2 if Classes.has_talent("white_heat") else 1)
+	if not enemy.is_alive():
+		if Classes.has_talent("rekindle"):        # a burning enemy died: your abilities come back sooner
+			Classes.hurry_cooldowns(1.5)
+		queue_free()
+	elif left <= 0.0:
 		queue_free()

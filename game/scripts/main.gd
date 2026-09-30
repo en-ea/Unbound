@@ -66,11 +66,30 @@ func _ready() -> void:
 	camp.day_night = $WorldEnvironment
 	add_child(camp)
 	camp.build(shape)
+	# Hunting: bodies need the ground height; the butcher's rack in the village; the ox cart wherever
+	# it was left; the Duskmaw watch; a body you dragged through the gate comes with you.
+	Carcass.shape = shape
+	if meadow:
+		var butcher := Node3D.new()
+		butcher.set_script(preload("res://scripts/world/butcher.gd"))
+		butcher.player = player
+		add_child(butcher)
+		butcher.build(shape)
+	var director := Node3D.new()
+	director.set_script(preload("res://scripts/world/hunt_director.gd"))
+	director.player = player
+	director.day_night = $WorldEnvironment
+	add_child(director)
 	var gates := Node3D.new()
 	gates.set_script(preload("res://scripts/world/region_gates.gd"))
 	gates.player = player
 	add_child(gates)
 	gates.build(shape)
+	var guide := Node3D.new()
+	guide.set_script(preload("res://scripts/world/quest_guide.gd"))
+	guide.player = player
+	add_child(guide)
+	guide.build(shape)
 	var lab := Node3D.new()
 	lab.set_script(preload("res://scripts/dev/build_lab.gd"))
 	lab.player = player
@@ -88,6 +107,7 @@ func _ready() -> void:
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)
 	player.spawn_point = player.global_position
+	_hunting_arrival.call_deferred()
 	var arrive := Region.arrive
 	SaveGame.attach(player, $WorldEnvironment)
 	VillageSession.attach(self) # studio: persistent authority, disposable presentation
@@ -96,3 +116,22 @@ func _ready() -> void:
 		player.visual.rotation.y = atan2(-arrive.x, -arrive.y)
 	camera_rig.snap()
 	Region.arrived(not first_load)
+
+
+## The ox cart (if it's in this region) and a body you dragged through the gate, placed once you're in.
+func _hunting_arrival() -> void:
+	if Hunting.cart["region"] == Region.current:
+		if Hunting.riding:                     # came through on the cart: it arrives beside you
+			var p := player.global_position
+			Hunting.cart["at"] = Vector2(p.x, p.z)
+		var cart := Node3D.new()
+		cart.set_script(preload("res://scripts/world/ox_cart.gd"))
+		cart.player = player
+		add_child(cart)
+		cart.build(Carcass.shape)
+	Hunting.riding = false
+	if not Hunting.carried.is_empty():
+		var c: Dictionary = Hunting.carried
+		Hunting.carried = {}
+		var body := Carcass.spawn(self, c["kind"], player.global_position - Vector3(0, 0, 1.5), 0.0, player, c["age"])
+		player.hauling.start_carry(body)

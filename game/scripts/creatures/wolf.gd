@@ -31,6 +31,7 @@ const SOUNDS := {
 }
 const DROP := preload("res://scripts/world/drop.gd")
 const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
+const CARCASS := preload("res://scripts/world/carcass.gd")
 
 enum State { WANDER, ALERT, CIRCLE, WINDUP, LUNGE, FEINT, STUMBLE, RETREAT, DODGE, HURT, DEAD }
 
@@ -40,6 +41,9 @@ static var _opening_until := 0.0     # the player just swung at nothing: the pac
 var player: Node3D
 var home := Vector3.ZERO
 var shadow := false                 # a shadow wolf: bigger, darker, tougher, rarer loot (set before adding)
+var duskmaw := false                # the Duskmaw: what three bodies at night call up (hunt_director.gd)
+var _meal: Node3D = null            # a body it smelled and is off to eat (carcass.gd)
+var _meal_tick := 0.0
 var max_health := MAX_HEALTH
 var _damage := 1
 var health := MAX_HEALTH
@@ -71,15 +75,20 @@ func _ready() -> void:
 	add_child(_audio)
 	_goal = global_position
 	_side = 1.0 if randf() < 0.5 else -1.0
-	var stats: Dictionary = Balance.SHADOW_WOLF if shadow else Balance.WOLF
+	var stats: Dictionary = _stats()
 	var tough: Dictionary = Balance.REGION_TOUGHNESS.get(Region.current, {"hp": 1.0, "damage": 0})
 	max_health = roundi(stats["hp"] * tough["hp"])
 	health = max_health
 	_damage = stats["damage"] + tough["damage"]
-	if shadow:
+	if shadow or duskmaw:
 		visual.scale = Vector3.ONE * _size()
-		for m in visual._materials:          # dusky violet fur
-			m.set_shader_parameter("albedo", Color(0.42, 0.38, 0.62))
+		for m in visual._materials:          # dusky violet fur (the Duskmaw: nearly black)
+			m.set_shader_parameter("albedo", Color(0.2, 0.17, 0.26) if duskmaw else Color(0.42, 0.38, 0.62))
+	if duskmaw:
+		add_to_group("boss")
+		for c in get_children():             # a bigger body to hit and be hit by
+			if c is CollisionShape3D:
+				c.scale = Vector3.ONE * _size()
 
 
 ## True while it has noticed you and is fighting (the music switches to the fight tune).
@@ -106,8 +115,23 @@ func _physics_process(delta: float) -> void:
 				health = max_health       # calm again: healed
 			var to_goal := _goal - global_position
 			to_goal.y = 0.0
-			if dist < SIGHT and absf(player.global_position.y - global_position.y) < 6.0 and player.can_be_targeted() and _home_distance() < LEASH:
+			_meal_tick -= delta
+			if _meal_tick <= 0.0:
+				_meal_tick = 1.5
+				_meal = _find_meal()
+			var eating: bool = is_instance_valid(_meal) and not _meal.dragged and not _meal.is_queued_for_deletion()
+			if dist < SIGHT and absf(player.global_position.y - global_position.y) < 6.0 and player.can_be_targeted() and (_home_distance() < LEASH or eating or duskmaw):
 				_enter(State.ALERT)
+			elif eating:                  # off to a body, then tearing at it (it rots faster)
+				var to_meal := _meal.global_position - global_position
+				to_meal.y = 0.0
+				if to_meal.length() > 1.3 * _size():
+					want = to_meal.normalized() * WALK_SPEED * 1.8
+					visual.mode = "walk"
+				else:
+					_meal.nibble(delta * 2.0)
+					face = to_meal
+					visual.mode = "eat"
 			elif to_goal.length() > 0.6 and _t < 8.0:
 				want = to_goal.normalized() * WALK_SPEED
 			else:
@@ -292,30 +316,49 @@ func _dodge() -> void:
 
 func _die() -> void:
 	_enter(State.DEAD)
-	var stats: Dictionary = Balance.SHADOW_WOLF if shadow else Balance.WOLF
+	var stats: Dictionary = _stats()
 	Skills.add("combat", stats["xp"])
 	if randf() < stats["tool"]:                       # now and then it was carrying a tool
 		var found := Gear.roll_found("elite" if shadow else "enemy")
 		TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
 	collision_layer = 0
 	get_tree().create_timer(0.35).timeout.connect(func() -> void: _play("thud", 1.5))
-	var items: Array[String] = []     # (a typed array can't take a ternary's untyped list in 4.7: wolves dropped nothing)
-	items.append("shadow_pelt" if shadow else "pelt")
-	if randf() < Balance.MEAT_CHANCE["wolf"]:
-		items.append("raw_meat")
-	if randf() < (0.6 if shadow else 0.3):
-		items.append("fang")
-	for item in items:
-		var drop := Node3D.new()
-		drop.set_script(DROP)
-		get_parent().add_child(drop)
-		var dir := Vector3.FORWARD.rotated(Vector3.UP, randf() * TAU) * randf_range(1.0, 2.0)
-		drop.launch(item, global_position + Vector3(0, 0.7, 0), dir + Vector3(0, randf_range(3.5, 5.0), 0), global_position.y, player)
-	var gone := create_tween()
-	gone.tween_interval(2.5)
-	gone.tween_property(visual, "scale", Vector3.ONE * 0.01, 0.5)
-	gone.tween_callback(func() -> void: visible = false)
+	visible = false                                   # the body stays (world/carcass.gd)
+	CARCASS.spawn(get_parent(), "duskmaw" if duskmaw else ("shadow_wolf" if shadow else "wolf"), global_position, rotation.y, player)
+	if duskmaw:
+		_duskmaw_dies()
+		return
 	get_tree().create_timer(stats["respawn"]).timeout.connect(_respawn)
+
+
+## The Duskmaw's end: a rare find, and its huge body (only the ox cart can take it). It doesn't come back.
+func _duskmaw_dies() -> void:
+	var found := Gear.roll_found("elite")
+	TOOL_DROP.spawn(get_parent(), found[0], found[1], global_position, player)
+	get_tree().call_group("hud", "hint", "The Duskmaw is dead. Its body is too big to drag: fetch the ox cart.")
+	get_tree().create_timer(3.0).timeout.connect(queue_free)
+
+
+func is_awake() -> bool:
+	return duskmaw and state != State.DEAD
+
+
+func _stats() -> Dictionary:
+	if duskmaw:
+		return {"hp": Balance.DUSKMAW["hp"], "damage": Balance.DUSKMAW["damage"], "xp": Balance.DUSKMAW["xp"], "tool": 1.0, "respawn": 0.0}
+	return Balance.SHADOW_WOLF if shadow else Balance.WOLF
+
+
+## The nearest body it can smell: left long enough (the Duskmaw doesn't wait), not being dragged.
+func _find_meal() -> Node3D:
+	var best: Node3D = null
+	var best_d: float = Balance.HUNT["wolf_smell"]
+	for c in get_tree().get_nodes_in_group("carcass"):
+		var d := (c as Node3D).global_position.distance_to(global_position)
+		if not c.dragged and (duskmaw or c.age > Balance.HUNT["wolves_after"]) and d < best_d:
+			best_d = d
+			best = c
+	return best
 
 
 func _respawn() -> void:
@@ -330,7 +373,7 @@ func _respawn() -> void:
 
 
 func _size() -> float:
-	return 1.3 if shadow else 1.0
+	return Balance.DUSKMAW["size"] if duskmaw else (1.3 if shadow else 1.0)
 
 
 func _start_windup(length: float, feint: bool) -> void:

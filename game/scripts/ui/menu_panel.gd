@@ -6,6 +6,7 @@ signal closed
 signal open_character
 signal open_settings
 signal open_class
+signal open_quests
 signal to_title
 
 @export var day_night: Node
@@ -31,11 +32,15 @@ func _ready() -> void:
 	save.pressed.connect(func() -> void:
 		SaveGame.save_game()
 		save.text = "Saved")
+	UIStyle.menu_button(column, "Quests").pressed.connect(func() -> void:
+		open_quests.emit()
+		queue_free())
 	UIStyle.menu_button(column, "Character").pressed.connect(func() -> void:
 		open_character.emit()
 		queue_free())
 	if Classes.awakened:
-		UIStyle.menu_button(column, "Class").pressed.connect(func() -> void:
+		var free := Classes.points_free()
+		UIStyle.menu_button(column, "Class" + ("  (%d talent point%s)" % [free, "" if free == 1 else "s"] if free > 0 else "")).pressed.connect(func() -> void:
 			open_class.emit()
 			queue_free())
 	UIStyle.menu_button(column, "Settings").pressed.connect(func() -> void:

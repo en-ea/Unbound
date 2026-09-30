@@ -1,6 +1,8 @@
 """Builds the inside of your home and its furniture (faceted low-poly, colours in UVs like the rest).
 
-  room_<house>: the room shell for each house you can own (lodge, hill, lantern): plank floor, walls
+  room_<feel>[_bright]: the room shell for each feel (lantern = Cottage, lodge = Lodge, hill = Stone) and
+                layout (the Hearth Room, or the Bright Room: two big windows at the back and the
+                fireplace on the right-hand wall; see Home.LAYOUTS): plank floor, walls
                 that step down towards the camera (a cut-away dollhouse view), a low front wall with
                 the doorway, a stone hearth with a fire and a hanging pot, windows with curtains,
                 shelves, a picture, a doormat. The glass is its own object ("Windows") so the game
@@ -277,7 +279,7 @@ def hearth(b, w, u):
     soft(b, cube(b, w.p(u, 1.48, 0.36), (2.3, 0.7, 0.2)), WOOD_D, 0.03)                  # mantel
     for row in range(6):                                                                 # chimney breast
         v = 1.6 + row * 0.28
-        if v > H_BACK - 0.1:
+        if v > w.h(u) - 0.25:
             break
         x = u - 0.8 + (0.15 if row % 2 else 0.0)
         while x < u + 0.75:
@@ -357,7 +359,7 @@ def sconce(b, w, u, v):
     ball(b, w.p(u, v + 0.02, 0.22), (0.05, 0.05, 0.1), FLAME[1], 5, 3, "Glow")
 
 
-def room(name):
+def room(name, layout="hearth"):
     s = STYLES[name]
     b = Builder(["Prop", "Glow"])
     glass = Builder(["Prop"])
@@ -390,14 +392,24 @@ def room(name):
     box(b, V((0, -IY + 0.5, 0.01)), (1.2, 0.72, 0.02), (0.62, 0.46, 0.3), 0.03)
     for k in range(3):
         box(b, V((0, -IY + 0.3 + k * 0.2, 0.022)), (1.1, 0.06, 0.01), (0.44, 0.3, 0.2), 0.0)
-    # The back wall: hearth left, a picture and a sconce, the big window right.
-    hearth(b, back, IX - 2.4)
-    picture(b, back, IX + 0.35, 2.05)
-    sconce(b, back, IX + 1.05, 2.1)
-    sconce(b, back, IX - 0.35, 2.1)
-    window(b, glass, s, back, IX + 2.55, 1.0, 1.3, 1.35)
-    # East wall: a smaller window near the back; west wall: shelves with herbs, a broom.
-    window(b, glass, s, east, 2 * IY - 1.6, 1.05, 0.9, 0.9, curtains=True)
+    if layout == "bright":
+        # The back wall: two big windows with a picture between; the fireplace on the east wall.
+        window(b, glass, s, back, IX - 2.3, 0.95, 1.4, 1.45)
+        window(b, glass, s, back, IX + 2.3, 0.95, 1.4, 1.45)
+        picture(b, back, IX, 2.05)
+        sconce(b, back, IX - 0.75, 2.1)
+        sconce(b, back, IX + 0.75, 2.1)
+        hearth(b, east, 2 * IY - 2.2)
+    else:
+        # The back wall: hearth left, a picture and a sconce, the big window right.
+        hearth(b, back, IX - 2.4)
+        picture(b, back, IX + 0.35, 2.05)
+        sconce(b, back, IX + 1.05, 2.1)
+        sconce(b, back, IX - 0.35, 2.1)
+        window(b, glass, s, back, IX + 2.55, 1.0, 1.3, 1.35)
+        # East wall: a smaller window near the back.
+        window(b, glass, s, east, 2 * IY - 1.6, 1.05, 0.9, 0.9, curtains=True)
+    # West wall: shelves with herbs, a broom.
     shelf_wall(b, s, west, IY + 0.4)
     rod(b, west.p(1.2, 0.05, 0.25), west.p(1.35, 1.45, 0.08), 0.025, (0.62, 0.44, 0.28), 5)
     paint(b, b.new_faces(lambda: rk.tube(b.bm, [west.p(1.2, 0.02, 0.26), west.p(1.22, 0.32, 0.24)], [(0.14, 0.05), (0.04, 0.03)], ref=V((0, 1, 0)), seg=6)), (0.86, 0.72, 0.4), 0.05)
@@ -580,6 +592,23 @@ def plant():
     return b
 
 
+def trophy():
+    """A stag's crown on a dark shield-shaped plaque, hung high on the wall (from a hunt: Crown Antlers)."""
+    b = Builder(["Prop"])
+    bone = [(0.93, 0.86, 0.72), (0.88, 0.8, 0.66)]
+    box(b, V((0, 0.03, 1.8)), (0.46, 0.06, 0.5), WOOD_D, 0.02)
+    box(b, V((0, 0.0, 1.8)), (0.36, 0.04, 0.4), (0.5, 0.32, 0.2), 0.02)
+    ball(b, V((0, -0.06, 1.86)), (0.16, 0.12, 0.2), (0.82, 0.44, 0.2), 6, 4)          # the brow, coat-coloured
+    for s in (1, -1):
+        pts = [V((s * 0.06, -0.1, 1.95)), V((s * 0.2, -0.12, 2.08)), V((s * 0.36, -0.14, 2.26)), V((s * 0.43, -0.15, 2.46)),
+               V((s * 0.37, -0.16, 2.62)), V((s * 0.24, -0.16, 2.7))]
+        for i in range(len(pts) - 1):
+            rod(b, pts[i], pts[i + 1], 0.035 - i * 0.005, rnd.choice(bone), 5)
+        for i, d in ((1, V((s * 0.02, -0.08, 0.14))), (2, V((-s * 0.04, -0.06, 0.18))), (3, V((s * 0.06, -0.05, 0.16)))):
+            rod(b, pts[i], pts[i] + d, 0.018, rnd.choice(bone), 4)
+    return b
+
+
 def lamp():
     b = Builder(["Prop", "Glow"])
     cyl(b, V((0, 0, 0)), 0.2, 0.05, IRON, 8, r_top=0.16)
@@ -679,9 +708,10 @@ rk.make_materials({"Prop": (1, 1, 1), "Glow": (1, 1, 1)}, roughness=0.9)
 os.makedirs(OUT, exist_ok=True)
 ONLY = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv and len(sys.argv) > sys.argv.index("--") + 1 else ""
 BUILD = {"room_" + h: (lambda h=h: room(h)) for h in STYLES}
+BUILD.update({"room_%s_bright" % h: (lambda h=h: room(h, "bright")) for h in STYLES})
 for n, fn in {"bed": bed, "table": table, "chair": chair, "stool": stool, "bookshelf": bookshelf, "wardrobe": wardrobe,
               "dresser": dresser, "rug_round": rug_round, "rug_long": rug_long, "plant": plant, "lamp": lamp,
-              "trunk": trunk, "armchair": armchair}.items():
+              "trunk": trunk, "armchair": armchair, "trophy": trophy}.items():
     BUILD["furn_" + n] = (lambda fn=fn: {"Piece": fn()})
 BUILD["mailbox"] = lambda: {"Piece": mailbox()}
 for n, fn in BUILD.items():

@@ -7,6 +7,7 @@ const KENNEY := "res://assets/kenney_impact/"
 # Metres between footfalls, taken from the walk/jog animations (feet land twice per loop).
 const WALK_STRIDE := 0.65
 const RUN_STRIDE := 1.95   # the jog plays a bit faster than its natural pace (shorter strides)
+const SNEAK_STRIDE := 0.8  # the crouch walk takes longer, slower steps
 
 var shape: WorldShape        # set by main
 var _sounds := {}
@@ -58,7 +59,7 @@ func _physics_process(delta: float) -> void:
 		_travelled = 0.0 if not player.is_rolling() else _travelled
 		return
 	_travelled += speed * delta
-	var stride := RUN_STRIDE if speed > 3.0 else WALK_STRIDE
+	var stride := RUN_STRIDE if speed > 3.0 else (SNEAK_STRIDE if player.sneaking else WALK_STRIDE)
 	if _travelled >= stride:
 		_travelled -= stride
 		_step(speed)
@@ -74,15 +75,19 @@ func _step(speed: float) -> void:
 	elif shape and shape.path_distance(Vector2(pos.x, pos.z)) < 1.8:
 		surface = "dirt"
 	var running := speed > 3.0
+	var soft: bool = player.sneaking     # crouched: slow, muffled heel-to-toe steps, barely a rustle
 	_left = not _left
 	stream = _sounds["dirt" if surface == "floor" else surface].pick_random()
 	pitch_scale = randf_range(0.94, 1.06) * (1.03 if _left else 0.97) * (0.72 if surface == "floor" else 1.0)
 	volume_db = (-5.0 if running else -10.0) - (4.0 if surface == "floor" else 0.0)
+	if soft:
+		pitch_scale *= 0.82
+		volume_db = -24.0 - (4.0 if surface == "floor" else 0.0)
 	play()
 	if surface == "grass":
 		_layer.stream = _sounds["kenney"].pick_random()
-		_layer.pitch_scale = randf_range(0.95, 1.05)
-		_layer.volume_db = -16.0 if running else -21.0
+		_layer.pitch_scale = randf_range(0.95, 1.05) * (0.9 if soft else 1.0)
+		_layer.volume_db = -30.0 if soft else (-16.0 if running else -21.0)
 		_layer.play()
-	if surface in ["grass", "dirt"]:
+	if surface in ["grass", "dirt"] and not soft:
 		get_parent().get_node("Effects").kick(surface, running, _left)

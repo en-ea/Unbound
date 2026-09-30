@@ -87,32 +87,36 @@ func _ready() -> void:
 	_heavy = Control.new()
 	_heavy.set_script(ACTION_BUTTON)
 	_heavy.radius = 40.0
-	_heavy.margin = Vector2(118, 290)
+	_heavy.margin = Vector2(285, 225)
 	_heavy.font_size = 17
 	add_child(_heavy)
 	_heavy.set_verb("Heavy")
-	_heavy.visible = false
 	_heavy.pressed.connect(player.heavy)
-	player.fighter.target_changed.connect(func(_v: String) -> void: _show_heavy())
+	# Every button keeps its spot (a ring round Attack); Compact hides Heavy and Parry for flicks on Attack.
 	_parry = Control.new()
 	_parry.set_script(ACTION_BUTTON)
 	_parry.radius = 40.0
-	_parry.margin = Vector2(262, 236)
+	_parry.margin = Vector2(180, 295)
 	_parry.font_size = 17
 	add_child(_parry)
 	_parry.set_verb("Parry")
-	_parry.visible = false
 	_parry.pressed.connect(player.guard)
 	_sneak = Control.new()
 	_sneak.set_script(ACTION_BUTTON)
-	_sneak.radius = 40.0
-	_sneak.margin = Vector2(262, 236)
-	_sneak.font_size = 17
+	_sneak.radius = 36.0
+	_sneak.margin = Vector2(72, 300)
+	_sneak.font_size = 16
 	add_child(_sneak)
 	_sneak.set_verb("Sneak")
 	_sneak.pressed.connect(player.sneak)
-	var spots := [Vector2(112, 404), Vector2(232, 360)]
-	for i in 2:
+	_action.swiped.connect(func(dir: String) -> void:
+		if dir == "up":
+			player.heavy()
+		elif dir == "left":
+			player.guard())
+	Settings.changed.connect(_show_heavy)
+	var spots := [Vector2(385, 290), Vector2(300, 385), Vector2(178, 430)]
+	for i in 3:
 		var b := Control.new()
 		b.set_script(ACTION_BUTTON)
 		b.radius = 42.0
@@ -297,6 +301,21 @@ func start_game(instant := false) -> void:
 	_set_play_ui(true)
 
 
+## Choices for something you walked up to (a body): see choice_bar.gd. One at a time.
+func show_choices(source: Node3D, title: String, options: Array) -> void:
+	var old := get_node_or_null("Choices")
+	if old:
+		old.free()
+	var bar := PanelContainer.new()
+	bar.name = "Choices"
+	bar.set_script(preload("res://scripts/ui/choice_bar.gd"))
+	bar.source = source
+	bar.player = player
+	bar.title = title
+	bar.options = options
+	add_child(bar)
+
+
 ## A short message at the top of the screen ("Needs a Stone Pickaxe", "Made a Copper Axe!").
 func hint(text: String) -> void:
 	_hint.text = text
@@ -321,7 +340,10 @@ func _on_skill_gained(skill: String, _amount: int) -> void:
 
 
 func _on_skill_leveled(skill: String, level: int) -> void:
-	hint(Skills.perk_text(skill))
+	if skill == "combat" and Classes.current != "":
+		hint("+1 talent point: Menu > Class > Talents")
+	else:
+		hint(Skills.perk_text(skill))
 	Banner.show_now(self, "LEVEL UP", "%s  %d" % [Skills.SKILLS[skill], level], Color(1.0, 0.82, 0.38), preload("res://assets/sounds/level_up.wav"))
 	get_tree().call_group("player", "level_glow")
 
@@ -395,9 +417,12 @@ func show_quest_complete(id: String) -> void:
 func open_dialogue(npc: String) -> void:
 	if npc.begins_with("resident:") and not load("res://scripts/studio/village/resident_talk.gd").opened(npc):   # studio: the village records the meeting first
 		return   # studio
-	_tracker.visible = false                               # it would sit behind the portrait
+	_tracker.set("hidden_for_talk", true)                       # it would sit behind the portrait
+	_tracker.call("refresh")
 	var panel := _modal(preload("res://scripts/ui/dialogue_panel.gd"), {"npc": npc})
-	panel.closed.connect(func() -> void: _tracker.visible = true)
+	panel.closed.connect(func() -> void:
+		_tracker.set("hidden_for_talk", false)
+		_tracker.call("refresh"))
 
 
 func open_bag() -> void:
@@ -409,9 +434,15 @@ func open_menu() -> void:
 	menu.open_character.connect(open_look_picker)
 	menu.open_class.connect(func() -> void: open_class_panel(false))
 	menu.open_settings.connect(open_settings)
+	menu.open_quests.connect(open_quests)
 	menu.to_title.connect(func() -> void:
 		SaveGame.save_game()
 		show_title())
+
+
+## The quest log: every quest you're on and have done; pick the one to follow.
+func open_quests() -> void:
+	_modal(preload("res://scripts/ui/quest_log.gd"))
 
 
 func open_settings() -> void:
@@ -490,15 +521,14 @@ func _update_roll_button() -> void:
 		_heavy.queue_redraw()
 
 
-## The Heavy button only shows in a fight (when the action button says Attack).
+## The fight buttons are always there while you play (Compact: flicks on Attack instead of Heavy and Parry).
 func _show_heavy() -> void:
-	var show: bool = _action.visible and player.fighter.verb == "Attack"
-	if show and not _heavy.visible:
-		_heavy.set("_pulse", 1.0)
-		_parry.set("_pulse", 1.0)
-	_heavy.visible = show
-	_parry.visible = show
-	_sneak.visible = _action.visible and not show
+	var compact := Settings.compact_controls
+	_heavy.visible = _action.visible and not compact
+	_parry.visible = _action.visible and not compact
+	_sneak.visible = _action.visible
+	_action.swipes = {"up": "Heavy", "left": "Parry"} if compact else {}
+	_action.queue_redraw()
 
 
 ## Sneaking on or off: the Sneak button lights up while you're crouched.

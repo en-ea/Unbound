@@ -270,3 +270,41 @@ follow-through is cancelled by moving (`fighter.recovering()`). Dev: `--defencet
 ## Morrow's quest: The Black Seal
 `Quests.DEFS["morrow_seal"]`: take Varek's seal (dropped by the camp's leader), hand it to Morrow; reward coins and
 an Epic sword (`reward.gear = [slot, rarity]`). Quest items can't be sold (`Items.QUEST_ITEMS`).
+
+## Controls layout (camera-test)
+- `ui/hud.gd`: every play button keeps its spot (a ring round Attack: Heavy, Parry, Roll, Sneak, three ability slots).
+  Attack always works (a swing at the air with nothing near). Settings > Buttons > Compact hides Heavy and Parry:
+  flick Attack up for Heavy, left for Parry (`ui/action_button.gd` `swipes`: a tap acts on release, a flick instead).
+- The sword rides on your back (`character_visual.gd` BACK_SWORD_*) and is drawn in a fight (`fighter.gd` DRAWN_FOR,
+  FIGHT_NEAR); Settings > Sword > Always in hand.
+
+## Quests: story and jobs, tracker, guide
+- `state/quests.gd`: `type` story/job; `auto` story quests need no giver and finish on events (`_event_done`);
+  steps can be `event` (`Quests.note("sold_stag")`). Each step can say `where` {region, at} (a turn-in points at
+  the giver). `tracked_quest()`, `track()`, `guide_point()` (the spot, or the gate towards its region).
+- `ui/quest_tracker.gd` (tag, distance, fold), `ui/quest_log.gd` (tap the tracker or Menu > Quests),
+  `world/quest_guide.gd` (the golden beam), minimap gold diamond.
+
+## Talents (Pyromancer)
+- `state/classes.gd` TALENT_TREES / TALENTS: branches of three learned in order; points = 1 (shrine) + combat
+  level - 1 + bonus. Effects are checked with `Classes.has_talent()` in abilities.gd, fire_fx.gd, burning.gd.
+  Screen: `ui/talent_panel.gd` (Class screen > Talents). Test: Codes > Paladin > +5 talent points; `--talents`.
+
+## Hunting, bodies and the ox cart
+- `state/hunting.gd` (autoload `Hunting`): KINDS (what carving gives, what the butcher pays), the cart's place and
+  load (saved), `carve()`, `sell()`, `freshness(age)`. Numbers: Balance.HUNT, STAG, DUSKMAW.
+- `world/carcass.gd`: the body a kill leaves (stag, boar, wolf, shadow wolf, Duskmaw): Take > Carve / Drag / Into
+  the cart (`ui/choice_bar.gd`); rots; crows (`world/crow.gd`), wolves eat it (`wolf.gd` `_find_meal`); taken if
+  left in the village; at most 6.
+- `player/hauling.gd`: dragging (slow, no fighting; Drop) and riding the cart; both come through gates
+  (`Region.leaving`, `Hunting.carried/riding`, `main.gd _hunting_arrival`).
+- `creatures/stag.gd` + `stag_visual.gd` (model `make_stag.py`): prey that hears and sees you, herds bolt together.
+- `world/butcher.gd` (west side of the village), `world/ox_cart.gd` (models `make_oxcart.py`),
+  `world/hunt_director.gd` (three bodies at night call the Duskmaw: a `wolf.gd` with `duskmaw`).
+- Test: `--hunt` (by the butcher with bodies and a stag), `--hunt=ride`, `--hunt=choices`, `--hunt=wild`.
+
+## Home: houses and the inside
+- `state/home.gd` HOUSES has 9 houses (third field: the feel they start with). The inside is chosen apart:
+  `layout` (LAYOUTS: hearth, bright; built-ins, hearth, window and cook spots) and `feel` (FEELS). Rooms are
+  `room_<feel>[_bright].glb` from `make_interior.py`. Changing layout moves furniture out of the way.
+  House pictures in the home screen come from `ItemIcons.icon("house:<id>")`. Test: `--inside=skep --layout=bright --feel=hill`.

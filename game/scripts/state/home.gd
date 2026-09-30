@@ -6,11 +6,28 @@ extends Node
 signal changed
 signal furniture_changed
 
-## House choices: [name, model].
+## House choices: [name, model, the inside's feel it starts with (FEELS)].
 const HOUSES := {
-	"lodge": ["Swoop Lodge", "res://assets/buildings/house_lodge.glb"],
-	"hill": ["Hill House", "res://assets/buildings/house_hill.glb"],
-	"lantern": ["Lantern House", "res://assets/buildings/house_lantern.glb"],
+	"lodge": ["Swoop Lodge", "res://assets/buildings/house_lodge.glb", "lodge"],
+	"hill": ["Hill House", "res://assets/buildings/house_hill.glb", "hill"],
+	"lantern": ["Lantern House", "res://assets/buildings/house_lantern.glb", "lantern"],
+	"storybook": ["Storybook Cottage", "res://assets/buildings/house_storybook.glb", "lantern"],
+	"turret": ["Turret Cottage", "res://assets/buildings/house_turret.glb", "hill"],
+	"arch": ["Arch Cottage", "res://assets/buildings/house_arch.glb", "hill"],
+	"skep": ["Skep Cottage", "res://assets/buildings/house_skep.glb", "lantern"],
+	"hull": ["Hull House", "res://assets/buildings/house_hull.glb", "lodge"],
+	"gable": ["Gable House", "res://assets/buildings/house_gable.glb", "lodge"],
+}
+## The inside, chosen apart from the house and changeable any time (free): its feel (walls, floor, cloth)
+## and its layout (where the fireplace and windows are). Rooms: assets/interior/room_<feel>[_bright].glb.
+const FEELS := {"lantern": "Cottage", "lodge": "Lodge", "hill": "Stone"}
+const LAYOUTS := {
+	"hearth": {"name": "Hearth Room", "blurb": "A big fireplace at the back, one wide window.", "file": "",
+		"built_in": [Rect2(-4.8, -3.8, 3.65, 1.2), Rect2(-4.8, -1.3, 0.45, 1.8), Rect2(-4.8, 2.3, 0.45, 0.6)],
+		"hearth": Vector3(-2.4, 0.0, -3.0), "cook": Vector3(-2.4, 0.0, -2.1), "window": Vector3(2.55, 2.1, -3.2)},
+	"bright": {"name": "Bright Room", "blurb": "Two tall windows at the back, the fire on the side wall.", "file": "_bright",
+		"built_in": [Rect2(3.6, -2.95, 1.2, 3.7), Rect2(-4.8, -1.3, 0.45, 1.8), Rect2(-4.8, 2.3, 0.45, 0.6)],
+		"hearth": Vector3(4.2, 0.0, -1.6), "cook": Vector3(3.25, 0.0, -1.6), "window": Vector3(0.0, 2.1, -3.2)},
 }
 ## Buildable pieces: [name, model, footprint radius, what pressing the action button does ("" = nothing)].
 const PIECES := {
@@ -39,12 +56,12 @@ const FURNITURE := {
 	"lamp": ["Lamp", "res://assets/interior/furn_lamp.glb", Vector2(0.42, 0.42), "", ""],
 	"rug_round": ["Round rug", "res://assets/interior/furn_rug_round.glb", Vector2(2.4, 2.4), "rug", ""],
 	"rug_long": ["Long rug", "res://assets/interior/furn_rug_long.glb", Vector2(2.4, 1.6), "rug", ""],
+	"trophy": ["Stag trophy", "res://assets/interior/furn_trophy.glb", Vector2(0.7, 0.3), "wall", ""],
 }
 ## The room: its floor runs from -ROOM_HALF to +ROOM_HALF (x right, z towards the front door).
 const ROOM_HALF := Vector2(4.8, 3.8)
-## Built into the room, nothing can go there: the hearth and firewood, the herb shelf, the broom,
-## and the way in from the door. (Match tools-src/blender/make_interior.py.)
-const ROOM_BUILT_IN := [Rect2(-4.8, -3.8, 3.65, 1.2), Rect2(-4.8, -1.3, 0.45, 1.8), Rect2(-4.8, 2.3, 0.45, 0.6)]
+## The way in from the door: nothing can go there. (The hearth and shelves are in LAYOUTS; match
+## tools-src/blender/make_interior.py.)
 const ROOM_DOORWAY := Rect2(-0.8, 2.6, 1.6, 1.2)
 ## What a new home comes with (you can move it, put it away, or place it again for free).
 const STARTER := [
@@ -62,6 +79,70 @@ var house := ""                   # "" = not bought yet
 var pieces: Array = []            # [{id, x, z, turn}]
 var furniture: Array = []         # [{id, x, z, turn}] in room metres (see ROOM_HALF)
 var stored := {}                  # id -> how many you've put away (placing them again is free)
+var feel := ""                    # the inside's feel (FEELS); "" = the house's own
+var layout := "hearth"            # the inside's layout (LAYOUTS)
+
+
+## The feel the room has now.
+func room_feel() -> String:
+	return feel if FEELS.has(feel) else (HOUSES[house][2] if HOUSES.has(house) else "lantern")
+
+
+## The room model for the feel and layout.
+func room_model() -> String:
+	return "res://assets/interior/room_%s%s.glb" % [room_feel(), LAYOUTS[layout]["file"]]
+
+
+func room_layout() -> Dictionary:
+	return LAYOUTS[layout]
+
+
+## The action: change the inside's feel (free).
+func set_feel(id: String) -> void:
+	if FEELS.has(id) and id != room_feel():
+		feel = id
+		changed.emit()
+
+
+## The action: change the layout (free). Furniture where the new hearth or shelves stand is put away.
+func set_layout(id: String) -> void:
+	if not LAYOUTS.has(id) or id == layout:
+		return
+	layout = id
+	_clear_built_ins()
+	changed.emit()
+	furniture_changed.emit()
+
+
+## Furniture standing where this layout's hearth or shelves are moves to the nearest free spot (or is put
+## away if there's none).
+func _clear_built_ins() -> void:
+	var all := furniture.duplicate()
+	var blocked: Array = []
+	furniture = []
+	for f: Dictionary in all:
+		var r := footprint(f["id"], f["x"], f["z"], f["turn"])
+		var hit := false
+		for b: Rect2 in LAYOUTS[layout]["built_in"]:
+			hit = hit or r.intersects(b)
+		if hit:
+			blocked.append(f)
+		else:
+			furniture.append(f)
+	for f: Dictionary in blocked:
+		var best := Vector2.INF
+		var x := -ROOM_HALF.x + 0.5
+		while x < ROOM_HALF.x:
+			var z := -ROOM_HALF.y + 0.5
+			while z < ROOM_HALF.y:
+				if room_fits(f["id"], x, z, f["turn"]) and Vector2(x, z).distance_to(Vector2(f["x"], f["z"])) < best.distance_to(Vector2(f["x"], f["z"])):
+					best = Vector2(x, z)
+				z += 0.25
+			x += 0.25
+		if best != Vector2.INF:
+			furniture.append({"id": f["id"], "x": best.x, "z": best.y, "turn": f["turn"]})
+		else:
+			stored[f["id"]] = stored.get(f["id"], 0) + 1
 
 
 func owned() -> bool:
@@ -91,6 +172,7 @@ func buy(choice: String) -> bool:
 	Money.spend(Balance.HOME["coins"])
 	house = choice
 	furniture = STARTER.duplicate(true)
+	_clear_built_ins()
 	changed.emit()
 	furniture_changed.emit()
 	return true
@@ -111,6 +193,8 @@ func reset() -> void:
 	pieces = []
 	furniture = []
 	stored = {}
+	feel = ""
+	layout = "hearth"
 	changed.emit()
 	furniture_changed.emit()
 
@@ -189,7 +273,7 @@ func room_fits(id: String, x: float, z: float, turn: float, skip := -1) -> bool:
 	var rug: bool = FURNITURE[id][3] == "rug"
 	if not rug and r.intersects(ROOM_DOORWAY):
 		return false
-	for b: Rect2 in ROOM_BUILT_IN:
+	for b: Rect2 in LAYOUTS[layout]["built_in"]:
 		if r.intersects(b):
 			return false
 	for i in furniture.size():
@@ -246,7 +330,7 @@ func furniture_near(x: float, z: float) -> int:
 
 
 func to_data() -> Dictionary:
-	return {"house": house, "pieces": pieces, "furniture": furniture, "stored": stored}
+	return {"house": house, "pieces": pieces, "furniture": furniture, "stored": stored, "feel": feel, "layout": layout}
 
 
 func load_data(data: Variant) -> void:
@@ -254,8 +338,12 @@ func load_data(data: Variant) -> void:
 	pieces = []
 	furniture = []
 	stored = {}
+	feel = ""
+	layout = "hearth"
 	if data is Dictionary:
-		house = String(data.get("house", "")) if HOUSES.has(String(data.get("house", ""))) else ""
+		feel = str(data.get("feel", "")) if FEELS.has(str(data.get("feel", ""))) else ""
+		layout = str(data.get("layout", "hearth")) if LAYOUTS.has(str(data.get("layout", ""))) else "hearth"
+		house =String(data.get("house", "")) if HOUSES.has(String(data.get("house", ""))) else ""
 		for p: Variant in data.get("pieces", []):
 			if p is Dictionary and PIECES.has(String(p.get("id", ""))):
 				pieces.append({"id": String(p["id"]), "x": float(p["x"]), "z": float(p["z"]), "turn": float(p.get("turn", 0.0))})

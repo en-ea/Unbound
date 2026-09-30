@@ -5,6 +5,41 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "30 Sep", "title": "More homes, a second inside, trophies", "lines": [
+		"Six more houses to buy or move into: Storybook Cottage, Turret Cottage, Arch Cottage, Skep Cottage, Hull House and Gable House. Each card shows the house now.",
+		"The inside is chosen apart from the house, and you can change it any time for free (the home screen at your mailbox):",
+		"Layout: the Hearth Room (big fireplace at the back) or the new Bright Room (two tall windows at the back, the fire on the side wall). Furniture in the way moves aside.",
+		"Feel: Cottage (painted panels), Lodge (warm planks) or Stone (fieldstone and whitewash). Any feel works with any house and layout.",
+		"New furniture: the Stag trophy, made from Crown Antlers (sell a whole stag at the butcher to get them).",
+	]},
+	{"when": "30 Sep", "title": "Hunting: stags, bodies, the butcher and the ox cart", "lines": [
+		"Stags graze out on the open grass (two herds in the meadow, two in the wood). They hear you walk and see you coming: sneak up, or the whole herd bolts. Hurt one up close and it may lower its antlers and charge (watch for the glint).",
+		"Kills stay where they fall now (stags, boars, wolves). Walk up and Take: Carve here (meat and hide now), Drag it, or put it Into the cart.",
+		"Dragging is slow and you can't fight, roll or sprint. Drop it to defend yourself (a hit knocks it loose too).",
+		"The butcher's rack is on the west side of the village. Sell a whole body there for more coins and the good parts: a stag gives Crown Antlers, a trophy.",
+		"Bodies rot: fresh for 3 minutes, then worth less, then gone. Flies come as they turn.",
+		"Leave a body alone and crows come down to peck at it, then wolves come to eat. Both make it rot faster. Leave one in the village and someone will take it.",
+		"The ox cart is parked by the butcher. Ride it (steer with the stick), load up to three bodies, sell the lot at the rack. It follows you through the gate to the Whispering Wood.",
+		"Three bodies left close together out in the open at night call something up: the Duskmaw. Its body is too big to drag.",
+		"New job from Wren: The Harvest Supper (bring her a whole stag).",
+	]},
+	{"when": "30 Sep", "title": "Pyromancer talents", "lines": [
+		"Menu > Class > Talents: 12 talents in four branches (Flame Dash, Meteor, Cinderburst, Kindling), learned top to bottom.",
+		"Points: one from the shrine and one more for every combat level. Menu > Class shows how many you have to spend.",
+		"Reset is free, so you can try different builds.",
+		"Highlights: Flashpoint (your dash ends in a blast), Twin Stars (a second meteor), Chain Reaction (explosions set off more explosions), Rekindle (burning kills bring your abilities back sooner).",
+		"Test: Settings > Codes > Paladin > '+5 talent points'.",
+	]},
+	{"when": "30 Sep", "title": "Controls, quests, Cinderburst", "lines": [
+		"Buttons stay put now: Attack, Heavy, Parry, Roll and Sneak are always in the same spots (no more waiting for them to pop up). Attack always works, even swinging at the air.",
+		"Settings > Buttons > Compact: hides Heavy and Parry. Flick Attack up for a Heavy, left to Parry.",
+		"Your sword rides on your back and comes out in a fight, then goes back a few seconds after. Settings > Sword > Always in hand keeps it out.",
+		"New Pyromancer ability, Cinderburst (14 s): a ring of fire sets everyone round you alight. Anyone already burning explodes, spreads the fire, and sends a spark back that heals you. Set them burning with Flame Dash or Meteor first, then pop them.",
+		"Quests: the tracker says STORY or JOB, how far to go, and a golden beam plus a gold diamond on the minimap show the way (to the gate first if it's in another region). The – button folds it small.",
+		"Tap the tracker (or Menu > Quests) for the quest log: what each quest is about, the steps so far, and which one to follow.",
+		"Bag: Drop (and Drop all) for any item. Quest items can't be dropped.",
+		"Sneaking is quiet now: soft, slow, muffled steps.",
+	]},
 	{"when": "30 Sep", "title": "The story begins: the shrine and the Pyromancer", "lines": [
 		"Top-left says 'A Strange Hum': the standing stones on the meadow hill are humming. Walk up to them.",
 		"The shrine wakes: a pillar of light, a deep chord, a few words, then the class screen. The Pyromancer is open; the other three paths are sealed until later in the story.",
