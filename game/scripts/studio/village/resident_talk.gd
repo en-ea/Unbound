@@ -10,7 +10,6 @@ extends RefCounted
 ##            button (player.gd) finds it like any other interactable and calls interact()
 ##   look_of  the same look the resident's body wears (residents.gd) and the portrait shows
 const View := preload("res://scripts/studio/village/sim/view.gd")
-const Justice := preload("res://scripts/studio/village/sim/justice.gd")
 const Lines := preload("res://scripts/studio/village/resident_lines.gd")
 const PlayerActs := preload("res://scripts/studio/village/player_acts.gd")
 
@@ -45,13 +44,25 @@ static func id_of(npc: String) -> int:
 	return int(npc.trim_prefix(PREFIX))
 
 
-## What a resident looks like: their outfit and colours, as residents.gd dresses the body.
+## Outfits that suit a trade (CharacterLook.OUTFITS names; never the knight's, guardian's or mage's armour and
+## robes, and never the northlander's, which is the old ones'). Which of them: by the resident's id.
+const OUTFITS_BY_ROLE := {
+	"farmer": ["Fisher", "Wanderer", "Explorer"], "herder": ["Ranger", "Wanderer", "Explorer"],
+	"woodcutter": ["Explorer", "Ranger", "Wanderer"], "hunter": ["Ranger", "Explorer"],
+	"gatherer": ["Druid", "Fisher", "Ranger"], "miller": ["Wanderer", "Merchant", "Fisher"], "smith": ["Smith"],
+	"merchant": ["Merchant", "Bard"], "priest": ["Druid", "Alchemist"], "elder": ["Alchemist", "Merchant", "Bard"],
+	"midwife": ["Alchemist", "Druid", "Bard"], "beggar": ["Wanderer", "Fisher"],
+	"child": ["Wanderer", "Fisher", "Explorer", "Bard"],
+}
+
+
+## What a resident looks like: an outfit that suits their trade and their colours, as residents.gd dresses the body.
 static func look_of(v: Object, id: int) -> CharacterLook:
-	var entry := Justice.person_entry(v, id)
+	var d := View.describe(v, id)
 	var look := CharacterLook.new()
-	var outfits: Array = CharacterLook.OUTFITS.keys()
-	look.set_outfit(outfits[posmod(int(entry.get("outfit", 0)), outfits.size())])
-	if v.people[id].ancestor >= 0:
+	var choices: Array = OUTFITS_BY_ROLE.get(str(d.role), CharacterLook.OUTFITS.keys())
+	look.set_outfit(choices[posmod(int(d.look.outfit) + id, choices.size())])
+	if d.forebear:
 		look.set_outfit("Northlander")   # the existing fur and paint outfit makes the old ones readable
 	look.set_color("Hair", (id * 3) % CharacterLook.PALETTES.Hair.size())
 	look.set_color("Skin", (id * 2 + 1) % CharacterLook.PALETTES.Skin.size())
@@ -116,8 +127,16 @@ static func opened(npc: String) -> bool:
 	return true
 
 
+## What the player asked for on this screen, done once it has closed (the controls are then free again; a world
+## action refuses while a screen holds them): {"verb": "fight" | "give", "id", "item", "count"}.
+static var pending := {}
+const GIFT_COINS := 5
+const MAX_GIFTS := 3
+
+
 ## Their words, and what the player can say back. During an open event the people who have a part in it (the
-## judge, a witness, the leader of a rite) also offer what the event allows (live.gd talk_context).
+## judge, a witness, the leader of a rite) also offer what the event allows (live.gd talk_context). Otherwise, to
+## a grown person: "Give..." (what the player carries that makes sense) and "Pick a fight" (never to a child).
 static func screen(npc: String) -> Dictionary:
 	var v = VillageSession.village
 	var id := id_of(npc)
@@ -131,8 +150,65 @@ static func screen(npc: String) -> Dictionary:
 	var words := Lines.event_line(d, context.part, day) if not context.is_empty() and d.age_group != "child" else Lines.line(d, day, minute)
 	var options: Array = []
 	options.append_array(context.get("options", []))
+	if context.is_empty() and not d.held and not d.protected:
+		var gifts := giftable()
+		if not gifts.is_empty():
+			options.append({"label": "Give...", "do": func() -> Dictionary: return _give_screen(id, d, gifts, day)})
+		if d.age_group != "child":
+			options.append({"label": "Pick a fight", "do": func() -> Dictionary:
+				pending = {"verb": "fight", "id": id}
+				return {}})
 	options.append({"label": "Bye", "do": func() -> Dictionary: return {}})
 	return {"text": words, "options": options}
+
+
+## What the player carries that is worth handing over: five coins, and food (Food.FOODS), at most MAX_GIFTS.
+static func giftable() -> Array:
+	var out := []
+	if Money.coins >= GIFT_COINS:
+		out.append({"item": "coins", "count": GIFT_COINS, "label": "Give: %d coins" % GIFT_COINS})
+	var foods: Array = []
+	for item: String in Food.FOODS:
+		if Inventory.count(item) > 0:
+			foods.append(item)
+	foods.sort_custom(func(a: String, b: String) -> bool: return Inventory.count(a) > Inventory.count(b))
+	for item: String in foods:
+		if out.size() >= MAX_GIFTS:
+			break
+		out.append({"item": item, "count": 1, "label": "Give: %s" % Items.name_of(item)})
+	return out
+
+
+static func _give_screen(id: int, d: Dictionary, gifts: Array, day: int) -> Dictionary:
+	var options: Array = []
+	for gift: Dictionary in gifts:
+		options.append({"label": gift.label, "do": func() -> Dictionary:
+			pending = {"verb": "give", "id": id, "item": gift.item, "count": gift.count}
+			return answer(Lines.thanks(d, str(gift.item), day), "Bye", "Yes")})
+	options.append({"label": "Never mind", "do": func() -> Dictionary: return screen(PREFIX + str(id))})
+	return {"text": "Oh? What have you got there?" if d.age_group != "child" else "Is that for me?", "options": options}
+
+
+## Does what the screen asked, now that it has closed. (residents.gd calls this the frame the controls are free.)
+static func run_pending(registry: Node, player: Node3D) -> void:
+	if pending.is_empty():
+		return
+	var job := pending
+	pending = {}
+	var tree := Engine.get_main_loop() as SceneTree
+	var live := tree.current_scene.get_node_or_null("VillageLive") if tree.current_scene != null else null
+	if live == null or not VillageSession.active:
+		return
+	var id := int(job.id)
+	if job.verb == "fight":
+		var provoke := live.get_node_or_null("Provoke")
+		var result: Dictionary = provoke.square_up(id) if provoke != null else {"accepted": false, "reason": "not now"}
+		if not result.get("accepted", false):
+			tree.call_group("hud", "hint", "Too far." if str(result.get("reason", "")) == "out of reach" else "Not now.")
+	elif job.verb == "give":
+		var result := PlayerActs.request(player, registry, "give", id, {"item": job.item, "count": job.count})
+		if not result.accepted:
+			tree.call_group("hud", "hint", "They won't take it.")
 
 
 ## A one-button screen: the answer, and a way to close it.

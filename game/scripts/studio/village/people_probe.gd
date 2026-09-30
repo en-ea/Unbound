@@ -5,12 +5,14 @@ extends Node
 ## run can be checked without pixels first.
 ##
 ##   godot --path game --resolution 1560x720 -- --studio=village/live --people-probe=talk|hearing|daily|rite
-##         --people-shots=DIR --test-save=NAME
+##         --people-shots=DIR --test-save=NAME   (also rescue, provoke)
 ##
 ## talk     three different residents at ordinary work, talked to; the meeting is recorded; the screen closes
 ## hearing  a hearing: a witness ("What did you see?"), the trace spot (Inspect), the judge (testify, a word in private)
 ## daily    the same village at 07:12, 10:00, 12:30, 18:30, 23:30 and 06:10: work, meals, chatting, indoors, the door
 ## rite     the leader of a rite offers the gesture
+## rescue   freeing someone at the pillory: the freed one answers in a bubble
+## provoke  Give... and Pick a fight from the talk screen, real blows, and every answer to them (see provoke_run)
 ## The village session is the game's own; only the clock is moved (Runtime.advance), as time passing would.
 
 const Runtime := preload("res://scripts/studio/village/sim/runtime.gd")
@@ -68,6 +70,47 @@ func shot(label: String) -> void:
 	print("PROBE shot %s (err %d) minute %d" % [label, err, int(VillageSession.village.runtime.now) % 1440])
 
 
+## A screenshot from a camera of the probe's own, round the point `at` (the game's camera is sometimes behind a stall's
+## parasol or a roof): the nearest clear side, 4.6 m off and above head height, looking at the point. `quick` takes
+## it this frame, for a moment that will not last.
+func look_shot(at: Vector3, label: String, quick := false) -> void:
+	var cam := Camera3D.new()
+	cam.fov = 42.0
+	add_child(cam)
+	var eye := at + Vector3(0.5, 2.6, 4.6)
+	var space := get_viewport().world_3d.direct_space_state
+	for k in 16:
+		var a := deg_to_rad(10.0 + k * 22.5)
+		var candidate := at + Vector3(sin(a) * 4.6, 2.6, cos(a) * 4.6)
+		var blocked := false
+		for h: Dictionary in Houses.HOUSES:
+			var size := Vector2(h["size"].x, h["size"].z)
+			if Rect2(h["at"] - size * 0.5, size).grow(1.0).has_point(Vector2(candidate.x, candidate.z)) or Rect2(h["at"] - size * 0.5, size).grow(0.3).intersects(Rect2(Vector2(at.x, at.z), Vector2.ZERO).expand(Vector2(candidate.x, candidate.z))):
+				blocked = true
+		if Rect2(Houses.MERCHANT_AT - Vector2(2.6, 2.6), Vector2(5.2, 5.2)).has_point(Vector2(candidate.x, candidate.z)):
+			blocked = true      # the merchant's stall and its parasol
+		if not blocked and space.intersect_ray(PhysicsRayQueryParameters3D.create(candidate, at + Vector3(0.0, 1.0, 0.0))).is_empty():
+			eye = candidate
+			break
+	cam.global_position = eye
+	cam.look_at(at + Vector3(0.0, 0.9, 0.0))
+	cam.make_current()
+	if quick:
+		await get_tree().process_frame
+		quick_shot(label)
+	else:
+		await frames(4)
+		await shot(label)
+	get_tree().current_scene.get_node("CameraRig").camera.make_current()
+	cam.queue_free()
+
+
+## A screenshot of exactly this frame (no waiting: for a moment that will not last).
+func quick_shot(label: String) -> void:
+	get_viewport().get_texture().get_image().save_png(dir.path_join(label + ".png"))
+	print("PROBE quick shot %s" % label)
+
+
 func run() -> void:
 	await get_tree().create_timer(5.0).timeout
 	_player = get_tree().get_first_node_in_group("player")
@@ -85,7 +128,7 @@ func run() -> void:
 		if child is CanvasLayer or child is Control:
 			layers += 1
 	check(layers == 0, "no studio canvas layer or control under VillageLive")
-	while _live.registry.bodies.size() < _alive_count():
+	while not _live.registry.all_built():
 		await get_tree().process_frame
 	await frames(30)
 	if mode == "hint":
@@ -107,6 +150,8 @@ func run() -> void:
 			await rite_run()
 		"rescue":
 			await rescue_run()
+		"provoke":
+			await provoke_run()
 	print("PROBE complete failures=%d" % failures.size())
 	get_tree().quit(0 if failures.is_empty() else 1)
 
@@ -530,6 +575,286 @@ func rescue_run() -> void:
 	check(React.has_bubble(victim), "the freed one answers with a speech bubble over their head")
 	print("PROBE bubble says: ", React.bubble_text(victim))
 	await shot("rescue-2-bubble")
+
+
+## The provoke mode: pick a fight through the talk screen, land real blows through Enea's fighter, and see how the
+## one struck and those who saw it answer (runtime.reactions, acted out by resident_acts.gd).
+##   A  a timid villager: "Pick a fight" from the talk screen (children are never offered it), then blows:
+##      protest (the squaring up), startled, flee
+##   B  a bold one: protest, then fight_back with the player's parry, its stagger, then hurt and flee
+##   C  knocked down (dazed on the ground, then getting up, then back to the day)
+##   D  onlookers in a crowd: shout, flee, watch, back_away, intervene
+## A state the natural run did not produce is injected into runtime.reactions and labelled "injected": the acting
+## is the presentation's, so it is what is looked at.
+func react_state(id: int) -> String:
+	var r: Dictionary = VillageSession.village.runtime.get("reactions", {}).get(str(id), {})
+	return str(r.get("state", "")) if int(r.get("until", 0)) > int(VillageSession.village.runtime.now) else ""
+
+
+func adult_at_work(skip: Array) -> int:
+	var v = VillageSession.village
+	for id: int in _live.registry.bodies:
+		var d := View.describe(v, id)
+		var body: Node3D = _live.registry.bodies[id]
+		if d.age_group == "adult" and not d.held and not d.authority and not d.priest and not d.forebear and body.visible \
+				and not _live.registry.borrowed.has(id) and not skip.has(id) and d.activity.verb not in ["sleeping", "away", "walking"]:
+			return id
+	return -1
+
+
+## Presses the swing (the real action button) beside the target until a blow lands (their bruise changes).
+func swing_at(id: int, tries := 8) -> bool:
+	var v = VillageSession.village
+	var body: Node3D = _live.registry.bodies[id]
+	var hurt0: int = v.people[id].hurt
+	var down0: int = v.people[id].down_until
+	for i in tries:
+		var at: Vector3 = body.global_position + Vector3(0.9, 0.3, 0.6)
+		_player.global_position = at
+		_player.velocity = Vector3.ZERO
+		(_player.get_node("Visual") as Node3D).rotation.y = atan2(body.global_position.x - at.x, body.global_position.z - at.z)
+		await get_tree().physics_frame
+		await get_tree().physics_frame
+		VillageSession.background = false
+		_player.act()
+		await get_tree().create_timer(0.75).timeout
+		if v.people[id].hurt != hurt0 or v.people[id].down_until != down0:
+			return true
+	return false
+
+
+func provoke_run() -> void:
+	var v = VillageSession.village
+	var C = Runtime.C
+	await at_minute(600)
+	Money.load_data(20)
+	Inventory.add("apple", 3)
+	var provoke: Node = _live.get_node("Provoke")
+	var seen := {}
+	# --- children are never offered a fight, and a gift is offered ------------------------------------------------
+	var child := -1
+	for id: int in _live.registry.bodies:
+		var d := View.describe(v, id)
+		if d.age_group == "child" and _live.registry.bodies[id].visible and not _live.registry.borrowed.has(id) and d.activity.verb not in ["sleeping", "away"]:
+			child = id
+			break
+	if child >= 0:
+		await stand_near(_live.registry.bodies[child])
+		var child_panel := await press_act_and_read("provoke-0-child")
+		if child_panel != null:
+			var child_labels := button_labels(child_panel)
+			print("PROBE child options: ", child_labels)
+			check(not child_labels.has("Pick a fight"), "a child is never offered a fight")
+			check(child_labels.has("Give..."), "a child is offered Give...")
+			await close_talk(child_panel)
+	# --- A: a timid adult -----------------------------------------------------------------------------------------
+	var a := adult_at_work([])
+	var pa = v.people[a]
+	pa.traits[C.BOLD] = 20
+	pa.traits[C.TEMPER] = 30
+	var body_a: Node3D = _live.registry.bodies[a]
+	await stand_near(body_a)
+	var panel := await press_act_and_read("provoke-1-talk-options")
+	check(panel != null, "the talk screen opens for %s" % pa.name)
+	if panel != null:
+		var labels := button_labels(panel)
+		print("PROBE adult options: ", labels)
+		check(labels.has("Pick a fight") and labels.has("Give..."), "an adult is offered Give... and Pick a fight")
+		# Give...: what is carried: coins, an apple
+		press_button(panel, "Give...")
+		await frames(25)
+		await shot("provoke-2-give-options")
+		var gift_labels := button_labels(panel)
+		print("PROBE give options: ", gift_labels)
+		check(gift_labels.has("Give: 5 coins") and gift_labels.has("Give: Apple"), "Give... offers five coins and the apple")
+		var coins0 := Money.coins
+		var apples0 := Inventory.count("apple")
+		var feeling0: int = View.toward_player(v, a).feeling
+		press_button(panel, "Give: Apple")
+		await frames(30)
+		print("PROBE they say: ", panel._text.text)
+		await shot("provoke-3-thanks")
+		await close_talk(panel)
+		await frames(20)
+		check(Inventory.count("apple") == apples0 - 1 and View.toward_player(v, a).memories.has("gift_from_you"), "the apple left the bag and the gift is remembered (feeling %d -> %d)" % [feeling0, View.toward_player(v, a).feeling])
+		# now the fight: through the talk screen
+		await stand_near(body_a)
+		panel = await press_act_and_read("provoke-4-again")
+		check(panel != null and press_button(panel, "Pick a fight"), "Pick a fight pressed")
+		await frames(20)
+		check(provoke.is_squared_up(a), "after the screen closed, the villager is squared up (a fight target for Enea's fighter)")
+		check(not Controls.locked, "the controls are free")
+		seen[react_state(a)] = true
+		print("PROBE reaction after squaring up: ", react_state(a), " bark: ", React.bubble_text(body_a))
+		await look_shot((_player.global_position + body_a.global_position) * 0.5, "provoke-5-square-up-" + react_state(a))
+	# the blows
+	for blow in 4:
+		var landed := await swing_at(a)
+		var st := react_state(a)
+		print("PROBE blow %d landed=%s -> %s, hurt %d" % [blow + 1, landed, st, v.people[a].hurt])
+		await get_tree().create_timer(0.55).timeout
+		seen[st] = true
+		await look_shot((_player.global_position + body_a.global_position) * 0.5, "provoke-6-A-blow%d-%s" % [blow + 1, st])
+		if st in ["flee", "plead", "down"]:
+			break
+	# --- B: a bold one who fights back, and a parry ---------------------------------------------------------------
+	await at_minute(int(v.runtime.now) % 1440 + 5)
+	var b := adult_at_work([a])
+	var pb = v.people[b]
+	pb.traits[C.BOLD] = 90
+	pb.traits[C.TEMPER] = 60
+	pb.hurt = 0
+	var body_b: Node3D = _live.registry.bodies[b]
+	await stand_near(body_b)
+	var reg = _live.registry
+	provoke.square_up(b)
+	await frames(10)
+	await swing_at(b)
+	await get_tree().create_timer(0.3).timeout
+	await swing_at(b)
+	var fight_state := react_state(b)
+	print("PROBE B second blow -> ", fight_state)
+	seen[fight_state] = true
+	if fight_state == "fight_back":
+		await frames(4)
+		var act = reg._acts.get(b)
+		if act != null and act.attacker != null:
+			var glinted := [false]
+			act.attacker.blow_coming.connect(func(_who: int) -> void: glinted[0] = true)
+			var landed_result := [""]
+			act.attacker.blow_landed.connect(func(_who: int, result: String) -> void: landed_result[0] = result)
+			var waited := 0.0
+			while not glinted[0] and waited < 6.0 and react_state(b) == "fight_back":
+				await get_tree().process_frame
+				waited += get_process_delta_time()
+				_player.global_position = _player.global_position   # (keeps still)
+			print("PROBE the glint came (wind-up shown): %s after %.2f s" % [glinted[0], waited])
+			check(glinted[0], "a fight_back gives an honest wind-up and glint before the blow")
+			var glint_ms := Time.get_ticks_msec()
+			look_shot((_player.global_position + body_b.global_position) * 0.5, "provoke-7-B-glint", true)
+			# the blow lands 0.45 s after the glint: the guard goes up at the right moment (perfect parry window is 0.22 s)
+			await get_tree().create_timer(0.26).timeout
+			print("PROBE guard raised %d ms after the glint (the perfect window is 220 ms wide, ending at 450)" % (Time.get_ticks_msec() - glint_ms))
+			_player.guard()
+			await get_tree().create_timer(0.5).timeout
+			print("PROBE the blow: ", landed_result[0], " staggered: ", act.staggered() if act != null else "-")
+			check(landed_result[0] == "parry", "the player's parry stopped the blow (%s)" % landed_result[0])
+			await look_shot((_player.global_position + body_b.global_position) * 0.5, "provoke-8-B-parried")
+			check(act.staggered() or act.mode == "recover" or act.mode == "stagger", "the parried villager reels (stagger)")
+			await get_tree().create_timer(1.6).timeout
+			await look_shot((_player.global_position + body_b.global_position) * 0.5, "provoke-9-B-after")
+	# --- C: knocked down ------------------------------------------------------------------------------------------
+	var c := adult_at_work([a, b])
+	var pc = v.people[c]
+	pc.traits[C.BOLD] = 50
+	pc.hurt = 88
+	await stand_near(_live.registry.bodies[c])
+	provoke.square_up(c)
+	await frames(10)
+	await swing_at(c)
+	await get_tree().create_timer(0.9).timeout
+	print("PROBE C -> ", react_state(c), " down_until ", pc.down_until, " now ", int(v.runtime.now))
+	seen[react_state(c)] = true
+	await look_shot(_live.registry.bodies[c].global_position, "provoke-10-C-down")
+	await get_tree().create_timer(1.5).timeout
+	await look_shot(_live.registry.bodies[c].global_position, "provoke-11-C-down-dazed")
+	# wait for the getting up and the way back
+	var t_wait := 0.0
+	while react_state(c) == "down" and t_wait < 40.0:
+		await get_tree().create_timer(1.0).timeout
+		t_wait += 1.0
+	await get_tree().create_timer(0.7).timeout
+	await look_shot(_live.registry.bodies[c].global_position, "provoke-12-C-getting-up")
+	await get_tree().create_timer(3.0).timeout
+	check(reg._acts.get(c) == null, "the answer is over: the body is handed back to the day (%s)" % str(reg._carry.get(c, "no carry")))
+	await look_shot(_live.registry.bodies[c].global_position, "provoke-13-C-back-to-day")
+	# --- D: onlookers in a crowd ----------------------------------------------------------------------------------
+	await at_minute(1185)
+	var crowd_at := ""
+	var places := {}
+	for id: int in reg.bodies:
+		var d := View.describe(v, id)
+		if d.activity.verb == "chatting" and not reg.borrowed.has(id):
+			places[d.activity.place] = int(places.get(d.activity.place, 0)) + 1
+	var best := 0
+	for key: String in places:
+		if int(places[key]) > best:
+			best = int(places[key])
+			crowd_at = key
+	var crowd: Array[int] = []
+	for id: int in reg.bodies:
+		var d := View.describe(v, id)
+		if d.activity.verb == "chatting" and d.activity.place == crowd_at and not reg.borrowed.has(id):
+			crowd.append(id)
+	print("PROBE crowd at %s: %d" % [crowd_at, crowd.size()])
+	var victim := -1
+	var roles := {}
+	for id in crowd:
+		var d := View.describe(v, id)
+		if victim < 0 and d.age_group == "adult" and not d.authority and not d.priest and not d.forebear:
+			victim = id
+	var k := 0
+	for id in crowd:
+		if id == victim:
+			continue
+		var q = v.people[id]
+		match k % 4:
+			0:
+				q.traits[C.COMPASSION] = 95     # speaks up
+			1:
+				q.traits[C.BOLD] = 15           # runs
+			2:
+				q.traits[C.BOLD] = 70           # (not close: watches or backs off)
+			3:
+				q.traits[C.COMPASSION] = 20
+				q.traits[C.BOLD] = 45
+		k += 1
+	if victim >= 0:
+		var vic_body: Node3D = reg.bodies[victim]
+		v.people[victim].traits[C.BOLD] = 25
+		var vic_home: String = View.describe(v, victim).home
+		# a housemate of the one struck, bold: the one who steps between
+		for id in crowd:
+			if id != victim and View.describe(v, id).home == vic_home:
+				v.people[id].traits[C.BOLD] = 85
+				break
+		await stand_near(vic_body, 1.2)
+		provoke.square_up(victim)
+		await frames(10)
+		await swing_at(victim)
+		await get_tree().create_timer(0.8).timeout
+		var states := {}
+		for id in crowd:
+			var st := react_state(id)
+			states[st] = int(states.get(st, 0)) + 1
+			if st != "":
+				seen[st] = true
+		print("PROBE onlookers answered: ", states)
+		await look_shot(vic_body.global_position, "provoke-14-D-onlookers-a")
+		await get_tree().create_timer(1.2).timeout
+		await look_shot(vic_body.global_position, "provoke-15-D-onlookers-b")
+		await get_tree().create_timer(2.0).timeout
+		await look_shot(vic_body.global_position, "provoke-16-D-onlookers-c")
+	# --- states the run did not produce: injected, and looked at ----------------------------------------------------
+	var want := ["puzzled", "startled", "protest", "flee", "call_help", "plead", "down", "fight_back", "intervene", "shout", "back_away", "watch"]
+	print("PROBE states seen naturally: ", seen.keys())
+	for st: String in want:
+		if seen.has(st):
+			continue
+		var id := adult_at_work([a, b, c, victim])
+		if id < 0:
+			continue
+		await at_minute(int(v.runtime.now) % 1440 + 1)
+		var body: Node3D = reg.bodies[id]
+		await stand_near(body, 2.4)
+		var now := int(v.runtime.now)
+		v.runtime.get_or_add("reactions", {})[str(id)] = {"state": st, "since": now, "until": now + 14}
+		if st == "intervene":
+			v.runtime.reactions[str(a)] = {"state": "protest", "since": now, "until": now + 14}
+		await get_tree().create_timer(0.9).timeout
+		print("PROBE injected %s on %s: bubble '%s'" % [st, v.people[id].name, React.bubble_text(body)])
+		await look_shot(body.global_position, "provoke-17-injected-" + st)
+	check(true, "the provoke run is over")
 
 
 func rite_run() -> void:

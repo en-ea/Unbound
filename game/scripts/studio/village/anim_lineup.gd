@@ -9,6 +9,9 @@ const SETS := {
 	"work": ["Farm_Harvest", "Farm_PlantSeed", "Farm_Watering", "TreeChopping:axe", "TreeChopping:pickaxe", "Push", "Fixing_Kneeling", "PickUp_Table"],
 	"rest": ["Idle", "Idle_FoldArms", "Consume", "Sitting_Idle", "Crouch_Idle", "Idle_Lantern", "Interact", "Spell_Simple_Idle"],
 	"social": ["Idle_Talking", "Sitting_Talking", "Yes", "Idle_No", "Idle_Rail_Call", "Idle_TalkingPhone", "Dance", "Chest_Open"],
+	# answering a blow (name@seconds in: the moment of a one-shot to hold)
+	"react": ["LayToIdle@0.0", "LayToIdle@0.5", "Hit_Knockback@0.5", "Sitting_Idle@0.0", "Crouch_Idle", "Fixing_Kneeling", "Punch_Jab@0.15", "Punch_Cross@0.1"],
+	"react2": ["Sword_Idle", "Spell_Simple_Idle", "Spell_Simple_Shoot@0.3", "Idle_Torch", "Zombie_Idle", "Hit_Chest@0.2", "Jog_Fwd", "Sword_Block@0.3"],
 }
 const GAP := 1.35
 
@@ -45,7 +48,9 @@ func _build() -> void:
 		names = SETS.get(_set, SETS.work)
 	var x := -(names.size() - 1) * GAP / 2.0
 	for entry: String in names:
-		var bits := entry.split(":")
+		var timed := entry.split("@")
+		var start_at := float(timed[1]) if timed.size() > 1 else 0.7
+		var bits := timed[0].split(":")
 		var at := player.global_position + Vector3(x, 0.0, 0.0)
 		at.y = shape.height_at(at.x, at.z)
 		var body := VillagerBody.new()
@@ -58,7 +63,7 @@ func _build() -> void:
 		add_child(body)
 		body.global_position = at
 		body.rotation.y = 0.0
-		body.play_loop(bits[0], 0.0, 1.0, 0.7)
+		body.play_loop(bits[0], 0.0, 0.0 if timed.size() > 1 else 1.0, start_at)
 		if bits.size() > 1:
 			body.show_tool(bits[1])
 		var label := Label3D.new()
