@@ -261,6 +261,7 @@ const HOME_FURNITURE := {
 	"trunk": {"wood": 6, "copper": 2},
 	"plant": {"flower": 3, "stone": 2},
 	"lamp": {"wood": 3, "resin": 1},
+	"trophy": {"crown_antlers": 1, "wood": 2},
 	"rug_round": {"hide": 3, "flower": 2},
 	"rug_long": {"pelt": 2, "hide": 2},
 }

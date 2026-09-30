@@ -5,6 +5,13 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "30 Sep", "title": "More homes, a second inside, trophies", "lines": [
+		"Six more houses to buy or move into: Storybook Cottage, Turret Cottage, Arch Cottage, Skep Cottage, Hull House and Gable House. Each card shows the house now.",
+		"The inside is chosen apart from the house, and you can change it any time for free (the home screen at your mailbox):",
+		"Layout: the Hearth Room (big fireplace at the back) or the new Bright Room (two tall windows at the back, the fire on the side wall). Furniture in the way moves aside.",
+		"Feel: Cottage (painted panels), Lodge (warm planks) or Stone (fieldstone and whitewash). Any feel works with any house and layout.",
+		"New furniture: the Stag trophy, made from Crown Antlers (sell a whole stag at the butcher to get them).",
+	]},
 	{"when": "30 Sep", "title": "Hunting: stags, bodies, the butcher and the ox cart", "lines": [
 		"Stags graze out on the open grass (two herds in the meadow, two in the wood). They hear you walk and see you coming: sneak up, or the whole herd bolts. Hurt one up close and it may lower its antlers and charge (watch for the glint).",
 		"Kills stay where they fall now (stags, boars, wolves). Walk up and Take: Carve here (meat and hide now), Drag it, or put it Into the cart.",

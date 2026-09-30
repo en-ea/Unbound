@@ -144,20 +144,22 @@ func _refresh() -> void:
 					_sell_row(item)
 		"home":
 			if Home.owned():
-				_note.text = "Your %s. Build in the yard, or move into another house (free; the yard stays)." % Home.HOUSES[Home.house][0]
+				_note.text = "Your %s. Build in the yard, change the inside, or move into another house (all free; the yard stays)." % Home.HOUSES[Home.house][0]
 				_offer("", "Build in the yard", "Fences, lanterns, benches, flower beds, a campfire, a workbench and more.", {}, 0, "Start building", func() -> bool:
 					_close()
 					build_home.emit()
 					return false)
+				_inside_offers()
 				for h: String in Home.HOUSES:
 					if h != Home.house:
-						_offer("", Home.HOUSES[h][0], "", {}, 0, "Move in", Home.change_house.bind(h).unbind(0))
+						_offer("house:" + h, Home.HOUSES[h][0], "", {}, 0, "Move in", Home.change_house.bind(h).unbind(0))
 			else:
 				var miss := Home.missing()
-				_note.text = "A plot of your own, with a house you choose. " + ("Ready to buy!" if miss.is_empty() else "Still needed: " + "; ".join(miss) + ".")
+				_note.text = "A plot of your own, with a house you choose, and the inside you like (change it any time). " + ("Ready to buy!" if miss.is_empty() else "Still needed: " + "; ".join(miss) + ".")
 				for h: String in Home.HOUSES:
-					_offer("", Home.HOUSES[h][0], "", {}, Balance.HOME["coins"], "Buy" if miss.is_empty() else "Not yet",
+					_offer("house:" + h, Home.HOUSES[h][0], "", {}, Balance.HOME["coins"], "Buy" if miss.is_empty() else "Not yet",
 						Home.buy.bind(h).unbind(0), false, [], not miss.is_empty())
+				_inside_offers()
 		"project":
 			var d: Dictionary = Projects.DEFS[project]
 			if Projects.is_built(project):
@@ -168,6 +170,24 @@ func _refresh() -> void:
 					Projects.fund.bind(project).unbind(0))
 
 
+## The inside: its layout (where the fire and windows are) and its feel (walls, floor, cloth). Free to change.
+func _inside_offers() -> void:
+	for id: String in Home.LAYOUTS:
+		var lay: Dictionary = Home.LAYOUTS[id]
+		var chosen := Home.layout == id
+		_offer("", "Inside: " + lay["name"], lay["blurb"] + (" Furniture in the way moves aside." if Home.owned() else ""), {}, 0,
+			"Chosen" if chosen else "Choose", func() -> bool:
+				Home.set_layout(id)
+				return true, false, [], chosen)
+	for id: String in Home.FEELS:
+		var chosen := Home.room_feel() == id
+		var blurb: String = {"lantern": "Painted panels, cream walls, red curtains.", "lodge": "Warm planks all the way up, dark timber.",
+			"hill": "Fieldstone and whitewash, golden cloth."}[id]
+		_offer("", "Feel: " + Home.FEELS[id], blurb, {}, 0, "Chosen" if chosen else "Choose", func() -> bool:
+			Home.set_feel(id)
+			return true, false, [], chosen)
+
+
 ## A card with a picture, a name, some text, a cost and a button that runs `action`.
 func _offer(item: String, title: String, text: String, cost: Dictionary, coins: int, verb: String, action: Callable, done := false, tool: Array = [], locked := false) -> void:
 	var edge := Color(1, 1, 1, 0.12)
@@ -176,7 +196,18 @@ func _offer(item: String, title: String, text: String, cost: Dictionary, coins: 
 	elif not tool.is_empty() and tool[1]["rarity"] > 0:
 		edge = Loot.rarity_color(tool[1]["rarity"])
 	var v := _card(edge)
-	if item != "":
+	if item.begins_with("house:"):             # a home: its picture
+		var pic := TextureRect.new()
+		pic.custom_minimum_size = Vector2(0, 120)
+		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		pic.texture = ItemIcons.icon(item)
+		if pic.texture == null:
+			ItemIcons.icon_ready.connect(func(i: String) -> void:
+				if i == item and is_instance_valid(pic):
+					pic.texture = ItemIcons.icon(item))
+		v.add_child(pic)
+	elif item != "":
 		v.add_child(INVENTORY.item_icon(item, 64))
 	elif not tool.is_empty():
 		var pic := CRAFTING.tool_picture(tool[0], tool[1]["tier"], 64)

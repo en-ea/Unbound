@@ -169,6 +169,10 @@ func _ready() -> void:
 			get_tree().call_group.call_deferred("home_interior", "enter", true)
 			if "--furnish" in OS.get_cmdline_user_args():
 				get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").start_build_mode(true))
+		elif arg.begins_with("--layout="):                # the inside's layout (after --inside): --layout=bright
+			Home.set_layout(arg.trim_prefix("--layout="))
+		elif arg.begins_with("--feel="):                  # the inside's feel: --feel=hill
+			Home.set_feel(arg.trim_prefix("--feel="))
 		elif arg == "--home":                             # own the home, a few pieces built, build mode on
 			Home.house = "lodge"
 			Home.pieces = [{"id": "campfire", "x": -44.0, "z": 42.0, "turn": 0.0}, {"id": "bench", "x": -44.0, "z": 44.5, "turn": 0.0},
