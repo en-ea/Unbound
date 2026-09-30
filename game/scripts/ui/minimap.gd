@@ -60,11 +60,17 @@ func _draw() -> void:
 		return
 	draw_texture_rect(_tex, Rect2(Vector2(3, 3), Vector2(SIZE - 6, SIZE - 6)), false, Color(1, 1, 1, 0.9))
 	draw_style_box(_frame, Rect2(Vector2.ZERO, Vector2(SIZE, SIZE)))
+	# All the fills first, then all the outlines as one line list, so they draw in two batches.
+	var edges := PackedVector2Array()
 	for n: Node3D in get_tree().get_nodes_in_group("map_building"):     # houses, workbench...
 		var s: Vector2 = n.get_meta("map_size", Vector2(4, 4)) / SPAN * (SIZE - 6)
 		var r := Rect2(_to_map(n.global_position) - s * 0.5, s)
 		draw_rect(r, Color(0.86, 0.62, 0.42))
-		draw_rect(r, Color(0.3, 0.2, 0.15), false, 1.0)
+		var q := [r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]
+		for i in 4:
+			edges.append_array([q[i], q[(i + 1) % 4]])
+	if not edges.is_empty():
+		draw_multiline(edges, Color(0.3, 0.2, 0.15), 1.0)
 	if landmark:
 		draw_circle(_to_map(landmark.global_position), 4.0, Color(1.0, 0.85, 0.4))
 	for e in get_tree().get_nodes_in_group("enemy"):

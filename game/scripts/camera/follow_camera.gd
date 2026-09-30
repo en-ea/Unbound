@@ -23,6 +23,8 @@ const HELP_TURN := 1.1             # radians a second when turning to show an en
 const HELP_RANGE := 9.0            # enemies this close get turned into view
 const HELP_WAIT := 2.0             # seconds after you turn it yourself before it helps again
 const GROUND_CLEAR := 0.9          # keep the lens and the line of sight this far above the ground
+const TURN_EASE := 14.0            # how fast the view catches up with your drag (touches come in unevenly)
+const FAR := 130.0                 # draw distance: the fog has covered the land by here
 
 @onready var camera: Camera3D = $Camera3D
 
@@ -34,6 +36,8 @@ var _base_distance := 11.0
 var _outdoor_pitch := -20.0
 var _room := Vector3.INF             # indoors: the room's centre
 var _yaw := 0.0
+var _yaw_goal := 0.0
+var _lift := 0.0                     # metres the camera is raised to clear a hill (eased)
 var _outdoor_yaw := 0.0
 var _since_turn := HELP_WAIT
 var _shape := WorldShape.new()
@@ -42,7 +46,7 @@ var _shape := WorldShape.new()
 func _ready() -> void:
 	add_to_group("camera_rig")
 	camera.fov = fov
-	camera.far = 220.0
+	camera.far = FAR
 	camera.near = 0.3
 	_base_distance = distance
 	_outdoor_pitch = pitch_degrees
@@ -69,12 +73,18 @@ func set_view(d: float, pitch: float, offset: Vector3, time := 0.6, lens := CLOS
 func turn(amount: float) -> void:
 	if _room != Vector3.INF:
 		return
-	_set_yaw(_yaw + amount)
+	_yaw_goal += amount
 	_since_turn = 0.0
 
 
+## Turns straight to `y` (no easing).
 func _set_yaw(y: float) -> void:
-	_yaw = wrapf(y, -PI, PI)
+	_yaw_goal = wrapf(y, -PI, PI)
+	_apply_yaw(_yaw_goal)
+
+
+func _apply_yaw(y: float) -> void:
+	_yaw = y
 	rotation.y = _yaw
 	Controls.cam_yaw = _yaw
 
@@ -155,10 +165,16 @@ func _process(delta: float) -> void:
 			turn(keys * KEY_TURN * delta)
 		elif _since_turn > HELP_WAIT:
 			_show_enemy(delta)
+	if not is_equal_approx(_yaw, _yaw_goal):
+		var y := lerp_angle(_yaw, _yaw_goal, 1.0 - exp(-TURN_EASE * delta))
+		if absf(angle_difference(y, _yaw_goal)) < 0.0005:
+			_yaw_goal = wrapf(_yaw_goal, -PI, PI)
+			y = _yaw_goal
+		_apply_yaw(y)
 	if target:
 		global_position = global_position.lerp(_focus(), clampf(follow_speed * delta, 0.0, 1.0))
 	if _room == Vector3.INF:
-		_clear_ground()
+		_clear_ground(delta)
 
 
 ## An enemy close behind you (off the bottom of the screen): turn slowly until it is in view.
@@ -179,8 +195,9 @@ func _show_enemy(delta: float) -> void:
 		_set_yaw(_yaw + signf(off) * minf(absf(off) - limit, HELP_TURN * delta))
 
 
-## Rises over hills: keeps the lens, and the line from it to you, above the ground.
-func _clear_ground() -> void:
+## Rises over hills: keeps the lens, and the line from it to you, above the ground. It rises
+## quickly and settles back slowly, so turning over bumpy ground doesn't make it bob.
+func _clear_ground(delta: float) -> void:
 	set_distance(distance)            # the plain spot, before lifting
 	var eye := camera.global_position
 	var focus := global_position
@@ -189,8 +206,9 @@ func _clear_ground() -> void:
 		var p := eye.lerp(focus, t)
 		var need := _shape.height_at(p.x, p.z) + GROUND_CLEAR - p.y
 		lift = maxf(lift, need / (1.0 - t))
-	if lift > 0.0:
-		camera.position.y += lift
+	_lift = lerpf(_lift, maxf(lift, 0.0), 1.0 - exp(-(10.0 if lift > _lift else 2.0) * delta))
+	if _lift > 0.01:
+		camera.position.y += _lift
 		camera.look_at(focus)
 
 

@@ -4,7 +4,7 @@ extends Node3D
 
 const OWN := "res://assets/nature/%s.glb"          # all models: tools-src/blender/make_trees.py
 const SOLID_FOLIAGE_SHADER := preload("res://shaders/foliage_solid.gdshader")
-const CHUNK := 30.0
+const CHUNK := 60.0
 const TREE_CELL := 5.0      # grid cell for fast "is there a tree near here" checks
 const EDGE := WorldShape.PLAY_HALF - 8.0     # past this, the woods close in around the region
 
