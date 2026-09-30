@@ -99,6 +99,8 @@ const PLANTED := ["Someone marked my door. I'll find out who.", "Wood on my step
 
 ## A mild memory: sometimes, not always.
 const MET := ["Back again? Good to see you.", "Ah, it's you. How goes the road?", "You again. Welcome.", "Still about, then?"]
+const SHIELDED := ["You stepped in front of those stones. I remember.", "Nobody else moved. You did.",
+	"That took nerve, standing there for me.", "I saw who stood in the way. Thank you."]
 const HELPED := ["You helped us. The village remembers.", "That was kind, before. It's not forgotten."]
 const TESTIFIED := ["You spoke up when it counted. Not everyone would.", "Your words are still being chewed over in every kitchen.",
 	"Some thank you for speaking up. Some don't."]
@@ -342,6 +344,8 @@ static func _child(id: int, day: int, known: Array, mood: String, part: String, 
 
 ## A mild memory, said now and then (not on every visit): "" when none applies or it is not their day for it.
 static func _mild(known: Array, h: int) -> String:
+	if known.has("you_shielded") and _chance(h, 12, 75):
+		return _pick(SHIELDED, h >> 3)
 	if known.has("helped_by_you") and _chance(h, 7, 65):
 		return _pick(HELPED, h >> 3)
 	if known.has("you_testified") and _chance(h, 8, 60):
@@ -358,7 +362,7 @@ static func _mild(known: Array, h: int) -> String:
 ## Every line the module can say (with {name} and {culprit} left in), for the checks.
 static func all_lines() -> Array[String]:
 	var out: Array[String] = []
-	for pool: Variant in [FOREBEAR, CHILD, STRANGER, FREED, ANGERED, HIT, SAW_HIT, SAW_PLANT, PLANTED, MET, HELPED, TESTIFIED,
+	for pool: Variant in [FOREBEAR, CHILD, STRANGER, FREED, ANGERED, HIT, SAW_HIT, SAW_PLANT, PLANTED, MET, SHIELDED, HELPED, TESTIFIED,
 			OFFERED_COINS, TOLD, MOOD, AUTHORITY, PRIEST, VERBS, TRADE, OLD, TIME, EVENT]:
 		_collect(pool, out)
 	return out
