@@ -70,6 +70,11 @@ func _ready() -> void:
 	_damage = Balance.BOAR["damage"] + tough["damage"]
 
 
+## True while it has noticed you and is fighting (the music switches to the fight tune).
+func is_engaged() -> bool:
+	return state != State.WANDER and state != State.DEAD
+
+
 func is_alive() -> bool:
 	return state != State.DEAD
 

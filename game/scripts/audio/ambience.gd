@@ -43,6 +43,10 @@ func _ready() -> void:
 	hum.autoplay = true
 	landmark.add_child.call_deferred(hum)
 	hum.position = Vector3(0, 1.5, 0)
+	var music := Music.new()
+	music.day_night = day_night
+	music.listener = listener_target
+	add_child(music)
 
 
 func _process(delta: float) -> void:

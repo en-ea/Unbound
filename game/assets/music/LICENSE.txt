@@ -1,0 +1,10 @@
+All music here is CC0 (public domain), from OpenGameArt.org, re-encoded to Ogg Vorbis for the web build.
+
+meadow.ogg   "Sunset Plains" by Yoiyami             https://opengameart.org/content/sunset-plains
+village.ogg  "Medieval: Exploration" by RandomMind   https://opengameart.org/content/medieval-exploration
+forest.ogg   "Cathedral in the Forest" by congusbongus https://opengameart.org/content/cathedral-in-the-forest-ambient-loop
+fight.ogg    "Medieval: Battle" by RandomMind        https://opengameart.org/content/medieval-battle
+boss.ogg     "Determined Pursuit" by Emma_MA         https://opengameart.org/content/determined-pursuit-epic-orchestra-loop
+
+CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/
+No attribution required; credited here with thanks.

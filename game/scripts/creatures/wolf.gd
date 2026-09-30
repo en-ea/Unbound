@@ -80,6 +80,11 @@ func _ready() -> void:
 			m.set_shader_parameter("albedo", Color(0.42, 0.38, 0.62))
 
 
+## True while it has noticed you and is fighting (the music switches to the fight tune).
+func is_engaged() -> bool:
+	return state != State.WANDER and state != State.DEAD
+
+
 func is_alive() -> bool:
 	return state != State.DEAD
 
