@@ -162,12 +162,13 @@ class Sched:
 	var waited := 0
 	var storm := -1   # a rite's storm
 	var seq := 0   # (port) position in today's list, the sort's final tie-break
+	var retried := 0   # (runtime) times a cancelled hearing or sentence was put back (runtime.gd cancel)
 
 	func copy() -> Sched:
 		var s := Sched.new()
 		s.day = day; s.kind = kind; s.case_id = case_id; s.who = who; s.other = other; s.name = name
 		s.act = act; s.causes = causes; s.minute = minute; s.confessed = confessed; s.vetoed = vetoed
-		s.hold = hold; s.waited = waited; s.storm = storm
+		s.hold = hold; s.waited = waited; s.storm = storm; s.retried = retried
 		return s
 
 

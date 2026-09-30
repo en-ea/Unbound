@@ -9,6 +9,9 @@ var _t := 0.0
 var _started := false
 var _seen := {}          # event id -> [type, kind, real minute seen]
 var _first_scene := -1.0
+var _clock0 := -1               # village minutes when play began (a failure says why: did time run, was the player seen?)
+var _present_s := 0.0
+var _locked_s := 0.0
 
 
 func _ready() -> void:
@@ -30,6 +33,12 @@ func _process(delta: float) -> void:
 		return
 	_t += delta / SPEED   # real play minutes are measured without the speed-up
 	var v = VillageSession.village
+	if _clock0 < 0:
+		_clock0 = int(v.runtime.now)
+	if v.runtime.get("player", {}).get("present", false):
+		_present_s += delta / SPEED
+	if Controls.locked or VillageSession.background:
+		_locked_s += delta / SPEED
 	for e: Dictionary in v.runtime.events:
 		if _seen.has(int(e.id)) or e.phase != "active":
 			continue
@@ -44,6 +53,9 @@ func _process(delta: float) -> void:
 			var key: String = "%s:%s" % [_seen[id][0], _seen[id][1]]
 			counts[key] = counts.get(key, 0) + 1
 		print("LIVELY %.0f minutes of play in the square: %s; first small scene at %.1f min" % [_minutes, JSON.stringify(counts), _first_scene])
+		print("LIVELY village clock %d -> %d (%d game minutes); player seen as present %.0f%% of the time; controls locked or in the background %.0f%%; quiet since %d; last scene %s" % [
+			_clock0, int(v.runtime.now), int(v.runtime.now) - _clock0, 100.0 * _present_s / maxf(_t, 0.001), 100.0 * _locked_s / maxf(_t, 0.001),
+			int(v.runtime.get("quiet_since", -1)), str(v.runtime.get("last_scene", ""))])
 		var ok := _first_scene >= 0.0 and _first_scene <= 10.0
 		print(("PASS" if ok else "FAIL") + " lively: a small scene within 10 minutes of play near the player")
 		get_tree().quit(0 if ok else 1)

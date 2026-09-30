@@ -11,6 +11,7 @@ const C := preload("res://scripts/studio/village/sim/content.gd")
 const Incidents := preload("res://scripts/studio/village/sim/incidents.gd")
 const WorldActions := preload("res://scripts/studio/village/sim/world_actions.gd")
 const Authored := preload("res://scripts/studio/village/sim/authored.gd")
+const RETRIES := 3   # a cancelled hearing or sentence is put back this many times before its case goes cold
 
 static func create(seed: int = 1, opts: Dictionary = {}) -> S.Village:
 	var settings := {"pace": 10, "focus": true, "live": true}
@@ -251,6 +252,10 @@ static func resolve(v: S.Village, e: Dictionary) -> void:
 	Village.plan_day(v)
 
 static func cancel(v: S.Village, e: Dictionary, reason: String) -> void:
+	var sentence: S.Sched = null
+	for a: S.PublicAct in v.pending:
+		if a.staging == int(e.id):
+			sentence = a.s
 	v.pending = v.pending.filter(func(a: S.PublicAct) -> bool: return a.staging != int(e.id))
 	v.runtime.hearings = v.runtime.hearings.filter(func(a: Dictionary) -> bool: return int(a.staging) != int(e.id))
 	v.runtime.rites = v.runtime.rites.filter(func(a: Dictionary) -> bool: return int(a.staging) != int(e.id))
@@ -259,6 +264,19 @@ static func cancel(v: S.Village, e: Dictionary, reason: String) -> void:
 	e.phase = "cancelled"; e.outcome = reason; e.revision += 1
 	if e.type != "incident":
 		v.people[int(e.victim)].locked = false
+	# The rules alone try a case and carry out its sentence on the day; here someone in it can be gone by the time it
+	# opens. The case is not left open for ever: the hearing or the sentence is put back to the next dawn (the rules
+	# then close it if the accused is gone), RETRIES times at most, and then the case goes cold.
+	if reason == "participant unavailable":
+		var s: S.Sched = e.source if e.type == "hearing" else sentence
+		if s != null and s.case_id >= 0:
+			if s.retried < RETRIES:
+				var again := s.copy()
+				again.day = next_dawn(v) / Village.DAY
+				again.retried = s.retried + 1
+				v.schedule.append(again)
+			else:
+				v.crimes[v.cases[s.case_id].crime].closed = true
 
 static func valid_participants(v: S.Village, e: Dictionary) -> bool:
 	for actor: int in e.actors:
