@@ -90,6 +90,7 @@ static func report() -> PackedStringArray:
 		var seed := 5000 + s * 7919
 		var t0 := Time.get_ticks_usec()
 		var V := _village(seed, years, pace, focus, runtime)
+		var stuck := {}
 		# a runtime village has already taken its first day (Runtime.create), as the reference's d = 0 step
 		for d in years * Village.YEAR:
 			if d > 0 or not runtime:
@@ -111,7 +112,8 @@ static func report() -> PackedStringArray:
 						fail.call(seed, "household %d food %s" % [h.id, str(h.food)])
 				for c in V.cases:
 					var cr := V.crimes[c.crime]
-					if cr.case_open and not cr.closed and V.day - c.day > 120:
+					if cr.case_open and not cr.closed and V.day - c.day > 120 and not stuck.has(c.id):
+						stuck[c.id] = true   # (a stuck case is named once, the year it is first found; the reference names it every year)
 						fail.call(seed, "case %d (%s) open for %d days" % [c.id, cr.act, V.day - c.day])
 				var open := 0
 				for c in V.crimes:
