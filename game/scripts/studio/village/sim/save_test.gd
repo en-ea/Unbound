@@ -205,6 +205,12 @@ static func report() -> PackedStringArray:
 	var odd_data := _disk(Save.to_data(odd))
 	var odd_back := Save.from_data(odd_data)
 	check.call(odd_data.layout == "saved" and odd_back != null and odd_back.dist2 == odd.dist2 and odd_back.place_x == odd.place_x, "a village on another layout keeps its tables")
+	# a place the rules named on the fly is carried too
+	var named := Runtime.create(3)
+	Village.place_id(named, "somewhere_new")
+	var named_data := _disk(Save.to_data(named))
+	var named_back := Save.from_data(named_data)
+	check.call(named_data.layout == "meadow" and named_data.extra_places == ["somewhere_new"] and named_back != null and named_back.place_names == named.place_names 		and named_back.place_ids == named.place_ids and named_back.dist2 == named.dist2, "a place added on the fly survives a load")
 	# 6. A new game gets its own village; tests and dev runs keep seed 1 unless told otherwise.
 	var fresh := [Save.new_seed(PackedStringArray()), Save.new_seed(PackedStringArray()), Save.new_seed(PackedStringArray())]
 	check.call(fresh.all(func(n: int) -> bool: return n >= 1) and (fresh[0] != fresh[1] or fresh[1] != fresh[2]), "a new game draws its own village seed (%s)" % str(fresh))

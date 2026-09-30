@@ -6,7 +6,8 @@ extends RefCounted
 ## - Only the stagings that an open runtime event, pending act, hearing or rite refers to. Past ones are
 ##   scripts the stage already played.
 ## - No layout tables (`homes, place_*, dist2, n_places, pl_*, role_work`): after decode they are rebuilt with
-##   Village.make_places from the meadow layout. A village on any other layout keeps its tables in the save.
+##   Village.rebuild_places (make_places from the meadow layout, and the spots the rules add on attach). A village
+##   on any other layout keeps its tables in the save.
 ## - Dead and faded people keep who they were but no beliefs, feelings, grudges or plan.
 ## - Compact: each class is written once as a field-name list ("schemas") and every object as a positional
 ##   array, trailing defaults dropped. Classes are found by reflection over state.gd, so a field the rules
@@ -39,7 +40,8 @@ enum K { INT, STR, FLOAT, BOOL, PINT, PBYTE, PSTR, AINT, AOBJ, ADICT, OBJ, ANY }
 static var _classes := {}      # name -> GDScript (every class in state.gd)
 static var _names := {}        # GDScript -> name
 static var _layouts := {}      # name -> {names, kinds, classes, slim, defaults}
-static var _reference: S.Village = null   # the meadow layout's places, built once
+static var _verified_sig := -1   # the place tables (and what they depend on) last shown to be a rebuild's, and how many places that was
+static var _verified_count := 0
 static var _used := {}         # class names met while encoding
 static var _bad := false       # set by the decoder at the first thing that is not what it should be
 static var _header := {}       # class name -> position in the array -> field index in the layout (-1: unknown)
@@ -230,27 +232,56 @@ static func _kept_stagings(v: S.Village) -> Dictionary:
 	return keep
 
 
-static func _reference_village() -> S.Village:
-	if _reference == null:
-		_reference = S.Village.new()
-		Village.make_places(_reference, Village.MEADOW)
-	return _reference
+## Rebuilds the layout tables of a decoded village: the meadow layout and what the rules add when a runtime is
+## attached (Village.rebuild_places, once it exists; make_places alone until then).
+static func _rebuild_places(v: S.Village) -> void:
+	var rules: GDScript = Village
+	if rules.has_method("rebuild_places"):
+		rules.call("rebuild_places", v)
+	else:
+		Village.make_places(v, Village.MEADOW)
 
 
-## Is this village on the meadow layout? Then its layout tables are recomputed, not saved. Places the rules
-## added on the fly (named, at [0, 0]) are the only thing beyond the layout that is allowed.
-static func _meadow(v: S.Village) -> bool:
-	var ref := _reference_village()
-	var n := ref.place_names.size()
-	if v.place_names.size() < n or v.homes != ref.homes:
-		return false
-	for i in n:
-		if v.place_names[i] != ref.place_names[i] or v.place_x[i] != ref.place_x[i] or v.place_z[i] != ref.place_z[i] or v.place_has_pos[i] != ref.place_has_pos[i]:
-			return false
-	for i in range(n, v.place_names.size()):
-		if v.place_x[i] != 0 or v.place_z[i] != 0 or v.place_has_pos[i] != 0:
-			return false
-	return true
+## Everything the rebuild could depend on, folded to one number: the tables as they are, and which people are authored.
+static func _place_signature(v: S.Village) -> int:
+	var authored := []
+	for p in v.people:
+		var who: Variant = p.get(&"authored")
+		if who is String and not who.is_empty():
+			authored.append([p.id, who])
+	return hash([v.place_names, v.place_x, v.place_z, v.place_has_pos, v.homes, authored])
+
+
+## How many of this village's places a rebuild recreates, or -1 when its tables are not a rebuild's (another
+## layout: nothing to rebuild them from, so they are saved). Places the rules added on the fly (named, at
+## [0, 0]) may follow. The answer is remembered until the tables change, so a save pays for the rebuild once.
+static func _rebuilt_count(v: S.Village) -> int:
+	var sig := _place_signature(v)
+	if sig == _verified_sig:
+		return _verified_count
+	var probe := S.Village.new()
+	var layout := _layout("Village")
+	for i in layout.names.size():   # what a load hands the rebuild: every field but the derived ones
+		if not _derived(String(layout.names[i])):
+			probe.set(layout.names[i], v.get(layout.names[i]))
+	_rebuild_places(probe)
+	var n := probe.place_names.size()
+	var same := v.place_names.size() >= n and v.homes == probe.homes
+	if same:
+		for i in n:
+			if v.place_names[i] != probe.place_names[i] or v.place_x[i] != probe.place_x[i] or v.place_z[i] != probe.place_z[i] or v.place_has_pos[i] != probe.place_has_pos[i]:
+				same = false
+				break
+	if same:
+		for i in range(n, v.place_names.size()):
+			if v.place_x[i] != 0 or v.place_z[i] != 0 or v.place_has_pos[i] != 0:
+				same = false
+				break
+	if not same:
+		return -1
+	_verified_sig = sig
+	_verified_count = n
+	return n
 
 
 static func _derived(name: String) -> bool:
@@ -278,7 +309,8 @@ static func to_data(v: S.Village, compress: bool = true) -> Dictionary:
 	var names: Array = layout.names
 	var kinds: PackedInt32Array = layout.kinds
 	var classes: PackedStringArray = layout.classes
-	var meadow := _meadow(v)
+	var rebuilt := _rebuilt_count(v)
+	var meadow := rebuilt >= 0
 	var keep := _kept_stagings(v)
 	var fields := {}
 	for i in names.size():
@@ -297,8 +329,8 @@ static func to_data(v: S.Village, compress: bool = true) -> Dictionary:
 		schemas[cls_name] = _layout(cls_name).names.map(func(n: StringName) -> String: return String(n))
 	var data := {"version": VERSION, "layout": "meadow" if meadow else "saved", "schemas": schemas,
 		"state": {"type": "Village", "fields": fields}}
-	if meadow and v.place_names.size() > _reference_village().place_names.size():
-		data["extra_places"] = Array(v.place_names.slice(_reference_village().place_names.size()))
+	if meadow and v.place_names.size() > rebuilt:
+		data["extra_places"] = Array(v.place_names.slice(rebuilt))
 	return data
 
 
@@ -506,7 +538,7 @@ static func _decode(data: Dictionary) -> S.Village:
 		if _bad:
 			return null
 	if meadow:
-		Village.make_places(v, Village.MEADOW)
+		_rebuild_places(v)
 		var extras: Variant = data.get("extra_places", [])
 		if not extras is Array:
 			return null
