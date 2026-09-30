@@ -312,7 +312,7 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 		if not speaker.alive or not speaker.present or not e.witnesses.has(speaker_id):
 			return fail("no witness here")
 		if v.lang[v.age * 3 + speaker.era] >= 60:
-			return fail("Their words are unfamiliar; use gestures.")
+			return fail("Their words are unfamiliar; use gestures.", "unfamiliar_words")
 		var case_id := -1
 		if e.type == "hearing":
 			case_id = e.source.case_id
@@ -328,14 +328,14 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 			if b.crime == crime_id and (belief == null or b.strength > belief.strength):
 				belief = b
 		if belief == null:
-			return fail("I did not see it.")
+			return fail("I did not see it.", "did_not_see")
 		var clue := {"crime": belief.crime, "culprit": belief.culprit, "origin": belief.origin,
 			"strength": belief.strength, "via": "retelling", "speaker": speaker.id}
 		if not has_clue(player.knowledge, clue, true):
 			player.knowledge.append(clue)
 		if player.knowledge.size() > 32:
 			player.knowledge = player.knowledge.slice(-32)
-		return accept(r, e, request, "heard", {"clue": clue})
+		return accept(r, e, request, "heard", {"clue": clue, "code": "heard"})
 	if verb == "inspect":
 		if e.type != "hearing":
 			return fail("no open case")
@@ -347,7 +347,7 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 			"strength": 800, "via": "trace", "speaker": -1}
 		if not has_clue(player.knowledge, clue):
 			player.knowledge.append(clue)
-		return accept(r, e, request, "found a trace", {"clue": clue})
+		return accept(r, e, request, "found a trace", {"clue": clue, "code": "found_trace"})
 	if verb == "testify":
 		if e.type != "hearing":
 			return fail("hearing closed")
@@ -377,7 +377,8 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 				cs.evidence = maxi(0, cs.evidence - int(clue.strength)); e.challenge += clue.strength
 		e.revision += 1
 		return accept(r, e, request, "We already heard that account." if known else
-			("That supports the accusation." if clue.culprit == cs.accused else "That casts doubt on the accusation."))
+			("That supports the accusation." if clue.culprit == cs.accused else "That casts doubt on the accusation."),
+			{"code": "testimony_known" if known else ("testimony_supports" if clue.culprit == cs.accused else "testimony_doubts")})
 	if verb == "bribe":
 		if e.type != "hearing" or not str(e.bribe).is_empty():
 			return fail("offer already decided")
@@ -396,7 +397,7 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 			WorldActions.remember(v, judge_id, "you_offered_coins", -30 if judge.traits[C.HONESTY] >= 70 else -10)
 		e.revision += 1
 		return accept(r, e, request, "I will weigh your request." if e.bribe == "accepted" else "Keep your coins. This is a hearing.",
-			{"coins": 5 if e.bribe == "accepted" else 0})
+			{"coins": 5 if e.bribe == "accepted" else 0, "code": "bribe_accepted" if e.bribe == "accepted" else "bribe_refused"})
 	if verb == "plant":
 		if e.type != "hearing":
 			return fail("trace already placed")
@@ -415,7 +416,8 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 		r.traces.append({"event": e.id, "crime": v.cases[e.source.case_id].crime, "culprit": p.id,
 			"place": home, "origin": 3000000 + int(e.id), "discover_at": int(r.now) + 15,
 			"observers": observers, "discovered": false, "planted_by": request.player_id})
-		return accept(r, e, request, "Someone saw you leave the marked wood." if not observers.is_empty() else "Marked wood left by the door.", {"wood": 1})
+		return accept(r, e, request, "Someone saw you leave the marked wood." if not observers.is_empty() else "Marked wood left by the door.",
+			{"wood": 1, "code": "plant_seen" if not observers.is_empty() else "plant_unseen"})
 	if verb == "shield":
 		var beat_id: Variant = params.get("beat")
 		if e.type != "public" or not (beat_id is int) or e.shields.has(beat_id):
@@ -443,7 +445,7 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 					all_shielded = false; break
 			if all_shielded:
 				pending.lethal_by_stones = false
-		return accept(r, e, request, "intercepted one throw", {"damage": 1 if beat.get("prop", "") == "stone" else 0})
+		return accept(r, e, request, "intercepted one throw", {"damage": 1 if beat.get("prop", "") == "stone" else 0, "code": "shielded"})
 	var ritual_offer := false
 	if verb == "offer":
 		if e.type != "rite" or not str(e.bribe).is_empty():
@@ -453,7 +455,7 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 		var leader := v.people[e.source.who]
 		e.bribe = "offered"; ritual_offer = true
 		if leader.traits[C.COMPASSION] + leader.values[C.V_MERCY] < 105:
-			return accept(r, e, request, "They turn back to the fire.", {"wood": 1})
+			return accept(r, e, request, "They turn back to the fire.", {"wood": 1, "code": "offer_refused"})
 	if (not ritual_offer and verb != "free") or e.type == "hearing":
 		return fail("unknown action")
 	if e.type == "rite":
@@ -486,10 +488,11 @@ static func act(v: S.Village, request: Dictionary, context: Dictionary) -> Dicti
 			cancel(v, other, "rescued")
 	e.phase = "resolved"; e.outcome = "spared" if ritual_offer else "rescued"; e.revision += 1
 	Village.plan_day(v)
-	return accept(r, e, request, e.outcome, {"wood": 1} if ritual_offer else {})
+	return accept(r, e, request, e.outcome, {"wood": 1, "code": "spared"} if ritual_offer else {"code": "rescued"})
 
-static func fail(reason: String) -> Dictionary:
-	return {"accepted": false, "reason": reason}
+## Results carry a stable `code` beside the words (presentation keys its lines on the code, never the prose).
+static func fail(reason: String, code: String = "") -> Dictionary:
+	return {"accepted": false, "reason": reason, "code": code if not code.is_empty() else reason.to_snake_case().replace(" ", "_")}
 
 static func accept(r: Dictionary, e: Dictionary, request: Dictionary, outcome: String, costs: Dictionary = {}) -> Dictionary:
 	var id: String = request.action_id
