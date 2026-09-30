@@ -36,7 +36,7 @@ func attach(scene: Node) -> void:
 	if not Settings.living_village:
 		return
 	if village == null:
-		village = Runtime.Village.create_village(1, {"pace": 10, "focus": true, "live": true})
+		village = Runtime.Village.create_village(Save.new_seed(OS.get_cmdline_user_args()), {"pace": 10, "focus": true, "live": true})
 		Runtime.attach(village, initial_minute)
 		if "--village-soon" in OS.get_cmdline_user_args():
 			for _i in 150:
@@ -71,6 +71,10 @@ func attach(scene: Node) -> void:
 			var checks: Node = load("res://scripts/studio/village/checks_probe.gd").new()
 			checks.name = "ChecksProbe"
 			add_child(checks)
+		if arg.begins_with("--village-webprobe=") and not has_node("WebProbe"):
+			var web: Node = load("res://scripts/studio/village/web_probe.gd").new()
+			web.name = "WebProbe"
+			add_child(web)
 		if arg.begins_with("--village-measure=") and not has_node("MeasureProbe"):
 			var measure: Node = load("res://scripts/studio/village/measure_probe.gd").new()
 			measure.name = "MeasureProbe"
