@@ -57,6 +57,23 @@ const NPCS := {
 			"I was carved from the hill before this one. The iron there still sings.",
 			"Bring me ore and I will make it into something that lasts."],
 	},
+	"seeker": {
+		"name": "Moss-Cap", "title": "Seeker", "at": Vector2(11.5, -3.0), "scale": Vector3.ONE * 0.56,
+		"body": "res://assets/characters/seeker.glb",
+		"theme": {"bg": Color(0.05, 0.09, 0.08, 0.95), "accent": Color(0.66, 0.88, 1.0), "text": Color(0.9, 0.97, 1.0),
+			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "seeker"},
+		"portrait": {"look_at": Vector3(0, 0.98, 0), "cam": Vector3(0.15, 1.08, 1.25), "fov": 34.0, "turn": -10.0},
+		"walk_speed": 0.8,
+		# A shy spirit by the pond, searching the grass for lost things.
+		"route": [{"at": Vector2(0, 0), "work": "Farm_Harvest"}, {"at": Vector2(-2.0, -1.8), "work": "Fixing_Kneeling"},
+			{"at": Vector2(-1.2, 1.8), "work": ""}, {"at": Vector2(1.0, -0.5), "work": "Farm_Harvest"}],
+		"greetings": ["Oh!", "...hi.", "Shh. Listening.", "*chirp*"],
+		"chatter": ["I find lost things. Buttons, keys, the song a bird forgot. Mostly I put them back.",
+			"Lost things hum. There is an old stone arch west of here, near the hill. Something hums under it.",
+			"Past the pond, where the sun comes up, another arch. Shiny things like old stones.",
+			"Far away where the land gets wild, north and west, something is humming very quietly. Very old.",
+			"You walk loudly. It's all right. The mushrooms don't mind."],
+	},
 }
 
 

@@ -49,6 +49,21 @@ def hum(pitch, length, contour, breath=0.06):
     return (tone + air) * env + tick
 
 
+def chirp(pitch, length, contour):
+    """A tiny, high bird-like chirp: a quick pitch sweep (up, down, or a two-note trill), round and soft."""
+    n = int(length * RATE)
+    t = np.arange(n) / RATE
+    u = t / length
+    shapes = {"up": 0.8 + 0.45 * u ** 0.7, "down": 1.25 - 0.4 * u, "trill": 1.0 + 0.18 * np.sign(np.sin(2 * np.pi * 3.0 * u)),
+              "hop": 0.9 + 0.35 * np.sin(np.pi * u)}
+    f = pitch * shapes[contour] * (1 + 0.03 * np.sin(2 * np.pi * 28 * t))
+    phase = 2 * np.pi * np.cumsum(f) / RATE
+    tone = np.sin(phase) + 0.18 * np.sin(2 * phase)
+    air = formant(rng.normal(0, 1, n), 5000, 1500) * 0.03
+    env = np.minimum(t / 0.006, 1) * np.minimum((length - t) / 0.02, 1) ** 2
+    return (tone + air) * env
+
+
 def save(name, x, peak=0.7):
     x = x / (np.max(np.abs(x)) + 1e-9) * peak
     wavfile.write(os.path.join(OUT, name + ".wav"), RATE, (x * 32767).astype(np.int16))
@@ -65,6 +80,10 @@ VOICES = {
 HUMS = {
     "wren": (175, 0.11, ["rise", "arch", "fall", "dip", "arch", "rise", "fall", "arch"]),
 }
+# Chirped voices: name -> (base pitch Hz, chirp length, contours of each clip)
+CHIRPS = {
+    "seeker": (1150, 0.07, ["up", "hop", "trill", "down", "up", "hop", "down", "trill"]),
+}
 only = sys.argv[1:]
 for name, (pitch, length, rasp, sets) in VOICES.items():
     if only and name not in only:
@@ -78,4 +97,10 @@ for name, (pitch, length, contours) in HUMS.items():
     rng = np.random.default_rng(sum(map(ord, name)))
     for i, c in enumerate(contours):
         save(f"voice_{name}_{i}", hum(pitch * rng.uniform(0.9, 1.12), length * rng.uniform(0.85, 1.15), c), 0.6)
+for name, (pitch, length, contours) in CHIRPS.items():
+    if only and name not in only:
+        continue
+    rng = np.random.default_rng(sum(map(ord, name)))
+    for i, c in enumerate(contours):
+        save(f"voice_{name}_{i}", chirp(pitch * rng.uniform(0.88, 1.15), length * rng.uniform(0.8, 1.25), c), 0.5)
 print("voices written")

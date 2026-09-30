@@ -19,7 +19,7 @@ func _ready():
 		var a := deg_to_rad(float(OS.get_environment("GV_ANGLE")) if OS.get_environment("GV_ANGLE") != "" else 20.0)
 		var dist := float(OS.get_environment("GV_DIST")) if OS.get_environment("GV_DIST") != "" else 6.5
 		cam.position = Vector3(sin(a) * dist, float(OS.get_environment("GV_Y")) if OS.get_environment("GV_Y") != "" else 1.9, cos(a) * dist)
-		cam.look_at(Vector3(0, 1.4, 0))
+		cam.look_at(Vector3(0, float(OS.get_environment("GV_LOOK")) if OS.get_environment("GV_LOOK") != "" else 1.4, 0))
 		layer.visible = false
 		return
 	var p := Control.new(); p.set_script(load("res://scripts/ui/dialogue_panel.gd"))
