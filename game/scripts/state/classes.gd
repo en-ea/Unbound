@@ -10,7 +10,7 @@ signal awakened_now
 const CLASSES := {
 	"pyromancer": {"name": "Pyromancer", "color": Color(1.0, 0.5, 0.18),
 		"blurb": "The fire under the stones chose you. Burn a path through them, then bring the sky down.",
-		"abilities": ["flame_dash", "meteor"]},
+		"abilities": ["flame_dash", "meteor", "cinderburst"]},
 	"sealed_1": {"sealed": true},
 	"sealed_2": {"sealed": true},
 	"sealed_3": {"sealed": true},
@@ -21,6 +21,8 @@ const ABILITIES := {
 		"desc": "Burst through your enemies in a streak of fire. Nothing can touch you mid-dash, and all you pass through burns."},
 	"meteor": {"name": "Meteor", "short": "Meteor", "cooldown": 12.0,
 		"desc": "A glowing ring marks the nearest enemy, then a burning star hits it: a huge blast that throws them back and sets the ground alight."},
+	"cinderburst": {"name": "Cinderburst", "short": "Burst", "cooldown": 14.0,
+		"desc": "A ring of fire bursts out around you and sets everyone in it alight. Anyone who was already burning explodes, spreading the fire, and each explosion sends a spark of life back to you. Set them burning first, then pop them."},
 }
 
 var awakened := false

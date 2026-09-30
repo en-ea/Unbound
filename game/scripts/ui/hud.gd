@@ -85,32 +85,36 @@ func _ready() -> void:
 	_heavy = Control.new()
 	_heavy.set_script(ACTION_BUTTON)
 	_heavy.radius = 40.0
-	_heavy.margin = Vector2(118, 290)
+	_heavy.margin = Vector2(285, 225)
 	_heavy.font_size = 17
 	add_child(_heavy)
 	_heavy.set_verb("Heavy")
-	_heavy.visible = false
 	_heavy.pressed.connect(player.heavy)
-	player.fighter.target_changed.connect(func(_v: String) -> void: _show_heavy())
+	# Every button keeps its spot (a ring round Attack); Compact hides Heavy and Parry for flicks on Attack.
 	_parry = Control.new()
 	_parry.set_script(ACTION_BUTTON)
 	_parry.radius = 40.0
-	_parry.margin = Vector2(262, 236)
+	_parry.margin = Vector2(180, 295)
 	_parry.font_size = 17
 	add_child(_parry)
 	_parry.set_verb("Parry")
-	_parry.visible = false
 	_parry.pressed.connect(player.guard)
 	_sneak = Control.new()
 	_sneak.set_script(ACTION_BUTTON)
-	_sneak.radius = 40.0
-	_sneak.margin = Vector2(262, 236)
-	_sneak.font_size = 17
+	_sneak.radius = 36.0
+	_sneak.margin = Vector2(72, 300)
+	_sneak.font_size = 16
 	add_child(_sneak)
 	_sneak.set_verb("Sneak")
 	_sneak.pressed.connect(player.sneak)
-	var spots := [Vector2(112, 404), Vector2(232, 360)]
-	for i in 2:
+	_action.swiped.connect(func(dir: String) -> void:
+		if dir == "up":
+			player.heavy()
+		elif dir == "left":
+			player.guard())
+	Settings.changed.connect(_show_heavy)
+	var spots := [Vector2(385, 290), Vector2(300, 385), Vector2(178, 430)]
+	for i in 3:
 		var b := Control.new()
 		b.set_script(ACTION_BUTTON)
 		b.radius = 42.0
@@ -495,15 +499,14 @@ func _update_roll_button() -> void:
 		_heavy.queue_redraw()
 
 
-## The Heavy button only shows in a fight (when the action button says Attack).
+## The fight buttons are always there while you play (Compact: flicks on Attack instead of Heavy and Parry).
 func _show_heavy() -> void:
-	var show: bool = _action.visible and player.fighter.verb == "Attack"
-	if show and not _heavy.visible:
-		_heavy.set("_pulse", 1.0)
-		_parry.set("_pulse", 1.0)
-	_heavy.visible = show
-	_parry.visible = show
-	_sneak.visible = _action.visible and not show
+	var compact := Settings.compact_controls
+	_heavy.visible = _action.visible and not compact
+	_parry.visible = _action.visible and not compact
+	_sneak.visible = _action.visible
+	_action.swipes = {"up": "Heavy", "left": "Parry"} if compact else {}
+	_action.queue_redraw()
 
 
 ## Sneaking on or off: the Sneak button lights up while you're crouched.

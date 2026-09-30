@@ -210,7 +210,8 @@ func _play(stream: AudioStream, db: float) -> void:
 	p.finished.connect(p.queue_free)
 
 
-## The action button: fight if an enemy is in reach, otherwise gather.
+## The action button: fight if an enemy is in reach, otherwise talk, use or gather, and with nothing
+## around it's still Attack (a swing at the air, so the button always does something).
 func act() -> void:
 	if _roll > 0.0 or _stun > 0.0:
 		return
@@ -218,8 +219,10 @@ func act() -> void:
 		fighter.attack()
 	elif is_instance_valid(_station):
 		_station.interact()
-	else:
+	elif gatherer.verb != "":
 		gatherer.act()
+	elif not Controls.locked:
+		fighter.attack()
 
 
 func _ready() -> void:
@@ -235,6 +238,13 @@ func _ready() -> void:
 	abilities.name = "Abilities"
 	add_child(abilities)
 	visual.wear_gear = true               # worn armour shows over your look
+	visual.back_sword = true              # the sword rides on your back outside fights
+	var sword_setting := func() -> void:
+		visual.hand_sword = Settings.sword_in_hand
+		visual.show_tool(visual.tool_shown)
+	Settings.changed.connect(sword_setting)
+	Gear.changed.connect(sword_setting)
+	sword_setting.call_deferred()
 	Armor.changed.connect(visual.apply_hero_look)
 	visual.apply_hero_look.call_deferred()
 
@@ -317,8 +327,10 @@ func _unhandled_input(event: InputEvent) -> void:
 			guard()
 		elif event.physical_keycode == KEY_C:
 			sneak()
-		elif event.physical_keycode in [KEY_Z, KEY_X] and Classes.abilities().size() > (0 if event.physical_keycode == KEY_Z else 1):
-			abilities.use(Classes.abilities()[0 if event.physical_keycode == KEY_Z else 1])
+		elif event.physical_keycode in [KEY_Z, KEY_X, KEY_V]:
+			var slot: int = [KEY_Z, KEY_X, KEY_V].find(event.physical_keycode)
+			if Classes.abilities().size() > slot:
+				abilities.use(Classes.abilities()[slot])
 
 
 ## The action: something hurts the player (a boar charge). At 0 hearts they are knocked down
@@ -412,6 +424,8 @@ func _physics_process(delta: float) -> void:
 	var new_verb: String = fighter.verb
 	if new_verb == "":
 		new_verb = _station.verb if _station else gatherer.verb
+	if new_verb == "":
+		new_verb = "Attack"
 	if new_verb != verb:
 		verb = new_verb
 		verb_changed.emit(verb)

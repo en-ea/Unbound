@@ -15,6 +15,8 @@ var music_on := true
 var zoom := 1.0
 var render_scale := 0.8
 var tracker_small := false      # the quest tracker folded down to a small tab
+var compact_controls := false   # fewer buttons: flick Attack up for Heavy, left to Parry
+var sword_in_hand := false      # keep the sword drawn (otherwise it rides on your back outside fights)
 
 
 func _ready() -> void:
@@ -27,6 +29,8 @@ func _ready() -> void:
 		music_on = cfg.get_value("audio", "music_on", music_on)
 		zoom = cfg.get_value("video", "zoom", zoom)
 		tracker_small = cfg.get_value("ui", "tracker_small", tracker_small)
+		compact_controls = cfg.get_value("controls", "compact", compact_controls)
+		sword_in_hand = cfg.get_value("controls", "sword_in_hand", sword_in_hand)
 	apply()
 
 
@@ -59,6 +63,16 @@ func set_music_on(value: bool) -> void:
 	_save_and_apply()
 
 
+func set_compact_controls(value: bool) -> void:
+	compact_controls = value
+	_save_and_apply()
+
+
+func set_sword_in_hand(value: bool) -> void:
+	sword_in_hand = value
+	_save_and_apply()
+
+
 func set_tracker_small(value: bool) -> void:
 	tracker_small = value
 	_save_and_apply()
@@ -87,5 +101,7 @@ func _save_and_apply() -> void:
 	cfg.set_value("audio", "music_on", music_on)
 	cfg.set_value("video", "zoom", zoom)
 	cfg.set_value("ui", "tracker_small", tracker_small)
+	cfg.set_value("controls", "compact", compact_controls)
+	cfg.set_value("controls", "sword_in_hand", sword_in_hand)
 	cfg.save(PATH)
 	apply()

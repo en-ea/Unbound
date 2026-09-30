@@ -40,6 +40,14 @@ var is_player_look := true      # the player takes height/build from the look; N
 var idle_anim := ""             # instead of the plain idle (sneaking: Crouch_Idle; a guard: Idle_FoldArms)
 var walk_anim := ""             # instead of the walk (sneaking: Crouch_Fwd)
 var wear_gear := false          # show the player's worn armour over the look (off in the look picker)
+var back_sword := false         # the player: your sword rides on your back while it isn't in your hand
+var hand_sword := false         # the player's "Sword: always in hand" setting
+var tool_shown := ""
+## Where the sheathed sword sits, in the model's own space (it faces +Z): grip up by the right shoulder,
+## blade slanting down across the back.
+const BACK_SWORD_TILT := PI + 0.5          # blade down, slanting across the back (turned flat to it first)
+const BACK_SWORD_AT := Vector3(-0.2, 1.58, 0.2)
+var _back: Node3D
 var _metal_tint := Color(0, 0, 0, 0)
 
 var _anim: AnimationPlayer
@@ -177,6 +185,12 @@ func charge_tool(amount: float) -> void:
 
 
 func show_tool(tool_name: String) -> void:
+	var has_sword := back_sword and Gear.tier("sword") >= 0
+	if tool_name == "" and hand_sword and has_sword:
+		tool_name = "sword"
+	tool_shown = tool_name
+	if _back:
+		_back.visible = has_sword and tool_name != "sword"
 	for t: String in _tools:
 		_tools[t].visible = t == tool_name
 	if _tool_metal.has(tool_name):              # the head shows the tool's tier (stone, copper, iron)
@@ -365,6 +379,26 @@ func _make_tools() -> void:
 					var metal := (src as StandardMaterial3D).duplicate() as StandardMaterial3D
 					mi.set_surface_override_material(surf, metal)
 					_tool_metal[t] = metal
+	# A second sword for the back, on the upper spine, placed from the rest pose so it sits the same
+	# whatever way the bone points. It shares the hand sword's metal (tier colour).
+	var spine := _skeleton.find_bone("spine_03")
+	if spine < 0:
+		return
+	var back := BoneAttachment3D.new()
+	back.bone_name = "spine_03"
+	_skeleton.add_child(back)
+	_back = (load(TOOLS["sword"]) as PackedScene).instantiate() as Node3D
+	var skel_in_self := global_transform.affine_inverse() * _skeleton.global_transform
+	_back.transform = (skel_in_self * _skeleton.get_bone_global_rest(spine)).affine_inverse() * Transform3D(
+		Basis(Vector3.BACK, BACK_SWORD_TILT) * Basis(Vector3.UP, PI * 0.5), BACK_SWORD_AT)
+	_back.visible = false
+	back.add_child(_back)
+	for mi: MeshInstance3D in _back.find_children("*", "MeshInstance3D", true, false):
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		for surf in mi.mesh.get_surface_count():
+			var src := mi.mesh.surface_get_material(surf)
+			if src and src.resource_name == "Metal" and _tool_metal.has("sword"):
+				mi.set_surface_override_material(surf, _tool_metal["sword"])
 
 
 ## Adds the extra animation library. If its skeleton's bone frames differ from this rig's (e.g.

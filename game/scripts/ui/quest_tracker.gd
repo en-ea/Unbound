@@ -80,7 +80,12 @@ func refresh() -> void:
 	_count.text = "%d of %d" % [list.find(id) + 1, list.size()]
 	_step.text = Quests.step_text(id)
 	_update_where()
-	reset_size()
+	_shrink.call_deferred()
+
+
+## Fit the box to its text (a wrapped label only knows its height after a layout pass).
+func _shrink() -> void:
+	size = get_combined_minimum_size()
 
 
 func _process(delta: float) -> void:

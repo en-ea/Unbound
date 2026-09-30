@@ -5,6 +5,16 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "1 Oct", "title": "Controls, quests, Cinderburst", "lines": [
+		"Buttons stay put now: Attack, Heavy, Parry, Roll and Sneak are always in the same spots (no more waiting for them to pop up). Attack always works, even swinging at the air.",
+		"Settings > Buttons > Compact: hides Heavy and Parry. Flick Attack up for a Heavy, left to Parry.",
+		"Your sword rides on your back and comes out in a fight, then goes back a few seconds after. Settings > Sword > Always in hand keeps it out.",
+		"New Pyromancer ability, Cinderburst (14 s): a ring of fire sets everyone round you alight. Anyone already burning explodes, spreads the fire, and sends a spark back that heals you. Set them burning with Flame Dash or Meteor first, then pop them.",
+		"Quests: the tracker says STORY or JOB, how far to go, and a golden beam plus a gold diamond on the minimap show the way (to the gate first if it's in another region). The – button folds it small.",
+		"Tap the tracker (or Menu > Quests) for the quest log: what each quest is about, the steps so far, and which one to follow.",
+		"Bag: Drop (and Drop all) for any item. Quest items can't be dropped.",
+		"Sneaking is quiet now: soft, slow, muffled steps.",
+	]},
 	{"when": "30 Sep", "title": "The story begins: the shrine and the Pyromancer", "lines": [
 		"Top-left says 'A Strange Hum': the standing stones on the meadow hill are humming. Walk up to them.",
 		"The shrine wakes: a pillar of light, a deep chord, a few words, then the class screen. The Pyromancer is open; the other three paths are sealed until later in the story.",

@@ -29,9 +29,15 @@ func _ready() -> void:
 	column.add_theme_constant_override("separation", 14)
 	panel.add_child(column)
 	UIStyle.label(column, "Settings", 28)
+	var scroll := ScrollContainer.new()                    # more rows than fit a phone screen
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.scroll_deadzone = 8
+	scroll.custom_minimum_size.y = 460
+	column.add_child(scroll)
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override("separation", 10)
-	column.add_child(_rows)
+	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_rows)
 	var footer := HBoxContainer.new()
 	footer.alignment = BoxContainer.ALIGNMENT_END
 	column.add_child(footer)
@@ -49,6 +55,10 @@ func _refresh() -> void:
 	_row("Minimap", "On" if Settings.show_map else "Off", func() -> void: Settings.set_show_map(not Settings.show_map))
 	_row("Performance stats", "On" if Settings.show_stats else "Off", func() -> void: Settings.set_show_stats(not Settings.show_stats))
 	_row("Camera", Settings.ZOOMS.get(Settings.zoom, "Normal"), Settings.next_zoom)
+	_row("Buttons", "Compact (flicks)" if Settings.compact_controls else "All shown",
+		func() -> void: Settings.set_compact_controls(not Settings.compact_controls))
+	_row("Sword", "Always in hand" if Settings.sword_in_hand else "On back till a fight",
+		func() -> void: Settings.set_sword_in_hand(not Settings.sword_in_hand))
 	if _page == "code":
 		_code_page()
 		return

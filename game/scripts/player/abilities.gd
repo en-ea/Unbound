@@ -17,6 +17,12 @@ const METEOR_RADIUS := 4.2
 const METEOR_POWER := 5.0
 const METEOR_WARN := 0.9         # the ring glows this long before the star lands
 const METEOR_REACH := 16.0
+const BURST_RADIUS := 6.0
+const BURST_POWER := 1.5          # everyone in the ring
+const POP_POWER := 4.0            # an enemy that was already burning explodes for this
+const POP_SPREAD := 3.5           # and sets alight everyone this close to it
+const POP_HEAL := 1               # hearts back from each explosion
+const POP_HEAL_MAX := 3
 const SOUNDS := {
 	"burst": preload("res://assets/sounds/fire_burst.wav"),
 	"cast": preload("res://assets/sounds/fire_cast.wav"),
@@ -37,6 +43,8 @@ func use(ability: String) -> void:
 			_flame_dash()
 		"meteor":
 			_meteor()
+		"cinderburst":
+			_cinderburst()
 
 
 func _flame_dash() -> void:
@@ -172,6 +180,82 @@ func _meteor_lands(at: Vector3) -> void:
 	if hit:
 		Engine.time_scale = 0.1
 		get_tree().create_timer(0.09, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+
+
+## Cinderburst (our take on the Outriders pyromancer's Overheat): a ring of fire from you. Burning enemies
+## in it explode one after another (spreading the fire), and each explosion sends a spark back that heals you.
+func _cinderburst() -> void:
+	var root := player.get_parent()
+	var here := player.global_position
+	player.visual.play_action("Spell_Simple_Shoot", 1.4)
+	player.get_node("Effects").glow_burst(Classes.color(), 60)
+	FireFX.blast(root, here, BURST_RADIUS)
+	FireFX.flames(root, here + Vector3(0, 0.3, 0), BURST_RADIUS * 0.8, 70, 0.6, true, 0.7)
+	_play("burst", 0.9, 1.0)
+	get_tree().call_group("camera_rig", "shake", 0.2)
+	var popping: Array[Node3D] = []
+	for e in get_tree().get_nodes_in_group("enemy"):
+		var n := e as Node3D
+		if not e.is_alive() or n.global_position.distance_to(here) > BURST_RADIUS:
+			continue
+		if e.get_node_or_null("Burning"):
+			popping.append(n)
+		else:
+			var dmg: int = Gear.hit_damage(BURST_POWER)[0]
+			e.take_hit(here, dmg, 1.2)
+			FloatText.spawn(get_tree(), n.global_position + Vector3(0, 1.6, 0), str(dmg), Color(1.0, 0.6, 0.25))
+			FireFX.ignite(e, 4.0)
+	popping.sort_custom(func(a: Node3D, b: Node3D) -> bool:
+		return a.global_position.distance_to(here) < b.global_position.distance_to(here))
+	for i in popping.size():                     # the explosions ripple outwards
+		get_tree().create_timer(0.15 + i * 0.14).timeout.connect(_pop.bind(popping[i], i < POP_HEAL_MAX))
+
+
+## A burning enemy explodes: big damage, fire on everyone close, and (the first few) a spark of life for you.
+func _pop(e: Node3D, heals: bool) -> void:
+	if not is_instance_valid(e):
+		return
+	var root := player.get_parent()
+	var at := e.global_position
+	FireFX.blast(root, at, POP_SPREAD * 0.7)
+	_play("burst", randf_range(1.1, 1.3), -1.0)
+	if e.is_alive():
+		var dmg := maxi(1, Gear.hit_damage(POP_POWER)[0])
+		e.take_hit(player.global_position, dmg, 2.0)
+		FloatText.spawn(get_tree(), at + Vector3(0, 1.8, 0), str(dmg) + "!", Color(1.0, 0.45, 0.15), true)
+	for other in get_tree().get_nodes_in_group("enemy"):
+		if other != e and other.is_alive() and (other as Node3D).global_position.distance_to(at) < POP_SPREAD:
+			FireFX.ignite(other, 4.0)
+	if heals:
+		_spark_home(at + Vector3(0, 1.2, 0))
+
+
+## A little flame that flies from an explosion back into you and heals a heart.
+func _spark_home(from: Vector3) -> void:
+	var spark := MeshInstance3D.new()
+	var ball := SphereMesh.new()
+	ball.radius = 0.16
+	ball.height = 0.32
+	ball.radial_segments = 8
+	ball.rings = 4
+	spark.mesh = ball
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(1.6, 0.9, 0.4)
+	spark.material_override = m
+	spark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	player.get_parent().add_child(spark)
+	spark.global_position = from
+	var trail := FireFX.flames(spark, Vector3.ZERO, 0.1, 12, 0.3, false, 0.3)
+	trail.local_coords = false
+	var t := spark.create_tween()
+	t.tween_method(func(k: float) -> void:
+		var to := player.global_position + Vector3(0, 1.1, 0)
+		spark.global_position = from.lerp(to, k * k) + Vector3(0, sin(k * PI) * 1.5, 0), 0.0, 1.0, 0.55)
+	t.tween_callback(func() -> void:
+		spark.queue_free()
+		player.heal(POP_HEAL)
+		player.get_node("Effects").glow_burst(Color(1.0, 0.7, 0.3), 16))
 
 
 ## The closest living enemy within `reach`; if `ahead` is given, only ones roughly that way.
