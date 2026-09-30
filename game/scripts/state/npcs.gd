@@ -45,8 +45,9 @@ const NPCS := {
 		"body": "res://assets/characters/golem.glb",
 		"theme": {"bg": Color(0.1, 0.09, 0.11, 0.95), "accent": Color(1.0, 0.52, 0.16), "text": Color(1.0, 0.94, 0.86),
 			"font": "res://assets/fonts/Cinzel-Variable.ttf", "name_font": "res://assets/fonts/Cinzel-Variable.ttf", "voice": "brakk"},
-		"portrait": {"look_at": Vector3(0, 2.05, 0), "cam": Vector3(0.35, 2.35, 3.3), "fov": 34.0, "turn": -6.0},
-		"prop": "golem_hammer", "prop_grip": Vector3(0, 0, 0),
+		"portrait": {"look_at": Vector3(0, 2.4, 0), "cam": Vector3(0.35, 2.75, 3.3), "fov": 34.0, "turn": -6.0},
+		"prop": "golem_hammer", "prop_grip": Vector3(0, 0, 0), "prop_scale": 0.85,
+		"carry": {"item": "anvil", "bone": "hand_l", "at": Vector3(0.0, 0.25, 0.0), "turn": Vector3(90, 0, 0), "scale": 0.7},
 		"scenery": [{"model": "anvil", "at": Vector2(-1.7, 0.4), "turn": 90.0, "scale": 1.15}],
 		"route": [{"at": Vector2(0, 0), "work": "TreeChopping"}],
 		"work_sound": "res://assets/kenney_impact/impactMining_001.ogg",
@@ -80,8 +81,9 @@ static func make_visual(id: String) -> CharacterVisual:
 	return visual
 
 
-## After the visual is in the tree: scale, shoulders, and what they hold or smoke.
-static func dress_visual(id: String, visual: CharacterVisual, portrait := false) -> void:
+## After the visual is in the tree: scale, shoulders, and what they hold or smoke. `carry` (a second prop,
+## like Brakk's anvil under his arm) only shows in the build lab.
+static func dress_visual(id: String, visual: CharacterVisual, portrait := false, in_world := false) -> void:
 	var def: Dictionary = NPCS[id]
 	visual.scale = def["scale"]
 	if def.has("shoulders"):
@@ -91,6 +93,10 @@ static func dress_visual(id: String, visual: CharacterVisual, portrait := false)
 		prop.scale = Vector3.ONE * def.get("prop_scale", 1.0)
 		if def.get("two_hands", false):          # held low in both hands except while working
 			visual.hold_two_handed(def["prop"], def.get("prop_scale", 1.0), prop)
+	if def.has("carry") and not in_world and not portrait:
+		var c: Dictionary = def["carry"]
+		var carried := visual.hold_prop(c["item"], c["turn"], c["at"], c["bone"])
+		carried.scale = Vector3.ONE * c.get("scale", 1.0)
 	if def.get("smokes", false):
 		var smoke := Smoking.new()
 		smoke.visual = visual

@@ -18,7 +18,7 @@ func _ready():
 		var cam := Camera3D.new(); cam.fov = 40; add_child(cam)
 		var a := deg_to_rad(float(OS.get_environment("GV_ANGLE")) if OS.get_environment("GV_ANGLE") != "" else 20.0)
 		var dist := float(OS.get_environment("GV_DIST")) if OS.get_environment("GV_DIST") != "" else 6.5
-		cam.position = Vector3(sin(a) * dist, 1.9, cos(a) * dist)
+		cam.position = Vector3(sin(a) * dist, float(OS.get_environment("GV_Y")) if OS.get_environment("GV_Y") != "" else 1.9, cos(a) * dist)
 		cam.look_at(Vector3(0, 1.4, 0))
 		layer.visible = false
 		return
@@ -28,5 +28,5 @@ func _ready():
 func _process(_d):
 	frames += 1
 	if frames == 90:
-		get_viewport().get_texture().get_image().save_png("/tmp/claude-0/s/gv.png")
+		get_viewport().get_texture().get_image().save_png(OS.get_environment("GV_OUT") if OS.get_environment("GV_OUT") != "" else "/tmp/claude-0/s/gv.png")
 		get_tree().quit()

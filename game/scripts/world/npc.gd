@@ -36,7 +36,7 @@ func setup(id: String, shape: WorldShape) -> void:
 	global_position = Vector3(at.x, shape.height_at(at.x, at.y), at.y)
 	_visual = Npcs.make_visual(id)
 	add_child(_visual)
-	Npcs.dress_visual(id, _visual)
+	Npcs.dress_visual(id, _visual, false, true)
 	var body := StaticBody3D.new()
 	var col := CollisionShape3D.new()
 	var shape3 := CylinderShape3D.new()

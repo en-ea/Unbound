@@ -212,14 +212,18 @@ def box(b, c, size, color, mat="Item", top=1.0):
 
 
 def golem_hammer():
-    """Brakk's big hammer: a long wooden haft from the grip (origin) along +Z, a heavy stone-and-iron head at the far end."""
+    """Brakk's big sledge: a wooden haft from the grip (origin) along +Z with a leather wrap and an iron pommel,
+    and a big block head across the far end (striking faces left and right) with capped ends and a hex bolt."""
     b = Builder(["Item", "Glow"])
-    tube_faces(b, [V((0, 0, -0.12)), V((0, 0, 0.72))], [(0.032, 0.032)] * 2, (0.5, 0.34, 0.2), seg=5, ref=V((1, 0, 0)))
-    box(b, V((0, 0, 0.9)), (0.26, 0.2, 0.36), (0.56, 0.53, 0.5))                  # a big chiselled head
-    for z in (0.76, 1.04):
-        box(b, V((0, 0, z)), (0.29, 0.23, 0.06), (0.34, 0.33, 0.35))
-    for y in (-0.105, 0.105):
-        box(b, V((0, y, 0.9)), (0.08, 0.02, 0.08), (0.34, 0.33, 0.35))
+    steel, dark, wood = (0.62, 0.62, 0.66), (0.4, 0.4, 0.44), (0.46, 0.3, 0.18)
+    tube_faces(b, [V((0, 0, -0.2)), V((0, 0, 0.74))], [(0.036, 0.036)] * 2, wood, seg=6, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, 0, -0.14)), V((0, 0, 0.1))], [(0.042, 0.042)] * 2, (0.3, 0.17, 0.1), seg=6, ref=V((1, 0, 0)))
+    box(b, V((0, 0, -0.23)), (0.09, 0.09, 0.07), dark, top=0.8)                   # pommel
+    box(b, V((0, 0, 0.88)), (0.44, 0.3, 0.34), steel)                            # the head, long across the haft
+    for s in (1, -1):
+        box(b, V((s * 0.25, 0, 0.88)), (0.07, 0.34, 0.38), dark)                   # capped striking faces
+        tube_faces(b, [V((0, s * 0.15, 0.88)), V((0, s * 0.185, 0.88))], [(0.055, 0.055)] * 2, dark, seg=6, ref=V((1, 0, 0)))
+    box(b, V((0, 0, 0.7)), (0.12, 0.12, 0.05), dark)                             # collar where the haft enters
     return b
 
 
