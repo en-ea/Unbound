@@ -104,6 +104,16 @@ func run() -> void:
 	player.fighter.verb = ""
 	# The preceding combat check deliberately swings; let its normal combo window expire.
 	await get_tree().create_timer(2.0).timeout
+	# Enea's trader stocks by the wall clock (Money.stock(): a new seed every RESTOCK_EVERY seconds), so what is
+	# on sale, and whether 31 coins buys any of it, changes through the day. The wallet covers the cheapest offer
+	# on sale now, so the check tests the Buy button, not the hour it runs at.
+	var wallet := 31
+	var cheapest := -1
+	for offer: Dictionary in Money.stock():
+		if not offer["sold"] and (offer["item"] == "tool" or Inventory.has_room(offer["item"])):
+			cheapest = int(offer["price"]) if cheapest < 0 else mini(cheapest, int(offer["price"]))
+	wallet = maxi(wallet, cheapest)
+	Money.load_data(wallet)
 	for station in get_tree().get_nodes_in_group("interactable"):
 		if station.verb == "Trade":
 			player.global_position = station.global_position + Vector3(0, 0, 0.5)
@@ -123,7 +133,7 @@ func run() -> void:
 			mouse.pressed = true
 			get_viewport().push_input(mouse, true)
 			await get_tree().process_frame
-			check(Controls.locked and Money.coins == 31, "touch and emulated mouse open merchant once without click-through")
+			check(Controls.locked and Money.coins == wallet, "touch and emulated mouse open merchant once without click-through")
 			touch = touch.duplicate()
 			touch.pressed = false
 			get_viewport().push_input(touch, true)
