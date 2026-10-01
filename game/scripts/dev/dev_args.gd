@@ -338,8 +338,9 @@ func _hunt_test(mode: String) -> void:
 		beast.home = body.global_position
 		get_parent().add_child(beast)
 		beast.global_position = body.global_position + Vector3(-5.0, 1.0, 3.0)
-	elif mode == "drag":
+	elif mode == "drag":                          # pulls the stag away from the rack, to watch it come along
 		player.hauling.start_carry(body)
+		Controls.joystick = Vector2(-0.9, -0.4)
 
 
 func _run_touch_test() -> void:

@@ -5,6 +5,10 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "1 Oct", "title": "Dragging with weight, footsteps that match", "lines": [
+		"Dragging a body: you face it, bent over with your hands on it, and step backwards. It comes in heaves with each step, lifts at the end you hold, scrapes along the ground and swings round behind you on a turn.",
+		"Footsteps now follow your feet in every walk (normal, sneaking, dragging, running), so no more fast pattering when the walk is slow.",
+	]},
 	{"when": "30 Sep", "title": "More homes, a second inside, trophies", "lines": [
 		"Six more houses to buy or move into: Storybook Cottage, Turret Cottage, Arch Cottage, Skep Cottage, Hull House and Gable House. Each card shows the house now.",
 		"The inside is chosen apart from the house, and you can change it any time for free (the home screen at your mailbox):",

@@ -4,14 +4,10 @@ extends AudioStreamPlayer3D
 
 const DIR := "res://assets/sounds/"
 const KENNEY := "res://assets/kenney_impact/"
-# Metres between footfalls, taken from the walk/jog animations (feet land twice per loop).
-const WALK_STRIDE := 0.65
-const RUN_STRIDE := 1.95   # the jog plays a bit faster than its natural pace (shorter strides)
-const SNEAK_STRIDE := 0.8  # the crouch walk takes longer, slower steps
 
 var shape: WorldShape        # set by main
 var _sounds := {}
-var _travelled := 0.0
+var _phase := 0.5          # through the current step; footsteps follow the animation, not the distance
 var _left := true
 var _layer: AudioStreamPlayer3D     # the recorded grass rustle, quietly under our own steps
 var _roll: AudioStreamPlayer3D
@@ -55,13 +51,13 @@ func play_roll() -> void:
 
 func _physics_process(delta: float) -> void:
 	var speed := Vector2(player.velocity.x, player.velocity.z).length()
-	if speed < 0.3 or not player.is_on_floor() or player.is_rolling():
-		_travelled = 0.0 if not player.is_rolling() else _travelled
+	var rate: float = player.visual.step_rate()
+	if speed < 0.3 or rate <= 0.0 or not player.is_on_floor() or player.is_rolling():
+		_phase = 0.5 if not player.is_rolling() else _phase
 		return
-	_travelled += speed * delta
-	var stride := RUN_STRIDE if speed > 3.0 else (SNEAK_STRIDE if player.sneaking else WALK_STRIDE)
-	if _travelled >= stride:
-		_travelled -= stride
+	_phase += rate * delta
+	if _phase >= 1.0:
+		_phase -= 1.0
 		_step(speed)
 
 

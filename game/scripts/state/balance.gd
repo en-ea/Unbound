@@ -222,7 +222,7 @@ const VALUES := {
 const HUNT := {
 	"fresh_for": 180.0, "rot_time": 300.0, "max_carcasses": 6,
 	"crows_after": 25.0, "wolves_after": 40.0, "wolf_smell": 40.0, "village_takes_after": 60.0,
-	"drag_speed": 0.55, "carve_time": 1.2, "cart_speed": 6.0, "cart_slots": 3,
+	"drag_speed": 1.5, "carve_time": 1.2, "cart_speed": 6.0, "cart_slots": 3,
 	"summon_count": 3, "summon_spread": 10.0, "summon_wait": 12.0,
 }
 const STAG := {"hp": 24, "damage": 2, "respawn": 90.0, "xp": 30, "sight": 16.0, "sight_sneak": 5.0, "flee_speed": 8.0}

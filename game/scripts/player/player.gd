@@ -486,8 +486,9 @@ func _physics_process(delta: float) -> void:
 		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
 		if sneaking:
 			target_speed = minf(target_speed, Balance.STEALTH["sneak_speed"])
-		if hauling.carrying:
-			target_speed = minf(target_speed, RUN_SPEED * Balance.HUNT["drag_speed"])
+		if hauling.carrying:                  # heave, step, heave: you surge as each foot plants
+			var heave := sin(PI * visual.step_phase())
+			target_speed = minf(target_speed, Balance.HUNT["drag_speed"]) * (0.35 + 1.3 * heave * heave)
 	# Controls already turned the stick into ground directions (relative to the camera).
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))
@@ -498,6 +499,12 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 
 	var speed := Vector2(velocity.x, velocity.z).length()
+	if hauling.carrying:                      # facing the body, stepping backwards, pulling it along
+		if is_instance_valid(hauling.carrying):
+			var to: Vector3 = hauling.carrying.global_position - global_position
+			visual.rotation.y = lerp_angle(visual.rotation.y, atan2(to.x, to.z), clampf(TURN_SPEED * 0.5 * delta, 0.0, 1.0))
+		visual.play_motion(Balance.HUNT["drag_speed"] if strength > 0.1 else 0.0)
+		return
 	if strength > 0.1 and not swinging:
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(dir.x, dir.z), clampf(TURN_SPEED * delta, 0.0, 1.0))
 	visual.play_motion(speed)

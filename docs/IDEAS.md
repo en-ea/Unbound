@@ -27,6 +27,17 @@ and bait items, feeding companions, shrine offerings, repeat village requests, N
 - **Scheming NPCs:** some are smart enough to trick others, sell things and get ahead: higher net worth.
 - The rich can **use it for good or evil**, stay privately rich or become known, **rise in village ranks**.
 
+## God fights and a giant spirit form (1 Oct)
+- **God-scale fights** or something equally grand, late game or late story: a fight against something huge.
+- **A giant spirit form for the player** (like Susanoo in Naruto): a huge armoured being made of your class's
+  power rises around you, and you fight at that scale. Earned very late, maybe only for these fights.
+
+## Homes you can enter, and villagers who live there (1 Oct)
+- **A good number of houses can be entered** eventually, not only your own.
+- **Some are locked: you have to break in** (pick the lock, a window, sneak at night). Ties into sneaking and theft.
+- **Each named villager has a real home** that stays the same and makes sense: where they sleep, eat and work,
+  their own things inside (links to "NPCs have a real inventory" above). They go home at night.
+
 ## Characters (reference pictures in `docs/Builds/characters/`)
 - **Leaf-cloak duo** (`leaf-cloak-duo-hill-village`): friends or brothers who fit the Hill house style, if that
   becomes a village. Without the watering cans.

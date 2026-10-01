@@ -24,6 +24,8 @@ func start_carry(body: Node3D) -> void:
 	carrying = body
 	body.start_drag()
 	player.set_sneaking(false)
+	player.visual.walk_anim = "Push"         # bent over, hands on it, stepping backwards
+	player.visual.walk_backward = true
 	get_tree().call_group("hud", "hint", "Dragging it. Slow going, and no fighting: Drop to let go.")
 
 
@@ -31,12 +33,19 @@ func drop() -> void:
 	if is_instance_valid(carrying):
 		carrying.release()
 	carrying = null
+	_walk_normally()
 
 
 ## Handed over (the cart or the butcher took it).
 func let_go_of(body: Node3D) -> void:
 	if carrying == body:
 		carrying = null
+		_walk_normally()
+
+
+func _walk_normally() -> void:
+	player.visual.walk_anim = ""
+	player.visual.walk_backward = false
 
 
 func mount(cart: Node3D) -> void:

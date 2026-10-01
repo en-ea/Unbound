@@ -18,7 +18,7 @@ const SPRINT := "Sprint"
 ## Ground speed (m/s) each animation was made for, so feet don't slide.
 ## The jog's real pace is 5.36 m/s, but its long strides looked like lunging, so it plays ~30%
 ## faster (quicker, shorter-looking steps).
-const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2, "Sprint": 6.6, "Crouch_Fwd": 1.3}
+const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2, "Sprint": 6.6, "Crouch_Fwd": 1.3, "Push": 0.9}
 
 const TOOLS := {"axe": "res://assets/items/axe.glb", "pickaxe": "res://assets/items/pickaxe.glb",
 	"sword": "res://assets/items/sword.glb"}
@@ -39,6 +39,7 @@ var body_model := ""            # a different body on the same rig (Brakk the go
 var is_player_look := true      # the player takes height/build from the look; NPCs set their own scale
 var idle_anim := ""             # instead of the plain idle (sneaking: Crouch_Idle; a guard: Idle_FoldArms)
 var walk_anim := ""             # instead of the walk (sneaking: Crouch_Fwd)
+var walk_backward := false      # play the walk in reverse (dragging a body: Push, stepping backwards)
 var wear_gear := false          # show the player's worn armour over the look (off in the look picker)
 var back_sword := false         # the player: your sword rides on your back while it isn't in your hand
 var hand_sword := false         # the player's "Sword: always in hand" setting
@@ -144,6 +145,23 @@ func play_motion(speed: float) -> void:
 		_current = anim_name
 		_anim.play(anim_name, 0.2)
 	_anim.speed_scale = clampf(speed / NATIVE_SPEED[anim_name], 0.7, 1.8) if NATIVE_SPEED.has(anim_name) else 1.0
+	if walk_backward and anim_name == walk_anim:
+		_anim.speed_scale = -_anim.speed_scale
+
+
+## Footfalls a second of the walk or run playing now (two per loop), so footsteps match the feet;
+## 0 when standing still or mid-action.
+func step_rate() -> float:
+	if _action_left > 0.0 or not NATIVE_SPEED.has(_current):
+		return 0.0
+	return 2.0 * absf(_anim.speed_scale) / _anim.get_animation(_current).length
+
+
+## Where the feet are within a step (0 to 1, two steps per loop).
+func step_phase() -> float:
+	if not NATIVE_SPEED.has(_current):
+		return 0.0
+	return fmod(_anim.current_animation_position * 2.0 / _anim.get_animation(_current).length, 1.0)
 
 
 ## Plays one pass of an animation (a swing), optionally starting part-way through (for looping

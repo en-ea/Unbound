@@ -9,15 +9,17 @@ const DROP := preload("res://scripts/world/drop.gd")
 const CROW := preload("res://scripts/world/crow.gd")
 ## How each kind looks dead: visual script, size, tint, and how far behind you it drags.
 const LOOKS := {
-	"stag": {"visual": "res://scripts/creatures/stag_visual.gd", "scale": 1.0, "tint": Color.WHITE, "drag": 1.9},
-	"boar": {"visual": "res://scripts/creatures/boar_visual.gd", "scale": 1.0, "tint": Color.WHITE, "drag": 1.5},
-	"wolf": {"visual": "res://scripts/creatures/wolf_visual.gd", "scale": 1.0, "tint": Color.WHITE, "drag": 1.3},
-	"shadow_wolf": {"visual": "res://scripts/creatures/wolf_visual.gd", "scale": 1.3, "tint": Color(0.42, 0.38, 0.62), "drag": 1.6},
-	"duskmaw": {"visual": "res://scripts/creatures/wolf_visual.gd", "scale": 2.1, "tint": Color(0.2, 0.17, 0.26), "drag": 2.6},
+	"stag": {"visual": "res://scripts/creatures/stag_visual.gd", "scale": 1.0, "tint": Color.WHITE, "drag": 1.6},
+	"boar": {"visual": "res://scripts/creatures/boar_visual.gd", "scale": 1.0, "tint": Color.WHITE, "drag": 1.3},
+	"wolf": {"visual": "res://scripts/creatures/wolf_visual.gd", "scale": 1.0, "tint": Color.WHITE, "drag": 1.15},
+	"shadow_wolf": {"visual": "res://scripts/creatures/wolf_visual.gd", "scale": 1.3, "tint": Color(0.42, 0.38, 0.62), "drag": 1.4},
+	"duskmaw": {"visual": "res://scripts/creatures/wolf_visual.gd", "scale": 2.1, "tint": Color(0.2, 0.17, 0.26), "drag": 2.3},
 }
 const ROT_TINT := Color(0.5, 0.47, 0.4)
 const VILLAGE := Vector2(0.0, 15.0)
 const VILLAGE_RADIUS := 26.0
+
+const DRAG_LIFT := 0.2                       # radians the front end tilts up while dragged
 
 static var shape: WorldShape                 # set by main.gd, for the ground height while dragged
 
@@ -34,6 +36,8 @@ var _alone := 0.0              # seconds with you far away (crows, the village)
 var _crows_sent := false
 var _flies: CPUParticles3D
 var _gone := false
+var _scrape: AudioStreamPlayer3D
+var _scuff := 0.0              # metres pulled since the last scrape sound
 
 
 ## Leaves a body where something died (keeps at most Balance.HUNT.max_carcasses; the oldest goes).
@@ -66,6 +70,11 @@ func _ready() -> void:
 	_tint.call_deferred()
 	_flies = _make_flies()
 	add_child(_flies)
+	_scrape = AudioStreamPlayer3D.new()
+	_scrape.stream = load("res://assets/sounds/step_dirt_%d.wav" % randi_range(0, 5))
+	_scrape.volume_db = -8.0
+	_scrape.unit_size = 6.0
+	add_child(_scrape)
 
 
 func fresh() -> float:
@@ -143,6 +152,9 @@ func start_drag() -> void:
 
 func release() -> void:
 	dragged = false
+	rotation.x = 0.0                           # set back down flat
+	if shape:
+		global_position.y = shape.height_at(global_position.x, global_position.z)
 	verb = "Take"
 	_alone = 0.0
 	if not _gone:
@@ -152,15 +164,27 @@ func release() -> void:
 func _physics_process(delta: float) -> void:
 	age += delta
 	if dragged and is_instance_valid(player) and not _gone:
-		var yaw: float = player.visual.rotation.y
-		var back := Vector3(sin(yaw), 0, cos(yaw))
-		var want: Vector3 = player.global_position - back * _look["drag"]
-		var p := global_position.lerp(want, clampf(6.0 * delta, 0.0, 1.0))
-		if shape:
-			p.y = shape.height_at(p.x, p.z)
+		# Like a weight on a short rope: it only moves when you pull it taut, so it comes in heaves
+		# as you step, swings round behind you on a turn and follows the way you went.
+		var to: Vector3 = player.global_position - global_position
+		to.y = 0.0
+		var dist := to.length()
+		var rope: float = _look["drag"]
+		var p := global_position
+		if dist > rope:
+			var pulled := dist - rope
+			p += to / dist * pulled
+			_scuff += pulled
+			if _scuff > 0.55:                  # its hooves and flank scrape the ground
+				_scuff = 0.0
+				_scrape.pitch_scale = randf_range(0.5, 0.62)
+				_scrape.play()
+		if shape:                              # the end in your hands lifts off the ground
+			p.y = shape.height_at(p.x, p.z) + sin(DRAG_LIFT) * rope * 0.45
 		global_position = p
-		var to := player.global_position - global_position
-		rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), clampf(4.0 * delta, 0.0, 1.0))
+		if dist > 0.3:
+			rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), clampf(6.0 * delta, 0.0, 1.0))
+		rotation.x = move_toward(rotation.x, -DRAG_LIFT, delta)
 	_tick -= delta
 	if _tick > 0.0 or _gone:
 		return
