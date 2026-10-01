@@ -5,6 +5,13 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "1 Oct", "title": "Fixes: build lab, smoother abilities, test buttons", "lines": [
+		"The build lab shows again (the camera was rising 300 m into the fog). Leaving it still glides you down from the sky, now on purpose.",
+		"Abilities shouldn't hitch the first time you use them: every fire and earth effect is shown once behind the loading screen.",
+		"Test menu > Fighting: Call the Duskmaw (it comes for you right away), Make it night, Make it day.",
+		"The pause menu fits a landscape screen without shrinking (that shrinking drew a thin white line on the buttons).",
+		"The Moss-Cap Seeker is a cooler, deeper green, closer to its picture.",
+	]},
 	{"when": "1 Oct", "title": "Easier class testing, screens that fit", "lines": [
 		"Settings > Class (testing): tap to switch class on the spot (Pyromancer, Delver).",
 		"The test menu is sorted into sections (Class, Fighting, Items, Village and home). It has class buttons, a Talents screen button and Abilities ready now (no cooldowns). Enter the code once and it opens straight away after that.",

@@ -12,6 +12,18 @@ var _step := 0
 var _foes: Array = []
 
 
+var _last_us := 0
+var _worst_ms := 0.0
+
+
+## The longest frame since the last report (a freeze when an effect shows for the first time).
+func _process(_delta: float) -> void:
+	var now := Time.get_ticks_usec()
+	if _last_us > 0:
+		_worst_ms = maxf(_worst_ms, (now - _last_us) / 1000.0)
+	_last_us = now
+
+
 func _physics_process(delta: float) -> void:
 	_t += delta
 	if _player == null:
@@ -25,7 +37,9 @@ func _physics_process(delta: float) -> void:
 			_foes = get_tree().get_nodes_in_group("enemy").filter(func(e: Node) -> bool:
 				return e.is_alive() and (e as Node3D).global_position.distance_to(_player.global_position) < 12.0)
 			_report("foes")],
-		[2.4, func() -> void: _shot(0)],                                  # claws on, idle
+		[2.4, func() -> void:
+			_report("class and foes settle")
+			_shot(0)],                                                    # claws on, idle
 		[2.6, func() -> void: _player.abilities.use("fault_line")],
 		[3.25, func() -> void: _shot(1)],                                 # spikes up along the crack
 		[4.5, func() -> void:
@@ -48,6 +62,7 @@ func _physics_process(delta: float) -> void:
 		[10.5, func() -> void: _shot(5)],
 		[11.6, func() -> void:
 			_report("after erupt")
+			_report("end")
 			print("DELVERTEST player hearts %d, burrowed %s" % [_player.health, _player.burrowed()])
 			get_tree().quit()],
 	]
@@ -79,11 +94,16 @@ func _spawn(kind: String) -> void:
 
 
 func _report(what: String) -> void:
+	print("DELVERTEST worst frame before '%s': %.0f ms" % [what, _worst_ms])
+	_worst_ms = 0.0
 	print("DELVERTEST %s %s" % [what, _foes.map(func(e: Node) -> String:
 		return ("%d/%d%s" % [e.health, e.max_health, "c" if EarthFX.is_cracked(e) else ""]) if is_instance_valid(e) else "gone")])
 
 
 func _shot(n: int) -> void:
+	if "--timing" in OS.get_cmdline_user_args():   # timing run: no pictures (saving one is slow)
+		return
 	var img := get_viewport().get_texture().get_image()
 	var path := OS.get_environment("TEMP").path_join("delver_%d.png" % n)
 	print("DELVERTEST shot %s: %s" % [path, error_string(img.save_png(path))])
+	_last_us = 0                                  # saving the picture is slow: leave it out of the timing

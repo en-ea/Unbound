@@ -204,14 +204,20 @@ func _clear_ground(delta: float) -> void:
 	var eye := camera.global_position
 	var focus := global_position
 	var lift := 0.0
-	for t: float in [0.0, 0.35, 0.7]:
-		var p := eye.lerp(focus, t)
-		var need := _shape.height_at(p.x, p.z) + GROUND_CLEAR - p.y
-		lift = maxf(lift, need / (1.0 - t))
+	if focus.y > -100.0:              # below that is the build lab, far under the world: no hills there
+		for t: float in [0.0, 0.35, 0.7]:
+			var p := eye.lerp(focus, t)
+			var need := _shape.height_at(p.x, p.z) + GROUND_CLEAR - p.y
+			lift = maxf(lift, need / (1.0 - t))
 	_lift = lerpf(_lift, maxf(lift, 0.0), 1.0 - exp(-(10.0 if lift > _lift else 2.0) * delta))
 	if _lift > 0.01:
 		camera.position.y += _lift
 		camera.look_at(focus)
+
+
+## Starts the view high up so it glides down to you (coming back from the build lab).
+func drop_in(height: float) -> void:
+	_lift = height
 
 
 func _focus() -> Vector3:

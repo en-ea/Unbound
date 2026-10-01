@@ -80,6 +80,9 @@ func _ready() -> void:
 	director.player = player
 	director.day_night = $WorldEnvironment
 	add_child(director)
+	var warm := Node3D.new()                       # class ability effects, shown once behind the loading cover
+	warm.set_script(preload("res://scripts/world/ability_warmup.gd"))
+	add_child(warm)
 	var gates := Node3D.new()
 	gates.set_script(preload("res://scripts/world/region_gates.gd"))
 	gates.player = player

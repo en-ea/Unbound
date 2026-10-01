@@ -33,6 +33,7 @@ var _timer := 0.0
 
 
 func _ready() -> void:
+	add_to_group("day_night")
 	var env := Environment.new()
 	var sky := Sky.new()
 	sky.sky_material = _sky_mat
@@ -74,6 +75,12 @@ func _process(delta: float) -> void:
 
 func set_indoors(on: bool) -> void:
 	indoors = on
+	_apply()
+
+
+## Sets the clock (test menu: Make it night / day).
+func set_time(t: float) -> void:
+	time_of_day = fposmod(t, 1.0)
 	_apply()
 
 

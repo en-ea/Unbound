@@ -83,6 +83,7 @@ func leave() -> void:
 	player.velocity = Vector3.ZERO
 	SaveGame.paused = false
 	get_tree().call_group("camera_rig", "snap")
+	get_tree().call_group("camera_rig", "drop_in", 160.0)    # glide down from the sky back to the world
 
 
 ## The action: show another building on the pad.

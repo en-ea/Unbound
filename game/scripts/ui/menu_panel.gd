@@ -23,9 +23,9 @@ func _ready() -> void:
 	column.set_anchors_preset(Control.PRESET_CENTER)
 	column.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	column.grow_vertical = Control.GROW_DIRECTION_BOTH
-	column.add_theme_constant_override("separation", 14)
+	column.add_theme_constant_override("separation", 8)    # snug, so it fits a landscape phone without shrinking
 	add_child(column)
-	var title := UIStyle.label(column, "Paused", 34)
+	var title := UIStyle.label(column, "Paused", 32)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UIStyle.menu_button(column, "Resume", true).pressed.connect(_close)
 	var save := UIStyle.menu_button(column, "Save")
@@ -68,6 +68,9 @@ func _ready() -> void:
 			SaveGame.start_over()
 		else:
 			wipe.text = "Sure? Tap again")
+	for b in column.get_children():
+		if b is Button:
+			(b as Button).custom_minimum_size.y = 54
 
 
 func _close() -> void:

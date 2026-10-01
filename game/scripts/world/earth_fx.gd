@@ -216,6 +216,31 @@ static func close_pit(p: Node3D) -> void:
 	t.tween_callback(p.queue_free)
 
 
+## Little glowing shards of ore drifting up off a cracked enemy (Cracked uses it).
+static func shards(parent: Node3D) -> CPUParticles3D:
+	var glow := CPUParticles3D.new()
+	glow.amount = 10
+	glow.lifetime = 0.7
+	glow.local_coords = true
+	glow.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	glow.emission_sphere_radius = 0.45
+	glow.direction = Vector3.UP
+	glow.spread = 30.0
+	glow.gravity = Vector3(0, 1.0, 0)
+	glow.initial_velocity_min = 0.2
+	glow.initial_velocity_max = 0.6
+	var shard := BoxMesh.new()
+	shard.size = Vector3(0.05, 0.16, 0.05)
+	shard.material = ore_material()
+	glow.mesh = shard
+	glow.angular_velocity_min = -90.0
+	glow.angular_velocity_max = 90.0
+	glow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	glow.position = Vector3(0, 0.8, 0)
+	parent.add_child(glow)
+	return glow
+
+
 ## Cracks an enemy open for `seconds` (or keeps it cracked longer): glowing seams, and it takes more from you.
 static func crack(enemy: Node, seconds: float) -> void:
 	if not enemy.is_alive():

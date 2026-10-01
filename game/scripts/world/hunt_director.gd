@@ -13,6 +13,19 @@ var _where := Vector3.ZERO
 var _used_tonight := false
 
 
+func _ready() -> void:
+	add_to_group("hunt_director")
+
+
+## Test menu: the Duskmaw comes now, for a spot a little way in front of you (no bodies or night needed).
+func call_now() -> void:
+	var facing := Vector3(sin(player.visual.rotation.y), 0, cos(player.visual.rotation.y))
+	_where = player.global_position + facing * 8.0
+	_waiting = 1.0
+	_used_tonight = true
+	get_tree().call_group("hud", "hint", "Something big is coming out of the dark...")
+
+
 func _process(delta: float) -> void:
 	var night: float = day_night.night
 	if night < 0.3:

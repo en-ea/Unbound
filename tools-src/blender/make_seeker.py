@@ -20,7 +20,7 @@ RIG = os.path.join(ROOT, "game", "assets", "quaternius_characters", "UAL1_Standa
 OUT = os.path.join(ROOT, "game", "assets", "characters", "seeker.glb")
 
 COLORS = {
-    "Hood": (0.36, 0.6, 0.25), "Leaf": (0.33, 0.55, 0.22), "LeafDark": (0.22, 0.42, 0.17), "LeafLight": (0.46, 0.66, 0.28),
+    "Hood": (0.25, 0.45, 0.27), "Leaf": (0.21, 0.4, 0.22), "LeafDark": (0.13, 0.28, 0.15), "LeafLight": (0.31, 0.51, 0.31),
     "Shadow": (0.05, 0.05, 0.06), "Legs": (0.2, 0.14, 0.13), "Glow": (0.55, 0.85, 1.0),
 }
 SHADE = 0.1

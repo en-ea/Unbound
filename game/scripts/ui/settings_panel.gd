@@ -177,6 +177,13 @@ func _cheat_page() -> void:
 			for sk: String in Skills.SKILLS:
 				var target := mini(Skills.level(sk) + 5, Skills.MAX_LEVEL)
 				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])],
+		["Call the Duskmaw", func() -> void:
+			var director := get_tree().get_first_node_in_group("hunt_director")
+			if director:
+				_close()
+				director.call_now()],
+		["Make it night", func() -> void: get_tree().call_group("day_night", "set_time", 0.96)],
+		["Make it day", func() -> void: get_tree().call_group("day_night", "set_time", 0.35)],
 		["Go to other area", func() -> void:
 			var gate: Dictionary = Region.GATES[Region.current][0]
 			_close()
