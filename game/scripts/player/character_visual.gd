@@ -18,7 +18,7 @@ const SPRINT := "Sprint"
 ## Ground speed (m/s) each animation was made for, so feet don't slide.
 ## The jog's real pace is 5.36 m/s, but its long strides looked like lunging, so it plays ~30%
 ## faster (quicker, shorter-looking steps).
-const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2, "Sprint": 6.6, "Crouch_Fwd": 1.3, "Push": 0.9}
+const NATIVE_SPEED := {"Walk": 0.975, "Jog_Fwd": 4.2, "Sprint": 6.6, "Crouch_Fwd": 1.3, "Push": 0.7}
 
 const TOOLS := {"axe": "res://assets/items/axe.glb", "pickaxe": "res://assets/items/pickaxe.glb",
 	"sword": "res://assets/items/sword.glb"}
@@ -43,6 +43,7 @@ var walk_backward := false      # play the walk in reverse (dragging a body: Pus
 var wear_gear := false          # show the player's worn armour over the look (off in the look picker)
 var back_sword := false         # the player: your sword rides on your back while it isn't in your hand
 var hand_sword := false         # the player's "Sword: always in hand" setting
+var claws := false              # the Delver: claws on both hands instead of a sword (set_claws)
 var tool_shown := ""
 ## Where the sheathed sword sits, in the model's own space (it faces +Z): grip up by the right shoulder,
 ## blade slanting down across the back.
@@ -66,6 +67,8 @@ var _hold_hand_prop: Node3D
 var _hold_on := false
 var _lean_target := 0.0
 ## Degrees the torso is straightened for each motion (the jog leans ~27°, the sprint ~40°).
+const CLAW_BACK := 0.035      # claws sit this far over the back of the hand (hand bone +Z)
+const CLAW_CURL := -0.25      # and lean this much (radians) towards the palm
 const LEAN_FIX := {"Jog_Fwd": 20.0, "Sprint": 32.0}   # leaves the jog at ~16° and the sprint at ~21°
 
 
@@ -203,7 +206,9 @@ func charge_tool(amount: float) -> void:
 
 
 func show_tool(tool_name: String) -> void:
-	var has_sword := back_sword and Gear.tier("sword") >= 0
+	var has_sword := back_sword and Gear.tier("sword") >= 0 and not claws
+	if claws and tool_name == "sword":
+		tool_name = ""
 	if tool_name == "" and hand_sword and has_sword:
 		tool_name = "sword"
 	tool_shown = tool_name
@@ -213,6 +218,66 @@ func show_tool(tool_name: String) -> void:
 		_tools[t].visible = t == tool_name
 	if _tool_metal.has(tool_name):              # the head shows the tool's tier (stone, copper, iron)
 		(_tool_metal[tool_name] as StandardMaterial3D).albedo_color = Gear.color(tool_name)
+
+
+## The Delver's claws: three curved iron blades over the back of each hand, on a cuff with an ore stone.
+func set_claws(on: bool) -> void:
+	claws = on
+	for side: String in ["l", "r"]:
+		var hand := _skeleton.get_node_or_null("Claw_" + side) as BoneAttachment3D
+		if hand == null and on:
+			hand = BoneAttachment3D.new()
+			hand.name = "Claw_" + side
+			hand.bone_name = "hand_" + side
+			_skeleton.add_child(hand)
+			hand.add_child(_make_claw())
+		if hand:
+			hand.visible = on
+	show_tool(tool_shown)
+
+
+func _make_claw() -> Node3D:
+	var root := Node3D.new()
+	var iron := StandardMaterial3D.new()
+	iron.albedo_color = Color(0.42, 0.44, 0.47)
+	iron.metallic = 0.5
+	iron.roughness = 0.35
+	var leather := StandardMaterial3D.new()
+	leather.albedo_color = Color(0.28, 0.19, 0.13)
+	var cuff := MeshInstance3D.new()
+	var ring := CylinderMesh.new()
+	ring.top_radius = 0.05
+	ring.bottom_radius = 0.055
+	ring.height = 0.07
+	ring.radial_segments = 6
+	ring.rings = 1
+	cuff.mesh = ring
+	cuff.material_override = leather
+	cuff.position = Vector3(0, 0.0, 0)
+	root.add_child(cuff)
+	var gem := MeshInstance3D.new()
+	var stone := BoxMesh.new()
+	stone.size = Vector3(0.035, 0.035, 0.035)
+	gem.mesh = stone
+	gem.material_override = EarthFX.ore_material()
+	gem.position = Vector3(0, 0.0, CLAW_BACK + 0.02)
+	gem.rotation = Vector3(0.6, 0.6, 0)
+	root.add_child(gem)
+	for i in 3:
+		var blade := MeshInstance3D.new()
+		var spike := CylinderMesh.new()
+		spike.top_radius = 0.0
+		spike.bottom_radius = 0.032
+		spike.height = 0.3
+		spike.radial_segments = 3
+		spike.rings = 1
+		blade.mesh = spike
+		blade.material_override = iron
+		blade.scale = Vector3(1.0, 1.0, 0.45)
+		blade.position = Vector3((i - 1) * 0.036, 0.18, CLAW_BACK)
+		blade.rotation = Vector3(CLAW_CURL, 0, (i - 1) * -0.08)
+		root.add_child(blade)
+	return root
 
 
 ## Makes an animation loop (stances used as idles: Sword_Idle).

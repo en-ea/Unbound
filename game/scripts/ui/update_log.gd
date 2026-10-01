@@ -5,6 +5,16 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "1 Oct", "title": "A new class: the Delver (Hilmi's miner)", "lines": [
+		"The Delver fights with claws: quicker, lighter swipes than a sword (Heavy is a big hook). Choose it at the shrine's class screen, or Settings > Codes > Paladin > Become Delver. Switching class gives your talent points back.",
+		"Burrow: sink into the ground and move fast under it. Nothing can touch you, and only a mound of earth shows where you are. Attack (it says Erupt) to burst out in an uppercut that throws everyone near into the air.",
+		"While under, tap Burrow again (it says Drag) to drag the nearest foe down. A weak one is swallowed whole. A healthy one gets stuck waist-deep, so erupt right under it.",
+		"Fault Line: rake the ground, and a crack races ahead throwing up stone spikes that launch everyone in the way.",
+		"Sinkhole: the ground under a group caves into a pit that pulls them in and holds them, swallows the weak, then slams shut in a ring of stone.",
+		"The class trait is Cracked: your hits leave glowing cracks. Cracked foes take more damage from you and are swallowed at higher health. A Delver also mines faster with a pickaxe.",
+		"12 talents in four branches: Burrow, Fault Line, Sinkhole and Claws.",
+		"Dragging is a little slower (1.3 m/s) so your feet match the ground.",
+	]},
 	{"when": "1 Oct", "title": "Dragging with weight, footsteps that match", "lines": [
 		"Dragging a body: you face it, bent over with your hands on it, and step backwards. It comes in heaves with each step, lifts at the end you hold, scrapes along the ground and swings round behind you on a turn.",
 		"Footsteps now follow your feet in every walk (normal, sneaking, dragging, running), so no more fast pattering when the walk is slow.",

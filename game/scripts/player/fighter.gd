@@ -13,6 +13,9 @@ const DRAWN_FOR := 3.0        # seconds the sword stays in hand after a swing wi
 const FIGHT_NEAR := 8.0       # an enemy this close keeps it drawn
 const COMBO := ["Sword_Regular_A", "Sword_Regular_B", "Sword_Regular_C"]
 const FIST_COMBO := ["Punch_Jab", "Punch_Cross"]    # with no sword
+const CLAW_COMBO := ["Punch_Jab", "Punch_Cross", "Melee_Hook"]   # the Delver's claws: quicker, lighter swipes
+const CLAW_SPEED := 1.35
+const HEAVY_CLAW := {"anim": "Melee_Hook", "speed": 0.55, "impact": 0.24, "busy": 0.7}
 const SPEED := 1.25
 const CHAIN_WINDOW := 0.45     # tap again within this long after a swing to continue the combo
 const HIT_SOUNDS := "res://assets/kenney_impact/impactPunch_heavy_%03d.ogg"
@@ -140,15 +143,16 @@ func attack() -> void:
 		_queued = _busy < 0.25
 		return
 	var armed := Gear.tier("sword") >= 0
-	var combo: Array = COMBO if armed else FIST_COMBO
+	var combo: Array = CLAW_COMBO if _claws() else (COMBO if armed else FIST_COMBO)
 	_step = (_step + 1) % combo.size() if _since < CHAIN_WINDOW else 0
 	var anim: String = combo[_step]
-	var length := visual.animation_length(anim) / (SPEED * Gear.speed("sword"))
+	var pace := SPEED * Gear.speed("sword") * (CLAW_SPEED if _claws() else 1.0)
+	var length := visual.animation_length(anim) / pace
 	if target:
 		var to := target.global_position - player.global_position
 		visual.rotation.y = atan2(to.x, to.z)
 	visual.show_tool("sword" if armed else "")
-	visual.play_action(anim, SPEED * Gear.speed("sword"))
+	visual.play_action(anim, pace)
 	_busy = length * 0.85
 	_impact = length * 0.45
 	_heavy = false
@@ -181,7 +185,7 @@ func _takedown(t: Node3D) -> void:
 ## The Heavy button: one big blow. The player has already paid the stamina.
 func heavy() -> void:
 	var armed := Gear.tier("sword") >= 0
-	var h: Dictionary = HEAVY_SWORD if armed else HEAVY_FIST
+	var h: Dictionary = HEAVY_CLAW if _claws() else (HEAVY_SWORD if armed else HEAVY_FIST)
 	var speed: float = h["speed"] * Gear.speed("sword")
 	if target:
 		var to := target.global_position - player.global_position
@@ -249,10 +253,13 @@ func _land_hit() -> void:
 	if t.global_position.distance_to(player.global_position) > REACH + 0.8 or (t.has_method("is_evading") and t.is_evading()):
 		Wolf.open_up()
 		return
-	var hit := Gear.hit_damage()
+	var hit := Gear.hit_damage(Delver.CLAW_POWER if _claws() else 1.0)
 	if player.take_counter() or (t.has_method("is_open") and t.is_open()):
 		hit = [hit[0] * 2, true]           # a counter after a parry or perfect dodge, or a stunned foe
+	hit[0] = Delver.cracked_damage(t, hit[0])
 	t.take_hit(player.global_position, hit[0])
+	if _claws() and _step == 2 and Classes.has_talent("sharp_claws"):
+		EarthFX.crack(t, Delver.CRACK_TIME)
 	_after_hit(hit[1])
 	_hit_feedback(t, hit[0], hit[1])
 	Skills.add("combat", Balance.XP_PER_SWORD_HIT)
@@ -312,10 +319,11 @@ func _land_heavy() -> void:
 		to.y = 0.0
 		if not e.is_alive() or to.length() > HEAVY_REACH or (to.length() > 0.8 and to.normalized().dot(facing) < -0.1):
 			continue
-		e.take_hit(player.global_position, damage, Balance.HEAVY_PUSH)
+		var dealt := Delver.cracked_damage(e, damage)
+		e.take_hit(player.global_position, dealt, Balance.HEAVY_PUSH)
 		if not hit_any:
 			_after_hit(hit[1])
-		_hit_feedback(e, damage, hit[1])
+		_hit_feedback(e, dealt, hit[1])
 		hit_any = true
 		_sparks.global_position = (e as Node3D).global_position + Vector3(0, 0.8, 0)
 	var ground := player.global_position + facing * 1.1
@@ -338,6 +346,11 @@ func _land_heavy() -> void:
 	# Hit-stop for everything: the world nearly stops for a moment, then carries on.
 	Engine.time_scale = 0.05
 	get_tree().create_timer(0.11, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
+
+
+## The Delver fights with claws (character_visual.gd shows them; no sword).
+func _claws() -> bool:
+	return Classes.current == "delver"
 
 
 ## The closest living enemy within `reach` metres, or null (the camera and the lock marker use it).

@@ -145,10 +145,11 @@ func _ready() -> void:
 			get_node("../HUD").open_station.call_deferred(props)
 		elif arg.begins_with("--hunt"):                   # by the butcher: a live stag, bodies, the cart (--hunt=ride sits you on it)
 			_hunt_test.call_deferred(arg.trim_prefix("--hunt").trim_prefix("="))
-		elif arg == "--talents":                          # a Pyromancer with a few talents, on the talent screen
-			Classes.choose("pyromancer")
+		elif arg == "--talents" or arg == "--talents=delver":   # a Pyromancer (or Delver) with a few talents, on the talent screen
+			var delver := arg.ends_with("delver")
+			Classes.choose("delver" if delver else "pyromancer")
 			Classes.bonus_points = 5
-			Classes.talents.assign(["scorched_path", "second_wind", "greater_star"])
+			Classes.talents.assign(["deep_runner", "ambush", "wide_pit"] if delver else ["scorched_path", "second_wind", "greater_star"])
 			var hud := get_node("../HUD")
 			hud._modal.call_deferred(preload("res://scripts/ui/talent_panel.gd"))
 		elif arg.begins_with("--cheats"):                 # the settings test menu; --cheats=code shows the code page
@@ -225,6 +226,10 @@ func _ready() -> void:
 			add_child(preload("res://scripts/dev/seal_test.gd").new())
 		elif arg == "--pyro":                         # be a Pyromancer (abilities on Z/X too)
 			Classes.choose.call_deferred("pyromancer")
+		elif arg == "--delver":                       # be a Delver
+			Classes.choose.call_deferred("delver")
+		elif arg == "--delvertest":                   # every Delver ability on a pack in the meadow, screenshots to %TEMP%
+			add_child(preload("res://scripts/dev/delver_test.gd").new())
 		elif arg == "--bandittest":                   # with --lab: sneak-kill a bandit, then fight two
 			add_child(preload("res://scripts/dev/bandit_test.gd").new())
 		elif arg == "--defencetest":                  # parry a boar's charge, perfect-dodge the next

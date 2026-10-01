@@ -543,12 +543,17 @@ func _update_ability_buttons() -> void:
 		if not show:
 			continue
 		var id: String = list[i]
-		if b.get_meta("id", "") != id:
+		var label: String = Classes.ABILITIES[id]["short"]
+		var dragging: bool = id == "burrow" and player.burrowed()     # under the ground, Burrow drags a foe down
+		if dragging:
+			label = "Drag" if not player.abilities.delver.dragged_this_dive else "—"
+		if b.get_meta("id", "") != id or b.get_meta("label", "") != label:
 			b.set_meta("id", id)
-			b.set_verb(Classes.ABILITIES[id]["short"])
+			b.set_meta("label", label)
+			b.set_verb(label)
 			b.meter_color = Classes.color()
 			b.lit_fill = Color(Classes.color().darkened(0.55), 0.8)
-		var left := Classes.cooldown_left(id)
+		var left := 0.0 if dragging and label == "Drag" else Classes.cooldown_left(id)
 		b.set_meter(1.0 - left)
 		var dim := left > 0.0
 		if dim != b.dim:
@@ -565,9 +570,15 @@ func open_class_panel(from_shrine: bool) -> void:
 ## You took a class: its name across the screen and fire bursting out around you.
 func _on_class_chosen(id: String) -> void:
 	var def: Dictionary = Classes.CLASSES[id]
-	Banner.show_now(self, String(def["name"]).to_upper(), "The flame answers you", def["color"], preload("res://assets/sounds/fire_burst.wav"), 2.4)
+	Banner.show_now(self, String(def["name"]).to_upper(), def.get("answer", "The flame answers you"), def["color"], preload("res://assets/sounds/fire_burst.wav"), 2.4)
 	player.get_node("Effects").glow_burst(def["color"], 120)
-	FireFX.flames(player.get_parent(), player.global_position + Vector3(0, 0.4, 0), 1.2, 60, 1.0, true, 0.8)
+	if id == "delver":
+		EarthFX.dirt(player.get_parent(), player.global_position, 1.0, 40, 7.0)
+		for k in 6:
+			var a := TAU * k / 6.0
+			EarthFX.spike(player.get_parent(), player.global_position + Vector3(cos(a), 0, sin(a)) * 2.0, 1.4, Vector3(cos(a), 0, sin(a)))
+	else:
+		FireFX.flames(player.get_parent(), player.global_position + Vector3(0, 0.4, 0), 1.2, 60, 1.0, true, 0.8)
 	get_tree().call_group("camera_rig", "shake", 0.15)
 	_update_ability_buttons()
 

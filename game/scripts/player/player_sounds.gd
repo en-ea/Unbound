@@ -52,7 +52,7 @@ func play_roll() -> void:
 func _physics_process(delta: float) -> void:
 	var speed := Vector2(player.velocity.x, player.velocity.z).length()
 	var rate: float = player.visual.step_rate()
-	if speed < 0.3 or rate <= 0.0 or not player.is_on_floor() or player.is_rolling():
+	if speed < 0.3 or rate <= 0.0 or not player.visual.visible or not player.is_on_floor() or player.is_rolling():
 		_phase = 0.5 if not player.is_rolling() else _phase
 		return
 	_phase += rate * delta

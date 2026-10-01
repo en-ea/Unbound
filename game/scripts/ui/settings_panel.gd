@@ -190,6 +190,9 @@ func _cheat_page() -> void:
 		["Become Pyromancer", func() -> void:
 			Classes.choose("pyromancer")
 			get_tree().call_group("hud", "_on_class_chosen", "pyromancer")],
+		["Become Delver", func() -> void:
+			Classes.choose("delver")
+			get_tree().call_group("hud", "_on_class_chosen", "delver")],
 		["Reset story (shrine)", func() -> void: Classes.reset()],
 		["+5 talent points", func() -> void:
 			Classes.bonus_points += 5

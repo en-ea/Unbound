@@ -65,7 +65,7 @@ func is_rolling() -> bool:
 
 ## Heavy attack (the Heavy button in a fight): a slow, big swing that costs stamina.
 func heavy() -> void:
-	if hauling.busy():
+	if hauling.busy() or burrowed():
 		return
 	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or fighter.is_busy() or Controls.locked:
 		return
@@ -77,7 +77,7 @@ func heavy() -> void:
 ## parries: the attacker is knocked off balance and open, and your next hit is a counter. A late guard
 ## still blocks, but costs stamina and shoves you back.
 func guard() -> void:
-	if hauling.busy():
+	if hauling.busy() or burrowed():
 		return
 	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or _guard_rest > 0.0 or Controls.locked:
 		return
@@ -102,7 +102,7 @@ func is_down() -> bool:
 
 ## The Sneak button: crouch and creep (again to stand).
 func sneak() -> void:
-	if hauling.busy():
+	if hauling.busy() or burrowed():
 		return
 	if _down > 0.0 or Controls.locked:
 		return
@@ -226,7 +226,9 @@ func _play(stream: AudioStream, db: float) -> void:
 func act() -> void:
 	if _roll > 0.0 or _stun > 0.0:
 		return
-	if hauling.riding:
+	if burrowed():
+		abilities.delver.erupt()
+	elif hauling.riding:
 		hauling.get_off()
 	elif is_instance_valid(_station) and (hauling.carrying or fighter.verb == ""):
 		_station.interact()
@@ -263,6 +265,9 @@ func _ready() -> void:
 	Settings.changed.connect(sword_setting)
 	Gear.changed.connect(sword_setting)
 	sword_setting.call_deferred()
+	var class_look := func() -> void: visual.set_claws(Classes.current == "delver")
+	Classes.changed.connect(class_look)
+	class_look.call_deferred()
 	Armor.changed.connect(visual.apply_hero_look)
 	visual.apply_hero_look.call_deferred()
 
@@ -288,7 +293,7 @@ func _nearest_station() -> Node3D:
 
 ## Dodge roll: a quick roll in the stick direction (or forward). Charges miss you mid-roll.
 func roll() -> void:
-	if hauling.busy():
+	if hauling.busy() or burrowed():
 		return
 	if _roll > 0.0 or _roll_rest > 0.0 or _stun > 0.0 or gatherer.is_busy() or Controls.locked:
 		return
@@ -390,8 +395,13 @@ func heal_full() -> void:
 		health_changed.emit(health, MAX_HEALTH)
 
 
+## True while you're under the ground (the Delver's Burrow): nothing can touch you.
+func burrowed() -> bool:
+	return abilities != null and abilities.delver != null and abilities.delver.under
+
+
 func take_damage(amount: int) -> void:
-	if _roll > 0.0 or _down > 0.0 or _safe > 0.0:
+	if _roll > 0.0 or _down > 0.0 or _safe > 0.0 or burrowed():
 		return
 	if randf() < Armor.block_chance():        # armour took the whole hit
 		_safe = INVULNERABLE * 0.5
@@ -442,6 +452,8 @@ func _physics_process(delta: float) -> void:
 		return
 	_station = _nearest_station() if not hauling.riding else null
 	var new_verb: String = fighter.verb if not hauling.busy() else ""
+	if burrowed():
+		new_verb = "Erupt"
 	if new_verb == "":
 		new_verb = _station.verb if _station else ("" if hauling.busy() else gatherer.verb)
 	if new_verb == "":
@@ -473,7 +485,7 @@ func _physics_process(delta: float) -> void:
 	var target_speed := 0.0
 	# Holding Roll after the roll keeps you sprinting while stamina lasts.
 	var was_sprinting := sprinting
-	sprinting = not hauling.busy() and Controls.is_sprint_held() and strength >= RUN_THRESHOLD and not swinging and stamina.can("sprint")
+	sprinting = not hauling.busy() and not burrowed() and Controls.is_sprint_held() and strength >= RUN_THRESHOLD and not swinging and stamina.can("sprint")
 	if sprinting and not was_sprinting:
 		$Effects.burst(true)              # a kick of dust as you take off
 	if sprinting:
@@ -486,6 +498,8 @@ func _physics_process(delta: float) -> void:
 		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
 		if sneaking:
 			target_speed = minf(target_speed, Balance.STEALTH["sneak_speed"])
+		if burrowed():                        # under the ground: fast, a mound of earth over you
+			target_speed = abilities.delver.burrow_speed() * minf(strength / RUN_THRESHOLD, 1.0)
 		if hauling.carrying:                  # heave, step, heave: you surge as each foot plants
 			var heave := sin(PI * visual.step_phase())
 			target_speed = minf(target_speed, Balance.HUNT["drag_speed"]) * (0.35 + 1.3 * heave * heave)

@@ -290,6 +290,19 @@ an Epic sword (`reward.gear = [slot, rarity]`). Quest items can't be sold (`Item
   level - 1 + bonus. Effects are checked with `Classes.has_talent()` in abilities.gd, fire_fx.gd, burning.gd.
   Screen: `ui/talent_panel.gd` (Class screen > Talents). Test: Codes > Paladin > +5 talent points; `--talents`.
 
+
+## The Delver (Hilmi's class)
+- `state/classes.gd` "delver" (abilities burrow, fault_line, sinkhole; its talent tree). `player/delver.gd` does the
+  abilities (made by `abilities.gd`, which hands them over). Burrow: `under` hides the visual, a mound follows
+  (`world/earth_fx.gd`), `player.burrowed()` blocks damage, roll, heavy, parry, sneak and makes the action button
+  Erupt; Burrow again = Drag Under (once a dive). Its cooldown starts when you come up (`Classes.start_cooldown`).
+- Holding foes in the earth: `hold()` turns off the enemy's physics (it can't act) and sinks its `visual`;
+  `swallow()` sinks it all the way, kills it, removes its body (loot still drops) and puts the visual back when it
+  respawns. Bosses and the bandit leader are never swallowed.
+- Cracked (`creatures/cracked.gd`, `EarthFX.crack`): more damage from you (`Delver.cracked_damage`, used in
+  fighter.gd too) and swallowed at higher health. Claws: `fighter.gd` CLAW_COMBO / HEAVY_CLAW,
+  `character_visual.set_claws()` (built in code; no sword shown). Pickaxe work is 40% faster.
+- Test: `--delver`, `--delvertest` (all abilities on a pack, screenshots to %TEMP%), `--talents=delver`.
 ## Hunting, bodies and the ox cart
 - `state/hunting.gd` (autoload `Hunting`): KINDS (what carving gives, what the butcher pays), the cart's place and
   load (saved), `carve()`, `sell()`, `freshness(age)`. Numbers: Balance.HUNT, STAG, DUSKMAW.

@@ -1,6 +1,6 @@
 extends Control
-## The class screen: four paths as cards. The Pyromancer is open (its fire emblem, what it's about, and
-## its two abilities); the other three are sealed until later in the story. From the shrine (`from_shrine`)
+## The class screen: four paths as cards. The Pyromancer and the Delver are open (emblem, what it's about,
+## its trait and abilities); the other two are sealed until later in the story. From the shrine (`from_shrine`)
 ## it asks you to choose; from the Menu it shows your class. Choosing calls Classes.choose().
 
 signal closed
@@ -66,8 +66,8 @@ func _card(id: String) -> Control:
 	col.add_theme_constant_override("separation", 5)
 	card.add_child(col)
 	var emblem := Control.new()
-	emblem.custom_minimum_size = Vector2(0, 100)
-	emblem.draw.connect(_draw_emblem.bind(emblem, sealed, tint))
+	emblem.custom_minimum_size = Vector2(0, 84)
+	emblem.draw.connect(_draw_emblem.bind(emblem, sealed, tint, id))
 	col.add_child(emblem)
 	_emblems.append(emblem)
 	if sealed:
@@ -78,6 +78,10 @@ func _card(id: String) -> Control:
 	_label(col, String(def["name"]).to_upper(), 28, tint, DISPLAY_FONT)
 	var blurb := _label(col, def["blurb"], 16, Color(1, 0.95, 0.88, 0.9), TITLE_FONT)
 	blurb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if def.has("trait"):
+		var trait_line := _label(col, def["trait"], 13, Color(tint.lightened(0.3), 0.85), null)
+		trait_line.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		trait_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for a: String in def["abilities"]:
 		var ab: Dictionary = Classes.ABILITIES[a]
 		var name := _label(col, "%s  ·  %ss" % [ab["name"], str(snappedf(Classes.cooldown_of(a), 0.1))], 19, Color(1.0, 0.8, 0.5), TITLE_FONT)
@@ -99,7 +103,7 @@ func _card(id: String) -> Control:
 			panel.closed.connect(func() -> void:
 				talents.text = "Talents" + ("  (%d to spend)" % Classes.points_free() if Classes.points_free() > 0 else "")))
 	else:
-		var take := UIStyle.button(col, "Take the flame", Vector2(0, 48), 20)
+		var take := UIStyle.button(col, def.get("take", "Take the flame"), Vector2(0, 48), 20)
 		take.pressed.connect(func() -> void:
 			Classes.choose(id)
 			chosen.emit(id)
@@ -107,14 +111,27 @@ func _card(id: String) -> Control:
 	return card
 
 
-## A flame (the Pyromancer) or a lock (sealed) in a ring.
-func _draw_emblem(c: Control, sealed: bool, tint: Color) -> void:
-	var center := Vector2(c.size.x / 2.0, 55)
-	c.draw_arc(center, 46, 0, TAU, 48, Color(tint, 0.6), 2.5, true)
-	c.draw_arc(center, 38, 0, TAU, 48, Color(tint, 0.25), 1.5, true)
+## A flame (the Pyromancer), three claw marks over cracked earth (the Delver) or a lock (sealed) in a ring.
+func _draw_emblem(c: Control, sealed: bool, tint: Color, id: String) -> void:
+	var center := Vector2(c.size.x / 2.0, 46)
+	c.draw_arc(center, 42, 0, TAU, 48, Color(tint, 0.6), 2.5, true)
+	c.draw_arc(center, 35, 0, TAU, 48, Color(tint, 0.25), 1.5, true)
 	if sealed:
 		c.draw_arc(center + Vector2(0, -8), 12, PI, TAU, 16, Color(tint, 0.8), 4.0, true)
 		c.draw_rect(Rect2(center + Vector2(-16, -6), Vector2(32, 26)), Color(tint, 0.8))
+		return
+	if id == "delver":
+		var pulse := 0.75 + sin(_time * 3.0) * 0.25
+		c.draw_polyline(PackedVector2Array([center + Vector2(-30, 24), center + Vector2(-12, 18), center + Vector2(-4, 26),
+			center + Vector2(10, 18), center + Vector2(30, 24)]), Color(tint, 0.5 * pulse), 3.0, true)
+		for k in 3:                                   # three claw slashes, curved
+			var x := (k - 1) * 14.0
+			var pts := PackedVector2Array()
+			for j in 7:
+				var f := j / 6.0
+				pts.append(center + Vector2(x + 10.0 - f * 20.0 + sin(f * PI) * 5.0, -30.0 + f * 52.0))
+			c.draw_polyline(pts, Color(0.92, 0.95, 0.94), 6.0 - absf(k - 1) * 1.0, true)
+			c.draw_polyline(pts, Color(tint, pulse), 2.0, true)
 		return
 	var flick := sin(_time * 7.0) * 3.0
 	var outer := PackedVector2Array([center + Vector2(0, -36 + flick), center + Vector2(15, -10), center + Vector2(20, 12),

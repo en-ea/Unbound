@@ -1,7 +1,7 @@
 extends Node
 ## Your class (game state, no visuals). The story starts at the standing stones: the shrine wakes
-## (`awaken()`), then you pick a class (`choose()`). Only the Pyromancer is open; the other three are
-## sealed until later in the story. Each class has abilities with cooldowns (`use()`); the player's
+## (`awaken()`), then you pick a class (`choose()`). The Pyromancer and the Delver are open; the other two
+## are sealed until later in the story. Each class has abilities with cooldowns (`use()`); the player's
 ## abilities.gd does what they do. Any class can use any weapon. Saved with the game.
 
 signal changed
@@ -11,7 +11,11 @@ const CLASSES := {
 	"pyromancer": {"name": "Pyromancer", "color": Color(1.0, 0.5, 0.18),
 		"blurb": "The fire under the stones chose you. Burn a path through them, then bring the sky down.",
 		"abilities": ["flame_dash", "meteor", "cinderburst"]},
-	"sealed_1": {"sealed": true},
+	"delver": {"name": "Delver", "color": Color(0.36, 0.86, 0.72), "take": "Take the claws",
+		"answer": "The deep earth answers you",
+		"blurb": "Claws, not steel. Hunt them from below and drag the weak down with you.",
+		"trait": "Cracked: your hits split their guard. Cracked foes take more from you and are easier to swallow. You also mine faster.",
+		"abilities": ["burrow", "fault_line", "sinkhole"]},
 	"sealed_2": {"sealed": true},
 	"sealed_3": {"sealed": true},
 }
@@ -21,6 +25,12 @@ const ABILITIES := {
 		"desc": "Burst through your enemies in a streak of fire. Nothing can touch you mid-dash, and all you pass through burns."},
 	"meteor": {"name": "Meteor", "short": "Meteor", "cooldown": 12.0,
 		"desc": "A glowing ring marks the nearest enemy, then a burning star hits it: a huge blast that throws them back and sets the ground alight."},
+	"burrow": {"name": "Burrow", "short": "Burrow", "cooldown": 8.0,
+		"desc": "Sink into the ground and move fast, untouchable. Attack to erupt and throw everyone near into the air, or Drag the nearest foe under: the weak are swallowed whole, the rest stuck."},
+	"fault_line": {"name": "Fault Line", "short": "Fault", "cooldown": 9.0,
+		"desc": "A crack races ahead and stone spikes burst up along it, throwing and cracking everyone in its path."},
+	"sinkhole": {"name": "Sinkhole", "short": "Sinkhole", "cooldown": 18.0,
+		"desc": "The ground under a group caves in: it pulls them in and holds them, swallows the weak, then slams shut."},
 	"cinderburst": {"name": "Cinderburst", "short": "Burst", "cooldown": 14.0,
 		"desc": "A ring of fire bursts out around you and sets everyone in it alight. Anyone who was already burning explodes, spreading the fire, and each explosion sends a spark of life back to you. Set them burning first, then pop them."},
 }
@@ -33,6 +43,12 @@ const TALENT_TREES := {
 		{"name": "Meteor", "talents": ["greater_star", "falling_sky", "twin_stars"]},
 		{"name": "Cinderburst", "talents": ["wide_ring", "feed_the_flames", "chain_reaction"]},
 		{"name": "Kindling", "talents": ["slow_burn", "white_heat", "rekindle"]},
+	],
+	"delver": [
+		{"name": "Burrow", "talents": ["deep_runner", "ambush", "hungry_earth"]},
+		{"name": "Fault Line", "talents": ["long_fault", "aftershock", "split_earth"]},
+		{"name": "Sinkhole", "talents": ["wide_pit", "undertow", "earths_maw"]},
+		{"name": "Claws", "talents": ["sharp_claws", "rend", "ore_heart"]},
 	],
 }
 const TALENTS := {
@@ -48,9 +64,22 @@ const TALENTS := {
 	"slow_burn": {"name": "Slow Burn", "desc": "Everything you set on fire burns half again as long."},
 	"white_heat": {"name": "White Heat", "desc": "Your fire burns twice as hard."},
 	"rekindle": {"name": "Rekindle", "desc": "Whenever a burning enemy dies, all your abilities come back 1.5 s sooner."},
+	"deep_runner": {"name": "Deep Runner", "desc": "Stay under twice as long, and dig faster."},
+	"ambush": {"name": "Ambush", "desc": "Erupting hits twice as hard and leaves everyone it throws cracked for longer."},
+	"hungry_earth": {"name": "Hungry Earth", "desc": "The earth swallows foes at half health (even more if they're cracked)."},
+	"long_fault": {"name": "Long Fault", "desc": "Fault Line runs half again as far and is ready 25% sooner."},
+	"aftershock": {"name": "Aftershock", "desc": "The spikes burst up a second time a moment later."},
+	"split_earth": {"name": "Split Earth", "desc": "Fault Line splits three ways, in a fan."},
+	"wide_pit": {"name": "Wide Pit", "desc": "Sinkhole opens a third wider."},
+	"undertow": {"name": "Undertow", "desc": "Sinkhole holds them longer, pulls harder, and is ready 20% sooner."},
+	"earths_maw": {"name": "Earth's Maw", "desc": "When the pit closes, stone jaws bite: twice the slam, and every cracked foe in it is swallowed."},
+	"sharp_claws": {"name": "Sharp Claws", "desc": "Every third claw swipe cracks what it hits."},
+	"rend": {"name": "Rend", "desc": "Cracked foes take twice the extra damage from you."},
+	"ore_heart": {"name": "Ore Heart", "desc": "Each foe the earth swallows gives you two hearts back, and Burrow is ready again at once."},
 }
 ## What a talent does to an ability's cooldown.
-const COOLDOWN_TALENTS := {"flame_dash": ["second_wind", 0.7], "meteor": ["falling_sky", 0.75]}
+const COOLDOWN_TALENTS := {"flame_dash": ["second_wind", 0.7], "meteor": ["falling_sky", 0.75],
+	"fault_line": ["long_fault", 0.75], "sinkhole": ["undertow", 0.8]}
 
 var awakened := false
 var current := ""
@@ -72,6 +101,8 @@ func choose(id: String) -> void:
 	if not CLASSES.has(id) or CLASSES[id].get("sealed", false):
 		return
 	awakened = true
+	if id != current:
+		talents.clear()                 # talents belong to a class: switching gives the points back
 	current = id
 	changed.emit()
 
@@ -104,6 +135,11 @@ func use(ability: String) -> bool:
 		return false
 	_ready_at[ability] = _now() + cooldown_of(ability)
 	return true
+
+
+## Starts an ability's cooldown now (Burrow counts from when you come back up), or sets `seconds` left.
+func start_cooldown(ability: String, seconds := -1.0) -> void:
+	_ready_at[ability] = _now() + (cooldown_of(ability) if seconds < 0.0 else seconds)
 
 
 ## Rekindle: every ability comes back a little sooner.

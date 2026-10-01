@@ -1,6 +1,7 @@
 class_name Abilities
 extends Node
-## What your class's abilities do (Classes holds which you have and their cooldowns).
+## What your class's abilities do (Classes holds which you have and their cooldowns). The Delver's are in
+## player/delver.gd.
 ## Pyromancer:
 ## - Flame Dash: a burst forward (through an enemy if one is ahead), untouchable while it lasts (like a
 ##   roll: time it as a blow lands for a perfect dodge). Whatever you pass through burns, and the ground
@@ -34,13 +35,32 @@ const SOUNDS := {
 @onready var player: CharacterBody3D = get_parent()
 
 
+var delver: Delver               # the Delver's abilities (player/delver.gd)
+
+
+func _ready() -> void:
+	delver = Delver.new()
+	delver.name = "Delver"
+	add_child(delver)
+
+
 ## The action: an ability button.
 func use(ability: String) -> void:
 	if player.is_down() or Controls.locked or player.is_rolling() or player.hauling.busy():
 		return
+	if delver.under:                      # under the ground only Burrow works: it drags a foe down
+		if ability == "burrow":
+			delver.drag_under()
+		return
 	if not Classes.use(ability):
 		return
 	match ability:
+		"burrow":
+			delver.burrow()
+		"fault_line":
+			delver.fault_line()
+		"sinkhole":
+			delver.sinkhole()
 		"flame_dash":
 			_flame_dash()
 		"meteor":
