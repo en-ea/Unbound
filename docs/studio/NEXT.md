@@ -10,9 +10,9 @@ next_step: Enea replies (any of the ways below); the studio then plans the next 
 
 # What happens next
 
-## 29 Sep 2026 - current continuation route [chat/repo/design]
-
 **1 Oct, Enea:** start with [PASS-2-FOR-ENEA.md](PASS-2-FOR-ENEA.md). It covers what the village does around the player now, why, how it sits on your systems, the Living village switch, and what is yours to decide.
+
+## 29 Sep 2026 - current continuation route [chat/repo/design]
 
 **30 Sep, evening:** Pass 2 is done: read [PASS-2-REPORT.md](PASS-2-REPORT.md) first (what the village does around the player now, the checks, how to play it, what is open).
 

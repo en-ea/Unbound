@@ -10,9 +10,9 @@ next_step: Enea (and his agents) read this and reply (NEXT.md); then we plan the
 
 # The studio branch: start here
 
-## Master goals, 29 Sep 2026 [chat/repo/design]
-
 **1 Oct, Enea:** start with [PASS-2-FOR-ENEA.md](PASS-2-FOR-ENEA.md). It covers what the village does around the player now, why, how it sits on your systems, the Living village switch, and what is yours to decide.
+
+## Master goals, 29 Sep 2026 [chat/repo/design]
 
 **30 Sep, evening:** Pass 2 is done: read [PASS-2-REPORT.md](PASS-2-REPORT.md) first (what the village does around the player now, the checks, how to play it, what is open).
 
