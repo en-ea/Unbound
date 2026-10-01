@@ -337,13 +337,17 @@ static func to_data(v: S.Village, compress: bool = true) -> Dictionary:
 	return data
 
 
-## The seed of a village that does not exist yet. A new game gets its own (random; the save keeps it with the
-## village). Tests and dev runs (any user argument) keep seed 1 unless --village-seed=N says otherwise.
+## The player's home village is the same for everyone: HOME_SEED, in every new game (Hilmi, 1 Oct). Other seeds are
+## for testing (--village-seed=N, or --village-seed=random for a fresh one each run) and, later, for the villages the
+## player finds on the map (each its own seed). The save keeps the seed with the village either way.
+const HOME_SEED := 1
+
 static func new_seed(args: PackedStringArray) -> int:
 	for arg in args:
 		if arg.begins_with("--village-seed="):
-			return int(arg.trim_prefix("--village-seed="))
-	return 1 if not args.is_empty() else maxi(1, randi())
+			var asked := arg.trim_prefix("--village-seed=")
+			return maxi(1, randi()) if asked == "random" else int(asked)
+	return HOME_SEED
 
 
 ## The first codec's format, kept so a test can write an old save and prove it still loads.

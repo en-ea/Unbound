@@ -211,11 +211,12 @@ static func report() -> PackedStringArray:
 	var named_data := _disk(Save.to_data(named))
 	var named_back := Save.from_data(named_data)
 	check.call(named_data.layout == "meadow" and named_data.extra_places == ["somewhere_new"] and named_back != null and named_back.place_names == named.place_names 		and named_back.place_ids == named.place_ids and named_back.dist2 == named.dist2, "a place added on the fly survives a load")
-	# 6. A new game gets its own village; tests and dev runs keep seed 1 unless told otherwise.
-	var fresh := [Save.new_seed(PackedStringArray()), Save.new_seed(PackedStringArray()), Save.new_seed(PackedStringArray())]
-	check.call(fresh.all(func(n: int) -> bool: return n >= 1) and (fresh[0] != fresh[1] or fresh[1] != fresh[2]), "a new game draws its own village seed (%s)" % str(fresh))
-	check.call(Save.new_seed(PackedStringArray(["--test-save=x", "--village-soon"])) == 1, "a dev or test run keeps seed 1")
+	# 6. Every new game gets the same home village; other seeds are for testing (and, later, villages found on the map).
+	check.call(Save.new_seed(PackedStringArray()) == Save.HOME_SEED and Save.new_seed(PackedStringArray()) == Save.HOME_SEED, "a new game gets the home village, the same for everyone (seed %d)" % Save.HOME_SEED)
+	check.call(Save.new_seed(PackedStringArray(["--test-save=x", "--village-soon"])) == Save.HOME_SEED, "a dev or test run gets the home village too")
 	check.call(Save.new_seed(PackedStringArray(["--test-save=x", "--village-seed=4242"])) == 4242, "--village-seed=N sets it")
+	var drawn := [Save.new_seed(PackedStringArray(["--village-seed=random"])), Save.new_seed(PackedStringArray(["--village-seed=random"])), Save.new_seed(PackedStringArray(["--village-seed=random"]))]
+	check.call(drawn.all(func(n: int) -> bool: return n >= 1) and (drawn[0] != drawn[1] or drawn[1] != drawn[2]), "--village-seed=random draws a fresh one for testing (%s)" % str(drawn))
 	var mine := Runtime.create(4242)
 	check.call(_through(mine).seed == 4242 and _through(mine).runtime.village == "wenbrook:4242", "the seed is kept in the save with the village")
 	var fails := 0
