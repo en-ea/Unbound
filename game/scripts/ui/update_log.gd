@@ -5,6 +5,11 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "1 Oct", "title": "Easier class testing, screens that fit", "lines": [
+		"Settings > Class (testing): tap to switch class on the spot (Pyromancer, Delver).",
+		"The test menu is sorted into sections (Class, Fighting, Items, Village and home). It has class buttons, a Talents screen button and Abilities ready now (no cooldowns). Enter the code once and it opens straight away after that.",
+		"Screens that grew taller than the phone in landscape (the class screen, crafting and others) now shrink to fit, so Done and Close are always reachable.",
+	]},
 	{"when": "1 Oct", "title": "A new class: the Delver (Hilmi's miner)", "lines": [
 		"The Delver fights with claws: quicker, lighter swipes than a sword (Heavy is a big hook). Choose it at the shrine's class screen, or Settings > Codes > Paladin > Become Delver. Switching class gives your talent points back.",
 		"Burrow: sink into the ground and move fast under it. Nothing can touch you, and only a mound of earth shows where you are. Attack (it says Erupt) to burst out in an uppercut that throws everyone near into the air.",
@@ -115,7 +120,9 @@ const ENTRIES := [
 
 
 static func open(parent: Node) -> void:
-	parent.add_child(UpdateLog.new())
+	var log := UpdateLog.new()
+	parent.add_child(log)
+	FitToScreen.watch(log)
 
 
 func _ready() -> void:

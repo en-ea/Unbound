@@ -100,6 +100,7 @@ func _card(id: String) -> Control:
 			var panel := Control.new()
 			panel.set_script(preload("res://scripts/ui/talent_panel.gd"))
 			add_child(panel)
+			FitToScreen.watch(panel)
 			panel.closed.connect(func() -> void:
 				talents.text = "Talents" + ("  (%d to spend)" % Classes.points_free() if Classes.points_free() > 0 else "")))
 	else:

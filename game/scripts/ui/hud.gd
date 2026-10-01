@@ -467,6 +467,7 @@ func _modal(script: Script, props := {}) -> Control:
 	for key: String in props:
 		panel.set(key, props[key])
 	add_child(panel)
+	FitToScreen.watch(panel)
 	panel.closed.connect(_back_from_screen)
 	return panel
 

@@ -1,6 +1,7 @@
 extends Control
 ## Settings: frame rate, the stats overlay and sound. Changes save straight away.
-## "Codes": type the code (Paladin) to open a test menu that hands you coins, items, tools and more.
+## "Class (testing)" switches class on the spot. "Codes": type the code (Paladin) once to open the test menu
+## (class, fighting, items, village); after that it opens straight away until the game restarts.
 
 signal closed
 
@@ -10,6 +11,7 @@ var _rows: VBoxContainer
 var _page := "settings"      # settings / code / cheats
 var _msg: Label
 var _typed := ""
+static var _unlocked := false  # the code was entered once: the test menu opens straight away until the game restarts
 
 
 func _ready() -> void:
@@ -68,7 +70,8 @@ func _refresh() -> void:
 	_row("Sound", "On" if Settings.sound_on else "Off", func() -> void: Settings.set_sound_on(not Settings.sound_on))
 	_row("Music", "On" if Settings.music_on else "Off", func() -> void: Settings.set_music_on(not Settings.music_on))
 	_row("Update log", "Open", func() -> void: UpdateLog.open(self))
-	_row("Codes", "Enter", func() -> void: _page = "code")
+	_row("Class (testing)", _class_name(), _next_class)
+	_row("Codes", "Test menu" if _unlocked else "Enter", func() -> void: _page = "cheats" if _unlocked else "code")
 
 
 func _page_first() -> void:
@@ -110,6 +113,7 @@ func _code_page() -> void:
 	UIStyle.button(row, "Enter", Vector2(140, 50)).pressed.connect(func() -> void:
 		if _typed.to_lower() == CODE:
 			_typed = ""
+			_unlocked = true
 			_page = "cheats"
 			_refresh()
 		else:
@@ -118,16 +122,68 @@ func _code_page() -> void:
 			_msg.text = "That code doesn't do anything.")
 
 
-## Test helpers: each button gives you something straight away.
+## Test helpers, in sections: each button does its thing straight away.
 func _cheat_page() -> void:
-	UIStyle.label(_rows, "Test menu", 22)
+	var top := HBoxContainer.new()
+	_rows.add_child(top)
+	var title := UIStyle.label(top, "Test menu", 22)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UIStyle.button(top, "Back", Vector2(120, 46), 19).pressed.connect(func() -> void:
+		_page = "settings"
+		_refresh())
 	_msg = UIStyle.label(_rows, "Tap to give yourself things.", 16, true)
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 10)
-	_rows.add_child(grid)
-	var cheats := [
+	_section("Class")
+	var classes := HBoxContainer.new()
+	classes.add_theme_constant_override("separation", 10)
+	_rows.add_child(classes)
+	for id: String in Classes.CLASSES:
+		var def: Dictionary = Classes.CLASSES[id]
+		if def.get("sealed", false):
+			continue
+		var here := Classes.current == id
+		var b := UIStyle.button(classes, ("● " if here else "") + String(def["name"]), Vector2(170, 50), 19)
+		b.add_theme_color_override("font_color", def["color"])
+		b.pressed.connect(func() -> void:
+			_become(id)
+			_refresh())
+	_grid([
+		["+5 talent points", func() -> void:
+			Classes.bonus_points += 5
+			Classes.changed.emit()],
+		["Talents screen", func() -> void:
+			var panel := Control.new()
+			panel.set_script(preload("res://scripts/ui/talent_panel.gd"))
+			add_child(panel)
+			FitToScreen.watch(panel)],
+		["Abilities ready now", func() -> void:
+			for a: String in Classes.abilities():
+				Classes.start_cooldown(a, 0.0)],
+		["Reset story (shrine)", func() -> void: Classes.reset()],
+	])
+	_section("Fighting")
+	_grid([
+		["Full hearts", func() -> void: get_tree().call_group("player", "heal_full")],
+		["One of each rarity", func() -> void:           # swords, Common to Mythic
+			for r in Loot.MYTHIC + 1:
+				Gear.take("sword", Gear._tool(3, r, Loot.roll_bonuses("weapon", r)))],
+		["Armour set (Epic)", func() -> void:
+			for slot: String in Armor.SLOTS:
+				Armor.give(slot, Armor.piece(3, Loot.EPIC, Loot.roll_bonuses("armor", Loot.EPIC)))],
+		["Random gear ×6", func() -> void:
+			for i in 6:
+				var found := Gear.roll_found("elite")
+				Gear.take(found[0], found[1])],
+		["Skills +5 levels", func() -> void:
+			for sk: String in Skills.SKILLS:
+				var target := mini(Skills.level(sk) + 5, Skills.MAX_LEVEL)
+				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])],
+		["Go to other area", func() -> void:
+			var gate: Dictionary = Region.GATES[Region.current][0]
+			_close()
+			Region.travel(gate["to"], gate["arrive"])],
+	])
+	_section("Items")
+	_grid([
 		["+500 coins", func() -> void: Money.earn(500)],
 		["Materials ×25", func() -> void:
 			for i: String in ["wood", "stone", "flint", "resin", "shard", "copper", "iron", "hide", "pelt", "fang", "pinewood", "shadow_pelt", "tusk"]:
@@ -146,16 +202,9 @@ func _cheat_page() -> void:
 		["Steel tools", func() -> void:
 			for slot: String in Gear.SLOTS:
 				Gear.give(slot, Gear._tool(Gear.TIERS.size() - 1))],
-		["Random gear ×6", func() -> void:
-			for i in 6:
-				var found := Gear.roll_found("elite")
-				Gear.take(found[0], found[1])],
-		["One of each rarity", func() -> void:           # swords, Common to Mythic
-			for r in Loot.MYTHIC + 1:
-				Gear.take("sword", Gear._tool(3, r, Loot.roll_bonuses("weapon", r)))],
-		["Armour set (Epic)", func() -> void:
-			for slot: String in Armor.SLOTS:
-				Armor.give(slot, Armor.piece(3, Loot.EPIC, Loot.roll_bonuses("armor", Loot.EPIC)))],
+	])
+	_section("Village and home")
+	_grid([
 		["Build all projects", func() -> void:
 			for id: String in Projects.DEFS:
 				if not Projects.is_built(id):
@@ -166,15 +215,6 @@ func _cheat_page() -> void:
 		["Undo all projects", func() -> void:
 			for id: String in Projects.DEFS:
 				Projects.unbuild(id)],
-		["Undo home + yard", func() -> void: Home.reset()],
-		["One of each furniture", func() -> void:        # put away, so placing them is free
-			for id: String in Home.FURNITURE:
-				Home.stored[id] = Home.stored.get(id, 0) + 1
-			Home.furniture_changed.emit()],
-		["Skills +5 levels", func() -> void:
-			for sk: String in Skills.SKILLS:
-				var target := mini(Skills.level(sk) + 5, Skills.MAX_LEVEL)
-				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])],
 		["Unlock home (all needs)", func() -> void:
 			for id: String in Projects.DEFS:
 				if not Projects.is_built(id):
@@ -186,37 +226,56 @@ func _cheat_page() -> void:
 				var target := mini(Skills.level(sk) + 9, Skills.MAX_LEVEL)
 				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])
 			Money.earn(Balance.HOME["coins"])],
-		["Full hearts", func() -> void: get_tree().call_group("player", "heal_full")],
-		["Become Pyromancer", func() -> void:
-			Classes.choose("pyromancer")
-			get_tree().call_group("hud", "_on_class_chosen", "pyromancer")],
-		["Become Delver", func() -> void:
-			Classes.choose("delver")
-			get_tree().call_group("hud", "_on_class_chosen", "delver")],
-		["Reset story (shrine)", func() -> void: Classes.reset()],
-		["+5 talent points", func() -> void:
-			Classes.bonus_points += 5
-			Classes.changed.emit()],
-		["Morrow's job: done up to the seal", func() -> void:
+		["Undo home + yard", func() -> void: Home.reset()],
+		["One of each furniture", func() -> void:        # put away, so placing them is free
+			for id: String in Home.FURNITURE:
+				Home.stored[id] = Home.stored.get(id, 0) + 1
+			Home.furniture_changed.emit()],
+		["Morrow's job: up to the seal", func() -> void:
 			if Quests.status("morrow_seal") == "new":
 				Quests.accept("morrow_seal")
 			Inventory.add("black_seal", 1)],
-		["Go to other area", func() -> void:
-			var gate: Dictionary = Region.GATES[Region.current][0]
-			_close()
-			Region.travel(gate["to"], gate["arrive"])],
-	]
+	])
+
+
+func _section(title: String) -> void:
+	var l := UIStyle.label(_rows, title.to_upper(), 16)
+	l.add_theme_color_override("font_color", Color(1.0, 0.82, 0.5))
+
+
+func _grid(cheats: Array) -> void:
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	_rows.add_child(grid)
 	for c: Array in cheats:
 		var b := UIStyle.button(grid, c[0], Vector2(250, 50), 19)
 		b.pressed.connect(func() -> void:
 			c[1].call()
 			if is_instance_valid(_msg):
 				_msg.text = "Done: " + c[0])
-	var back := UIStyle.button(_rows, "Back", Vector2(140, 50))
-	back.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	back.pressed.connect(func() -> void:
-		_page = "settings"
-		_refresh())
+
+
+## Takes a class straight away (the banner and burst play as if chosen at the shrine).
+func _become(id: String) -> void:
+	Classes.choose(id)
+	get_tree().call_group("hud", "_on_class_chosen", id)
+	if is_instance_valid(_msg):
+		_msg.text = "You're a %s now." % Classes.CLASSES[id]["name"]
+
+
+func _class_name() -> String:
+	return Classes.CLASSES[Classes.current]["name"] if Classes.current != "" else "None"
+
+
+## The settings row: on to the next open class.
+func _next_class() -> void:
+	var open: Array[String] = []
+	for id: String in Classes.CLASSES:
+		if not Classes.CLASSES[id].get("sealed", false):
+			open.append(id)
+	_become(open[(open.find(Classes.current) + 1) % open.size()])
 
 
 func _row(label: String, value: String, action: Callable) -> void:
