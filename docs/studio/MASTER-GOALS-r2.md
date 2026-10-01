@@ -278,6 +278,7 @@ The checks passed, yet Hilmi found the result robotic `[chat]`. Each further bat
 | Enea's `camera-test` 4a1df30 merged (30 Sep) | Hunting, carcasses, hauling, ox cart, talents, quest log, flick buttons, homes | Done, `969f45f`: 9 conflicts, both sides kept; his six tests ran clean | Pushed in `c5cbdfa` |
 | The home seed (1 Oct) | The home village the same in every game; `--village-seed=N` or `random` for tests and found villages | Done, `6319c32`; save test updated | Local; the push waits for Hilmi's yes |
 | People architecture (1 Oct) | Body, perception, inner state, choice and situations, spawner (section 5, PA) | Proposed | `PEOPLE-ARCHITECTURE.md`; next: Hilmi's go, then Pass 3 as PA-1 and PA-2 |
+| Pass 3, "people who move like people" (1 Oct) | PA-1 and PA-2: one mover and crowd for every body (anticipatory avoidance, own paces, gait), formations, head turns, flinches, one speech manager | Approved 1 Oct (Hilmi: "yes plan and prepare to begin, you will be doing everything solo"). Solo. Stage 0 under way on branch `pass3`: the steering spike passes (`c1a45d8`) | `plan/PASS-3-PLAN-2026-10-01.md` and `plan/PASS-3-STATE.md` (studio repository); next: the robotic-signs baseline, then stage 1 |
 
 **Record for each batch:** batch, date and lead; the bounded player outcome; the base commit and files; the contracts; the state; commits and the build; the checks and results; performance; owner feedback (only if received); and the next action and publication status.
 
