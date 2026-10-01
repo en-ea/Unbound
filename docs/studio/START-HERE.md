@@ -14,6 +14,8 @@ next_step: Enea (and his agents) read this and reply (NEXT.md); then we plan the
 
 ## Master goals, 29 Sep 2026 [chat/repo/design]
 
+**1 Oct, later:** the master goals carry a 1 Oct correction (where things stand after Pass 2, and Hilmi's verdict that the people still feel robotic). The studio's next proposal is [PEOPLE-ARCHITECTURE.md](PEOPLE-ARCHITECTURE.md): how villagers notice, feel, choose and move, and the order to build it. It is with Hilmi first; the parts that touch your code ask for your OK.
+
 **30 Sep, evening:** Pass 2 is done: read [PASS-2-REPORT.md](PASS-2-REPORT.md) first (what the village does around the player now, the checks, how to play it, what is open).
 
 **30 Sep:** the programme is now [MASTER-GOALS-r2.md](MASTER-GOALS-r2.md). It proposes who builds what (Enea: the adventure; the studio: the people) and a single opt-in landing path into `main`, and puts hygiene and foundations before the first player-agency batch. The paragraph below is the 29 Sep history.
