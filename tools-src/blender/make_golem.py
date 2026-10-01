@@ -29,7 +29,7 @@ OUT = os.path.join(ROOT, "game", "assets", "characters", "golem.glb")
 # Sampled from docs/Builds/characters/golem-smith-brakk-original.png: a warm, slightly mauve grey,
 # dark red-brown leather, orange glow. The shadows (cool and dark there) come from bake_shading.
 COLORS = {
-    "Stone": (0.6, 0.53, 0.52), "StoneDark": (0.48, 0.42, 0.43), "StoneLight": (0.68, 0.61, 0.58),
+    "Stone": (0.57, 0.52, 0.47), "StoneDark": (0.44, 0.4, 0.37), "StoneLight": (0.66, 0.61, 0.55),
     "Apron": (0.44, 0.21, 0.14), "Leather": (0.32, 0.15, 0.1), "Glow": (1.0, 0.5, 0.13),
 }
 SHADE = 0.08

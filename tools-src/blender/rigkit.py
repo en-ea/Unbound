@@ -105,7 +105,7 @@ def boulder(bm, c, size, seed, rot=(0, 0, 0), round=0.35, chips=3, jitter=0.04, 
         k = 1.0 + (top - 1.0) * max(p.z, 0.0)
         verts.append(bm.verts.new(c + turn @ Vector((p.x * size[0] * 0.5 * k, p.y * size[1] * 0.5 * k, p.z * size[2] * 0.5))))
     res = bmesh.ops.convex_hull(bm, input=verts, use_existing_faces=False)
-    loose = [g for g in res["geom_interior"] + res["geom_unused"] if isinstance(g, bmesh.types.BMVert)]
+    loose = list({g for g in res["geom_interior"] + res["geom_unused"] if isinstance(g, bmesh.types.BMVert)})
     if loose:
         bmesh.ops.delete(bm, geom=loose, context="VERTS")
     faces = [g for g in res["geom"] if isinstance(g, bmesh.types.BMFace) and g.is_valid]

@@ -11,6 +11,7 @@ const ENTRIES := [
 		"Test menu > Fighting: Call the Duskmaw (it comes for you right away), Make it night, Make it day.",
 		"The pause menu fits a landscape screen without shrinking (that shrinking drew a thin white line on the buttons).",
 		"The Moss-Cap Seeker is a cooler, deeper green, closer to its picture.",
+		"Brakk the smith is rebuilt closer to his picture: chipped boulder stone in warm grey, with baked shading and glowing runes.",
 	]},
 	{"when": "1 Oct", "title": "Easier class testing, screens that fit", "lines": [
 		"Settings > Class (testing): tap to switch class on the spot (Pyromancer, Delver).",
