@@ -10,6 +10,8 @@ next_step: Enea (and his agents) read this and reply (NEXT.md); then we plan the
 
 # The studio branch: start here
 
+**3 Oct [chat/repo]:** read [PEOPLE-STATUS-FOR-ENEA-2026-10-03.md](PEOPLE-STATUS-FOR-ENEA-2026-10-03.md) for the people rebuild now underway: locally built Foundations, the selected Body/Mind leads and Claude animation/rigging specialist, proposal hooks, evidence and pending delivery. This publication updates documentation only; the new people implementation remains local and is not yet in this remote branch.
+
 **1 Oct, Enea:** start with [PASS-2-FOR-ENEA.md](PASS-2-FOR-ENEA.md). It covers what the village does around the player now, why, how it sits on your systems, the Living village switch, and what is yours to decide.
 
 ## Master goals, 29 Sep 2026 [chat/repo/design]
