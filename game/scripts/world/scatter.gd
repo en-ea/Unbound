@@ -51,6 +51,8 @@ func build(shape: WorldShape) -> void:
 	else:
 		_scatter_trees()
 	_scatter_landmarks()
+	if WorldShape.region == "highlands":
+		_scatter_highland_features()
 	_scatter_path_stones()
 	_scatter_rocks()
 	_scatter_ores()
@@ -141,6 +143,139 @@ func _scatter_highland_trees() -> void:
 		_add_tree(p)
 		var dead := _rng.randf() < 0.1
 		_place("tree_dead_1" if dead else _pick(pines), "tree", p, _rng.randf_range(0.7, 1.3), 0.15, "" if dead else "pine")
+
+
+## The highlands' bold shapes: rocky tors crowning the hilltops, tall crags on the slopes, cairns
+## marking the path, and old drystone walls wandering over the low ground (gaps where the path goes).
+func _scatter_highland_features() -> void:
+	var rocks := ["rock_1", "rock_2", "rock_3"]
+	# Tors: on the highest knolls below the snow, well apart.
+	var knolls: Array[Vector3] = []
+	var half := WorldShape.PLAY_HALF - 14.0
+	var x := -half
+	while x <= half:
+		var z := -half
+		while z <= half:
+			var h := _shape.height_at(x, z)
+			var around := 0.0
+			for d in [Vector2(9, 0), Vector2(-9, 0), Vector2(0, 9), Vector2(0, -9)]:
+				around += _shape.height_at(x + d.x, z + d.y) * 0.25
+			if h - around > 0.5 and h < 7.0 and _clear_of_features(Vector2(x, z), 6.0, 14.0):
+				knolls.append(Vector3(x, z, h - around))
+			z += 5.0
+		x += 5.0
+	knolls.sort_custom(func(a: Vector3, b: Vector3) -> bool: return a.z > b.z)
+	var tors: Array[Vector2] = []
+	for k in knolls:
+		var p := Vector2(k.x, k.y)
+		if tors.size() >= 9 or tors.any(func(t: Vector2) -> bool: return t.distance_to(p) < 26.0):
+			continue
+		tors.append(p)
+		_tor(p, rocks)
+	# Crags: tall stones leaning out of the slopes.
+	var crags := 0
+	for i in 3000:
+		if crags >= 14:
+			break
+		var p := _random_point(WorldShape.PLAY_HALF - 10.0)
+		var h := _shape.height_at(p.x, p.y)
+		var slope := absf(_shape.height_at(p.x + 2.0, p.y) - _shape.height_at(p.x - 2.0, p.y)) \
+			+ absf(_shape.height_at(p.x, p.y + 2.0) - _shape.height_at(p.x, p.y - 2.0))
+		if slope < 1.4 or h > 9.0 or not _clear_of_features(p, 5.0, 12.0) or _near_tree(p, 3.0) \
+				or tors.any(func(t: Vector2) -> bool: return t.distance_to(p) < 8.0):
+			continue
+		var s := _rng.randf_range(1.1, 1.8)
+		var basis := Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(s, s * _rng.randf_range(2.2, 3.0), s * 0.85))
+		basis = Basis(Vector3(_rng.randf_range(-1, 1), 0, _rng.randf_range(-1, 1)).normalized(), _rng.randf_range(0.05, 0.25)) * basis
+		_place_free(_pick(rocks), Vector3(p.x, h - 0.4 * s, p.y), basis, 0.8 * s)
+		crags += 1
+	# Cairns beside the path, every so often, on alternate sides.
+	var path := WorldShape.path
+	var walked := 0.0
+	var side := 1.0
+	for i in path.size() - 1:
+		var a := path[i]
+		var b := path[i + 1]
+		var seg := a.distance_to(b)
+		var t := 0.0
+		while t < seg:
+			if walked + t >= 22.0:
+				walked = -t
+				var along := (b - a).normalized()
+				var p := a.lerp(b, t / seg) + Vector2(-along.y, along.x) * 2.4 * side
+				side = -side
+				if p.distance_to(WorldShape.SPAWN) > 6.0:
+					_cairn(p, rocks)
+			t += 2.0
+		walked += seg
+	# Drystone walls.
+	for wall in [[Vector2(-58, -66), Vector2(-40, -52), Vector2(-24, -30), Vector2(-4, -22), Vector2(18, -26)],
+			[Vector2(32, -76), Vector2(44, -62), Vector2(52, -38), Vector2(76, -24)],
+			[Vector2(-76, -14), Vector2(-60, -6), Vector2(-46, -12)],
+			[Vector2(40, 46), Vector2(58, 40), Vector2(70, 56)]]:
+		_drystone_wall(wall, rocks)
+
+
+## A tor: a heap of great boulders with one balanced on top.
+func _tor(p: Vector2, rocks: Array) -> void:
+	var h := _shape.height_at(p.x, p.y)
+	var big := _rng.randf_range(2.6, 3.6)
+	_place_free(_pick(rocks), Vector3(p.x, h - 0.5, p.y), Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(big, big * 0.9, big)), 0.75 * big)
+	for i in _rng.randi_range(2, 4):
+		var q := p + Vector2.from_angle(_rng.randf() * TAU) * big * _rng.randf_range(0.8, 1.3)
+		var s := _rng.randf_range(1.1, 2.0)
+		var lean := Basis(Vector3(_rng.randf_range(-1, 1), 0, _rng.randf_range(-1, 1)).normalized(), _rng.randf() * 0.3)
+		_place_free(_pick(rocks), Vector3(q.x, _shape.height_at(q.x, q.y) - 0.3, q.y), lean * Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * s), 0.75 * s)
+	var top := _rng.randf_range(1.2, 1.7)
+	var tip := Basis(Vector3(1, 0, 0.3).normalized(), _rng.randf_range(0.1, 0.3)) * Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(top, top * 0.8, top))
+	_place_free(_pick(rocks), Vector3(p.x + _rng.randf_range(-0.4, 0.4), h - 0.5 + big * 0.9 * 0.95, p.y + _rng.randf_range(-0.4, 0.4)), tip, 0.0)
+
+
+## A cairn: four stones stacked, smaller each time.
+func _cairn(p: Vector2, rocks: Array) -> void:
+	var y := _shape.height_at(p.x, p.y)
+	var lift := 0.0
+	for s: float in [0.5, 0.4, 0.3, 0.2]:
+		_place_free(_pick(rocks), Vector3(p.x + _rng.randf_range(-0.05, 0.05), y + lift - 0.15 * s, p.y + _rng.randf_range(-0.05, 0.05)),
+			Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3(s, s * 0.8, s)), 0.4 if s == 0.5 else 0.0)
+		lift += s * 0.8
+
+
+## An old drystone wall along `points`: a row of stones with a smaller row along the top.
+func _drystone_wall(points: Array, rocks: Array) -> void:
+	var n := 0
+	for i in points.size() - 1:
+		var a: Vector2 = points[i]
+		var b: Vector2 = points[i + 1]
+		var seg := a.distance_to(b)
+		var yaw := atan2(b.x - a.x, b.y - a.y)
+		var t := 0.0
+		while t < seg:
+			var p := a.lerp(b, t / seg) + Vector2(_rng.randf_range(-0.08, 0.08), _rng.randf_range(-0.08, 0.08))
+			t += 0.85
+			n += 1
+			var h := _shape.height_at(p.x, p.y)
+			if h > 7.5 or _shape.path_distance(p) < 2.6 or _shape.in_clearing(p) \
+					or _shape.pond_distance(p) < WorldShape.POND_RADIUS + 1.5 or _near_tree(p, 1.2):
+				continue
+			var s := _rng.randf_range(0.5, 0.62)
+			var basis := Basis(Vector3.UP, yaw + _rng.randf_range(-0.25, 0.25)).scaled(Vector3(s * 0.85, s * 0.75, s * 1.15))
+			_place_free(_pick(rocks), Vector3(p.x, h - 0.12, p.y), basis, 0.55 if n % 2 == 0 else 0.0)
+			if n % 2 == 0:
+				var s2 := _rng.randf_range(0.36, 0.44)
+				_place_free(_pick(rocks), Vector3(p.x, h + s * 0.75 * 0.85, p.y),
+					Basis(Vector3.UP, yaw + _rng.randf_range(-0.4, 0.4)).scaled(Vector3(s2 * 0.9, s2 * 0.7, s2 * 1.2)), 0.0)
+
+
+## A rock placed exactly (any height, stretch or lean); `collide` is the collider's radius (0: none).
+func _place_free(model: String, at: Vector3, basis: Basis, collide: float) -> void:
+	var key := "%s|rock|%d|%d" % [model, floori(at.x / CHUNK), floori(at.z / CHUNK)]
+	if not _batches.has(key):
+		_batches[key] = []
+	_batches[key].append(Transform3D(basis, at))
+	if collide > 0.0:
+		_add_collider(Vector3(at.x, _shape.height_at(at.x, at.z), at.z), collide)
+		shade_spots.append(Vector4(at.x, at.z, collide * 1.8, 0.5))
 
 
 func _scatter_landmarks() -> void:

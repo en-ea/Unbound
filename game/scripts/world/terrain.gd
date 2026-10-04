@@ -124,10 +124,14 @@ func _ground_color(shape: WorldShape, x: float, z: float, h: float, up: float) -
 ## The highlands: ochre grass with patches of heather, bare grey rock on every slope, snow up high.
 func _highland_color(shape: WorldShape, x: float, z: float, h: float, up: float) -> Color:
 	var n := shape.meadow_noise(x, z)
-	var c := Color(0.5, 0.52, 0.3).lerp(Color(0.68, 0.62, 0.38), n)
-	c = c.lerp(Color(0.5, 0.36, 0.5), 0.55 * smoothstep(0.62, 0.8, shape.meadow_noise(x * 1.7 + 90.0, z * 1.7)))
-	c = c.lerp(Color(0.5, 0.5, 0.52), smoothstep(0.93, 0.78, up))
-	return c.lerp(Color(0.92, 0.94, 0.97), smoothstep(8.0, 10.5, h) * smoothstep(0.55, 0.8, up))
+	# Green in the hollows, gold and ochre on the rises.
+	var c := Color(0.38, 0.5, 0.27).lerp(Color(0.74, 0.62, 0.33), clampf(smoothstep(-1.0, 6.0, h) * 0.75 + (n - 0.5) * 0.6, 0.0, 1.0))
+	# Bold heather patches.
+	c = c.lerp(Color(0.52, 0.28, 0.5), 0.75 * smoothstep(0.58, 0.74, shape.meadow_noise(x * 1.7 + 90.0, z * 1.7)) * smoothstep(9.0, 6.0, h))
+	c = c.lerp(Color(0.48, 0.47, 0.5), smoothstep(0.93, 0.76, up))
+	# Snow with a ragged edge, blue in its hollows.
+	var snow := Color(0.82, 0.87, 0.95).lerp(Color(0.97, 0.98, 1.0), n)
+	return c.lerp(snow, smoothstep(7.8, 9.6, h + (n - 0.5) * 3.0) * smoothstep(0.6, 0.82, up))
 
 
 func _cloud_texture() -> NoiseTexture2D:

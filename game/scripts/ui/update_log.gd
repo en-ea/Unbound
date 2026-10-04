@@ -5,6 +5,16 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "Shade rework, sturdier elk, wilder Highlands", "lines": [
+		"Shade: Shadowstep is gone. New: Shadow Dance. Melt into shadow and flash between enemies, four cuts from",
+		"new sides (one enemy alone takes all four), untouchable while you dance; the last cut is the deepest.",
+		"The Shade's roll is now a slip through shadow: you turn dark and smoke trails off you (same timing as a roll).",
+		"Fixed: your double sitting on your head, or sinking into the ground (and Switch dropping you in after it).",
+		"The double looks better: a pulsing violet edge, smoke crawling up it, legs trailing off into smoke, wisps.",
+		"The stags/elk are sturdier: deep chest, heavier neck and legs (same antlers).",
+		"Stonecrest Highlands: boulder tors on the knolls, tall crags on the slopes, cairns along the path, old",
+		"drystone walls over the hills, greener hollows, golden rises, bold heather and a ragged snow line.",
+	]},
 	{"when": "4 Oct", "title": "Story start (a first try at cutscenes)", "lines": [
 		"New on the title screen: Story start. The opening plays in the game itself: the Long Night, a flight",
 		"over the sleeping meadow, then you wake at dawn and Wren has a chore for you... until the stones wake.",
@@ -31,7 +41,7 @@ const ENTRIES := [
 	]},
 	{"when": "4 Oct", "title": "A new class: the Shade", "lines": [
 		"Born of the Long Night: shadows, doubles and knives in the back. Pick it at the shrine, or Settings > Class (testing).",
-		"Shadowstep: blink behind the nearest enemy. Your next blow is an ambush, a heavy critical.",
+		"Shadowstep: blink behind the nearest enemy. Your next blow is an ambush, a heavy critical. (Replaced by Shadow Dance.)",
 		"Mirage: a shadow double of you steps out as you slip back. Enemies go for it, it fights them, then it bursts.",
 		"Switch: trade places with your double, shadow bursting at both ends. No double out? You burst and vanish.",
 		"Unseen (passive): hits from behind land harder, and you're quieter. 12 talents, like Perfect Likeness and Twin Mirage.",
