@@ -21,6 +21,9 @@ const MERCHANT_AT := Vector2(5.4, 16.0)
 const GREETINGS := ["Fine goods today, traveller!", "Wood, stone, hides... I buy it all.",
 	"Mind the boars past the hill.", "Fresh stock every little while!", "Shadow pelts? I pay well for those."]
 
+## Houses with people living in them (Residents) that you can go into: house index -> its room's feel.
+const VISITABLE := {0: "lantern", 1: "lodge", 2: "hill"}
+
 @export var player: Node3D
 
 var _merchant: CharacterVisual
@@ -61,6 +64,18 @@ func build(shape: WorldShape) -> void:
 		body.add_child(col)
 		house.add_child(body)
 	_add_merchant(shape)
+	var visit := Node3D.new()                        # inside the residents' houses
+	visit.set_script(preload("res://scripts/world/visit_interior.gd"))
+	visit.player = player
+	visit.day_night = get_parent().get_node("WorldEnvironment")
+	add_child(visit)
+	for i: int in VISITABLE:
+		var d := door_of(i)
+		var door := Node3D.new()
+		door.set_script(preload("res://scripts/world/use_spot.gd"))
+		add_child(door)
+		var out := Vector3(d.x, shape.height_at(d.x, d.y), d.y)
+		door.setup(out, "Enter", func() -> void: visit.visit(i, VISITABLE[i], out), 1.8)
 	for id: String in Npcs.NPCS:
 		if Npcs.NPCS[id].get("region", "meadow") != "meadow":
 			continue
@@ -72,6 +87,13 @@ func build(shape: WorldShape) -> void:
 	trade.set_script(preload("res://scripts/world/station.gd"))
 	add_child(trade)
 	trade.setup(Vector3(MERCHANT_AT.x, shape.height_at(MERCHANT_AT.x, MERCHANT_AT.y), MERCHANT_AT.y), "Trade", {"mode": "trade"})
+
+
+## Just outside a house's front door (its front faces the green).
+static func door_of(index: int) -> Vector2:
+	var h: Dictionary = HOUSES[index]
+	var at: Vector2 = h["at"]
+	return at + (GREEN - at).normalized() * (h["size"].z * 0.5 + 0.7)
 
 
 func _add_merchant(shape: WorldShape) -> void:

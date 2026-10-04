@@ -21,6 +21,7 @@ var day_night: Node
 var door_out := Vector3.ZERO           # set by the plot: where you stand outside your front door
 var door_in := Vector3.ZERO            # set by the plot: walking into this spot takes you inside
 var active := false
+var origin := AT                       # where the room is built (a visit's room is elsewhere)
 
 var _room_for := ""
 var _room: Node3D
@@ -35,8 +36,9 @@ var _audio: AudioStreamPlayer
 
 
 func _ready() -> void:
-	add_to_group("home_interior")
-	global_position = AT
+	if _is_home():
+		add_to_group("home_interior")
+	global_position = origin
 	visible = false
 	_audio = AudioStreamPlayer.new()
 	_audio.stream = DOOR_SOUND
@@ -51,7 +53,7 @@ func _ready() -> void:
 
 ## The action: go inside (a short fade). `instant` skips the fade.
 func enter(instant := false) -> void:
-	if active or not Home.owned():
+	if active or not _can_enter():
 		return
 	if instant:
 		_go_in()
@@ -86,11 +88,11 @@ func _go_in() -> void:
 		_fog_was = env.fog_enabled
 		env.fog_enabled = false
 	day_night.set_indoors(true)
-	player.global_position = AT + ENTRY
+	player.global_position = origin + ENTRY
 	player.velocity = Vector3.ZERO
 	player.visual.rotation.y = PI
-	get_tree().call_group("camera_rig", "enter_room", AT + Vector3(0, 0.4, -1.1))
-	get_tree().call_group("hud", "set_indoors", true)
+	get_tree().call_group("camera_rig", "enter_room", origin + Vector3(0, 0.4, -1.1))
+	get_tree().call_group("hud", "set_indoors", true, _is_home())
 	_update_windows()
 
 
@@ -117,7 +119,7 @@ func _back_outside() -> void:
 
 func _physics_process(delta: float) -> void:
 	if active:
-		var local := player.global_position - AT
+		var local := player.global_position - origin
 		if local.length() > 40.0:
 			_back_outside()
 			return
@@ -130,7 +132,7 @@ func _physics_process(delta: float) -> void:
 			_update_windows()
 		return
 	# Outside: walking into your front door takes you in.
-	if door_in == Vector3.ZERO or not Home.owned() or Controls.locked:
+	if door_in == Vector3.ZERO or not _can_enter() or Controls.locked:
 		return
 	if get_tree().get_first_node_in_group("build_mode"):
 		return
@@ -153,7 +155,28 @@ func _update_windows() -> void:
 
 ## Which room is built (the model: feel and layout).
 func _room_key() -> String:
-	return Home.room_model() if Home.owned() else ""
+	return _model() if _can_enter() else ""
+
+
+# What the room is (a visit overrides these).
+func _is_home() -> bool:
+	return true
+
+
+func _can_enter() -> bool:
+	return Home.owned()
+
+
+func _model() -> String:
+	return Home.room_model()
+
+
+func _layout() -> Dictionary:
+	return Home.room_layout()
+
+
+func _furnishing() -> Array:
+	return Home.furniture
 
 
 func _build_room() -> void:
@@ -162,7 +185,7 @@ func _build_room() -> void:
 	_room_for = _room_key()
 	_room = Node3D.new()
 	add_child(_room)
-	var shell := TREASURE._solid((load(Home.room_model()) as PackedScene).instantiate())
+	var shell := TREASURE._solid((load(_model()) as PackedScene).instantiate())
 	_room.add_child(shell)
 	for mi: MeshInstance3D in shell.find_children("*", "MeshInstance3D", true, false):
 		for i in mi.mesh.get_surface_count():            # softer glow: flames stay orange, not white
@@ -177,19 +200,19 @@ func _build_room() -> void:
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_void()
 	_walls()
-	var lay := Home.room_layout()
+	var lay := _layout()
 	var hearth_at: Vector3 = lay["hearth"]
 	_fire = _light(hearth_at + Vector3(0, 0.9, 0) + (lay["cook"] - hearth_at) * 0.6, Color(1.0, 0.64, 0.36), 1.7, 7.5)
 	_daylight = _light(lay["window"] + Vector3(0, 0, 0.6), Color(0.8, 0.88, 1.0), 1.3, 6.5)
 	var hearth := Node3D.new()
 	hearth.set_script(STATION)
 	_room.add_child(hearth)
-	hearth.setup(AT + lay["cook"], "Cook", {"mode": "cook"})
+	hearth.setup(origin + lay["cook"], "Cook", {"mode": "cook"})
 	hearth.reach = 1.9
 	var mat := Node3D.new()
 	mat.set_script(USE_SPOT)
 	_room.add_child(mat)
-	mat.setup(AT + Vector3(0, 0, 3.35), "Leave", leave, 0.9)
+	mat.setup(origin + Vector3(0, 0, 3.35), "Leave", leave, 0.9)
 	_furniture = Node3D.new()
 	_room.add_child(_furniture)
 	_place_furniture()
@@ -224,7 +247,7 @@ func _walls() -> void:
 		_box(body, Vector3(s * (hx + 0.8) / 2.0, 1.5, hz + 0.15), Vector3(hx - 0.8, 3, 0.3))
 		_box(body, Vector3(s * 0.95, 1.5, hz + 1.0), Vector3(0.3, 3, 1.8))
 	_box(body, Vector3(0, 1.5, hz + 1.95), Vector3(2.2, 3, 0.3))
-	for r: Rect2 in Home.room_layout()["built_in"]:
+	for r: Rect2 in _layout()["built_in"]:
 		_box(body, Vector3(r.get_center().x, 0.6, r.get_center().y), Vector3(r.size.x, 1.2, r.size.y))
 
 
@@ -257,7 +280,7 @@ func _place_furniture() -> void:
 	for n in _furniture.get_children():
 		n.queue_free()
 	var lamps := 0
-	for f: Dictionary in Home.furniture:
+	for f: Dictionary in _furnishing():
 		var info: Array = Home.FURNITURE[f["id"]]
 		var node := TREASURE._solid((load(info[1]) as PackedScene).instantiate())
 		_furniture.add_child(node)
@@ -280,11 +303,11 @@ func _place_furniture() -> void:
 			l.omni_attenuation = 1.4
 			l.position = Vector3(0, 1.5 if f["id"] == "lamp" else 2.1, 0)
 			node.add_child(l)
-		if info[4] == "rest":
+		if info[4] == "rest" and _is_home():
 			var spot := Node3D.new()
 			spot.set_script(USE_SPOT)
 			_furniture.add_child(spot)
-			spot.setup(AT + Vector3(f["x"], 0.0, f["z"]), "Rest", _rest, 1.9)
+			spot.setup(origin + Vector3(f["x"], 0.0, f["z"]), "Rest", _rest, 1.9)
 
 
 ## Resting in bed: through the night to morning if it's dark, otherwise a short nap. Heals you.

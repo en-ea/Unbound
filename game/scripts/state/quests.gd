@@ -288,6 +288,8 @@ func talk(npc: String) -> Dictionary:
 						thanks["emote"] = "Yes"
 						return thanks},
 					{"label": "Later", "do": func() -> Dictionary: return {}}])
+	if def.has("resident"):
+		return Residents.talk(npc)
 	return _screen(def["chatter"].pick_random(), [{"label": "Bye", "do": func() -> Dictionary: return {}}])
 
 

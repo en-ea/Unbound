@@ -143,6 +143,12 @@ func _ready() -> void:
 			elif bits.size() > 1:
 				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
+		elif arg.begins_with("--visit="):                 # go into a resident's house in the village: --visit=2 (with --time=0.95 they're home)
+			var house := int(arg.trim_prefix("--visit="))
+			get_tree().create_timer(1.0).timeout.connect(func() -> void:
+				var v: Node = get_parent().get_node("Village").find_children("*", "Node3D", false, false).filter(func(n: Node) -> bool: return n.has_method("visit"))[0]
+				var d: Vector2 = preload("res://scripts/world/village.gd").door_of(house)
+				v.visit(house, preload("res://scripts/world/village.gd").VISITABLE[house], Vector3(d.x, 0, d.y)))
 		elif arg == "--bountytest":                   # take the bounties, find and kill the wanted beast, claim
 			add_child(preload("res://scripts/dev/bounty_test.gd").new())
 		elif arg.begins_with("--bounties="):              # take this region's bounties: --bounties=2 takes two (with --open=bounty to see the board)

@@ -22,18 +22,29 @@ var _speed := 0.0                # eases in and out of walking
 var _mode := "wait"              # "wait", "walk" or "work"
 var _timer := 2.0
 
+var _route: Array = []           # the round being walked (a resident's changes with the time of day)
+var _still := false              # an indoor copy (world/visit_interior.gd): stands, turns, talks
+var _act := ""                   # a resident's current activity (Residents.activity)
+var _inside := false             # a resident who has gone indoors
+var _body: StaticBody3D
+
 const WALK_SPEED := 1.05
 const TALK_RANGE := 3.4          # he stops what he is doing when you come this close
 
 
-func setup(id: String, shape: WorldShape) -> void:
+func setup(id: String, shape: WorldShape, fixed := Vector3.INF) -> void:
 	_id = id
 	_shape = shape
 	_def = Npcs.get_def(id)
 	add_to_group("interactable")
 	var at: Vector2 = _def["at"]
 	_home = at
-	global_position = Vector3(at.x, shape.height_at(at.x, at.y), at.y)
+	_route = _def.get("route", [])
+	if fixed != Vector3.INF:
+		_still = true
+		global_position = fixed
+	else:
+		global_position = Vector3(at.x, shape.height_at(at.x, at.y), at.y)
 	_visual = Npcs.make_visual(id)
 	add_child(_visual)
 	Npcs.dress_visual(id, _visual, false, true)
@@ -46,6 +57,7 @@ func setup(id: String, shape: WorldShape) -> void:
 	col.position = Vector3(0, 0.9, 0)
 	body.add_child(col)
 	add_child(body)
+	_body = body
 	for thing: Dictionary in _def.get("scenery", []):        # things that stand beside him (an anvil)
 		var mesh := MeshInstance3D.new()
 		mesh.mesh = Items.mesh(thing["model"])
@@ -125,7 +137,11 @@ func _process(delta: float) -> void:
 			_bubble.text = _def["greetings"].pick_random()
 	elif to.length() > 6.0:
 		_greeted = false
-	if _def.has("route"):
+	if _still:
+		pass
+	elif _def.has("resident"):
+		_live(delta, busy)
+	elif _def.has("route"):
 		_go_about(delta, busy)
 	var a := move_toward(_bubble.modulate.a, 1.0 if near else 0.0, delta * 4.0)
 	_bubble.modulate.a = a
@@ -148,7 +164,7 @@ func _go_about(delta: float, busy: bool) -> void:
 		_speed = 0.0
 		_visual.play_motion(0.0)
 		return
-	var route: Array = _def["route"]
+	var route: Array = _route
 	match _mode:
 		"wait":
 			_visual.play_motion(0.0)
@@ -194,3 +210,67 @@ func _go_about(delta: float, busy: bool) -> void:
 				_timer = randf_range(2.0, 4.0)
 				_visual.stop_action()
 				_visual.set_two_hand(true)
+
+
+## A resident's day (state/residents.gd): walk to where the time of day wants them (work, the green
+## at noon, the fire in the evening, home at night), then go about their round there. At home they
+## go in through their front door and are gone until morning (you'll find them inside).
+func _live(delta: float, busy: bool) -> void:
+	var act := Residents.activity(_id)
+	if act != _act:
+		_act = act
+		if _inside and act != "home":                # morning: out of the door
+			var d := Residents.door(_id)
+			global_position = Vector3(d.x, _shape.height_at(d.x, d.y), d.y)
+			_set_inside(false)
+		_mode = "travel"
+	if _inside:
+		return
+	if _mode == "travel":
+		if busy and act != "home":
+			_visual.play_motion(0.0)
+			_speed = 0.0
+			return
+		var goal := Residents.anchor(_id, act)
+		if _walk_to(goal, delta):
+			if act == "home":
+				_set_inside(true)
+				return
+			_home = goal
+			_route = _def["route"] if act == "work" else [{"at": Vector2(0, 0), "work": ""}, {"at": Vector2(0.6, 0.4), "work": ""}]
+			_stop = 0
+			_mode = "wait"
+			_timer = randf_range(0.5, 2.0)
+		return
+	_go_about(delta, busy)
+
+
+## A step towards `goal`; true on arrival.
+func _walk_to(goal: Vector2, delta: float) -> bool:
+	var here := Vector2(global_position.x, global_position.z)
+	var step := goal - here
+	if step.length() < 0.15:
+		_speed = 0.0
+		_visual.play_motion(0.0)
+		return true
+	var dir := step.normalized()
+	var facing := atan2(dir.x, dir.y)
+	_visual.rotation.y = lerp_angle(_visual.rotation.y, facing, clampf(delta * 5.0, 0.0, 1.0))
+	var top: float = _def.get("walk_speed", WALK_SPEED) * 1.25
+	var want := 0.0 if absf(angle_difference(_visual.rotation.y, facing)) > 0.7 else minf(top, 0.35 + step.length() * 1.5)
+	_speed = move_toward(_speed, want, delta * 2.2)
+	here += dir * minf(_speed * delta, step.length())
+	global_position = Vector3(here.x, _shape.height_at(here.x, here.y), here.y)
+	_visual.play_motion(_speed)
+	return false
+
+
+func _set_inside(on: bool) -> void:
+	_inside = on
+	visible = not on
+	if on:
+		remove_from_group("interactable")
+		_body.process_mode = Node.PROCESS_MODE_DISABLED
+	else:
+		add_to_group("interactable")
+		_body.process_mode = Node.PROCESS_MODE_INHERIT

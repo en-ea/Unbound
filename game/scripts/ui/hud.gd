@@ -449,9 +449,9 @@ func set_cave(on: bool) -> void:
 	_map.visible = _action.visible and Settings.show_map and not on
 
 
-func set_indoors(on: bool) -> void:
+func set_indoors(on: bool, own_home := true) -> void:
 	_indoors = on
-	_furnish.visible = on
+	_furnish.visible = on and own_home
 	_map.visible = _action.visible and Settings.show_map and not on
 
 
