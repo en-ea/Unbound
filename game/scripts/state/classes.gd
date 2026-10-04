@@ -16,7 +16,11 @@ const CLASSES := {
 		"blurb": "Claws, not steel. Hunt them from below and drag the weak down with you.",
 		"trait": "Cracked: your hits split their guard. Cracked foes take more from you and are easier to swallow. You also mine faster.",
 		"abilities": ["burrow", "fault_line", "sinkhole"]},
-	"sealed_2": {"sealed": true},
+	"shade": {"name": "Shade", "color": Color(0.62, 0.42, 1.0), "take": "Step into the dark",
+		"answer": "Your shadow steps out to meet you",
+		"blurb": "Born of the Long Night, when the sun failed and people learned to walk in their own shadows. Strike from behind, leave a double to take the blows, then trade places with it.",
+		"trait": "Unseen: hits from behind land half again as hard, and you move quieter.",
+		"abilities": ["shadowstep", "mirage", "switch"]},
 	"sealed_3": {"sealed": true},
 }
 ## Numbers for each ability (the damage is in hits of your sword's power, see abilities.gd).
@@ -31,6 +35,12 @@ const ABILITIES := {
 		"desc": "A crack races ahead and stone spikes burst up along it, throwing and cracking everyone in its path."},
 	"sinkhole": {"name": "Sinkhole", "short": "Sinkhole", "cooldown": 18.0,
 		"desc": "The ground under a group caves in: it pulls them in and holds them, swallows the weak, then slams shut."},
+	"shadowstep": {"name": "Shadowstep", "short": "Step", "cooldown": 6.0,
+		"desc": "Blink through the shadows to just behind the nearest enemy. Your next blow is an ambush: a heavy critical."},
+	"mirage": {"name": "Mirage", "short": "Mirage", "cooldown": 14.0,
+		"desc": "A double of you, made of shadow, steps out where you stand as you slip back. Enemies near it go for it, and it fights them. When it's hit enough or its time runs out, it bursts in shadow."},
+	"switch": {"name": "Switch", "short": "Switch", "cooldown": 9.0,
+		"desc": "Trade places with your double, shadow bursting where you both stood. With no double out, you burst and vanish: enemies lose you for a moment."},
 	"cinderburst": {"name": "Cinderburst", "short": "Burst", "cooldown": 14.0,
 		"desc": "A ring of fire bursts out around you and sets everyone in it alight. Anyone who was already burning explodes, spreading the fire, and each explosion sends a spark of life back to you. Set them burning first, then pop them."},
 }
@@ -50,8 +60,26 @@ const TALENT_TREES := {
 		{"name": "Sinkhole", "talents": ["wide_pit", "undertow", "earths_maw"]},
 		{"name": "Claws", "talents": ["sharp_claws", "rend", "ore_heart"]},
 	],
+	"shade": [
+		{"name": "Shadowstep", "talents": ["deep_step", "quick_shadow", "assassin"]},
+		{"name": "Mirage", "talents": ["lingering", "perfect_likeness", "twin_mirage"]},
+		{"name": "Switch", "talents": ["wide_burst", "rebound", "nightfall"]},
+		{"name": "Unseen", "talents": ["soft_steps", "knife_work", "shroud"]},
+	],
 }
 const TALENTS := {
+	"deep_step": {"name": "Deep Step", "desc": "Shadowstep reaches half again as far."},
+	"quick_shadow": {"name": "Quick Shadow", "desc": "Shadowstep is ready again 30% sooner."},
+	"assassin": {"name": "Assassin", "desc": "The blow after a Shadowstep hits three and a half times as hard."},
+	"lingering": {"name": "Lingering", "desc": "Your double lasts half again as long and takes two more hits."},
+	"perfect_likeness": {"name": "Perfect Likeness", "desc": "Your double looks exactly like you. Enemies twice as far away are fooled."},
+	"twin_mirage": {"name": "Twin Mirage", "desc": "Mirage makes two doubles, one either side of you."},
+	"wide_burst": {"name": "Wide Burst", "desc": "Switch's bursts reach a third further."},
+	"rebound": {"name": "Rebound", "desc": "Switch is ready again 30% sooner."},
+	"nightfall": {"name": "Nightfall", "desc": "Switch's bursts hit twice as hard."},
+	"soft_steps": {"name": "Soft Steps", "desc": "You sneak a third faster."},
+	"knife_work": {"name": "Knife Work", "desc": "Hits from behind land three quarters harder instead of half."},
+	"shroud": {"name": "Shroud", "desc": "At night and in caves, your abilities are ready 20% sooner."},
 	"scorched_path": {"name": "Scorched Path", "desc": "The ground you dash across burns twice as long and twice as hot."},
 	"second_wind": {"name": "Second Wind", "desc": "Flame Dash is ready again 30% sooner."},
 	"flashpoint": {"name": "Flashpoint", "desc": "Your dash ends in a burst of fire that throws back everyone close."},
@@ -79,7 +107,8 @@ const TALENTS := {
 }
 ## What a talent does to an ability's cooldown.
 const COOLDOWN_TALENTS := {"flame_dash": ["second_wind", 0.7], "meteor": ["falling_sky", 0.75],
-	"fault_line": ["long_fault", 0.75], "sinkhole": ["undertow", 0.8]}
+	"fault_line": ["long_fault", 0.75], "sinkhole": ["undertow", 0.8],
+	"shadowstep": ["quick_shadow", 0.7], "switch": ["rebound", 0.7]}
 
 var awakened := false
 var current := ""
@@ -120,7 +149,15 @@ func cooldown_of(ability: String) -> float:
 	var cd: float = ABILITIES[ability]["cooldown"]
 	if COOLDOWN_TALENTS.has(ability) and has_talent(COOLDOWN_TALENTS[ability][0]):
 		cd *= COOLDOWN_TALENTS[ability][1]
+	if current == "shade" and has_talent("shroud") and _dark():
+		cd *= 0.8
 	return cd
+
+
+## Night, or down in a cave (the Shade's Shroud).
+func _dark() -> bool:
+	var dn := get_tree().current_scene.get_node_or_null("WorldEnvironment") if get_tree().current_scene else null
+	return dn != null and (float(dn.get("night")) > 0.5 or dn.get("cave") == true)
 
 
 ## 0 when ready, up to 1 right after use.

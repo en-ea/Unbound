@@ -257,6 +257,7 @@ func _land_hit() -> void:
 	if player.take_counter() or (t.has_method("is_open") and t.is_open()):
 		hit = [hit[0] * 2, true]           # a counter after a parry or perfect dodge, or a stunned foe
 	hit[0] = Delver.cracked_damage(t, hit[0])
+	hit = Shade.strike(t, hit, player)
 	t.take_hit(player.global_position, hit[0])
 	if _claws() and _step == 2 and Classes.has_talent("sharp_claws"):
 		EarthFX.crack(t, Delver.CRACK_TIME)
@@ -319,11 +320,12 @@ func _land_heavy() -> void:
 		to.y = 0.0
 		if not e.is_alive() or to.length() > HEAVY_REACH or (to.length() > 0.8 and to.normalized().dot(facing) < -0.1):
 			continue
-		var dealt := Delver.cracked_damage(e, damage)
+		var struck := Shade.strike(e, [Delver.cracked_damage(e, damage), hit[1]], player)
+		var dealt: int = struck[0]
 		e.take_hit(player.global_position, dealt, Balance.HEAVY_PUSH)
 		if not hit_any:
-			_after_hit(hit[1])
-		_hit_feedback(e, dealt, hit[1])
+			_after_hit(struck[1])
+		_hit_feedback(e, dealt, struck[1])
 		hit_any = true
 		_sparks.global_position = (e as Node3D).global_position + Vector3(0, 0.8, 0)
 	var ground := player.global_position + facing * 1.1

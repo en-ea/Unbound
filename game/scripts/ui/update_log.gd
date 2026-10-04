@@ -5,6 +5,13 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "A new class: the Shade", "lines": [
+		"Born of the Long Night: shadows, doubles and knives in the back. Pick it at the shrine, or Settings > Class (testing).",
+		"Shadowstep: blink behind the nearest enemy. Your next blow is an ambush, a heavy critical.",
+		"Mirage: a shadow double of you steps out as you slip back. Enemies go for it, it fights them, then it bursts.",
+		"Switch: trade places with your double, shadow bursting at both ends. No double out? You burst and vanish.",
+		"Unseen (passive): hits from behind land harder, and you're quieter. 12 talents, like Perfect Likeness and Twin Mirage.",
+	]},
 	{"when": "4 Oct", "title": "Fishing", "lines": [
 		"Stand at the edge of any pond and press Fish. Wait, and when the bobber goes under, tap HOOK! fast.",
 		"Then hold Reel to pull it in and let go to give line: keep the tension in the green band.",

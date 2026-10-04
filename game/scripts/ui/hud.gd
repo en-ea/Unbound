@@ -629,7 +629,10 @@ func _on_class_chosen(id: String) -> void:
 	var def: Dictionary = Classes.CLASSES[id]
 	Banner.show_now(self, String(def["name"]).to_upper(), def.get("answer", "The flame answers you"), def["color"], preload("res://assets/sounds/fire_burst.wav"), 2.4)
 	player.get_node("Effects").glow_burst(def["color"], 120)
-	if id == "delver":
+	if id == "shade":
+		ShadowFX.burst(player.get_parent(), player.global_position, 4.0)
+		ShadowFX.puff(player.get_parent(), player.global_position + Vector3(0, 1.0, 0), 1.6)
+	elif id == "delver":
 		EarthFX.dirt(player.get_parent(), player.global_position, 1.0, 40, 7.0)
 		for k in 6:
 			var a := TAU * k / 6.0

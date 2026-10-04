@@ -119,6 +119,10 @@ func set_sneaking(on: bool) -> void:
 
 ## How far away you can be heard right now (metres; 0 = silent). Bandits use it.
 func noise() -> float:
+	return _base_noise() * (0.6 if Classes.current == "shade" else 1.0)     # the Shade's Unseen
+
+
+func _base_noise() -> float:
 	var st: Dictionary = Balance.STEALTH
 	if _down > 0.0:
 		return 0.0
@@ -366,7 +370,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## and get back up at the start with full hearts; nothing is lost.
 ## Enemies only go after a player who is up and not blinking from a recent hit.
 func can_be_targeted() -> bool:
-	return _down <= 0.0 and _safe <= 0.0 and _roll <= 0.0
+	return _down <= 0.0 and _safe <= 0.0 and _roll <= 0.0 and not abilities.shade.hidden()
 
 
 ## The action: eat a food from the Bag (hearts back, and maybe a buff).
@@ -501,7 +505,7 @@ func _physics_process(delta: float) -> void:
 		run *= 1.0 + Armor.bonus_total("fleet") / 100.0
 		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
 		if sneaking:
-			target_speed = minf(target_speed, Balance.STEALTH["sneak_speed"])
+			target_speed = minf(target_speed, Balance.STEALTH["sneak_speed"] * (1.33 if Classes.has_talent("soft_steps") else 1.0))
 		if burrowed():                        # under the ground: fast, a mound of earth over you
 			target_speed = abilities.delver.burrow_speed() * minf(strength / RUN_THRESHOLD, 1.0)
 		if hauling.carrying:                  # heave, step, heave: you surge as each foot plants

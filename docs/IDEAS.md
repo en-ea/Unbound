@@ -47,3 +47,13 @@ and bait items, feeding companions, shrine offerings, repeat village requests, N
 - The others (baker, owl wanderer, feather scout, masked farmer, stilt sprayer, moth harvester) were just liked.
 
 See also the memory idea bank (lore: Hidden Fourth, freed villages, flashback place...).
+
+## Classes (owner, 4 Oct)
+- **Every class has a passive** that changes how you play outside fights too (e.g. a light class makes caves easier).
+- **Classes come from the story:** each is descended from an event or thing in the world (the time class links to a
+  story event; Hilmi's time storms fit). A class's lore should say where its power came from.
+- **Shade / Mirage is next:** slick, shadows, clones. Replicas of you that differ a bit (more interesting than a
+  perfect copy), but a perfect clone suits deception, so maybe both (a talent turns the shadow into a perfect likeness).
+  Offensive. Dark, with a very slight glow.
+- The other ideas offered (not picked yet): Rimewarden (ice), Stormcaller (lightning), Runesmith (rune traps and
+  turrets), Lanternkeeper (light; strong in caves and at night), Hourwarden (time).

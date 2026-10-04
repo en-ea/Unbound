@@ -36,12 +36,16 @@ const SOUNDS := {
 
 
 var delver: Delver               # the Delver's abilities (player/delver.gd)
+var shade: Shade                 # the Shade's (player/shade.gd)
 
 
 func _ready() -> void:
 	delver = Delver.new()
 	delver.name = "Delver"
 	add_child(delver)
+	shade = Shade.new()
+	shade.name = "Shade"
+	add_child(shade)
 
 
 ## The action: an ability button.
@@ -67,6 +71,12 @@ func use(ability: String) -> void:
 			_meteor()
 		"cinderburst":
 			_cinderburst()
+		"shadowstep":
+			shade.shadowstep()
+		"mirage":
+			shade.mirage()
+		"switch":
+			shade.switch()
 
 
 func _flame_dash() -> void:

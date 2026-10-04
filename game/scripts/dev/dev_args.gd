@@ -253,6 +253,10 @@ func _ready() -> void:
 						if land:
 							pl.fisher.progress = 0.99
 )))
+		elif arg == "--shade":                        # be a Shade
+			Classes.choose.call_deferred("shade")
+		elif arg == "--mirage":                       # (with --shade) a double steps out after a moment
+			get_tree().create_timer(2.0).timeout.connect(func() -> void: get_node("../Player").abilities.shade.mirage())
 		elif arg == "--delver":                       # be a Delver
 			Classes.choose.call_deferred("delver")
 		elif arg == "--delvertest":                   # every Delver ability on a pack in the meadow, screenshots to %TEMP%
