@@ -62,7 +62,8 @@ const FIGHT := {
 	"wolf_stumble": 0.65,   # seconds a wolf stumbles after a missed lunge (your opening)
 }
 ## Enemies in tougher regions get more health (x) and hit harder (+).
-const REGION_TOUGHNESS := {"meadow": {"hp": 1.0, "damage": 0}, "forest": {"hp": 1.6, "damage": 1}}
+const REGION_TOUGHNESS := {"meadow": {"hp": 1.0, "damage": 0}, "forest": {"hp": 1.6, "damage": 1},
+	"highlands": {"hp": 2.2, "damage": 1}}
 
 # --- tools --------------------------------------------------------------------------------------
 ## power: hits taken off a tree or rock per swing; damage: sword damage; speed: swing speed.

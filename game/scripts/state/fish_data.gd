@@ -8,16 +8,16 @@ extends RefCounted
 ## (how fast you bring it in while the tension is right). "time": only by "day" or only at "night".
 const FISH := {
 	"bluegill": {"waters": ["meadow"], "weight": 10.0, "size": [12, 22], "pull": 0.3, "zone": 0.42, "rate": 0.5},
-	"perch": {"waters": ["meadow", "forest"], "weight": 8.0, "size": [15, 32], "pull": 0.42, "zone": 0.38, "rate": 0.42},
-	"trout": {"waters": ["forest"], "weight": 10.0, "size": [20, 42], "pull": 0.45, "zone": 0.36, "rate": 0.44},
+	"perch": {"waters": ["meadow", "forest", "highlands"], "weight": 8.0, "size": [15, 32], "pull": 0.42, "zone": 0.38, "rate": 0.42},
+	"trout": {"waters": ["forest", "highlands"], "weight": 10.0, "size": [20, 42], "pull": 0.45, "zone": 0.36, "rate": 0.44},
 	"pike": {"waters": ["forest"], "weight": 4.0, "size": [45, 95], "pull": 0.65, "zone": 0.3, "rate": 0.33},
 	"golden_carp": {"waters": ["meadow"], "weight": 1.5, "size": [40, 72], "pull": 0.72, "zone": 0.27, "rate": 0.28, "time": "day"},
 	"ghost_koi": {"waters": ["forest"], "weight": 2.0, "size": [35, 62], "pull": 0.72, "zone": 0.25, "rate": 0.3, "time": "night"},
 	"cavefish": {"waters": ["cave"], "weight": 10.0, "size": [10, 22], "pull": 0.4, "zone": 0.38, "rate": 0.5},
 	"glimmer_eel": {"waters": ["cave"], "weight": 3.0, "size": [50, 115], "pull": 0.85, "zone": 0.24, "rate": 0.26},
-	"old_boot": {"waters": ["meadow", "forest"], "weight": 1.5, "size": [27, 30], "pull": 0.12, "zone": 0.5, "rate": 0.8},
+	"old_boot": {"waters": ["meadow", "forest", "highlands"], "weight": 1.5, "size": [27, 30], "pull": 0.12, "zone": 0.5, "rate": 0.8},
 }
-const WATER_NAMES := {"meadow": "Meadow Pond", "forest": "Wood Pond", "cave": "Glimmerdeep Pool"}
+const WATER_NAMES := {"meadow": "Meadow Pond", "forest": "Wood Pond", "highlands": "Stonecrest Tarn", "cave": "Glimmerdeep Pool"}
 
 static var best := {}            # fish id -> biggest size caught (cm)
 

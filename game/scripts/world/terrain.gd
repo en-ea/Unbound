@@ -113,10 +113,21 @@ func bake_shade(spots: Array[Vector4]) -> void:
 	material.set_shader_parameter("world_half", WorldShape.HALF_SIZE)
 
 
-func _ground_color(shape: WorldShape, x: float, z: float, _h: float, up: float) -> Color:
+func _ground_color(shape: WorldShape, x: float, z: float, h: float, up: float) -> Color:
+	if WorldShape.region == "highlands":
+		return _highland_color(shape, x, z, h, up)
 	var forest := WorldShape.region == "forest"
 	var c := (MOSS_DARK if forest else GRASS_DARK).lerp(MOSS_LIGHT if forest else GRASS_LIGHT, shape.meadow_noise(x, z))
 	return c.lerp(ROCK, smoothstep(0.86, 0.72, up))
+
+
+## The highlands: ochre grass with patches of heather, bare grey rock on every slope, snow up high.
+func _highland_color(shape: WorldShape, x: float, z: float, h: float, up: float) -> Color:
+	var n := shape.meadow_noise(x, z)
+	var c := Color(0.5, 0.52, 0.3).lerp(Color(0.68, 0.62, 0.38), n)
+	c = c.lerp(Color(0.5, 0.36, 0.5), 0.55 * smoothstep(0.62, 0.8, shape.meadow_noise(x * 1.7 + 90.0, z * 1.7)))
+	c = c.lerp(Color(0.5, 0.5, 0.52), smoothstep(0.93, 0.78, up))
+	return c.lerp(Color(0.92, 0.94, 0.97), smoothstep(8.0, 10.5, h) * smoothstep(0.55, 0.8, up))
 
 
 func _cloud_texture() -> NoiseTexture2D:

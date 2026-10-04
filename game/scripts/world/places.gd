@@ -18,6 +18,10 @@ const PLACES := {
 		{"name": "Cave Mouth", "kind": "cave", "at": Vector2(-62, 74)},
 		{"name": "Fernhollow", "kind": "fernhollow", "at": Vector2(-30, 16)},
 	],
+	"highlands": [
+		{"name": "Old Cairn Watch", "kind": "watchtower", "at": Vector2(60, -50)},
+		{"name": "Shepherd's Rest", "kind": "rest", "at": Vector2(-20, -45)},
+	],
 }
 const STONE := Color(0.66, 0.64, 0.6)
 const DARK_STONE := Color(0.5, 0.49, 0.47)

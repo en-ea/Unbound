@@ -13,6 +13,10 @@ const HOMES := {
 		"wolves": [Vector2(-20, -30), Vector2(30, 6), Vector2(-56, 40), Vector2(60, -64), Vector2(-80, 10), Vector2(40, 80)],
 		"shadow": [Vector2(10, 40), Vector2(-40, -10), Vector2(-50, 64), Vector2(80, 66)],
 		"stags": [Vector2(-10, 62), Vector2(-62, -52)]},
+	"highlands": {"boars": [Vector2(-20, -40), Vector2(50, -10)],
+		"wolves": [Vector2(40, -60), Vector2(-50, -50), Vector2(60, 30), Vector2(-20, 60)],
+		"shadow": [Vector2(-60, 40), Vector2(70, 70)],
+		"stags": [Vector2(30, -20), Vector2(-40, -10), Vector2(50, 50)]},
 }
 
 @export var player: Node3D

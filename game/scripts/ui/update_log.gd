@@ -5,6 +5,11 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "A third region: Stonecrest Highlands", "lines": [
+		"The Whispering Wood's path now carries on past the standing stones, south to a new gate.",
+		"Through it: windswept highlands of ochre grass and heather, bare rock, hardy pines and a snow-capped crag.",
+		"Tougher wolves and stags, more iron, a cold tarn to fish, the Old Cairn Watch and the Shepherd's Rest.",
+	]},
 	{"when": "4 Oct", "title": "Fernhollow, the village in the wood", "lines": [
 		"A second village in the Whispering Wood (west of the path, past the pond): homes grown from the trees.",
 		"A sawn stump, a giant toadstool, a lantern inn with a leaning roof, a root house and the old stump house.",

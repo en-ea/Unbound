@@ -46,6 +46,8 @@ func build(shape: WorldShape) -> void:
 	add_child(_colliders)
 	if WorldShape.region == "forest":
 		_scatter_forest_trees()
+	elif WorldShape.region == "highlands":
+		_scatter_highland_trees()
 	else:
 		_scatter_trees()
 	_scatter_landmarks()
@@ -123,6 +125,24 @@ func _scatter_forest_trees() -> void:
 		_place(model, "tree", p, _rng.randf_range(0.8, 1.55) if pine else _rng.randf_range(0.75, 1.3), 0.15, gather)
 
 
+## The highlands: a few hardy pines in the low ground and thicker along the edges, none on the snow.
+func _scatter_highland_trees() -> void:
+	var pines := ["tree_pine_1", "tree_pine_2"]
+	for i in 16000:
+		if _trees.size() >= 320:
+			break
+		var p := _random_point(WorldShape.HALF_SIZE - 8.0)
+		var edge := maxf(absf(p.x), absf(p.y))
+		var thick := _shape.meadow_noise(p.x * 0.5 + 70.0, p.y * 0.5)
+		if _rng.randf() > (0.7 if edge > EDGE else 0.04 + thick * 0.25) or not _clear_of_features(p, 4.0, 9.0):
+			continue
+		if _shape.height_at(p.x, p.y) > 7.5 or _near_tree(p, 4.0):
+			continue
+		_add_tree(p)
+		var dead := _rng.randf() < 0.1
+		_place("tree_dead_1" if dead else _pick(pines), "tree", p, _rng.randf_range(0.7, 1.3), 0.15, "" if dead else "pine")
+
+
 func _scatter_landmarks() -> void:
 	# A ring of standing stones on the hilltop (the light beams are in landmark_light.gd),
 	# and a dead tree by the pond.
@@ -182,10 +202,11 @@ func _scatter_ores() -> void:
 			placed += 1
 	placed = 0
 	for i in 200:
-		if placed >= 5:
+		if placed >= (9 if WorldShape.region == "highlands" else 5):
 			break
 		var p := Vector2(_rng.randf_range(-30, 40), _rng.randf_range(-52, -36)) if WorldShape.region == "meadow" \
-			else Vector2(_rng.randf_range(-48, -14), _rng.randf_range(34, 52))
+			else (Vector2(_rng.randf_range(-70, -20), _rng.randf_range(-15, 10)) if WorldShape.region == "highlands" \
+			else Vector2(_rng.randf_range(-48, -14), _rng.randf_range(34, 52)))
 		if _clear_of_features(p, 2.5, 9.0) and not _near_tree(p, 2.5):
 			_place("ore_iron", "rock", p, _rng.randf_range(0.7, 0.9), 0.2, "iron_rock")
 			_ore_spots.append(p)
@@ -239,6 +260,17 @@ func _plant_at(p: Vector2) -> void:
 	var near_tree := _near_tree(p, 3.5)
 	if WorldShape.region == "forest":
 		_forest_plant_at(p, m, near_tree)
+		return
+	if WorldShape.region == "highlands":
+		var hr := _rng.randf()
+		if _shape.height_at(p.x, p.y) > 8.0:
+			return
+		if hr < 0.16 + m * 0.1:
+			_place(_pick(["grass_1", "grass_2", "grass_3"]), "small", p, _rng.randf_range(0.8, 1.3), 0.25)
+		elif m > 0.55 and hr < 0.24:
+			_place(_pick(["flower_2", "flower_4"]), "small", p, _rng.randf_range(0.7, 0.95), 0.25, "flower")
+		elif hr < 0.255:
+			_place(_pick(["rock_1", "rock_2", "rock_3"]), "rock", p, _rng.randf_range(0.4, 0.8), 0.3, "rock")
 		return
 	var r := _rng.randf()
 	if near_tree:

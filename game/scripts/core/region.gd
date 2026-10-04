@@ -5,11 +5,13 @@ extends Node
 
 signal leaving(to: String, arrive: Vector2)
 
-const NAMES := {"meadow": "Home Meadow", "forest": "Whispering Wood"}
+const NAMES := {"meadow": "Home Meadow", "forest": "Whispering Wood", "highlands": "Stonecrest Highlands"}
 ## Gates: region -> [{to, at (x, z) of the gate trigger, arrive (x, z) in the other region, radius}].
 const GATES := {
 	"meadow": [{"to": "forest", "at": Vector2(-0.4, 93.5), "arrive": Vector2(-0.2, -86.0), "radius": 3.0}],
-	"forest": [{"to": "meadow", "at": Vector2(2.0, -93.5), "arrive": Vector2(1.5, 86.0), "radius": 3.0}],
+	"forest": [{"to": "meadow", "at": Vector2(2.0, -93.5), "arrive": Vector2(1.5, 86.0), "radius": 3.0},
+		{"to": "highlands", "at": Vector2(18.0, 93.5), "arrive": Vector2(16.0, -86.0), "radius": 3.0}],
+	"highlands": [{"to": "forest", "at": Vector2(16.5, -93.5), "arrive": Vector2(18.5, 86.0), "radius": 3.0}],
 }
 
 var current := "meadow"
