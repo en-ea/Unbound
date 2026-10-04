@@ -62,3 +62,11 @@ See also the memory idea bank (lore: Hidden Fourth, freed villages, flashback pl
 - Late game, each weapon can **evolve** into a styled variant (like the black runic sword with red on it from the
   sword pictures): something is added to its look, and evolved weapons are fairly balanced against each other, so you
   can bring back a favourite (a plain silver one, evolved) instead of being pushed into the blue or black looks.
+
+## Longer play (owner liked the whole list, 4 Oct; come back to it)
+Ruin runs (a dungeon that changes each visit, rooms, reward picks, mini-boss); shrine trials (scored waves);
+forging and upgrades (shards, fangs, antlers into a weapon you love); collections (fish journal, bestiary,
+achievements with rewards); a dog companion (sniffs chests and ore, helps fight); class mastery (a 4th ultimate
+ability); world events (travelling merchant, storm nights, harvest festival). Also from before: a main quest line
+across the three regions ending at a guardian boss; elite beasts and better loot; things to find (ruins, lore
+stones, % explored); village growth projects; dangerous nights. Done: bounty boards; elk taming and riding.

@@ -58,7 +58,7 @@ func build(shape: WorldShape) -> void:
 	_scatter_ores()
 	_scatter_plants()
 	if WorldShape.region == "meadow":
-		_tobacco_patch(Vector2(-13.0, 28.0))
+		_tobacco_patch(Vector2(-22.0, 19.0))
 	_flush()
 
 

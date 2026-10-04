@@ -3,14 +3,17 @@ extends Node3D
 ## Merchant, a heavy-set NPC who turns to greet you when you come close.
 
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
+## The houses stand in a ring round the village green (the campfire in the middle, the path running
+## through), each turned to face it. Keep WorldShape's meadow clearings in step with these.
+const GREEN := Vector2(-1.0, 18.0)
 const HOUSES := [
-	{"model": "res://assets/buildings/house_cottage.glb", "at": Vector2(-5.5, 11.5), "size": Vector3(4.6, 4, 3.6)},
-	{"model": "res://assets/buildings/house_cabin.glb", "at": Vector2(10.5, 13.0), "size": Vector3(4.4, 4, 3.6)},
-	{"model": "res://assets/buildings/house_round.glb", "at": Vector2(-9.0, 23.0), "size": Vector3(4.4, 4, 4.4)},
-	{"model": "res://assets/buildings/house_hill.glb", "at": Vector2(9.0, 22.0), "size": Vector3(6.0, 4, 5.0)},
-	{"model": "res://assets/buildings/house_lodge.glb", "at": Vector2(-6.0, 31.0), "size": Vector3(5.2, 5, 5.0)},
-	{"model": "res://assets/buildings/windmill.glb", "at": Vector2(14.0, 3.0), "size": Vector3(4.0, 6, 4.0)},
-	{"model": "res://assets/buildings/house_loaf.glb", "at": Vector2(-13.0, 2.0), "size": Vector3(5.0, 4, 3.4)},
+	{"model": "res://assets/buildings/house_cottage.glb", "at": Vector2(-10.0, 7.0), "size": Vector3(4.6, 4, 3.6)},
+	{"model": "res://assets/buildings/house_cabin.glb", "at": Vector2(13.0, 13.0), "size": Vector3(4.4, 4, 3.6)},
+	{"model": "res://assets/buildings/house_round.glb", "at": Vector2(-14.0, 19.0), "size": Vector3(4.4, 4, 4.4)},
+	{"model": "res://assets/buildings/house_hill.glb", "at": Vector2(12.5, 26.5), "size": Vector3(6.0, 4, 5.0)},
+	{"model": "res://assets/buildings/house_lodge.glb", "at": Vector2(-9.0, 30.0), "size": Vector3(5.2, 5, 5.0)},
+	{"model": "res://assets/buildings/windmill.glb", "at": Vector2(16.0, 5.0), "size": Vector3(4.0, 6, 4.0)},
+	{"model": "res://assets/buildings/house_loaf.glb", "at": Vector2(9.5, 37.0), "size": Vector3(5.0, 4, 3.4)},
 ]
 const SAILS := preload("res://assets/buildings/windmill_sails.glb")
 const SAILS_AT := Vector3(0, 5.75, 2.75)       # the hub on the windmill's front, from make_buildings.py
@@ -47,6 +50,8 @@ func build(shape: WorldShape) -> void:
 		house.add_to_group("map_building")           # the minimap draws every building in this group
 		house.set_meta("map_size", Vector2(h["size"].x, h["size"].z))
 		house.global_position = Vector3(at.x, shape.height_at(at.x, at.y) - 0.15, at.y)
+		var to_green := GREEN - at
+		house.rotation.y = atan2(to_green.x, to_green.y)       # its front (+Z) towards the green
 		var body := StaticBody3D.new()
 		var col := CollisionShape3D.new()
 		var box := BoxShape3D.new()

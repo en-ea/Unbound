@@ -16,10 +16,10 @@ const REGIONS := {
 		"spawn": Vector2(0.0, 22.0), "rough": 3.4, "seed": 7,
 		"path": [Vector2(2, 125), Vector2(-2, 100), Vector2(4, 76), Vector2(-3, 52), Vector2(3, 34), Vector2(0, 18), Vector2(7, 4),
 			Vector2(4, -10), Vector2(-8, -20), Vector2(-20, -26), Vector2(-26, -30)],
-		"clearings": [Vector3(-5.5, 11.5, 4.2), Vector3(10.5, 13.0, 4.6), Vector3(5.4, 16.0, 1.5),
-			Vector3(-9.0, 23.0, 4.4), Vector3(14.0, 3.0, 4.0), Vector3(-13.0, 2.0, 5.0),
-			Vector3(9.0, 22.0, 5.0), Vector3(-6.0, 31.0, 5.0), Vector3(-1.0, 7.0, 3.0),
-			Vector3(-17.0, 13.5, 5.5), Vector3(-3.5, 27.0, 2.6),
+		"clearings": [Vector3(-10.0, 7.0, 4.2), Vector3(13.0, 13.0, 4.6), Vector3(5.4, 16.0, 1.5),     # village.gd's houses
+			Vector3(-14.0, 19.0, 4.4), Vector3(16.0, 5.0, 4.0), Vector3(9.5, 37.0, 5.0),
+			Vector3(12.5, 26.5, 5.0), Vector3(-9.0, 30.0, 5.0), Vector3(-15.5, 3.0, 3.0),
+			Vector3(-20.0, 10.5, 5.5), Vector3(-4.5, 17.0, 2.6), Vector3(-1.0, 18.0, 7.0),         # smithy, campfire, the green
 			Vector3(-76, -62, 8.0), Vector3(72, 44, 11.0), Vector3(-70, 58, 7.0),     # the places (places.gd)
 			Vector3(-40, 36, 9.0), Vector3(-40, 41, 9.0)],                          # your home plot (Home)
 		"keep_clear": [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5), Vector3(10.8, -3.0, 3.2),

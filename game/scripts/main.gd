@@ -32,11 +32,11 @@ func _ready() -> void:
 		var workbench := Node3D.new()
 		workbench.set_script(preload("res://scripts/world/workbench.gd"))
 		add_child(workbench)
-		workbench.build(shape, Vector2(-1.0, 7.0))
+		workbench.build(shape, Vector2(-15.5, 3.0))
 	var fire := Node3D.new()
 	fire.set_script(preload("res://scripts/world/campfire.gd"))
 	add_child(fire)
-	fire.build(shape, Vector2(-3.5, 27.0) if meadow else Vector2(4.0, -81.5))
+	fire.build(shape, Vector2(-4.5, 17.0) if meadow else Vector2(4.0, -81.5))
 	for id: String in Projects.DEFS:
 		if Projects.DEFS[id]["region"] == Region.current:
 			var site := Node3D.new()

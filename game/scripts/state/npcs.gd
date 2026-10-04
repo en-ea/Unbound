@@ -43,7 +43,7 @@ const NPCS := {
 			"Don't go in the cave without a light. Or do. But tell me what's in there after."],
 	},
 	"wren": {
-		"name": "Wren", "title": "Tobacco grower", "at": Vector2(-2.6, 18.0), "scale": Vector3(0.84, 1.14, 0.84),
+		"name": "Wren", "title": "Tobacco grower", "at": Vector2(-19.0, 21.0), "scale": Vector3(0.84, 1.14, 0.84),
 		"look": {
 			"parts": {"eyes": "narrow", "brows": "stern", "mouth": "flat", "nose": "long", "hair": "messy", "beard": "stubble",
 				"head": "sunhat", "top": "tunic", "waist": "none", "chest": "none", "shoulders": "none", "back": "leafcloak", "feet": "shoes"},
@@ -64,7 +64,7 @@ const NPCS := {
 			"Boars leave the plants alone. Wolves too. It's the rabbits I can't forgive."],
 	},
 	"morrow": {
-		"name": "Morrow", "title": "Wanderer", "at": Vector2(-1.5, 25.5), "scale": Vector3(0.96, 1.3, 0.96),
+		"name": "Morrow", "title": "Wanderer", "at": Vector2(-1.5, 21.0), "scale": Vector3(0.96, 1.3, 0.96),
 		"body": "res://assets/characters/morrow.glb",
 		"theme": {"bg": Color(0.06, 0.06, 0.09, 0.95), "accent": Color(0.86, 0.8, 0.66), "text": Color(0.93, 0.91, 0.86),
 			"font": "res://assets/fonts/Cinzel-Variable.ttf", "name_font": "res://assets/fonts/Cinzel-Variable.ttf", "voice": "morrow"},
@@ -78,7 +78,7 @@ const NPCS := {
 			"I was here before the village. I will be here after the rain."],
 	},
 	"brakk": {
-		"name": "Brakk", "title": "Blacksmith", "at": Vector2(-13.5, 11.0), "scale": Vector3.ONE * 1.6,
+		"name": "Brakk", "title": "Blacksmith", "at": Vector2(-15.5, 12.5), "scale": Vector3.ONE * 1.6,
 		"body": "res://assets/characters/golem.glb",
 		"theme": {"bg": Color(0.1, 0.09, 0.11, 0.95), "accent": Color(1.0, 0.52, 0.16), "text": Color(1.0, 0.94, 0.86),
 			"font": "res://assets/fonts/Cinzel-Variable.ttf", "name_font": "res://assets/fonts/Cinzel-Variable.ttf", "voice": "brakk"},

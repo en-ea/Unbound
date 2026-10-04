@@ -6,7 +6,7 @@ signal built(id: String)
 signal unbuilt(id: String)        # only from the test menu
 
 const DEFS := {
-	"smithy": {"name": "Smithy", "region": "meadow", "at": Vector2(-17.0, 12.0),
+	"smithy": {"name": "Smithy", "region": "meadow", "at": Vector2(-20.0, 9.0),
 		"text": "The smith can forge Steel tools at the workbench."},
 }
 

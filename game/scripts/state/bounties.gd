@@ -14,7 +14,7 @@ const RENOWN_FOR_STAR := [0, 2, 5]       # renown needed for 1, 2 and 3-star hun
 const REGION_PAY := {"meadow": 1.0, "forest": 1.5, "highlands": 2.0}
 const HUNT_PAY := {"wolf": 14, "boar": 16, "stag": 30, "shadow_wolf": 30, "bandit": 20}   # coins a head
 ## Where each region's board stands (world/bounty_board.gd).
-const BOARDS := {"meadow": Vector2(-3.4, 17.5), "forest": Vector2(-17.5, 25.0), "highlands": Vector2(-13.5, -40.0)}
+const BOARDS := {"meadow": Vector2(4.6, 27.5), "forest": Vector2(-17.5, 25.0), "highlands": Vector2(-13.5, -40.0)}
 ## Hunts: [creature, plural, fewest, most].
 const HUNTS := {
 	"meadow": [["wolf", "wolves", 3, 5], ["boar", "boars", 2, 4], ["stag", "stags", 1, 2]],
