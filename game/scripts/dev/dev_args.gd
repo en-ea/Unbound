@@ -149,6 +149,12 @@ func _ready() -> void:
 				var v: Node = get_parent().get_node("Village").find_children("*", "Node3D", false, false).filter(func(n: Node) -> bool: return n.has_method("visit"))[0]
 				var d: Vector2 = preload("res://scripts/world/village.gd").door_of(house)
 				v.visit(house, preload("res://scripts/world/village.gd").VISITABLE[house], Vector3(d.x, 0, d.y)))
+		elif arg == "--bowtest":                      # with --lab: bow out, a boar, a power shot (screenshot mid-flight with --shotframe)
+			Gear.weapon = "bow"
+			Gear.changed.emit.call_deferred()
+			get_tree().create_timer(1.2).timeout.connect(func() -> void:
+				get_tree().get_first_node_in_group("build_lab").spawn("boar")
+				get_tree().create_timer(0.6).timeout.connect(func() -> void: get_node("../Player").fighter.heavy()))
 		elif arg == "--bountytest":                   # take the bounties, find and kill the wanted beast, claim
 			add_child(preload("res://scripts/dev/bounty_test.gd").new())
 		elif arg.begins_with("--bounties="):              # take this region's bounties: --bounties=2 takes two (with --open=bounty to see the board)

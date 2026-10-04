@@ -23,6 +23,14 @@ const HIT_SOUNDS := "res://assets/kenney_impact/impactPunch_heavy_%03d.ogg"
 const HEAVY_SWORD := {"anim": "Sword_Attack", "speed": 1.0, "impact": 0.4, "busy": 1.0}
 const HEAVY_FIST := {"anim": "Punch_Cross", "speed": 0.75, "impact": 0.22, "busy": 0.6}
 const HEAVY_REACH := 2.8       # a heavy blow hits every enemy this close in front of you
+## The bow: Attack looses a quick arrow at the nearest enemy in range; Heavy draws a power shot that hits
+## harder and goes through. Bow poses borrow the pistol aim and shot (no bow clips in our library).
+const BOW_RANGE := 24.0
+const QUICK_SHOT := {"mult": 0.7, "draw": 0.16, "busy": 0.42, "pierce": 0}
+const POWER_SHOT := {"mult": 2.2, "draw": 0.62, "busy": 0.95, "pierce": 2}
+const ARROW := preload("res://scripts/player/player_arrow.gd")
+const BOW_SOUND := preload("res://assets/sounds/bow_shot.wav")
+var _bow: Node3D
 const SHOCK_SHADER := preload("res://shaders/shockwave.gdshader")
 const THUD := preload("res://assets/sounds/tree_thud.wav")
 const CRIT_SOUND := preload("res://assets/sounds/crit.wav")
@@ -52,6 +60,8 @@ var _sparks: CPUParticles3D
 
 
 func _ready() -> void:
+	Gear.changed.connect(show_bow)
+	show_bow.call_deferred()
 	_audio = AudioStreamPlayer3D.new()
 	_audio.unit_size = 6.0
 	player.add_child.call_deferred(_audio)
@@ -125,9 +135,12 @@ func _physics_process(delta: float) -> void:
 		_shock_t += delta / 0.45
 		_shock.visible = _shock_t < 1.0
 		_shock_mat.set_shader_parameter("t", _shock_t)
-	target = _nearest_enemy(BUTTON_REACH)
-	var new_verb := "Attack" if target or _since < STAY_ARMED else ""
-	if target and target.has_method("can_be_taken_down") and target.can_be_taken_down(player):
+	var bow := bow_out()
+	target = _nearest_enemy(BOW_RANGE if bow else BUTTON_REACH)
+	# With the bow, a far enemy only takes the button once the fight is on (so you can still chop and talk).
+	var fighting: bool = target != null and (not bow or target.global_position.distance_to(player.global_position) < FIGHT_NEAR 		or (target.has_method("is_engaged") and target.is_engaged()))
+	var new_verb := ("Shoot" if bow else "Attack") if fighting or _since < STAY_ARMED else ""
+	if target and target.global_position.distance_to(player.global_position) < BUTTON_REACH 			and target.has_method("can_be_taken_down") and target.can_be_taken_down(player):
 		new_verb = "Takedown"
 	if new_verb != verb:
 		verb = new_verb
@@ -141,6 +154,9 @@ func attack() -> void:
 		return
 	if _busy > 0.0:
 		_queued = _busy < 0.25
+		return
+	if bow_out():
+		_shoot(QUICK_SHOT)
 		return
 	var armed := Gear.tier("sword") >= 0
 	var combo: Array = CLAW_COMBO if _claws() else (COMBO if armed else FIST_COMBO)
@@ -184,6 +200,9 @@ func _takedown(t: Node3D) -> void:
 
 ## The Heavy button: one big blow. The player has already paid the stamina.
 func heavy() -> void:
+	if bow_out():
+		_shoot(POWER_SHOT)
+		return
 	var armed := Gear.tier("sword") >= 0
 	var h: Dictionary = HEAVY_CLAW if _claws() else (HEAVY_SWORD if armed else HEAVY_FIST)
 	var speed: float = h["speed"] * Gear.speed("sword")
@@ -371,3 +390,67 @@ func _nearest_enemy(reach: float) -> Node3D:
 			best_d = d
 			best = e
 	return best
+
+
+# --- the bow ---------------------------------------------------------------------------------------
+
+func bow_out() -> bool:
+	return Gear.weapon == "bow" and Gear.has_bow and not _claws()
+
+
+## The bow in your left hand while it's your weapon (the sword stays on your back).
+func show_bow() -> void:
+	var on := bow_out()
+	if on and _bow == null:
+		_bow = visual.hold_prop("crystal_bow", Vector3(90, 0, 0), Vector3(0.0, 0.08, 0.0), "hand_l")
+		_bow.scale = Vector3.ONE * 1.15
+	if _bow:
+		_bow.visible = on
+	if on and visual.tool_shown == "sword":
+		visual.show_tool("")
+
+
+## Draw, then loose an arrow at the target (or straight ahead). `shot` is QUICK_SHOT or POWER_SHOT.
+func _shoot(shot: Dictionary) -> void:
+	var t := target
+	if t:
+		var to := t.global_position - player.global_position
+		visual.rotation.y = atan2(to.x, to.z)
+	show_bow()
+	var draw: float = shot["draw"] / Gear.speed("sword")
+	if shot == POWER_SHOT:
+		visual.play_action("Pistol_Aim_Neutral", 1.0)
+		visual.charge_tool(0.0)
+	_busy = shot["busy"] / Gear.speed("sword")
+	_impact = -1.0
+	_heavy = false
+	_queued = false
+	_since = -_busy
+	get_tree().create_timer(draw).timeout.connect(func() -> void:
+		if player.is_down() or not bow_out():
+			return
+		visual.play_action("Pistol_Shoot", 1.6)
+		var from := player.global_position + Vector3(0, 1.35, 0) + Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y)) * 0.5
+		var dir := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
+		if is_instance_valid(t) and t.is_alive():
+			dir = (t.global_position + Vector3(0, 0.7, 0) - from)
+		var arrow := Node3D.new()
+		arrow.set_script(ARROW)
+		player.get_parent().add_child(arrow)
+		arrow.fire(from, dir, self, shot["mult"], shot["pierce"], Gear.BOW["glow"])
+		_audio.stream = BOW_SOUND
+		_audio.pitch_scale = randf_range(0.95, 1.08) * (0.85 if shot == POWER_SHOT else 1.0)
+		_audio.play())
+
+
+## An arrow found its mark (player_arrow.gd): damage like a sword blow, scaled for the shot.
+func arrow_hit(t: Node3D, mult: float) -> void:
+	if not is_instance_valid(t) or not t.is_alive():
+		return
+	var hit := Gear.hit_damage(mult)
+	if player.take_counter() or (t.has_method("is_open") and t.is_open()):
+		hit = [hit[0] * 2, true]
+	hit = Abilities.passive_strike(t, hit, player)
+	t.take_hit(player.global_position, hit[0], 1.4 if mult > 1.0 else 0.5)
+	_hit_feedback(t, hit[0], hit[1])
+	Skills.add("combat", Balance.XP_PER_SWORD_HIT)

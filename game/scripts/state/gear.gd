@@ -24,6 +24,17 @@ var owned := {"axe": [_tool(0)], "pickaxe": [_tool(0)], "sword": [_tool(0)]}
 var equipped := {"axe": 0, "pickaxe": 0, "sword": 0}      # index into owned[slot], -1 = fists
 var bag := 0
 var unlocked := {"axe": 0, "pickaxe": 0, "sword": 0}   # best tier you have ever had
+## Bows (a first try): everyone has the Crystal Bow for now. `weapon` is the one you fight with.
+const BOW := {"name": "Crystal Bow", "rarity": 3, "glow": Color(0.4, 1.0, 0.95)}
+var has_bow := true
+var weapon := "sword"
+
+
+## The action: switch between sword and bow (the Swap button).
+func swap_weapon() -> void:
+	if has_bow:
+		weapon = "bow" if weapon == "sword" else "sword"
+		changed.emit()
 
 
 static func _tool(tier_index: int, rarity := 0, bonuses := {}) -> Dictionary:
@@ -241,10 +252,11 @@ func craft_bag() -> bool:
 
 
 func to_data() -> Dictionary:
-	return {"owned": owned, "equipped": equipped, "bag": bag, "unlocked": unlocked}
+	return {"owned": owned, "equipped": equipped, "bag": bag, "unlocked": unlocked, "weapon": weapon}
 
 
 func load_data(data: Dictionary) -> void:
+	weapon = "bow" if data.get("weapon", "sword") == "bow" and has_bow else "sword"
 	for slot: String in SLOTS:
 		var list: Array = data.get("owned", {}).get(slot, [_tool(0)])
 		var old_save := not list.is_empty() and not list[0] is Dictionary     # older saves: plain tiers

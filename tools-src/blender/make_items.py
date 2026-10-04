@@ -400,6 +400,33 @@ def bandit_bow():
     return b
 
 
+def crystal_bow():
+    """The owner's crystal bow (from their picture): angular tan wooden limbs with a jagged kink, an
+    ice-blue crystal blade jutting from the back of each limb, crystal tips, a glowing cyan string.
+    Like bandit_bow: the grip at the origin, the bow along Z, the string on the -Y side."""
+    b = Builder(["Item", "Glow"])
+    wood, wrap, string = (0.66, 0.47, 0.3), (0.42, 0.29, 0.2), (0.35, 1.0, 0.95)
+    ice = [(0.74, 0.9, 0.99), (0.6, 0.8, 0.96), (0.88, 0.96, 1.0)]
+    for s in (1, -1):
+        pts = [V((0, 0, 0)), V((0, 0.06, s * 0.1)), V((0, 0.045, s * 0.17)), V((0, 0.11, s * 0.29)), V((0, 0.125, s * 0.42)),
+               V((0, 0.085, s * 0.55)), V((0, 0.03, s * 0.65)), V((0, -0.02, s * 0.71))]
+        radii = [(0.03, 0.026), (0.028, 0.024), (0.026, 0.022), (0.025, 0.021), (0.021, 0.018), (0.017, 0.015), (0.013, 0.012), (0.011, 0.011)]
+        tube_faces(b, pts, radii, wood, seg=5, ref=V((1, 0, 0)))
+        # A crystal blade from the back of the limb, angled out towards the tip.
+        root = V((0, 0.12, s * 0.27))
+        b.paint(b.new_faces(lambda root=root, s=s: rk.tube(b.bm, [root, root + V((0, 0.07, s * 0.06)), root + V((0, 0.13, s * 0.2))],
+                                                          [(0.035, 0.02), (0.03, 0.016), (0.002, 0.002)], ref=V((1, 0, 0)), seg=4)), "Item", ice[0])
+        b.paint(b.new_faces(lambda root=root, s=s: rk.tube(b.bm, [root + V((0, -0.01, s * 0.08)), root + V((0, 0.05, s * 0.13)),
+                                                          root + V((0, 0.08, s * 0.24))], [(0.02, 0.012), (0.016, 0.01), (0.002, 0.002)], ref=V((1, 0, 0)), seg=4)), "Item", ice[1])
+        # A crystal cap on each tip.
+        tip = pts[-1]
+        b.paint(b.new_faces(lambda tip=tip, s=s: rk.tube(b.bm, [tip - V((0, -0.01, s * 0.03)), tip + V((0, -0.01, s * 0.04)), tip + V((0, -0.03, s * 0.11))],
+                                                        [(0.02, 0.02), (0.026, 0.02), (0.002, 0.002)], ref=V((1, 0, 0)), seg=4)), "Item", ice[2])
+    tube_faces(b, [V((0, 0, -0.08)), V((0, 0, 0.08))], [(0.034, 0.03)] * 2, wrap, seg=6, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, -0.025, -0.7)), V((0, -0.025, 0.7))], [(0.006, 0.006)] * 2, string, seg=3, mat="Glow", ref=V((1, 0, 0)))
+    return b
+
+
 def arrow():
     """An arrow along +Z (tip at +Z): a shaft, an iron head, red fletching."""
     b = Builder(["Item", "Glow"])
@@ -436,6 +463,7 @@ def bandit_token():
 export("bandit_shield", bandit_shield(), OUT)
 export("bandit_bow", bandit_bow(), OUT)
 export("arrow", arrow(), OUT)
+export("crystal_bow", crystal_bow(), OUT)
 export("black_seal", black_seal(), OUT)
 export("red_hand", bandit_token(), OUT)
 export("wood", log(), OUT)

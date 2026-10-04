@@ -294,6 +294,13 @@ func _icon(c: Vector2, s: float, col: Color) -> void:
 			var fwd := Vector2(-sin(a), cos(a)) * -1.0
 			var out := Vector2(cos(a), sin(a))
 			draw_colored_polygon(PackedVector2Array([p + fwd * s * 0.45, p + out * s * 0.35, p - out * s * 0.35]), col)
+		"bow":                                   # a bow and its string
+			draw_arc(c + Vector2(-s * 0.35, 0), s * 0.95, -PI * 0.42, PI * 0.42, 18, col, s * 0.17, true)
+			var top := c + Vector2(-s * 0.35, 0) + Vector2(cos(-PI * 0.42), sin(-PI * 0.42)) * s * 0.95
+			var bottom := c + Vector2(-s * 0.35, 0) + Vector2(cos(PI * 0.42), sin(PI * 0.42)) * s * 0.95
+			draw_line(top, bottom, col, s * 0.06, true)
+			draw_line(c + Vector2(-s * 0.5, 0), c + Vector2(s * 0.75, 0), col, s * 0.08, true)
+			draw_colored_polygon(PackedVector2Array([c + Vector2(s * 0.95, 0), c + Vector2(s * 0.62, -s * 0.16), c + Vector2(s * 0.62, s * 0.16)]), col)
 		"sneak":                                 # a half-closed eye
 			var lid := PackedVector2Array()
 			for k in 13:

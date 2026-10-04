@@ -364,7 +364,7 @@ func knockback(push: Vector3) -> void:
 
 
 ## PC keys (for testing on a laptop): WASD move, Shift sprint, left click or E the action button, Space
-## roll, F heavy, R parry, C sneak, 1 2 3 (or Z X V) abilities, Tab bag, J quests, Esc menu, arrows or a
+## roll, F heavy, R parry, C sneak, T sword/bow, 1 2 3 (or Z X V) abilities, Tab bag, J quests, Esc menu, arrows or a
 ## right-drag turn the camera. Taps on the phone also arrive as emulated clicks: those are ignored here.
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT 			and event.device != InputEvent.DEVICE_ID_EMULATION and not Controls.locked:
@@ -387,6 +387,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			guard()
 		elif event.physical_keycode == KEY_C:
 			sneak()
+		elif event.physical_keycode == KEY_T:
+			Gear.swap_weapon()
 		elif event.physical_keycode in [KEY_Z, KEY_X, KEY_V, KEY_1, KEY_2, KEY_3]:
 			var slot: int = [KEY_Z, KEY_X, KEY_V, KEY_1, KEY_2, KEY_3].find(event.physical_keycode) % 3
 			if Classes.abilities().size() > slot:
@@ -492,7 +494,7 @@ func _physics_process(delta: float) -> void:
 	if new_verb == "":
 		new_verb = _station.verb if _station else ("" if hauling.busy() else gatherer.verb)
 	if new_verb == "":
-		new_verb = "Get off" if hauling.riding else ("Drop" if hauling.carrying else "Attack")
+		new_verb = "Get off" if hauling.riding else ("Drop" if hauling.carrying else ("Shoot" if fighter.bow_out() else "Attack"))
 	if new_verb != verb:
 		verb = new_verb
 		verb_changed.emit(verb)

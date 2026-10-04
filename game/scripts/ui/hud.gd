@@ -14,6 +14,7 @@ const CRAFTING_PANEL := preload("res://scripts/ui/crafting_panel.gd")
 const BUTTONS := {
 	"attack": [Vector2(150, 150), 72.0], "roll": [Vector2(282, 112), 50.0],
 	"heavy": [Vector2(262, 222), 42.0], "parry": [Vector2(190, 282), 42.0], "sneak": [Vector2(100, 282), 32.0],
+	"swap": [Vector2(70, 368), 30.0],
 	"ability1": [Vector2(380, 212), 44.0], "ability2": [Vector2(318, 318), 44.0], "ability3": [Vector2(212, 380), 44.0],
 }
 const HOLD_TO_SPRINT := 0.18     # Roll button: shorter than this is a roll, longer is a sprint
@@ -34,6 +35,7 @@ var _roll: ActionButton
 var _heavy: ActionButton
 var _parry: ActionButton
 var _sneak: ActionButton
+var _swap: ActionButton
 var _ability_buttons := {}         # ability id -> button (your class's abilities)
 var _slow_tint: ColorRect
 var _loot_card: Control
@@ -88,6 +90,10 @@ func _ready() -> void:
 	_parry.pressed.connect(player.guard)
 	_sneak = _button("sneak", "Sneak", "sneak", BUTTONS["sneak"])
 	_sneak.pressed.connect(player.sneak)
+	_swap = _button("swap", "Bow", "bow", BUTTONS["swap"])          # sword <-> bow (shows the one you'd switch to)
+	_swap.pressed.connect(Gear.swap_weapon)
+	Gear.changed.connect(_update_swap)
+	_update_swap()
 	_action.swiped.connect(func(dir: String) -> void:
 		if dir == "up":
 			player.heavy()
@@ -233,7 +239,7 @@ func _button(id: String, verb: String, icon: String, spot: Array) -> ActionButto
 
 
 func _buttons() -> Array[ActionButton]:
-	var list: Array[ActionButton] = [_action, _roll, _heavy, _parry, _sneak]
+	var list: Array[ActionButton] = [_action, _roll, _heavy, _parry, _sneak, _swap]
 	for i: int in _ability_buttons:
 		list.append(_ability_buttons[i])
 	return list
@@ -464,6 +470,7 @@ func start_build_mode(room := false) -> void:
 	_heavy.visible = false
 	_parry.visible = false
 	_sneak.visible = false
+	_swap.visible = false
 	_corner.visible = false
 	Controls.locked = false
 	var ui := Control.new()
@@ -597,8 +604,16 @@ func _show_heavy() -> void:
 	_heavy.visible = _action.visible and not compact
 	_parry.visible = _action.visible and not compact
 	_sneak.visible = _action.visible
+	_swap.visible = _action.visible and Gear.has_bow
 	_action.swipes = {"up": "Heavy", "left": "Parry"} if compact else {}
 	_action.queue_redraw()
+
+
+func _update_swap() -> void:
+	var to_bow := Gear.weapon != "bow"
+	_swap.icon = "bow" if to_bow else "sword"
+	_swap.set_verb("Bow" if to_bow else "Sword")
+	_swap.queue_redraw()
 
 
 ## Sneaking on or off: the Sneak button lights up while you're crouched.
