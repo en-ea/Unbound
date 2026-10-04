@@ -26,6 +26,8 @@ const KINDS := {
 var cart := {"region": "meadow", "at": Vector2(-21.0, 33.0), "yaw": 0.0, "load": []}
 var riding := false            # you were on the cart when you went through a gate (carried over)
 var carried := {}              # a body you were dragging through a gate: {kind, age}
+var elk := {}                  # your tamed elk (world/elk_mount.gd): {region, at, yaw}; empty = none yet
+var elk_riding := false        # you rode it through a gate
 var sold_count := {}           # kind -> whole bodies sold (for jobs and bragging)
 
 
@@ -82,7 +84,10 @@ func load_cart(kind: String, age: float) -> bool:
 func to_data() -> Dictionary:
 	var c := cart.duplicate(true)
 	c["at"] = [cart["at"].x, cart["at"].y]
-	return {"cart": c, "sold": sold_count.duplicate()}
+	var e := {}
+	if not elk.is_empty():
+		e = {"region": elk["region"], "at": [elk["at"].x, elk["at"].y], "yaw": elk["yaw"]}
+	return {"cart": c, "sold": sold_count.duplicate(), "elk": e}
 
 
 func load_data(data: Variant) -> void:
@@ -98,4 +103,8 @@ func load_data(data: Variant) -> void:
 			if b is Dictionary and (KINDS.has(str(b.get("kind", ""))) or str(b.get("kind", "")) == "_"):
 				cart["load"].append({"kind": str(b["kind"]), "age": float(b.get("age", 0.0))})
 	sold_count = d.get("sold", {})
+	elk = {}
+	var e: Variant = d.get("elk", {})
+	if e is Dictionary and e.has("at"):
+		elk = {"region": str(e.get("region", "highlands")), "at": Vector2(float(e["at"][0]), float(e["at"][1])), "yaw": float(e.get("yaw", 0.0))}
 	changed.emit()

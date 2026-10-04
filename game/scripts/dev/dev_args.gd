@@ -149,6 +149,9 @@ func _ready() -> void:
 				var v: Node = get_parent().get_node("Village").find_children("*", "Node3D", false, false).filter(func(n: Node) -> bool: return n.has_method("visit"))[0]
 				var d: Vector2 = preload("res://scripts/world/village.gd").door_of(house)
 				v.visit(house, preload("res://scripts/world/village.gd").VISITABLE[house], Vector3(d.x, 0, d.y)))
+		elif arg == "--elk":                          # you have a tamed elk and start riding it
+			Hunting.elk = {"region": Region.current, "at": Vector2.ZERO, "yaw": 0.0}
+			Hunting.elk_riding = true
 		elif arg == "--bowtest":                      # with --lab: bow out, a boar, a power shot (screenshot mid-flight with --shotframe)
 			Gear.weapon = "bow"
 			Gear.changed.emit.call_deferred()

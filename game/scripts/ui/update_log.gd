@@ -5,6 +5,17 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "Living village, bows, elk riding", "lines": [
+		"The village is rearranged round a green: houses face it, the campfire in the middle, a craft corner west.",
+		"New villagers with a day of their own: Tomas the woodcutter, Elsa the cook, her daughter Nell, Bram the miller.",
+		"They work, eat on the green at noon, sit by the fire in the evening and go home at night. Ask for their goods",
+		"(they make more while they work) or give them gifts: they warm to you, sell cheaper, and give presents back.",
+		"Three houses you can go into (Enter by the door): at night you'll find them at home.",
+		"Bows (a first try): the Crystal Bow. The new Swap button (T) switches sword and bow. Attack shoots,",
+		"Heavy draws a power shot that hits harder and goes through. Laptop: Shift sprints, click attacks, Space rolls.",
+		"Taming: in the Highlands, sneak up on an elk unseen, press Calm and hold still. It's yours: it follows you",
+		"everywhere (through gates too). Ride it and steer with the stick; hold sprint to gallop.",
+	]},
 	{"when": "4 Oct", "title": "Bounty boards", "lines": [
 		"A bounty board in each region: the meadow village (by the path), Fernhollow, and Shepherd's Rest.",
 		"Three jobs each: a hunt (kill wolves, boars, stags, bandits... in that region), a gather (bring items to",

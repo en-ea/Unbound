@@ -31,12 +31,18 @@ var _charged := false
 var _hit_done := false
 var _push := Vector3.ZERO
 var _sense := 0.0
+## Taming (Highlands elk, while you have no elk): sneak up unseen and Calm it, then hold still.
+var verb := ""
+var reach := 4.5
+var _calming := 0.0
+const CALM_TIME := 2.6
 var _audio: AudioStreamPlayer3D
 
 
 func _ready() -> void:
 	add_to_group("enemy")
 	add_to_group("stag")
+	add_to_group("interactable")
 	floor_snap_length = 0.5
 	var shape := CollisionShape3D.new()
 	var box := BoxShape3D.new()
@@ -128,6 +134,10 @@ func take_burn(damage: int) -> void:
 
 func _physics_process(delta: float) -> void:
 	_t += delta
+	if _calming > 0.0:
+		_calm(delta)
+		return
+	verb = "Calm" if Region.current == "highlands" and Hunting.elk.is_empty() and player.get("sneaking") 		and state in [State.GRAZE, State.WALK] else ""
 	var to_player := player.global_position - global_position
 	to_player.y = 0.0
 	var dist := to_player.length()
@@ -253,3 +263,34 @@ func _face(dir: Vector3, weight: float) -> void:
 	if dir.length() < 0.01:
 		return
 	rotation.y = lerp_angle(rotation.y, atan2(dir.x, dir.z), clampf(weight, 0.0, 1.0))
+
+
+## The action (Calm): you hold out a hand. Stay crouched and still while it decides.
+func interact() -> void:
+	if verb != "Calm":
+		return
+	_calming = CALM_TIME
+	_face(player.global_position - global_position, 1.0)
+	visual.mode = "listen"
+	get_tree().call_group("hud", "hint", "Easy now... hold still.")
+
+
+func _calm(delta: float) -> void:
+	var d := player.global_position.distance_to(global_position)
+	if Controls.get_move().length() > 0.15 or not player.get("sneaking") or d > reach + 1.0 or player.is_down():
+		_calming = 0.0
+		get_tree().call_group("hud", "hint", "It bolted. Slower next time, and stay low.")
+		spook(player.global_position)
+		return
+	_calming -= delta
+	if _calming > 0.0:
+		return
+	Hunting.elk = {"region": Region.current, "at": Vector2(global_position.x, global_position.z), "yaw": rotation.y}
+	var elk := CharacterBody3D.new()
+	elk.set_script(preload("res://scripts/world/elk_mount.gd"))
+	elk.player = player
+	get_parent().get_parent().add_child(elk)
+	elk.build(Carcass.shape, Hunting.elk["at"], rotation.y)
+	Banner.show_now(get_tree().get_first_node_in_group("hud"), "ELK TAMED", "It's yours. Ride it, or it follows you.",
+		Color(0.55, 0.85, 0.9), preload("res://assets/sounds/boar_snort.wav"), 2.4)
+	queue_free()

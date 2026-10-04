@@ -137,6 +137,8 @@ func _physics_process(delta: float) -> void:
 		_shock_mat.set_shader_parameter("t", _shock_t)
 	var bow := bow_out()
 	target = _nearest_enemy(BOW_RANGE if bow else BUTTON_REACH)
+	if target and target.get("verb") == "Calm":         # sneaking up to tame it, not to kill it
+		target = null
 	# With the bow, a far enemy only takes the button once the fight is on (so you can still chop and talk).
 	var fighting: bool = target != null and (not bow or target.global_position.distance_to(player.global_position) < FIGHT_NEAR 		or (target.has_method("is_engaged") and target.is_engaged()))
 	var new_verb := ("Shoot" if bow else "Attack") if fighting or _since < STAY_ARMED else ""

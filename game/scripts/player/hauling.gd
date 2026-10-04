@@ -77,7 +77,9 @@ func get_off() -> void:
 func leaving(to: String, arrive: Vector2) -> void:
 	if is_instance_valid(carrying):
 		Hunting.carried = {"kind": carrying.kind, "age": carrying.age}
-	if riding:
+	if riding and riding.is_in_group("elk"):
+		Hunting.elk_riding = true
+	elif riding:
 		Hunting.riding = true
 		Hunting.cart["region"] = to
 		Hunting.cart["at"] = arrive

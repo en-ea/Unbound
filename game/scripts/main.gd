@@ -152,6 +152,18 @@ func _hunting_arrival() -> void:
 		add_child(cart)
 		cart.build(Carcass.shape)
 	Hunting.riding = false
+	if not Hunting.elk.is_empty():               # your elk: wherever you are, it's near (or under you)
+		if Hunting.elk["region"] != Region.current or Hunting.elk_riding:
+			var p := player.global_position + Vector3(2.5, 0, 1.5)
+			Hunting.elk = {"region": Region.current, "at": Vector2(p.x, p.z), "yaw": 0.0}
+		var elk := CharacterBody3D.new()
+		elk.set_script(preload("res://scripts/world/elk_mount.gd"))
+		elk.player = player
+		add_child(elk)
+		elk.build(Carcass.shape, Hunting.elk["at"], Hunting.elk["yaw"])
+		if Hunting.elk_riding:
+			(func() -> void: player.hauling.mount(elk)).call_deferred()
+	Hunting.elk_riding = false
 	if not Hunting.carried.is_empty():
 		var c: Dictionary = Hunting.carried
 		Hunting.carried = {}
