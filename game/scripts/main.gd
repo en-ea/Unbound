@@ -89,6 +89,7 @@ func _ready() -> void:
 	add_child(gates)
 	gates.build(shape)
 	var guide := Node3D.new()
+	guide.name = "QuestGuide"
 	guide.set_script(preload("res://scripts/world/quest_guide.gd"))
 	guide.player = player
 	add_child(guide)

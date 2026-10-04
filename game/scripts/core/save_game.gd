@@ -3,7 +3,12 @@ extends Node
 ## the time of day, and your tools. It saves by itself every few seconds and whenever the app goes to the
 ## background, so you can stop anywhere. (Your look is saved by CharacterLook; settings by Settings.)
 
-const PATH := "user://save.json"
+const MAIN := "user://save.json"
+const STORY := "user://save_story.json"      # the Story start (title screen) plays in its own save
+
+var path := MAIN
+var skip_title := false   # the scene reloaded into a game that starts straight away (Story start)
+var intro_pending := false  # play the story's opening (story/intro.gd) once the world is up
 const VERSION := 1
 const AUTOSAVE_EVERY := 15.0
 
@@ -64,15 +69,15 @@ func save_game() -> void:
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y, "indoors": _indoors()},
 		"time_of_day": _day_night.time_of_day,
 	}
-	var file := FileAccess.open(PATH, FileAccess.WRITE)
+	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(data))
 
 
 func _read() -> Dictionary:
-	if not FileAccess.file_exists(PATH):
+	if not FileAccess.file_exists(path):
 		return {}
-	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(PATH))
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
 	if not data is Dictionary or data.get("version", 0) != VERSION:
 		return {}
 	return data
@@ -140,9 +145,26 @@ func _indoors() -> bool:
 	return room != null and room.active
 
 
+## Story start (fresh = from the very beginning, with the opening) or carry on with the story's own save.
+func begin_story(fresh: bool) -> void:
+	save_game()
+	path = STORY
+	skip_title = true
+	if fresh:
+		intro_pending = true
+		start_over()
+		return
+	_enabled = false
+	get_tree().reload_current_scene()
+
+
+func has_story() -> bool:
+	return FileAccess.file_exists(STORY)
+
+
 ## Wipes the save and restarts the world from scratch.
 func start_over() -> void:
-	DirAccess.remove_absolute(PATH)
+	DirAccess.remove_absolute(path)
 	_enabled = false        # don't save the old world on the way out
 	_regions = {}
 	Region.current = "meadow"

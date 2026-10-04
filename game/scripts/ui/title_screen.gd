@@ -6,6 +6,7 @@ signal play
 signal open_character
 signal open_settings
 signal build_lab
+signal story(fresh: bool)
 
 const VERSION := "early build"
 
@@ -120,6 +121,23 @@ func _ready() -> void:
 	log_button.offset_bottom = -76
 	log_button.pressed.connect(func() -> void: UpdateLog.open(self))
 
+	# The story from its very beginning (its own save, so your game stays as it is).
+	var story_button := UIStyle.button(self, "Story start", Vector2(170, 44), 18)
+	story_button.anchor_top = 1.0
+	story_button.anchor_bottom = 1.0
+	story_button.offset_left = 462
+	story_button.offset_top = -120
+	story_button.offset_bottom = -76
+	story_button.pressed.connect(_on_story.bind(true))
+	if SaveGame.has_story():
+		var more := UIStyle.button(self, "Continue story", Vector2(190, 44), 18)
+		more.anchor_top = 1.0
+		more.anchor_bottom = 1.0
+		more.offset_left = 648
+		more.offset_top = -120
+		more.offset_bottom = -76
+		more.pressed.connect(_on_story.bind(false))
+
 	var version := UIStyle.label(self, VERSION, 16, true)
 	version.anchor_top = 1.0
 	version.anchor_bottom = 1.0
@@ -131,6 +149,13 @@ func _ready() -> void:
 	create_tween().tween_property(self, "modulate:a", 1.0, 0.8)
 	if "--updatelog" in OS.get_cmdline_user_args():        # dev: --title --updatelog
 		UpdateLog.open.call_deferred(self)
+
+
+func _on_story(fresh: bool) -> void:
+	_buttons.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var fade := create_tween()
+	fade.tween_property(self, "modulate:a", 0.0, 0.45)
+	fade.tween_callback(func() -> void: story.emit(fresh))
 
 
 func _on_play() -> void:

@@ -209,6 +209,12 @@ func _ready() -> void:
 
 	if Region.arrive != Vector2.INF:      # just travelled to another region: straight back to playing
 		start_game.call_deferred(true)
+	elif SaveGame.skip_title or "--intro" in OS.get_cmdline_user_args():     # Story start
+		SaveGame.skip_title = false
+		start_game.call_deferred(true)
+		if SaveGame.intro_pending or "--intro" in OS.get_cmdline_user_args():
+			SaveGame.intro_pending = false
+			_play_intro.call_deferred()
 	else:
 		show_title()
 
@@ -259,6 +265,17 @@ func edit_buttons() -> void:
 		_set_play_ui(true))
 
 
+## The story's opening (story/intro.gd).
+func _play_intro() -> void:
+	var intro := Node.new()
+	intro.set_script(preload("res://scripts/story/intro.gd"))
+	intro.hud = self
+	intro.player = player
+	intro.day_night = day_night
+	intro.camera_rig = camera_rig
+	add_child(intro)
+
+
 ## Running food buffs as small coloured tags with the seconds left.
 func _show_buffs() -> void:
 	for c in _buffs.get_children():
@@ -307,6 +324,7 @@ func show_title() -> void:
 	_title.play.connect(start_game)
 	_title.open_character.connect(open_look_picker)
 	_title.open_settings.connect(open_settings)
+	_title.story.connect(SaveGame.begin_story)
 	_title.build_lab.connect(func() -> void:
 		start_game(true)
 		get_tree().call_group("build_lab", "enter"))

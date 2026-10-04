@@ -5,6 +5,12 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "Story start (a first try at cutscenes)", "lines": [
+		"New on the title screen: Story start. The opening plays in the game itself: the Long Night, a flight",
+		"over the sleeping meadow, then you wake at dawn and Wren has a chore for you... until the stones wake.",
+		"It has its own save, so your normal game stays as it is. Continue story picks it up again.",
+		"Settings > Slide between buttons (Hilmi's idea): slide your thumb from one fight button onto another.",
+	]},
 	{"when": "4 Oct", "title": "Two new sword looks, a safer lab", "lines": [
 		"From your pictures: the black Runeblade (gold guard, glowing runes) for Epic swords, and the Frost blade",
 		"(a glowing crystal) for Legendary ones. Find one and it shows in your hand and on your back.",
