@@ -5,6 +5,13 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "Two new sword looks, a safer lab", "lines": [
+		"From your pictures: the black Runeblade (gold guard, glowing runes) for Epic swords, and the Frost blade",
+		"(a glowing crystal) for Legendary ones. Find one and it shows in your hand and on your back.",
+		"Build lab > Sword look: try them on. It only changes the look in the lab.",
+		"The lab is its own world now: leaving puts back your real items, gear, coins and class, and heals you.",
+		"The sword on your back sits further off your body, so it no longer sinks into coats and cloaks.",
+	]},
 	{"when": "4 Oct", "title": "A third region: Stonecrest Highlands", "lines": [
 		"The Whispering Wood's path now carries on past the standing stones, south to a new gate.",
 		"Through it: windswept highlands of ochre grass and heather, bare rock, hardy pines and a snow-capped crag.",

@@ -253,6 +253,9 @@ func _ready() -> void:
 						if land:
 							pl.fisher.progress = 0.99
 )))
+		elif arg.begins_with("--sword="):                 # try a sword look in hand: plain, runeblade, frost
+			CharacterVisual.lab_sword_style = arg.trim_prefix("--sword=")
+			get_tree().create_timer(1.0).timeout.connect(func() -> void: get_node("../Player").visual.show_tool("sword"))
 		elif arg == "--shade":                        # be a Shade
 			Classes.choose.call_deferred("shade")
 		elif arg == "--mirage":                       # (with --shade) a double steps out after a moment

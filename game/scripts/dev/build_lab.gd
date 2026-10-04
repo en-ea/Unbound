@@ -60,6 +60,7 @@ func enter(spot := ENTRY) -> void:
 	if not _built:
 		_build()
 	_return_to = player.global_position
+	SaveGame.save_game()                 # your real game, kept safe: leaving puts it all back
 	SaveGame.paused = true
 	active = true
 	var env := get_viewport().world_3d.environment      # the world's height fog would wash the lab out
@@ -82,6 +83,10 @@ func leave() -> void:
 		env.fog_enabled = _fog_was
 	player.global_position = _return_to
 	player.velocity = Vector3.ZERO
+	CharacterVisual.lab_sword_style = ""
+	SaveGame.restore_belongings()        # nothing from the lab carries over: items, gear, coins, class...
+	player.heal_full()
+	player.visual.show_tool("")
 	SaveGame.paused = false
 	get_tree().call_group("camera_rig", "snap")
 	get_tree().call_group("camera_rig", "drop_in", 160.0)    # glide down from the sky back to the world

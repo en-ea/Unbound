@@ -118,6 +118,23 @@ func load_game() -> void:
 	_day_night.time_of_day = data.get("time_of_day", _day_night.time_of_day)
 
 
+## Puts back everything you own and have learned from the last save (leaving the Build lab), but not
+## where you stand or the world.
+func restore_belongings() -> void:
+	var data := _read()
+	if data.is_empty():
+		return
+	Inventory.load_data(data.get("inventory", {}))
+	Gear.load_data(data.get("gear", {}))
+	Armor.load_data(data.get("armor", {}))
+	Skills.load_data(data.get("skills", {}))
+	Money.load_data(data.get("coins", 0))
+	Quests.load_data(data.get("quests", {}))
+	Classes.load_data(data.get("classes", {}))
+	Hunting.load_data(data.get("hunting", {}))
+	FishData.load_data(data.get("fishing", {}))
+
+
 func _indoors() -> bool:
 	var room := get_tree().get_first_node_in_group("home_interior")
 	return room != null and room.active

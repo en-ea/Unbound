@@ -14,6 +14,7 @@ const ENEMIES := ["boar", "wolf", "shadow", "cutthroat", "shield", "archer", "le
 var lab: Node
 var _name: Label
 var _vname: Label
+var _sname: Label
 
 
 func _ready() -> void:
@@ -70,6 +71,16 @@ func _ready() -> void:
 	UIStyle.button(vgrid, "Spin on/off", Vector2(0, 46), 16).pressed.connect(func() -> void: lab.spin = not lab.spin)
 	UIStyle.button(vgrid, "Show building", Vector2(0, 46), 16).pressed.connect(_frame_pad)
 	_show_villager_name()
+	_head(col, "SWORD LOOK (LAB ONLY)")
+	var srow := HBoxContainer.new()
+	srow.add_theme_constant_override("separation", 8)
+	col.add_child(srow)
+	UIStyle.button(srow, "‹", Vector2(60, 50), 26).pressed.connect(func() -> void: _step_sword(-1))
+	_sname = UIStyle.label(srow, "", 18)
+	_sname.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_sname.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UIStyle.button(srow, "›", Vector2(60, 50), 26).pressed.connect(func() -> void: _step_sword(1))
+	_show_sword_name()
 	_head(col, "SPAWN IN FRONT OF YOU")
 	var grid := _grid(col)
 	for s: Array in SPAWNS:
@@ -154,6 +165,22 @@ func _frame_pad() -> void:
 	var target: Vector3 = lab.AT + lab.PAD - lab.player.global_position + Vector3(3.0, 0, 0)
 	target.y = 0.0
 	rig.set_view(19.0, -34.0, target, 0.7)
+
+
+## Sword looks to try in the lab (they don't change your real sword).
+const SWORDS := [["Your own", ""], ["Plain", "plain"], ["Runeblade (Epic)", "runeblade"], ["Frost blade (Legendary)", "frost"]]
+
+
+func _step_sword(d: int) -> void:
+	var i := SWORDS.map(func(s: Array) -> String: return s[1]).find(CharacterVisual.lab_sword_style)
+	CharacterVisual.lab_sword_style = SWORDS[wrapi(i + d, 0, SWORDS.size())][1]
+	lab.player.visual.show_tool("sword")
+	_show_sword_name()
+
+
+func _show_sword_name() -> void:
+	var i := SWORDS.map(func(s: Array) -> String: return s[1]).find(CharacterVisual.lab_sword_style)
+	_sname.text = SWORDS[maxi(i, 0)][0]
 
 
 func _close() -> void:

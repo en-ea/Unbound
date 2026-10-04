@@ -31,6 +31,11 @@ const TOOL_GRIP := {
 	"sword": Vector3(0.0, 90.0, 0.0),
 }
 const TOOL_OFFSET := Vector3(0.0, 0.07, 0.0)       # from the wrist into the palm
+## Styled swords (make_swords.py, from the owner's pictures): Epic swords look like the Runeblade,
+## Legendary and up like the Frost blade. Parts named Rune or Crystal glow.
+const SWORD_STYLES := {"runeblade": "res://assets/items/sword_runeblade.glb", "frost": "res://assets/items/sword_frost.glb"}
+const SWORD_GLOW := {"Rune": Color(1.0, 0.62, 0.2), "Crystal": Color(0.45, 0.9, 1.0)}
+static var lab_sword_style := ""     # the Build lab's preview: "plain", "runeblade" or "frost" ("" = your real sword)
 ## Headwear that covers the top of the head: hair switches to its cut-down "_hat" version.
 const COVERING := ["hat", "bandana", "hood", "helm", "cap", "straw", "sunhat", "wayfarer"]
 
@@ -45,10 +50,12 @@ var back_sword := false         # the player: your sword rides on your back whil
 var hand_sword := false         # the player's "Sword: always in hand" setting
 var claws := false              # the Delver: claws on both hands instead of a sword (set_claws)
 var tool_shown := ""
+var _sword_style := ""
 ## Where the sheathed sword sits, in the model's own space (it faces +Z): grip up by the right shoulder,
 ## blade slanting down across the back.
 const BACK_SWORD_TILT := PI + 0.5          # blade down, slanting across the back (turned flat to it first)
-const BACK_SWORD_AT := Vector3(-0.2, 1.58, 0.2)
+const BACK_SWORD_AT := Vector3(-0.2, 1.58, 0.25)   # far enough off the back to clear coats and cloaks
+const BACK_SWORD_LEAN := -0.16             # the tip angled out from the body, so it doesn't sink into flared clothes
 var _back: Node3D
 var _metal_tint := Color(0, 0, 0, 0)
 
@@ -85,6 +92,9 @@ func _ready() -> void:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	_add_extra_animations()
 	_make_tools()
+	Gear.changed.connect(func() -> void:
+		if wear_gear:
+			_apply_sword_style())
 	_lean = SkeletonModifier3D.new()
 	_lean.set_script(preload("res://scripts/player/lean_fix.gd"))
 	_skeleton.add_child(_lean)
@@ -205,7 +215,61 @@ func charge_tool(amount: float) -> void:
 	metal.emission_energy_multiplier = amount * 2.2
 
 
+## Which sword look goes with a rarity (the Build lab can override it, for looking only).
+static func sword_style_for(rarity: int) -> String:
+	if lab_sword_style != "":
+		return "" if lab_sword_style == "plain" else lab_sword_style
+	return "frost" if rarity >= Loot.LEGENDARY else ("runeblade" if rarity >= Loot.EPIC else "")
+
+
+## Swaps the sword models (hand and back) when your sword's look changes.
+func _apply_sword_style() -> void:
+	if not wear_gear or not _tools.has("sword"):
+		return
+	var style := sword_style_for(int(Gear.current("sword").get("rarity", 0)))
+	if style == _sword_style:
+		return
+	_sword_style = style
+	var path: String = SWORD_STYLES.get(style, TOOLS["sword"])
+	var old: Node3D = _tools["sword"]
+	var fresh := (load(path) as PackedScene).instantiate() as Node3D
+	fresh.rotation_degrees = TOOL_GRIP["sword"]
+	fresh.position = TOOL_OFFSET
+	fresh.visible = old.visible
+	old.get_parent().add_child(fresh)
+	old.queue_free()
+	_tools["sword"] = fresh
+	_dress_sword(fresh)
+	if _back:
+		var back := (load(path) as PackedScene).instantiate() as Node3D
+		back.transform = _back.transform
+		back.visible = _back.visible
+		_back.get_parent().add_child(back)
+		_back.queue_free()
+		_back = back
+		_dress_sword(back)
+
+
+## The plain sword's metal shows its tier; a styled sword's runes or crystal glow.
+func _dress_sword(sword: Node3D) -> void:
+	for mi: MeshInstance3D in sword.find_children("*", "MeshInstance3D", true, false):
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if sword == _back else mi.cast_shadow
+		for surf in mi.mesh.get_surface_count():
+			var src := mi.mesh.surface_get_material(surf)
+			if src == null:
+				continue
+			if src.resource_name == "Metal" and _tool_metal.has("sword"):
+				mi.set_surface_override_material(surf, _tool_metal["sword"])
+			elif SWORD_GLOW.has(src.resource_name):
+				var m := (src as StandardMaterial3D).duplicate() as StandardMaterial3D
+				m.emission_enabled = true
+				m.emission = SWORD_GLOW[src.resource_name]
+				m.emission_energy_multiplier = 1.4
+				mi.set_surface_override_material(surf, m)
+
+
 func show_tool(tool_name: String) -> void:
+	_apply_sword_style()
 	var has_sword := back_sword and Gear.tier("sword") >= 0 and not claws
 	if claws and tool_name == "sword":
 		tool_name = ""
@@ -473,7 +537,7 @@ func _make_tools() -> void:
 	_back = (load(TOOLS["sword"]) as PackedScene).instantiate() as Node3D
 	var skel_in_self := global_transform.affine_inverse() * _skeleton.global_transform
 	_back.transform = (skel_in_self * _skeleton.get_bone_global_rest(spine)).affine_inverse() * Transform3D(
-		Basis(Vector3.BACK, BACK_SWORD_TILT) * Basis(Vector3.UP, PI * 0.5), BACK_SWORD_AT)
+		Basis(Vector3.RIGHT, BACK_SWORD_LEAN) * Basis(Vector3.BACK, BACK_SWORD_TILT) * Basis(Vector3.UP, PI * 0.5), BACK_SWORD_AT)
 	_back.visible = false
 	back.add_child(_back)
 	for mi: MeshInstance3D in _back.find_children("*", "MeshInstance3D", true, false):

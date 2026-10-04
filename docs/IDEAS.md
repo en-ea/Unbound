@@ -57,3 +57,8 @@ See also the memory idea bank (lore: Hidden Fourth, freed villages, flashback pl
   Offensive. Dark, with a very slight glow.
 - The other ideas offered (not picked yet): Rimewarden (ice), Stormcaller (lightning), Runesmith (rune traps and
   turrets), Lanternkeeper (light; strong in caves and at night), Hourwarden (time).
+
+## Evolved weapons (owner, 4 Oct)
+- Late game, each weapon can **evolve** into a styled variant (like the black runic sword with red on it from the
+  sword pictures): something is added to its look, and evolved weapons are fairly balanced against each other, so you
+  can bring back a favourite (a plain silver one, evolved) instead of being pushed into the blue or black looks.
