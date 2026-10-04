@@ -100,6 +100,16 @@ func _ready() -> void:
 	lab.visuals = $ResourceVisuals
 	lab.treasure = treasure
 	add_child(lab)
+	if Region.current == "forest":                 # Glimmerdeep, under the Cave Mouth
+		var cave := Node3D.new()
+		cave.set_script(preload("res://scripts/world/cave.gd"))
+		cave.player = player
+		cave.day_night = $WorldEnvironment
+		cave.scatter = scatter
+		cave.visuals = $ResourceVisuals
+		cave.treasure = treasure
+		cave.door_out = Vector3(-62, shape.height_at(-62, 76.5) + 0.3, 76.5)
+		add_child(cave)
 	var critters := Node3D.new()
 	critters.set_script(preload("res://scripts/world/critters.gd"))
 	critters.player = player

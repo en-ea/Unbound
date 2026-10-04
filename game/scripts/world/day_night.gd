@@ -12,6 +12,7 @@ extends WorldEnvironment
 var night := 0.0
 ## Inside a house: softer sunlight and a warmer, dimmer ambient (the room's own lights do the rest).
 var indoors := false
+var cave := false                  # down in a cave (world/cave.gd): no sun or moon, cold dim light, close dark fog
 
 const UPDATE_EVERY := 0.2
 
@@ -73,6 +74,13 @@ func _process(delta: float) -> void:
 		_apply()
 
 
+func set_cave(on: bool) -> void:
+	cave = on
+	environment.fog_depth_begin = 9.0 if on else 22.0
+	environment.fog_depth_end = 34.0 if on else 95.0
+	_apply()
+
+
 func set_indoors(on: bool) -> void:
 	indoors = on
 	_apply()
@@ -122,6 +130,12 @@ func _apply() -> void:
 		env.ambient_light_color = env.ambient_light_color.lerp(Color(0.92, 0.84, 0.74), lerpf(0.5, 0.35, night))
 		env.ambient_light_energy *= lerpf(1.15, 0.9, night)
 	env.fog_light_color = horizon.lerp(env.ambient_light_color, 0.35)
+	if cave:
+		sun.light_energy = 0.0
+		moon.light_energy = 0.0
+		env.ambient_light_color = Color(0.5, 0.58, 0.75)
+		env.ambient_light_energy = 0.9
+		env.fog_light_color = Color(0.0, 0.004, 0.012)
 	if terrain and terrain.get("material"):
 		terrain.material.set_shader_parameter("cloud_strength", 0.12 * clampf(sun_e, 0.0, 1.0))
 

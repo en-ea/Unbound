@@ -140,10 +140,18 @@ func _cave(r: Node3D) -> void:
 	for p in [Vector3(-3.0, 0, 0), Vector3(3.0, 0, 0), Vector3(-1.5, 3.2, -0.3), Vector3(1.6, 3.4, -0.2), Vector3(0, 4.2, -0.8)]:
 		_model(r, NATURE % "rock_%d" % (1 + int(abs(p.x)) % 3), p, p.x * 0.5, 2.6)
 	_box(r, Vector3(0, 1.6, -0.6), Vector3(3.0, 3.2, 0.4), Color(0.03, 0.03, 0.04))   # the dark opening
-	for x in [-1.1, 0.0, 1.1]:                      # boards across it: not yet
-		_box(r, Vector3(x, 1.5, -0.3), Vector3(0.25, 3.0, 0.12), WOOD, 0.15)
-	_box(r, Vector3(0, 1.6, -0.2), Vector3(3.2, 0.25, 0.12), DARK_WOOD, 0.08)
-	_collide(r, Vector3(0, 2, -0.5), Vector3(8, 4, 2.5))
+	_cyl(r, Vector3(-2.3, 0.9, 0.9), 0.07, 1.8, DARK_WOOD, 5)                         # a lantern on a post
+	_light(r, Vector3(-2.3, 1.85, 0.9))
+	var glow := _box(r, Vector3(0, 0.05, -0.2), Vector3(2.4, 0.04, 0.6), Color(0.3, 0.75, 1.0))   # crystal light from within
+	(glow.material_override as StandardMaterial3D).emission_enabled = true
+	(glow.material_override as StandardMaterial3D).emission = Color(0.3, 0.75, 1.0)
+	_collide(r, Vector3(-2.9, 2, -0.5), Vector3(2.2, 4, 2.5))
+	_collide(r, Vector3(2.9, 2, -0.5), Vector3(2.2, 4, 2.5))
+	_collide(r, Vector3(0, 2, -1.2), Vector3(4, 4, 1.0))
+	var door := Node3D.new()
+	door.set_script(preload("res://scripts/world/use_spot.gd"))
+	r.add_child(door)
+	door.setup(r.global_position + Vector3(0, 0.5, 0.2), "Enter", func() -> void: get_tree().call_group("cave", "enter"), 2.2)
 
 
 # --- helpers ------------------------------------------------------------------------------------

@@ -153,7 +153,7 @@ func start_drag() -> void:
 func release() -> void:
 	dragged = false
 	rotation.x = 0.0                           # set back down flat
-	if shape:
+	if shape and global_position.y > -100.0:     # (far below is the cave: its floor is level)
 		global_position.y = shape.height_at(global_position.x, global_position.z)
 	verb = "Take"
 	_alone = 0.0
@@ -179,7 +179,7 @@ func _physics_process(delta: float) -> void:
 				_scuff = 0.0
 				_scrape.pitch_scale = randf_range(0.5, 0.62)
 				_scrape.play()
-		if shape:                              # the end in your hands lifts off the ground
+		if shape and p.y > -100.0:             # the end in your hands lifts off the ground
 			p.y = shape.height_at(p.x, p.z) + sin(DRAG_LIFT) * rope * 0.45
 		global_position = p
 		if dist > 0.3:

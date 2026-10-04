@@ -16,6 +16,7 @@ extends Node3D
 const ROOM_DISTANCE := 15.0
 const ROOM_PITCH := -52.0
 const ROOM_PULL := 0.3
+const CAVE_VIEW := Vector2(10.5, -50.0)   # distance, pitch down in a cave: high enough to see over the rock
 ## The lens for close views (title, look picker, knocked out) and indoors.
 const CLOSE_FOV := 32.0
 const KEY_TURN := 2.2              # radians a second with the arrow keys
@@ -108,6 +109,18 @@ func enter_room(center: Vector3) -> void:
 	_outdoor_yaw = _yaw
 	_set_yaw(0.0)
 	_jump_to(Vector2(ROOM_DISTANCE * Settings.zoom, ROOM_PITCH))
+
+
+## Down in a cave: a steep view from above (the walls nearest the lens dissolve, see cave_rock.gdshader).
+func enter_cave() -> void:
+	_outdoor_yaw = _yaw
+	_set_yaw(0.0)
+	_jump_to(Vector2(CAVE_VIEW.x * Settings.zoom, CAVE_VIEW.y))
+
+
+func leave_cave() -> void:
+	_set_yaw(_outdoor_yaw)
+	_jump_to(Vector2(_base_distance * Settings.zoom, _outdoor_pitch))
 
 
 func leave_room() -> void:

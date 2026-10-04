@@ -400,6 +400,12 @@ func open_station(props: Dictionary) -> void:
 
 
 ## Inside your home or back outside (world/home_interior.gd): the Furnish button, no minimap.
+## Down in a cave: no minimap (it shows the land above).
+func set_cave(on: bool) -> void:
+	_indoors = on
+	_map.visible = _action.visible and Settings.show_map and not on
+
+
 func set_indoors(on: bool) -> void:
 	_indoors = on
 	_furnish.visible = on

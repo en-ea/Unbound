@@ -226,6 +226,16 @@ func _ready() -> void:
 			add_child(preload("res://scripts/dev/seal_test.gd").new())
 		elif arg == "--pyro":                         # be a Pyromancer (abilities on Z/X too)
 			Classes.choose.call_deferred("pyromancer")
+		elif arg == "--cave" or arg.begins_with("--cave="):   # (with --region=forest) straight down into Glimmerdeep; =x,z to stand there
+			var spot := arg.trim_prefix("--cave=").split(",") if arg.begins_with("--cave=") else PackedStringArray()
+			get_tree().create_timer(0.8).timeout.connect(func() -> void:
+				var cave := get_tree().get_first_node_in_group("cave")
+				cave.enter()
+				if spot.size() == 2:
+					get_tree().create_timer(0.7).timeout.connect(func() -> void:
+						var p: Vector3 = cave.AT + Vector3(float(spot[0]), 0.0, float(spot[1]))
+						p.y = cave.AT.y + cave.floor_at(float(spot[0]), float(spot[1])) + 0.3
+						get_node("../Player").global_position = p))
 		elif arg == "--delver":                       # be a Delver
 			Classes.choose.call_deferred("delver")
 		elif arg == "--delvertest":                   # every Delver ability on a pack in the meadow, screenshots to %TEMP%
