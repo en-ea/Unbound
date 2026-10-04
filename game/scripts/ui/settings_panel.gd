@@ -59,6 +59,8 @@ func _refresh() -> void:
 	_row("Camera", Settings.ZOOMS.get(Settings.zoom, "Normal"), Settings.next_zoom)
 	_row("Buttons", "Compact (flicks)" if Settings.compact_controls else "All shown",
 		func() -> void: Settings.set_compact_controls(not Settings.compact_controls))
+	_row("Slide between buttons", "On" if Settings.slide_buttons else "Off",
+		func() -> void: Settings.set_slide_buttons(not Settings.slide_buttons))
 	_row("Button layout", "Move / resize", func() -> void:
 		_close()
 		get_tree().call_group.call_deferred("hud", "edit_buttons"))

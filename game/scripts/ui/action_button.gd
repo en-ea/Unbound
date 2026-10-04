@@ -10,6 +10,7 @@ signal released
 signal swiped(dir: String)       # "up", "down", "left" or "right": a flick that starts on the button
 
 static var editing := false      # the "Move buttons" screen is open: buttons don't act, they get dragged
+static var _all: Array[ActionButton] = []   # every button on screen (sliding a thumb from one to another)
 
 var id := ""                     # its name in the saved layout
 var home_margin := Vector2(150, 150)   # default centre, measured from the bottom-right corner
@@ -60,6 +61,35 @@ func refuse() -> void:
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_all.append(self)
+	tree_exiting.connect(func() -> void: _all.erase(self))
+
+
+## Slide mode (Settings): a thumb held on one button slides onto another and presses it, no lifting.
+## The button it left lets go quietly (a roll or a tap doesn't fire on the way out).
+func _slide(pos: Vector2) -> bool:
+	if not Settings.slide_buttons or pos.distance_to(center()) < radius * 1.1:
+		return false
+	for b in _all:
+		if b != self and b.is_visible_in_tree() and b._held == -1 and pos.distance_to(b.center()) < b.radius:
+			var finger := _held
+			_held = -1
+			queue_redraw()
+			b._take(finger, pos)
+			return true
+	return false
+
+
+func _take(finger: int, pos: Vector2) -> void:
+	_held = finger
+	_held_for = 0.0
+	_start = pos
+	_finger = pos
+	_swiped = false
+	if swipes.is_empty():
+		_pulse = 1.0
+		pressed.emit()
+	queue_redraw()
 
 
 ## Its spot and size from the player's layout (or its default).
@@ -93,6 +123,8 @@ func _flick(moved: Vector2) -> String:
 
 func _input(event: InputEvent) -> void:
 	if not visible or editing:
+		return
+	if event is InputEventScreenDrag and event.index == _held and _slide(event.position):
 		return
 	if event is InputEventScreenDrag and event.index == _held and not swipes.is_empty() and not _swiped:
 		_finger = event.position

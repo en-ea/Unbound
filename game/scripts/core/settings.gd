@@ -19,6 +19,7 @@ var compact_controls := false   # fewer buttons: flick Attack up for Heavy, left
 var sword_in_hand := false      # keep the sword drawn (otherwise it rides on your back outside fights)
 var button_spots := {}          # button id -> its centre from the bottom-right corner, where the player moved it
 var button_scale := 1.0         # all touch buttons bigger or smaller
+var slide_buttons := false      # slide a thumb from one fight button onto another to press it (no lifting)
 
 
 func _ready() -> void:
@@ -35,6 +36,7 @@ func _ready() -> void:
 		sword_in_hand = cfg.get_value("controls", "sword_in_hand", sword_in_hand)
 		button_spots = cfg.get_value("controls", "button_spots", button_spots)
 		button_scale = cfg.get_value("controls", "button_scale", button_scale)
+		slide_buttons = cfg.get_value("controls", "slide_buttons", slide_buttons)
 	apply()
 
 
@@ -88,6 +90,11 @@ func set_button_layout(spots: Dictionary, scale: float) -> void:
 	_save_and_apply()
 
 
+func set_slide_buttons(value: bool) -> void:
+	slide_buttons = value
+	_save_and_apply()
+
+
 func set_tracker_small(value: bool) -> void:
 	tracker_small = value
 	_save_and_apply()
@@ -120,5 +127,6 @@ func _save_and_apply() -> void:
 	cfg.set_value("controls", "sword_in_hand", sword_in_hand)
 	cfg.set_value("controls", "button_spots", button_spots)
 	cfg.set_value("controls", "button_scale", button_scale)
+	cfg.set_value("controls", "slide_buttons", slide_buttons)
 	cfg.save(PATH)
 	apply()
