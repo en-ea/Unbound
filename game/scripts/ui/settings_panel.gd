@@ -59,6 +59,9 @@ func _refresh() -> void:
 	_row("Camera", Settings.ZOOMS.get(Settings.zoom, "Normal"), Settings.next_zoom)
 	_row("Buttons", "Compact (flicks)" if Settings.compact_controls else "All shown",
 		func() -> void: Settings.set_compact_controls(not Settings.compact_controls))
+	_row("Button layout", "Move / resize", func() -> void:
+		_close()
+		get_tree().call_group.call_deferred("hud", "edit_buttons"))
 	_row("Sword", "Always in hand" if Settings.sword_in_hand else "On back till a fight",
 		func() -> void: Settings.set_sword_in_hand(not Settings.sword_in_hand))
 	if _page == "code":

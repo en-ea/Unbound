@@ -3,7 +3,6 @@ extends CanvasLayer
 ## buttons, Bag and Menu icons, pickup feed, stats), and the Bag / Menu / Settings / Look screens.
 
 const LOOK_PICKER := preload("res://scripts/ui/look_picker.gd")
-const ACTION_BUTTON := preload("res://scripts/ui/action_button.gd")
 const INVENTORY_PANEL := preload("res://scripts/ui/inventory_panel.gd")
 const PICKUP_FEED := preload("res://scripts/ui/pickup_feed.gd")
 const TITLE_SCREEN := preload("res://scripts/ui/title_screen.gd")
@@ -11,6 +10,12 @@ const MENU_PANEL := preload("res://scripts/ui/menu_panel.gd")
 const SETTINGS_PANEL := preload("res://scripts/ui/settings_panel.gd")
 const CLASS_PANEL := preload("res://scripts/ui/class_panel.gd")
 const CRAFTING_PANEL := preload("res://scripts/ui/crafting_panel.gd")
+## The touch buttons' default spots (centre from the bottom-right corner) and sizes.
+const BUTTONS := {
+	"attack": [Vector2(150, 150), 72.0], "roll": [Vector2(282, 112), 50.0],
+	"heavy": [Vector2(262, 222), 42.0], "parry": [Vector2(190, 282), 42.0], "sneak": [Vector2(100, 282), 32.0],
+	"ability1": [Vector2(380, 212), 44.0], "ability2": [Vector2(318, 318), 44.0], "ability3": [Vector2(212, 380), 44.0],
+}
 const HOLD_TO_SPRINT := 0.18     # Roll button: shorter than this is a roll, longer is a sprint
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
 ## Title camera: close on the character, who stands to the right of the title.
@@ -24,11 +29,11 @@ const TITLE_VIEW := {"distance": 5.0, "pitch": -7.0, "offset": Vector3(-1.35, 0.
 var _fps_label: Label
 var _joystick: Control
 var _camera_drag: Control
-var _action: Control
-var _roll: Control
-var _heavy: Control
-var _parry: Control
-var _sneak: Control
+var _action: ActionButton
+var _roll: ActionButton
+var _heavy: ActionButton
+var _parry: ActionButton
+var _sneak: ActionButton
 var _ability_buttons := {}         # ability id -> button (your class's abilities)
 var _slow_tint: ColorRect
 var _loot_card: Control
@@ -65,47 +70,23 @@ func _ready() -> void:
 	_camera_drag.camera_rig = camera_rig
 	add_child(_camera_drag)
 
-	_action = Control.new()
-	_action.set_script(ACTION_BUTTON)
-	add_child(_action)
+	# The fight buttons sit in two rings round Attack (inner: Roll, Heavy, Parry, Sneak; outer: the class's
+	# abilities). Players can move and resize them all (Settings > Move buttons).
+	_action = _button("attack", "", "", BUTTONS["attack"])
+	_action.font_size = 28
 	_action.pressed.connect(player.act)
 	player.verb_changed.connect(_action.set_verb)
-	_roll = Control.new()
-	_roll.set_script(ACTION_BUTTON)
-	_roll.radius = 46.0
-	_roll.margin = Vector2(285, 100)
-	_roll.font_size = 20
-	add_child(_roll)
-	_roll.set_verb("Roll")
-	_roll.sub = "hold: sprint"
+	_roll = _button("roll", "Roll", "roll", BUTTONS["roll"])
 	# A tap rolls (on release); holding it sprints instead (see _process).
 	_roll.released.connect(func() -> void:
 		if _roll.held_for() < HOLD_TO_SPRINT:
 			player.roll())
-	_heavy = Control.new()
-	_heavy.set_script(ACTION_BUTTON)
-	_heavy.radius = 40.0
-	_heavy.margin = Vector2(285, 225)
-	_heavy.font_size = 17
-	add_child(_heavy)
-	_heavy.set_verb("Heavy")
+	_heavy = _button("heavy", "Heavy", "heavy", BUTTONS["heavy"])
 	_heavy.pressed.connect(player.heavy)
-	# Every button keeps its spot (a ring round Attack); Compact hides Heavy and Parry for flicks on Attack.
-	_parry = Control.new()
-	_parry.set_script(ACTION_BUTTON)
-	_parry.radius = 40.0
-	_parry.margin = Vector2(180, 295)
-	_parry.font_size = 17
-	add_child(_parry)
-	_parry.set_verb("Parry")
+	# Compact hides Heavy and Parry for flicks on Attack.
+	_parry = _button("parry", "Parry", "shield", BUTTONS["parry"])
 	_parry.pressed.connect(player.guard)
-	_sneak = Control.new()
-	_sneak.set_script(ACTION_BUTTON)
-	_sneak.radius = 36.0
-	_sneak.margin = Vector2(72, 300)
-	_sneak.font_size = 16
-	add_child(_sneak)
-	_sneak.set_verb("Sneak")
+	_sneak = _button("sneak", "Sneak", "sneak", BUTTONS["sneak"])
 	_sneak.pressed.connect(player.sneak)
 	_action.swiped.connect(func(dir: String) -> void:
 		if dir == "up":
@@ -113,15 +94,12 @@ func _ready() -> void:
 		elif dir == "left":
 			player.guard())
 	Settings.changed.connect(_show_heavy)
-	var spots := [Vector2(385, 290), Vector2(300, 385), Vector2(178, 430)]
+	Settings.changed.connect(_place_buttons)
 	for i in 3:
-		var b := Control.new()
-		b.set_script(ACTION_BUTTON)
-		b.radius = 42.0
-		b.margin = spots[i]
-		b.font_size = 16
+		var b := _button("ability%d" % (i + 1), "", "", BUTTONS["ability%d" % (i + 1)])
+		b.font_size = 17
+		b.sweep = true
 		b.visible = false
-		add_child(b)
 		b.set_meta("slot", i)
 		b.pressed.connect(func() -> void:
 			var list := Classes.abilities()
@@ -233,6 +211,52 @@ func _ready() -> void:
 		start_game.call_deferred(true)
 	else:
 		show_title()
+
+
+func _button(id: String, verb: String, icon: String, spot: Array) -> ActionButton:
+	var b := ActionButton.new()
+	b.id = id
+	b.icon = icon
+	b.home_margin = spot[0]
+	b.home_radius = spot[1]
+	b.font_size = 20
+	add_child(b)
+	b.set_verb(verb)
+	b.place()
+	return b
+
+
+func _buttons() -> Array[ActionButton]:
+	var list: Array[ActionButton] = [_action, _roll, _heavy, _parry, _sneak]
+	for i: int in _ability_buttons:
+		list.append(_ability_buttons[i])
+	return list
+
+
+func _place_buttons() -> void:
+	for b in _buttons():
+		b.place()
+
+
+## "Move buttons": every button shows, and dragging moves it; the bar on top resizes, resets or saves.
+func edit_buttons() -> void:
+	if _title:
+		hint("Start a game first, then move the buttons")
+		return
+	_set_play_ui(true)
+	Controls.locked = true
+	_joystick.visible = false
+	_corner.visible = false
+	ActionButton.editing = true
+	var editor := Control.new()
+	editor.set_script(preload("res://scripts/ui/button_editor.gd"))
+	editor.buttons = _buttons()
+	editor.defaults = BUTTONS
+	add_child(editor)
+	editor.closed.connect(func() -> void:
+		ActionButton.editing = false
+		Controls.locked = false
+		_set_play_ui(true))
 
 
 ## Running food buffs as small coloured tags with the seconds left.
@@ -538,10 +562,13 @@ func sneak_changed(on: bool) -> void:
 func _update_ability_buttons() -> void:
 	var list := Classes.abilities()
 	for i: int in _ability_buttons:
-		var b: Control = _ability_buttons[i]
+		var b: ActionButton = _ability_buttons[i]
 		var show: bool = i < list.size() and _action.visible
-		b.visible = show
+		b.visible = show or (ActionButton.editing and _action.visible)
 		if not show:
+			if ActionButton.editing:
+				b.set_verb("Skill %d" % (i + 1))
+				b.set_meta("id", "")
 			continue
 		var id: String = list[i]
 		var label: String = Classes.ABILITIES[id]["short"]
@@ -556,6 +583,7 @@ func _update_ability_buttons() -> void:
 			b.lit_fill = Color(Classes.color().darkened(0.55), 0.8)
 		var left := 0.0 if dragging and label == "Drag" else Classes.cooldown_left(id)
 		b.set_meter(1.0 - left)
+		b.seconds = ceili(left * Classes.cooldown_of(id))
 		var dim := left > 0.0
 		if dim != b.dim:
 			b.dim = dim
