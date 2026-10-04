@@ -86,6 +86,10 @@ func use(ability: String) -> void:
 		if ability == "burrow":
 			delver.drag_under()
 		return
+	if ability == "shadow_dance" and (shade.dancing or shade.dance_targets().is_empty()):
+		if not shade.dancing:
+			get_tree().call_group("hud", "hint", "No one close enough to dance with")
+		return
 	if not Classes.use(ability):
 		return
 	match ability:
@@ -101,8 +105,8 @@ func use(ability: String) -> void:
 			_meteor()
 		"cinderburst":
 			_cinderburst()
-		"shadowstep":
-			shade.shadowstep()
+		"shadow_dance":
+			shade.shadow_dance()
 		"mirage":
 			shade.mirage()
 		"switch":

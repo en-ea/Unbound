@@ -19,9 +19,9 @@ const CLASSES := {
 		"abilities": ["burrow", "fault_line", "sinkhole"]},
 	"shade": {"name": "Shade", "color": Color(0.62, 0.42, 1.0), "take": "Step into the dark",
 		"answer": "Your shadow steps out to meet you",
-		"blurb": "Born of the Long Night, when the sun failed and people learned to walk in their own shadows. Strike from behind, leave a double to take the blows, then trade places with it.",
-		"trait": "Unseen: hits from behind land half again as hard, and you move quieter.",
-		"abilities": ["shadowstep", "mirage", "switch"]},
+		"blurb": "Born of the Long Night, when the sun failed and people learned to walk in their own shadows. Dance through them as shadow, leave a double to take the blows, then trade places with it.",
+		"trait": "Unseen: hits from behind land half again as hard, you move quieter, and your roll is a slip through shadow.",
+		"abilities": ["shadow_dance", "mirage", "switch"]},
 	"sealed_3": {"sealed": true},
 }
 ## Numbers for each ability (the damage is in hits of your sword's power, see abilities.gd).
@@ -36,8 +36,8 @@ const ABILITIES := {
 		"desc": "A crack races ahead and stone spikes burst up along it, throwing and cracking everyone in its path."},
 	"sinkhole": {"name": "Sinkhole", "short": "Sinkhole", "cooldown": 18.0,
 		"desc": "The ground under a group caves in: it pulls them in and holds them, swallows the weak, then slams shut."},
-	"shadowstep": {"name": "Shadowstep", "short": "Step", "cooldown": 6.0,
-		"desc": "Blink through the shadows to just behind the nearest enemy. Your next blow is an ambush: a heavy critical."},
+	"shadow_dance": {"name": "Shadow Dance", "short": "Dance", "cooldown": 11.0,
+		"desc": "Melt into shadow and flash from enemy to enemy, four cuts, each from a new side; a lone enemy takes all four. Nothing can touch you while you dance, and the last cut is the deepest."},
 	"mirage": {"name": "Mirage", "short": "Mirage", "cooldown": 14.0,
 		"desc": "A double of you, made of shadow, steps out where you stand as you slip back. Enemies near it go for it, and it fights them. When it's hit enough or its time runs out, it bursts in shadow."},
 	"switch": {"name": "Switch", "short": "Switch", "cooldown": 9.0,
@@ -62,16 +62,16 @@ const TALENT_TREES := {
 		{"name": "Claws", "talents": ["sharp_claws", "rend", "ore_heart"]},
 	],
 	"shade": [
-		{"name": "Shadowstep", "talents": ["deep_step", "quick_shadow", "assassin"]},
+		{"name": "Shadow Dance", "talents": ["deep_step", "quick_shadow", "assassin"]},
 		{"name": "Mirage", "talents": ["lingering", "perfect_likeness", "twin_mirage"]},
 		{"name": "Switch", "talents": ["wide_burst", "rebound", "nightfall"]},
 		{"name": "Unseen", "talents": ["soft_steps", "knife_work", "shroud"]},
 	],
 }
 const TALENTS := {
-	"deep_step": {"name": "Deep Step", "desc": "Shadowstep reaches half again as far."},
-	"quick_shadow": {"name": "Quick Shadow", "desc": "Shadowstep is ready again 30% sooner."},
-	"assassin": {"name": "Assassin", "desc": "The blow after a Shadowstep hits three and a half times as hard."},
+	"deep_step": {"name": "Long Dance", "desc": "Shadow Dance reaches half again as far and makes one more cut."},
+	"quick_shadow": {"name": "Quick Shadow", "desc": "Shadow Dance is ready again 30% sooner."},
+	"assassin": {"name": "Assassin", "desc": "The last cut of the dance lands three times as hard."},
 	"lingering": {"name": "Lingering", "desc": "Your double lasts half again as long and takes two more hits."},
 	"perfect_likeness": {"name": "Perfect Likeness", "desc": "Your double looks exactly like you. Enemies twice as far away are fooled."},
 	"twin_mirage": {"name": "Twin Mirage", "desc": "Mirage makes two doubles, one either side of you."},
@@ -109,7 +109,7 @@ const TALENTS := {
 ## What a talent does to an ability's cooldown.
 const COOLDOWN_TALENTS := {"flame_dash": ["second_wind", 0.7], "meteor": ["falling_sky", 0.75],
 	"fault_line": ["long_fault", 0.75], "sinkhole": ["undertow", 0.8],
-	"shadowstep": ["quick_shadow", 0.7], "switch": ["rebound", 0.7]}
+	"shadow_dance": ["quick_shadow", 0.7], "switch": ["rebound", 0.7]}
 
 var awakened := false
 var current := ""

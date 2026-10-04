@@ -30,6 +30,8 @@ var _step := 0
 var _look := 0.0
 var _mats: Array[ShaderMaterial] = []
 var _taunt_tick := 0.0
+var _wisps: CPUParticles3D
+var _floor_y := 0.0
 
 
 func _ready() -> void:
@@ -42,11 +44,13 @@ func _ready() -> void:
 	col.shape = cap
 	col.position.y = 0.85
 	add_child(col)
+	add_collision_exception_with(real)   # it steps out of you: bumping you pushed it onto your head or into the ground
 	visual = CharacterVisual.new()
 	visual.name = "Visual"
 	visual.wear_gear = true
 	add_child(visual)
 	visual.show_tool.call_deferred("sword")
+	_wisps = ShadowFX.wisps(self)
 	_park()
 
 
@@ -91,13 +95,16 @@ func receive_attack(_attacker: Node3D, _damage: int, _push: Vector3) -> String:
 func appear(at: Vector3, yaw: float, seconds: float, hits: int, perfect: bool) -> void:
 	_mats.clear()
 	_set_look(perfect)
-	global_position = at
+	global_position = real.abilities.shade.ground_at(at)
+	_floor_y = global_position.y
 	velocity = Vector3.ZERO
 	visual.rotation.y = yaw
 	life = seconds
 	health = hits
 	active = true
 	visible = true
+	_wisps.visible = not perfect
+	_wisps.emitting = not perfect
 	process_mode = Node.PROCESS_MODE_INHERIT
 	_swing = 0.4
 	_fooled.clear()
@@ -130,6 +137,8 @@ func _release() -> void:
 
 func _park() -> void:
 	visible = false
+	if _wisps:
+		_wisps.emitting = false
 	global_position = Vector3(0, -500, 0)
 	process_mode = Node.PROCESS_MODE_DISABLED
 
@@ -183,4 +192,9 @@ func _physics_process(delta: float) -> void:
 	velocity.z = flat.z
 	velocity.y = 0.0 if is_on_floor() else velocity.y - GRAVITY * delta
 	move_and_slide()
+	if global_position.y < _floor_y - 4.0:             # slipped through the ground: back on top
+		global_position = real.abilities.shade.ground_at(global_position + Vector3(0, 6.0, 0))
+		velocity = Vector3.ZERO
+	elif is_on_floor():
+		_floor_y = global_position.y
 	visual.play_motion(flat.length())

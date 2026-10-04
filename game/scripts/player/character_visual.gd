@@ -200,6 +200,18 @@ func hit_stop(seconds := 0.07) -> void:
 	get_tree().create_timer(seconds).timeout.connect(func() -> void: _anim.play())
 
 
+static var _shadow_overlay: ShaderMaterial
+
+
+## Made of shadow for a moment (the Shade's roll and Shadow Dance): a dark violet layer over everything.
+func set_shadow(on: bool) -> void:
+	if on and _shadow_overlay == null:
+		_shadow_overlay = ShaderMaterial.new()
+		_shadow_overlay.shader = preload("res://shaders/shadow_double.gdshader")
+	for mi in find_children("*", "MeshInstance3D", true, false):
+		(mi as MeshInstance3D).material_overlay = _shadow_overlay if on else null
+
+
 ## A short white flash (taking a hit).
 func flash() -> void:
 	_flash = 1.0

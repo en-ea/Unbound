@@ -260,6 +260,8 @@ func _ready() -> void:
 			Classes.choose.call_deferred("shade")
 		elif arg == "--mirage":                       # (with --shade) a double steps out after a moment
 			get_tree().create_timer(2.0).timeout.connect(func() -> void: get_node("../Player").abilities.shade.mirage())
+		elif arg == "--shadetest":                    # with --lab: Mirage, Shadow Dance, shadow roll, Switch
+			add_child(preload("res://scripts/dev/shade_test.gd").new())
 		elif arg == "--delver":                       # be a Delver
 			Classes.choose.call_deferred("delver")
 		elif arg == "--delvertest":                   # every Delver ability on a pack in the meadow, screenshots to %TEMP%
@@ -312,6 +314,12 @@ func _ready() -> void:
 			get_tree().create_timer(3.0).timeout.connect(_census)
 		elif arg == "--touchtest":
 			_touch_test = true
+		elif arg == "--memlog":                       # print memory and object counts every 5 s (leak hunt)
+			var t := Timer.new()
+			t.wait_time = 5.0
+			t.autostart = true
+			t.timeout.connect(_memlog)
+			add_child(t)
 	if _shot_path == "" and not _touch_test and not _gather_test and not _fight_test:
 		set_process(false)
 
@@ -543,6 +551,16 @@ func _hud_cost() -> void:
 		c.visible = true
 		var what: String = c.get_script().resource_path.get_file() if c.get_script() else c.get_class()
 		print("HUDCOST ", what, " ", before - after)
+
+
+func _memlog() -> void:
+	var P := Performance
+	print("MEM t=%ds static=%dMB video=%dMB tex=%dMB buf=%dMB objects=%d nodes=%d orphans=%d resources=%d draws=%d" % [
+		Time.get_ticks_msec() / 1000, OS.get_static_memory_usage() / 1048576,
+		P.get_monitor(P.RENDER_VIDEO_MEM_USED) / 1048576, P.get_monitor(P.RENDER_TEXTURE_MEM_USED) / 1048576,
+		P.get_monitor(P.RENDER_BUFFER_MEM_USED) / 1048576, P.get_monitor(P.OBJECT_COUNT),
+		P.get_monitor(P.OBJECT_NODE_COUNT), P.get_monitor(P.OBJECT_ORPHAN_NODE_COUNT),
+		P.get_monitor(P.OBJECT_RESOURCE_COUNT), P.get_monitor(P.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)])
 
 
 func _census() -> void:

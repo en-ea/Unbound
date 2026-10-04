@@ -316,10 +316,14 @@ func roll() -> void:
 	else:
 		_roll_dir = Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
 	visual.rotation.y = atan2(_roll_dir.x, _roll_dir.z)
-	visual.play_action("Roll", visual.animation_length("Roll") / ROLL_TIME)
 	_roll = ROLL_TIME
 	_roll_time = ROLL_TIME
 	_roll_speed = ROLL_SPEED
+	if Classes.current == "shade":          # a Shade slips through shadow instead of tumbling
+		visual.play_action("Sword_Dash", visual.animation_length("Sword_Dash") / (ROLL_TIME + 0.2))
+		abilities.shade.shadow_roll(ROLL_TIME)
+		return
+	visual.play_action("Roll", visual.animation_length("Roll") / ROLL_TIME)
 	$Sounds.play_roll()
 	$Effects.burst(true)
 
@@ -336,6 +340,17 @@ func dash(dir: Vector3, speed: float, time: float) -> void:
 	visual.rotation.y = atan2(dir.x, dir.z)
 	visual.play_action("Sword_Dash", visual.animation_length("Sword_Dash") / (time + 0.25))
 	$Effects.burst(true)
+
+
+## Held in place and untouchable for `time` (the Shade's Shadow Dance moves you itself).
+func hold_still(time: float) -> void:
+	fighter.cancel()
+	_guard = 0.0
+	_roll_age = 1.0              # past the perfect-dodge moment: blows just miss
+	_roll_dir = Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
+	_roll = time
+	_roll_time = time
+	_roll_speed = 0.0
 
 
 ## Something hit us (a boar charge): pushed back and briefly stunned. No damage for now.
