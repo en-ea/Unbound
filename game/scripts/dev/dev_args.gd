@@ -366,6 +366,10 @@ func _hunt_test(mode: String) -> void:
 	get_node("../Enemies").add_child(stag)
 	stag.global_position = stag.home + Vector3(0, 0.5, 0)
 	get_tree().get_first_node_in_group("camera_rig").snap()
+	if mode == "look":                            # the live stag stood still side-on in front of you (a model check)
+		stag.global_position = player.global_position + Vector3(-3.5, 0.0, -2.0)
+		stag.process_mode = Node.PROCESS_MODE_DISABLED
+		body.visible = false
 	if mode == "ride":
 		player.hauling.mount(get_tree().get_first_node_in_group("ox_cart"))
 	elif mode == "choices":

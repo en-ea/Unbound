@@ -45,9 +45,10 @@ def recolor(b, faces, test, palette):
 
 def body():
     b = Builder(["Stag", "Eye"])
-    pts = [V((0, 0.72, 1.12)), V((0, 0.55, 1.18)), V((0, 0.2, 1.16)), V((0, -0.2, 1.2)), V((0, -0.5, 1.22)), V((0, -0.62, 1.12))]
-    faces = faceted(b, pts, [(0.12, 0.14), (0.24, 0.27), (0.25, 0.26), (0.26, 0.28), (0.25, 0.3), (0.16, 0.2)], COAT, seg=8)
-    recolor(b, faces, lambda c: c.z < 1.02, CREAM)                        # pale belly
+    # A deep barrel chest and a round rump (the first one was a thin tube on stilts).
+    pts = [V((0, 0.78, 1.16)), V((0, 0.62, 1.2)), V((0, 0.32, 1.14)), V((0, -0.04, 1.16)), V((0, -0.38, 1.28)), V((0, -0.62, 1.24)), V((0, -0.72, 1.14))]
+    faces = faceted(b, pts, [(0.16, 0.18), (0.34, 0.38), (0.36, 0.42), (0.38, 0.46), (0.37, 0.5), (0.28, 0.38), (0.14, 0.18)], COAT, seg=8)
+    recolor(b, faces, lambda c: c.z < 0.88, CREAM)                        # pale belly
     recolor(b, faces, lambda c: c.y < -0.4 and c.z < 1.18, TEAL)          # the dark chest
     return b
 
@@ -56,7 +57,7 @@ def head():
     b = Builder(["Stag", "Eye"])
     # A long neck rising forward, then the narrow head pointing down the muzzle.
     neck = [NECK + V((0, 0.06, -0.06)), NECK + V((0, -0.12, 0.3)), NECK + V((0, -0.24, 0.62)), NECK + V((0, -0.3, 0.78))]
-    nf = faceted(b, neck, [(0.2, 0.24), (0.14, 0.17), (0.11, 0.13), (0.11, 0.12)], COAT, seg=6)
+    nf = faceted(b, neck, [(0.3, 0.36), (0.22, 0.26), (0.16, 0.18), (0.14, 0.15)], COAT, seg=6)
     recolor(b, nf, lambda c: c.y < NECK.y - 0.12 and c.z < NECK.z + 0.55, CREAM)    # the pale throat
     recolor(b, nf, lambda c: c.y < NECK.y - 0.05 and c.z < NECK.z + 0.12, TEAL)
     top = NECK + V((0, -0.3, 0.82))
@@ -92,10 +93,10 @@ def leg(hip, front):
     b = Builder(["Stag"])
     foot = V((hip.x * 1.02, hip.y + (-0.02 if front else 0.04), 0.06))
     knee = V((hip.x, hip.y + (0.04 if front else -0.1), 0.52))
-    top = (0.11, 0.15) if not front else (0.1, 0.12)
-    faces = faceted(b, [hip + V((0, 0, 0.12)), hip + V((0, 0.02, -0.12)), knee, foot], [top, (0.07, 0.08), (0.045, 0.045), (0.035, 0.035)], COAT, seg=6)
+    top = (0.17, 0.22) if not front else (0.15, 0.19)
+    faces = faceted(b, [hip + V((0, 0, 0.12)), hip + V((0, 0.02, -0.14)), knee, foot], [top, (0.09, 0.1), (0.055, 0.055), (0.04, 0.04)], COAT, seg=6)
     recolor(b, faces, lambda c: c.z < 0.4, CREAM)
-    faceted(b, [foot, foot + V((0, -0.02, -0.06))], [(0.04, 0.05), (0.045, 0.06)], [DARK], seg=5)       # hooves
+    faceted(b, [foot, foot + V((0, -0.02, -0.06))], [(0.05, 0.06), (0.055, 0.07)], [DARK], seg=5)       # hooves
     return b
 
 
