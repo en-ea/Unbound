@@ -22,6 +22,12 @@ heads / sank into the ground) and a cooler double, a sturdier elk, and the Highl
 drystone walls and bolder colours. A crash after ~30 s happened once on Safari; I now use Chrome on the phone
 (much faster). Dev arg --memlog prints memory every 5 s if it comes back.
 
+Later on 4 Oct: bounty boards (one per region; hunt, gather, wanted elites; renown), the meadow village
+rearranged round a green, village residents from Hilmi's ideas (Tomas, Elsa, Nell, Bram: a daily round, their
+own goods, gifts and liking, three enterable houses), the Crystal Bow (Swap button / T; Attack shoots, Heavy
+power shot), elk taming (Highlands, Calm while sneaking) and riding, laptop controls (Shift sprint, click attack,
+Space roll, 1-3 abilities, Tab bag, J quests). Ideas I liked for later are in docs/IDEAS.md "Longer play".
+
 Waiting on me: AI pictures of swords, bows, armour and the Hollowhorn sword (I'll send them; build the models
 from them then). Brakk is dropped (still boxy).
 
