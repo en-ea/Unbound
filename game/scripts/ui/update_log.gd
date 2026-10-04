@@ -5,6 +5,24 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "Fishing", "lines": [
+		"Stand at the edge of any pond and press Fish. Wait, and when the bobber goes under, tap HOOK! fast.",
+		"Then hold Reel to pull it in and let go to give line: keep the tension in the green band.",
+		"Too tight and the line snaps, too slack and it slips off. Big and rare fish pull hard.",
+		"8 fish: the meadow, the wood pond (a Ghost Koi only at night) and the cave pool. Plus an old boot.",
+		"Your biggest of each is remembered. Grill bluegill, perch or trout at a campfire.",
+	]},
+	{"when": "4 Oct", "title": "A cave: Glimmerdeep", "lines": [
+		"The Cave Mouth in the Whispering Wood is open now (in the south-west of the wood).",
+		"Inside: a crystal hall with shard veins to mine, a still pool, a wolf den, and a hoard at the end.",
+		"Rock between you and the camera turns see-through. The hoard fills up again after a while.",
+		"Saving waits while you're down there. Close the game inside and you start at the mouth.",
+	]},
+	{"when": "4 Oct", "title": "New buttons", "lines": [
+		"The fight buttons now sit in two rings round Attack, with icons. Abilities show the seconds left.",
+		"Flicks (Compact) show their names only while your thumb is down, and light up the one you'll pick.",
+		"Settings > Button layout: drag any button where you like it, make them all bigger or smaller, or reset.",
+	]},
 	{"when": "1 Oct", "title": "Fixes: build lab, smoother abilities, test buttons", "lines": [
 		"The build lab shows again (the camera was rising 300 m into the fog). Leaving it still glides you down from the sky, now on purpose.",
 		"Abilities shouldn't hitch the first time you use them: every fire and earth effect is shown once behind the loading screen.",

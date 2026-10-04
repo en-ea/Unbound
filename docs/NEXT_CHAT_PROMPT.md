@@ -6,7 +6,7 @@ What's new on camera-test (30 Sep, built while I was away; see the in-game Updat
 screen, better hit feel (move out of swings, damage numbers, kill finisher, level-up banner), loot flashes, Parry
 button and perfect dodge, the Red Hand bandits and their camp in the Whispering Wood, sneaking and takedowns,
 Morrow's dark quest "The Black Seal", and the story start (the shrine on the meadow hill wakes, the class screen,
-the Pyromancer with Flame Dash and Meteor). main doesn't have these yet: merge camera-test into main when I say.
+the Pyromancer with Flame Dash and Meteor). All of this was merged into main on 4 Oct.
 
 Also on camera-test (30 Sep evening, from my playtest): buttons that stay put (Compact flick option), sword on the
 back, the quest system (Story/Job tags, foldable tracker, quest log, guide beam), bag Drop, quiet sneaking,
@@ -14,8 +14,13 @@ Cinderburst + a 12-talent Pyromancer tree, hunting (stags, bodies you carve/drag
 scavenging wolves, the Duskmaw called by three bodies at night, the ox cart, Wren's Harvest Supper), six more
 houses and a second inside (layout + feel, changeable). I may send more mob pictures (medium/big) to build.
 
+New on main (4 Oct): redesigned buttons (two rings round Attack, icons, cooldown seconds, Settings > Button layout
+to move/resize), the Glimmerdeep cave under the Cave Mouth (world/cave.gd), and fishing (player/fisher.gd,
+state/fish_data.gd, ui/fishing_ui.gd). Next in my queue: 3D models from my pictures (I make them in Tripo/Meshy
+for people and creatures, pictures for the rest), then village 2 in the Whispering Wood, then a 3rd region.
+
 Waiting on me: AI pictures of swords, bows, armour and the Hollowhorn sword (I'll send them; build the models
-from them then). The Brakk redo (chipped boulders + baked shading) is parked on branch `brakk-redo`, untested.
+from them then). Brakk is dropped (still boxy).
 
 Then tell me concisely what changed and what to test, and give me the updated options list:
 - Polish: tune fight difficulty from my playtest; camp performance (~670 draw calls in view); villager
