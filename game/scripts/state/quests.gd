@@ -4,6 +4,8 @@ extends Node
 ## "have" (finishes by itself as soon as you carry the items) or "turn_in" (you hand the items to the
 ## giver when you talk to them). What you see: the tracker (ui/quest_tracker.gd) and the talk screen
 ## (ui/dialogue_panel.gd, built from talk()).
+## Bounties you took (state/bounties.gd) ride along as quests with ids "bounty:<n>", so the tracker, the
+## log and the guide beam treat them the same; the functions below hand those over to Bounties.
 ## A quest is "story" (the main thread; "auto" ones need no giver and are done when their events
 ## happen) or a "job" someone gave you. Each step can say "where" it happens, so the guide beam
 ## (world/quest_guide.gd) and the minimap can point there; a hand-in step points at the giver.
@@ -11,7 +13,7 @@ extends Node
 signal changed
 signal completed(id: String)
 
-const TYPE_NAMES := {"story": "Story", "job": "Job"}
+const TYPE_NAMES := {"story": "Story", "job": "Job", "bounty": "Bounty"}
 
 const DEFS := {
 	"strange_hum": {
@@ -75,6 +77,9 @@ var tracked := ""      # the quest the tracker and the guide beam follow ("" or 
 
 ## "new" (not started), "active", "ready" (all that's left is to hand it in) or "done".
 func status(id: String) -> String:
+	if _is_bounty(id):
+		var b := _bounty(id)
+		return "done" if b.is_empty() else ("ready" if Bounties.is_ready(b) else "active")
 	if DEFS[id].get("auto", false):
 		return "active" if _open_event(id) >= 0 else "done"
 	if not _state.has(id):
@@ -97,7 +102,24 @@ func active() -> Array[String]:
 	for id: String in _state:
 		if is_active(id):
 			out.append(id)
+	for b in Bounties.taken:
+		out.append("bounty:%d" % b["id"])
 	return out
+
+
+func _is_bounty(id: String) -> bool:
+	return id.begins_with("bounty:")
+
+
+func _bounty(id: String) -> Dictionary:
+	return Bounties.find(int(id.trim_prefix("bounty:")))
+
+
+## A quest's (or bounty's) name.
+func name_of(id: String) -> String:
+	if _is_bounty(id):
+		return _bounty(id).get("title", "Bounty")
+	return DEFS[id]["name"]
 
 
 ## Quests a villager can still give you or is waiting to hear back on: "!" (new) or "?" (ready).
@@ -115,6 +137,8 @@ func marker(npc: String) -> String:
 
 ## What the tracker shows: "Pick wild tobacco (2/4)".
 func step_text(id: String) -> String:
+	if _is_bounty(id):
+		return Bounties.step_text(_bounty(id))
 	var s := _step(id)
 	var text: String = s["text"]
 	if s["kind"] == "have":
@@ -124,6 +148,8 @@ func step_text(id: String) -> String:
 
 
 func type_of(id: String) -> String:
+	if _is_bounty(id):
+		return "bounty"
 	return DEFS[id].get("type", "job")
 
 
@@ -138,11 +164,15 @@ func finished() -> Array[String]:
 
 ## What the quest is about, for the quest log: its own line, or what the giver said.
 func about(id: String) -> String:
+	if _is_bounty(id):
+		return _bounty(id).get("about", "")
 	return DEFS[id].get("about", DEFS[id].get("accepted", ""))
 
 
 ## Which step you're on and how many there are (for the log's ticks).
 func step_index(id: String) -> int:
+	if _is_bounty(id):
+		return 0
 	if DEFS[id].get("auto", false):
 		var open := _open_event(id)
 		return DEFS[id]["steps"].size() if open < 0 else open
@@ -173,6 +203,9 @@ func track_next() -> void:
 
 ## Where the current step happens: {"region": String, "at": Vector2}, or {} if nowhere in particular.
 func target(id: String) -> Dictionary:
+	if _is_bounty(id):
+		var b := _bounty(id)
+		return {} if b.is_empty() else Bounties.target(b)
 	if not is_active(id):
 		return {}
 	var s := _step(id)
@@ -262,7 +295,8 @@ func talk(npc: String) -> Dictionary:
 func refresh() -> void:
 	var moved := false
 	for id: String in active():
-		moved = _advance(id) or moved
+		if not _is_bounty(id):
+			moved = _advance(id) or moved
 	if moved:
 		changed.emit()
 

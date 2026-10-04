@@ -143,6 +143,16 @@ func _ready() -> void:
 			elif bits.size() > 1:
 				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
+		elif arg == "--bountytest":                   # take the bounties, find and kill the wanted beast, claim
+			add_child(preload("res://scripts/dev/bounty_test.gd").new())
+		elif arg.begins_with("--bounties="):              # take this region's bounties: --bounties=2 takes two (with --open=bounty to see the board)
+			var n := int(arg.trim_prefix("--bounties="))
+			(func() -> void:
+				var list: Array = Bounties.board(Region.current).duplicate()
+				for i in mini(n, list.size()):
+					Bounties.take(list[i])
+				for b in Bounties.taken:
+					print("BOUNTY %s | %s | %d coins" % [b["title"], Bounties.step_text(b), b["coins"]])).call_deferred()
 		elif arg.begins_with("--hunt"):                   # by the butcher: a live stag, bodies, the cart (--hunt=ride sits you on it)
 			_hunt_test.call_deferred(arg.trim_prefix("--hunt").trim_prefix("="))
 		elif arg == "--talents" or arg == "--talents=delver":   # a Pyromancer (or Delver) with a few talents, on the talent screen

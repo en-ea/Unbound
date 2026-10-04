@@ -21,8 +21,15 @@ const HOMES := {
 
 @export var player: Node3D
 
+const ELITE := {"hp": 3.0, "damage": 1, "size": 1.4}
+var _shape: WorldShape
+var _wanted := {}            # bounty id -> its beast
+
 
 func spawn(shape: WorldShape) -> void:
+	_shape = shape
+	Bounties.changed.connect(_ensure_wanted)
+	_ensure_wanted.call_deferred()
 	var homes: Dictionary = HOMES.get(Region.current, HOMES["meadow"])
 	for h: Vector2 in homes["boars"]:
 		var boar := BOAR.instantiate() as Boar
@@ -53,3 +60,55 @@ func spawn(shape: WorldShape) -> void:
 func _limit_range() -> void:
 	for g in find_children("*", "GeometryInstance3D", true, false):
 		(g as GeometryInstance3D).visibility_range_end = 55.0
+
+
+## Wanted beasts (state/bounties.gd): while you hold the bounty, its beast waits at its spot in this
+## region, bigger, tougher and named. Gone once it's dead (it doesn't come back) or you give it up.
+func _ensure_wanted() -> void:
+	if _shape == null:
+		return
+	for id: int in _wanted.keys():
+		var b := Bounties.find(id)
+		if b.is_empty() or Bounties.is_ready(b) or not is_instance_valid(_wanted[id]):
+			if is_instance_valid(_wanted[id]):
+				_wanted[id].queue_free()
+			_wanted.erase(id)
+	for b in Bounties.wanted_here():
+		if _wanted.has(b["id"]):
+			continue
+		var at: Vector2 = b["at"]
+		var e: CharacterBody3D
+		if b["target"] == "boar":
+			e = BOAR.instantiate()
+		else:
+			e = WOLF.instantiate()
+			e.shadow = b["target"] == "shadow_wolf"
+		e.player = player
+		e.home = Vector3(at.x, _shape.height_at(at.x, at.y), at.y)
+		e.set_meta("bounty_id", b["id"])
+		add_child(e)
+		e.global_position = e.home + Vector3(0, 0.5, 0)
+		_make_elite(e, b["plural"])
+		_wanted[b["id"]] = e
+
+
+func _make_elite(e: CharacterBody3D, beast_name: String) -> void:
+	e.max_health = roundi(e.max_health * ELITE["hp"])
+	e.health = e.max_health
+	e._damage += ELITE["damage"]
+	e.visual.scale *= ELITE["size"]
+	for c in e.get_children():                 # a bigger body to hit and be hit by
+		if c is CollisionShape3D:
+			c.scale = Vector3.ONE * ELITE["size"]
+	e.add_to_group("elite")
+	var label := Label3D.new()
+	label.text = beast_name
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.font_size = 56
+	label.pixel_size = 0.006
+	label.outline_size = 14
+	label.modulate = Color(1.0, 0.8, 0.35)
+	label.outline_modulate = Color(0.25, 0.08, 0.04)
+	label.position = Vector3(0, 2.6, 0)
+	label.visibility_range_end = 40.0
+	e.add_child(label)

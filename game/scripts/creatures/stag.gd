@@ -218,6 +218,7 @@ func _notices(dist: float) -> bool:
 
 func _die() -> void:
 	_enter(State.DEAD)
+	Bounties.killed("stag", self)
 	Skills.add("combat", Balance.STAG["xp"])
 	collision_layer = 0
 	visible = false

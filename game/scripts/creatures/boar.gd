@@ -261,6 +261,7 @@ func take_hit(from: Vector3, damage := 1, push := 1.0) -> void:
 
 func _die() -> void:
 	_enter(State.DEAD)
+	Bounties.killed("boar", self)
 	Skills.add("combat", Balance.BOAR["xp"])
 	if randf() < Balance.BOAR["tool"]:                       # now and then it was carrying a tool
 		var found := Gear.roll_found("enemy")

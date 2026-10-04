@@ -63,6 +63,7 @@ func save_game() -> void:
 		"quests": Quests.to_data(),
 		"classes": Classes.to_data(),
 		"hunting": Hunting.to_data(),
+		"bounties": Bounties.to_data(),
 		"fishing": FishData.to_data(),
 		"region": Region.current,
 		"regions": _regions,
@@ -104,6 +105,7 @@ func load_game() -> void:
 	Quests.load_data(data.get("quests", {}))
 	Classes.load_data(data.get("classes", {}))
 	Hunting.load_data(data.get("hunting", {}))
+	Bounties.load_data(data.get("bounties", {}))
 	FishData.load_data(data.get("fishing", {}))
 	_regions = data.get("regions", {})
 	if not data.has("regions") and data.has("world"):       # a save from before regions: the meadow
@@ -137,6 +139,7 @@ func restore_belongings() -> void:
 	Quests.load_data(data.get("quests", {}))
 	Classes.load_data(data.get("classes", {}))
 	Hunting.load_data(data.get("hunting", {}))
+	Bounties.load_data(data.get("bounties", {}))
 	FishData.load_data(data.get("fishing", {}))
 
 
@@ -178,6 +181,7 @@ func start_over() -> void:
 	Quests.load_data({})
 	Classes.reset()
 	Hunting.load_data({})
+	Bounties.load_data({})
 	FishData.load_data({})
 	WorldResources.reset()
 	get_tree().reload_current_scene()

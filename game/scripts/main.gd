@@ -50,6 +50,10 @@ func _ready() -> void:
 		plot.day_night = $WorldEnvironment
 		add_child(plot)
 		plot.build(shape)
+	var bounty_board := Node3D.new()
+	bounty_board.set_script(preload("res://scripts/world/bounty_board.gd"))
+	add_child(bounty_board)
+	bounty_board.build(shape)
 	var places := Node3D.new()
 	places.set_script(preload("res://scripts/world/places.gd"))
 	places.player = player

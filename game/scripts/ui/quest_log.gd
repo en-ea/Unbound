@@ -4,7 +4,7 @@ extends Control
 
 signal closed
 
-const TAG_COLORS := {"story": Color(1.0, 0.78, 0.35), "job": Color(0.55, 0.8, 1.0)}
+const TAG_COLORS := {"story": Color(1.0, 0.78, 0.35), "job": Color(0.55, 0.8, 1.0), "bounty": Color(1.0, 0.5, 0.38)}
 
 var _list: VBoxContainer
 var _detail: VBoxContainer
@@ -83,7 +83,7 @@ func _refresh() -> void:
 
 func _row(id: String) -> void:
 	var following := id == Quests.tracked_quest()
-	var b := UIStyle.button(_list, ("> " if following else "") + Quests.DEFS[id]["name"], Vector2(0, 48), 18)
+	var b := UIStyle.button(_list, ("> " if following else "") + Quests.name_of(id), Vector2(0, 48), 18)
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.button_pressed = id == _selected
 	b.toggle_mode = true
@@ -101,8 +101,9 @@ func _show_detail() -> void:
 	if _selected == "":
 		return
 	var id := _selected
-	var def: Dictionary = Quests.DEFS[id]
 	var type := Quests.type_of(id)
+	if type == "bounty" and Quests.status(id) == "done":     # claimed or given up since
+		return
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 10)
 	_detail.add_child(top)
@@ -115,8 +116,12 @@ func _show_detail() -> void:
 	bg.content_margin_left = 7
 	bg.content_margin_right = 7
 	tag.add_theme_stylebox_override("normal", bg)
-	var name_label := UIStyle.label(top, def["name"], 26)
+	var name_label := UIStyle.label(top, Quests.name_of(id), 26)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.5))
+	if type == "bounty":
+		_bounty_detail(id)
+		return
+	var def: Dictionary = Quests.DEFS[id]
 	var kind := "The main story." if type == "story" else "A job from %s." % Npcs.get_def(def["giver"])["name"]
 	UIStyle.label(_detail, kind, 15, true)
 	var about := UIStyle.label(_detail, Quests.about(id), 17)
@@ -145,6 +150,31 @@ func _show_detail() -> void:
 			_refresh())
 	else:
 		UIStyle.label(_detail, "Finished.", 16, true)
+
+
+## A bounty: what it's about, how far along, follow it or give it up.
+func _bounty_detail(id: String) -> void:
+	var b := Bounties.find(int(id.trim_prefix("bounty:")))
+	UIStyle.label(_detail, "From the bounty board in the %s (%d-star)." % [Region.NAMES[b["region"]], b["stars"]], 15, true)
+	var about := UIStyle.label(_detail, b["about"], 17)
+	about.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var step := UIStyle.label(_detail, Bounties.step_text(b), 17)
+	step.add_theme_color_override("font_color", Color(1.0, 0.86, 0.5))
+	step.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UIStyle.price(_detail, b["coins"], 18)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	_detail.add_child(row)
+	var following := id == Quests.tracked_quest()
+	var track := UIStyle.button(row, "Following" if following else "Follow this", Vector2(200, 50), 19)
+	track.disabled = following
+	track.pressed.connect(func() -> void:
+		Quests.track(id)
+		_refresh())
+	UIStyle.button(row, "Give up", Vector2(140, 50), 19).pressed.connect(func() -> void:
+		Bounties.give_up(b)
+		_selected = Quests.tracked_quest()
+		_refresh())
 
 
 func _close() -> void:

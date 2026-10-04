@@ -237,6 +237,7 @@ func _block(to_attacker: Vector3) -> void:
 func _die(quiet: bool) -> void:
 	_release_turn()
 	_enter(State.DEAD)
+	Bounties.killed("bandit", self)
 	collision_layer = 0
 	_overlay.set_awareness(0.0, false)
 	_overlay.show_health(0.0)

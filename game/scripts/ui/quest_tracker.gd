@@ -3,7 +3,7 @@ extends PanelContainer
 ## far it is (the guide beam and the minimap diamond point the way). Tap it for the quest log, where you
 ## pick which quest to follow; the – folds it down to a small tab. Hidden with no quest.
 
-const TAG_COLORS := {"story": Color(1.0, 0.78, 0.35), "job": Color(0.55, 0.8, 1.0)}
+const TAG_COLORS := {"story": Color(1.0, 0.78, 0.35), "job": Color(0.55, 0.8, 1.0), "bounty": Color(1.0, 0.5, 0.38)}
 
 var hidden_for_talk := false     # the HUD hides it while the talk screen's portrait is up
 
@@ -57,6 +57,7 @@ func _ready() -> void:
 			accept_event()
 			get_tree().call_group("hud", "open_quests"))
 	Quests.changed.connect(refresh)
+	Bounties.changed.connect(refresh)
 	Inventory.changed.connect(func(_i: String, _c: int) -> void: refresh.call_deferred())
 	refresh()
 
@@ -73,7 +74,7 @@ func refresh() -> void:
 	for tag in _tags:
 		tag.text = Quests.TYPE_NAMES[type].to_upper()
 		(tag.get_theme_stylebox("normal") as StyleBoxFlat).bg_color = TAG_COLORS[type]
-	_title.text = Quests.DEFS[id]["name"]
+	_title.text = Quests.name_of(id)
 	_tab_title.text = _title.text
 	var list := Quests.active()
 	_count.visible = list.size() > 1

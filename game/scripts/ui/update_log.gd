@@ -5,6 +5,14 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "Bounty boards", "lines": [
+		"A bounty board in each region: the meadow village (by the path), Fernhollow, and Shepherd's Rest.",
+		"Three jobs each: a hunt (kill wolves, boars, stags, bandits... in that region), a gather (bring items to",
+		"any board) and a WANTED beast: a named elite (bigger, three times the health, hits harder) waiting somewhere.",
+		"Take up to three. They show in your quest tracker (red BOUNTY tag) and the beam leads you there.",
+		"Claim at any board for coins; wanted beasts also give a gear find. New jobs every in-game day.",
+		"Renown (bounties done) unlocks bigger two- and three-star jobs that pay more. Higher regions pay more too.",
+	]},
 	{"when": "4 Oct", "title": "Shade rework, sturdier elk, wilder Highlands", "lines": [
 		"Shade: Shadowstep is gone. New: Shadow Dance. Melt into shadow and flash between enemies, four cuts from",
 		"new sides (one enemy alone takes all four), untouchable while you dance; the last cut is the deepest.",

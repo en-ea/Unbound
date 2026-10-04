@@ -316,6 +316,7 @@ func _dodge() -> void:
 
 func _die() -> void:
 	_enter(State.DEAD)
+	Bounties.killed("duskmaw" if duskmaw else ("shadow_wolf" if shadow else "wolf"), self)
 	var stats: Dictionary = _stats()
 	Skills.add("combat", stats["xp"])
 	if randf() < stats["tool"]:                       # now and then it was carrying a tool

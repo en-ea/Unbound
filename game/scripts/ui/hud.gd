@@ -410,6 +410,9 @@ func open_station(props: Dictionary) -> void:
 	if props.get("mode", "") == "craft":
 		open_crafting()
 		return
+	if props.get("mode", "") == "bounty":    # the bounty board (world/bounty_board.gd)
+		_modal(preload("res://scripts/ui/bounty_panel.gd"))
+		return
 	if props.get("mode", "") == "lab":       # the build lab's board (dev/lab_menu.gd)
 		_modal(preload("res://scripts/dev/lab_menu.gd"), {"lab": props["lab"]})
 		return
