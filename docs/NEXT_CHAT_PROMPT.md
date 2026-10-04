@@ -14,10 +14,13 @@ Cinderburst + a 12-talent Pyromancer tree, hunting (stags, bodies you carve/drag
 scavenging wolves, the Duskmaw called by three bodies at night, the ox cart, Wren's Harvest Supper), six more
 houses and a second inside (layout + feel, changeable). I may send more mob pictures (medium/big) to build.
 
-New on main (4 Oct): redesigned buttons (two rings round Attack, icons, cooldown seconds, Settings > Button layout
-to move/resize), the Glimmerdeep cave under the Cave Mouth (world/cave.gd), and fishing (player/fisher.gd,
-state/fish_data.gd, ui/fishing_ui.gd). Next in my queue: 3D models from my pictures (I make them in Tripo/Meshy
-for people and creatures, pictures for the rest), then village 2 in the Whispering Wood, then a 3rd region.
+New on main (4 Oct): redesigned buttons, the Glimmerdeep cave, fishing, Fernhollow (forest village), the Shade
+class, Stonecrest Highlands (region 3, no village yet), Runeblade + Frost blade sword looks, slide-between-buttons
+setting, and an in-game story opening (story/intro.gd; I liked the visuals, it needs much more). Later that day from
+my playtest: Shadow Dance replaced Shadowstep, the Shade's roll is a slip through shadow, double fixes (it sat on
+heads / sank into the ground) and a cooler double, a sturdier elk, and the Highlands got tors, crags, cairns,
+drystone walls and bolder colours. A crash after ~30 s happened once on Safari; I now use Chrome on the phone
+(much faster). Dev arg --memlog prints memory every 5 s if it comes back.
 
 Waiting on me: AI pictures of swords, bows, armour and the Hollowhorn sword (I'll send them; build the models
 from them then). Brakk is dropped (still boxy).
