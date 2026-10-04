@@ -5,6 +5,12 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "4 Oct", "title": "Fernhollow, the village in the wood", "lines": [
+		"A second village in the Whispering Wood (west of the path, past the pond): homes grown from the trees.",
+		"A sawn stump, a giant toadstool, a lantern inn with a leaning roof, a root house and the old stump house.",
+		"Meet Hesk the innkeeper and Pip the mushroom forager. A campfire in the middle for cooking.",
+		"Pyromancer passive, Kindled: hits land a third harder on burning foes, and you glow at night and in caves.",
+	]},
 	{"when": "4 Oct", "title": "A new class: the Shade", "lines": [
 		"Born of the Long Night: shadows, doubles and knives in the back. Pick it at the shrine, or Settings > Class (testing).",
 		"Shadowstep: blink behind the nearest enemy. Your next blow is an ambush, a heavy critical.",

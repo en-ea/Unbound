@@ -10,6 +10,7 @@ signal awakened_now
 const CLASSES := {
 	"pyromancer": {"name": "Pyromancer", "color": Color(1.0, 0.5, 0.18),
 		"blurb": "The fire under the stones chose you. Burn a path through them, then bring the sky down.",
+		"trait": "Kindled: your blows land a third harder on anything burning, and at night or underground you glow with your own warm light.",
 		"abilities": ["flame_dash", "meteor", "cinderburst"]},
 	"delver": {"name": "Delver", "color": Color(0.36, 0.86, 0.72), "take": "Take the claws",
 		"answer": "The deep earth answers you",
@@ -149,13 +150,13 @@ func cooldown_of(ability: String) -> float:
 	var cd: float = ABILITIES[ability]["cooldown"]
 	if COOLDOWN_TALENTS.has(ability) and has_talent(COOLDOWN_TALENTS[ability][0]):
 		cd *= COOLDOWN_TALENTS[ability][1]
-	if current == "shade" and has_talent("shroud") and _dark():
+	if current == "shade" and has_talent("shroud") and is_dark():
 		cd *= 0.8
 	return cd
 
 
-## Night, or down in a cave (the Shade's Shroud).
-func _dark() -> bool:
+## Night, or down in a cave (the Shade's Shroud, the Pyromancer's glow).
+func is_dark() -> bool:
 	var dn := get_tree().current_scene.get_node_or_null("WorldEnvironment") if get_tree().current_scene else null
 	return dn != null and (float(dn.get("night")) > 0.5 or dn.get("cave") == true)
 

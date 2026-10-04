@@ -48,6 +48,36 @@ func _ready() -> void:
 	add_child(shade)
 
 
+## Class passives on a sword blow: the Shade's Unseen (player/shade.gd), the Pyromancer's Kindled.
+## `hit` is [damage, critical].
+static func passive_strike(enemy: Node, hit: Array, from: Node3D) -> Array:
+	if Classes.current == "pyromancer" and enemy.get_node_or_null("Burning") != null:
+		return [maxi(hit[0] + 1, roundi(hit[0] * 1.33)), hit[1]]
+	return Shade.strike(enemy, hit, from)
+
+
+var _glow: OmniLight3D
+var _glow_check := 0.0
+
+
+## Kindled: a warm light round a Pyromancer at night and underground.
+func _process(delta: float) -> void:
+	_glow_check -= delta
+	if _glow_check > 0.0:
+		return
+	_glow_check = 1.0
+	var want := Classes.current == "pyromancer" and Classes.is_dark()
+	if want and not is_instance_valid(_glow):
+		_glow = OmniLight3D.new()
+		_glow.light_color = Color(1.0, 0.6, 0.3)
+		_glow.light_energy = 1.4
+		_glow.omni_range = 7.0
+		_glow.position = Vector3(0, 1.4, 0)
+		player.add_child(_glow)
+	elif not want and is_instance_valid(_glow):
+		_glow.queue_free()
+
+
 ## The action: an ability button.
 func use(ability: String) -> void:
 	if player.is_down() or Controls.locked or player.is_rolling() or player.hauling.busy():
