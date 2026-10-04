@@ -10,7 +10,7 @@ const HOMES := {
 		"wolves": [Vector2(6, -38), Vector2(-44, -4), Vector2(-62, -76), Vector2(70, -60)], "shadow": [],
 		"stags": [Vector2(46, -22), Vector2(-50, -50)]},
 	"forest": {"boars": [Vector2(26, -40), Vector2(70, -20)],
-		"wolves": [Vector2(-20, -30), Vector2(30, 6), Vector2(-30, 20), Vector2(60, -64), Vector2(-80, 10), Vector2(40, 80)],
+		"wolves": [Vector2(-20, -30), Vector2(30, 6), Vector2(-56, 40), Vector2(60, -64), Vector2(-80, 10), Vector2(40, 80)],
 		"shadow": [Vector2(10, 40), Vector2(-40, -10), Vector2(-50, 64), Vector2(80, 66)],
 		"stags": [Vector2(-10, 62), Vector2(-62, -52)]},
 }

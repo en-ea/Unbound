@@ -57,6 +57,8 @@ func build(shape: WorldShape) -> void:
 		house.add_child(body)
 	_add_merchant(shape)
 	for id: String in Npcs.NPCS:
+		if Npcs.NPCS[id].get("region", "meadow") != "meadow":
+			continue
 		var npc := Node3D.new()
 		npc.set_script(preload("res://scripts/world/npc.gd"))
 		add_child(npc)

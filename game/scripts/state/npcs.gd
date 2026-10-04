@@ -5,6 +5,43 @@ extends RefCounted
 ## world/npc.gd from `look` (a CharacterLook: parts and colour indices, see character_look.gd).
 
 const NPCS := {
+	"hesk": {
+		"name": "Hesk", "title": "Innkeeper of Fernhollow", "region": "forest", "at": Vector2(-24.5, 12.5), "scale": Vector3(1.24, 1.0, 1.24),
+		"look": {
+			"parts": {"eyes": "happy", "brows": "thick", "mouth": "grin", "nose": "broad", "hair": "bun", "beard": "full",
+				"head": "none", "top": "jerkin", "waist": "apron", "chest": "none", "shoulders": "none", "back": "none", "feet": "boots"},
+			"colors": {"Skin": 2, "Hair": 4, "Main": 7, "Second": 3, "Cloth": 2, "Leather": 1},
+		},
+		"theme": {"bg": Color(0.09, 0.08, 0.06, 0.95), "accent": Color(1.0, 0.7, 0.36), "text": Color(1.0, 0.95, 0.85),
+			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "wren"},
+		"portrait": {"look_at": Vector3(0.05, 1.58, 0), "cam": Vector3(0.22, 1.74, 2.2), "fov": 34.0, "turn": -10.0},
+		"route": [{"at": Vector2(0, 0), "work": ""}, {"at": Vector2(-2.0, 1.2), "work": "Interact"}, {"at": Vector2(1.2, 1.8), "work": ""}],
+		"greetings": ["Welcome to Fernhollow!", "Warm yourself by the fire.", "Mind the roots, love.", "Ha! Another wanderer."],
+		"chatter": ["My gran said the Long Night came through here first. The old stumps kept us warm till the sun came back.",
+			"Every house here was a tree once. We only asked them to keep growing a different way.",
+			"There's a cave past the south-west rocks. Glimmerdeep. Shines like the stars fell in. Wolves, though.",
+			"Pip's out picking mushrooms again. That child knows the wood better than I do.",
+			"Fish from the pond, grilled on the fire. That's supper. That's every supper."],
+	},
+	"pip": {
+		"name": "Pip", "title": "Mushroom forager", "region": "forest", "at": Vector2(-33.0, 21.0), "scale": Vector3.ONE * 0.66,
+		"look": {
+			"parts": {"eyes": "bright", "brows": "raised", "mouth": "open", "nose": "button", "hair": "pigtails", "beard": "none",
+				"head": "cap", "top": "tunic", "waist": "none", "chest": "strap", "shoulders": "none", "back": "backpack", "feet": "wraps"},
+			"colors": {"Skin": 1, "Hair": 6, "Main": 10, "Second": 5, "Cloth": 3, "Leather": 2},
+		},
+		"theme": {"bg": Color(0.07, 0.1, 0.07, 0.95), "accent": Color(0.6, 0.95, 0.6), "text": Color(0.95, 1.0, 0.92),
+			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "seeker"},
+		"portrait": {"look_at": Vector3(0.0, 1.12, 0), "cam": Vector3(0.18, 1.2, 1.55), "fov": 34.0, "turn": -10.0},
+		"walk_speed": 1.2,
+		"route": [{"at": Vector2(0, 0), "work": "Farm_Harvest"}, {"at": Vector2(2.5, -1.5), "work": "Farm_Harvest"},
+			{"at": Vector2(-1.5, -3.0), "work": ""}, {"at": Vector2(1.0, 2.0), "work": "Farm_Harvest"}],
+		"greetings": ["Hi! Hi!", "Shh, the mushrooms are listening.", "Found one!", "Are you a hero? You look like one. Sort of."],
+		"chatter": ["Red caps you can eat. Glowing ones you can eat but then you glow. That's the rule.",
+			"I saw a white fish in the pond at night. Hesk says I dreamed it. I didn't.",
+			"The big toadstool is my house! Well. Hesk's sister's. But I sleep in the top bit.",
+			"Don't go in the cave without a light. Or do. But tell me what's in there after."],
+	},
 	"wren": {
 		"name": "Wren", "title": "Tobacco grower", "at": Vector2(-2.6, 18.0), "scale": Vector3(0.84, 1.14, 0.84),
 		"look": {

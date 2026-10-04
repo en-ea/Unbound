@@ -18,7 +18,8 @@ const PAD := Vector3(0, 0, -4)    # the showcase pad's centre
 const ENTRY := Vector2(0.0, 8.0)
 ## [name, model, footprint]: newest styles first.
 const BUILDINGS := [["Smithy", "smithy", 7.0], ["Market round house", "house_market", 8.5], ["Large swoop home", "house_swoophome", 8.5],
-	["Dual ring house", "house_ring", 8.5], ["Stump house (forest)", "house_stump", 8.0], ["Swoop lodge", "house_lodge", 6.0],
+	["Dual ring house", "house_ring", 8.5], ["Stump house (forest)", "house_stump", 8.0], ["Sawn stump (Fernhollow)", "house_sawn_stump", 8.0],
+	["Toadstool (Fernhollow)", "house_toadstool", 8.0], ["Lantern inn (Fernhollow)", "house_lantern_inn", 7.0], ["Root house (Fernhollow)", "house_root", 6.5], ["Swoop lodge", "house_lodge", 6.0],
 	["Hill house", "house_hill", 6.5], ["Skep cottage", "house_skep", 7.0], ["Lantern house", "house_lantern", 6.5],
 	["Hull house", "house_hull", 6.5], ["Turret cottage", "house_turret", 6.5], ["Storybook cottage", "house_storybook", 6.5],
 	["Gable house", "house_gable", 5.5], ["Arch cottage", "house_arch", 6.0], ["Round house", "house_round", 5.0],

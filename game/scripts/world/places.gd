@@ -16,6 +16,7 @@ const PLACES := {
 		{"name": "Woodcutter's Camp", "kind": "woodcutter", "at": Vector2(-70, -45)},
 		{"name": "Giant's Hollow", "kind": "hollow", "at": Vector2(66, 52)},
 		{"name": "Cave Mouth", "kind": "cave", "at": Vector2(-62, 74)},
+		{"name": "Fernhollow", "kind": "fernhollow", "at": Vector2(-30, 16)},
 	],
 }
 const STONE := Color(0.66, 0.64, 0.6)
@@ -27,10 +28,12 @@ const ROOF := Color(0.62, 0.3, 0.22)
 const GLOW := Color(1.0, 0.72, 0.38)
 
 var _labels: Array[Label3D] = []
+var _shape: WorldShape
 @export var player: Node3D
 
 
 func build(shape: WorldShape) -> void:
+	_shape = shape
 	for p: Dictionary in PLACES.get(Region.current, []):
 		var at: Vector2 = p["at"]
 		var root := Node3D.new()
@@ -152,6 +155,21 @@ func _cave(r: Node3D) -> void:
 	door.set_script(preload("res://scripts/world/use_spot.gd"))
 	r.add_child(door)
 	door.setup(r.global_position + Vector3(0, 0.5, 0.2), "Enter", func() -> void: get_tree().call_group("cave", "enter"), 2.2)
+
+
+## Fernhollow, the wood's village (world/forest_village.gd), and its people.
+func _fernhollow(r: Node3D) -> void:
+	r.set_meta("map_size", Vector2(2, 2))
+	var village := Node3D.new()
+	village.set_script(preload("res://scripts/world/forest_village.gd"))
+	r.add_child(village)
+	village.build(_shape)
+	for id: String in Npcs.NPCS:
+		if Npcs.NPCS[id].get("region", "meadow") == "forest":
+			var npc := Node3D.new()
+			npc.set_script(preload("res://scripts/world/npc.gd"))
+			add_child(npc)
+			npc.setup(id, _shape)
 
 
 # --- helpers ------------------------------------------------------------------------------------
