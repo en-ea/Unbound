@@ -363,11 +363,23 @@ func knockback(push: Vector3) -> void:
 	visual.flash()
 
 
+## PC keys (for testing on a laptop): WASD move, Shift sprint, left click or E the action button, Space
+## roll, F heavy, R parry, C sneak, 1 2 3 (or Z X V) abilities, Tab bag, J quests, Esc menu, arrows or a
+## right-drag turn the camera. Taps on the phone also arrive as emulated clicks: those are ignored here.
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT 			and event.device != InputEvent.DEVICE_ID_EMULATION and not Controls.locked:
+		act()
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.physical_keycode in [KEY_E, KEY_SPACE]:
+		if event.physical_keycode == KEY_TAB and not Controls.locked:
+			get_tree().call_group("hud", "open_bag")
+		elif event.physical_keycode == KEY_J and not Controls.locked:
+			get_tree().call_group("hud", "open_quests")
+		elif event.physical_keycode == KEY_ESCAPE and not Controls.locked:
+			get_tree().call_group("hud", "open_menu")
+		elif event.physical_keycode == KEY_E:
 			act()
-		elif event.physical_keycode in [KEY_Q, KEY_CTRL]:
+		elif event.physical_keycode in [KEY_SPACE, KEY_Q, KEY_CTRL]:
 			roll()
 		elif event.physical_keycode == KEY_F:
 			heavy()
@@ -375,8 +387,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			guard()
 		elif event.physical_keycode == KEY_C:
 			sneak()
-		elif event.physical_keycode in [KEY_Z, KEY_X, KEY_V]:
-			var slot: int = [KEY_Z, KEY_X, KEY_V].find(event.physical_keycode)
+		elif event.physical_keycode in [KEY_Z, KEY_X, KEY_V, KEY_1, KEY_2, KEY_3]:
+			var slot: int = [KEY_Z, KEY_X, KEY_V, KEY_1, KEY_2, KEY_3].find(event.physical_keycode) % 3
 			if Classes.abilities().size() > slot:
 				abilities.use(Classes.abilities()[slot])
 

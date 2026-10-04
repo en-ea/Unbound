@@ -13,11 +13,11 @@ var cam_yaw := 0.0
 
 
 func is_sprint_held() -> bool:
-	return not locked and (sprint_button or Input.is_physical_key_pressed(KEY_Q))
+	return not locked and (sprint_button or Input.is_physical_key_pressed(KEY_SHIFT))
 
 
 ## Returns the wanted movement on the ground plane (x = world x, y = world z), length 0..1.
-## Stick up means "away from the camera". Joystick past ~75% means run; the keyboard runs unless Shift is held.
+## Stick up means "away from the camera". Joystick past ~75% means run; the keyboard always runs (Shift sprints).
 func get_move() -> Vector2:
 	return _screen_move().rotated(-cam_yaw)
 
@@ -32,4 +32,4 @@ func _screen_move() -> Vector2:
 		float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W)))
 	if k == Vector2.ZERO:
 		return k
-	return k.normalized() * (0.5 if Input.is_physical_key_pressed(KEY_SHIFT) else 1.0)
+	return k.normalized()
