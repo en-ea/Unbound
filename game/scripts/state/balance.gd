@@ -198,6 +198,7 @@ const FOODS := {
 	"skewer": {"heal": 1, "buff": "swift", "secs": 90.0},
 	"apple_tart": {"heal": 2, "buff": "nimble", "secs": 120.0},
 	"stew": {"heal": 5, "buff": "sturdy", "secs": 120.0},
+	"grilled_fish": {"heal": 2, "buff": "swift", "secs": 120.0},
 }
 const COOKING := [
 	{"out": "roast_meat", "cost": {"raw_meat": 1, "wood": 1}},
@@ -205,6 +206,9 @@ const COOKING := [
 	{"out": "apple_tart", "cost": {"apple": 2, "flower": 1, "wood": 1}},
 	{"out": "stew", "cost": {"raw_meat": 1, "mushroom": 2, "glowcap": 1, "wood": 1}},
 	{"out": "cigarette", "n": 3, "cost": {"tobacco": 2, "wood": 1}},
+	{"out": "grilled_fish", "cost": {"bluegill": 1, "wood": 1}},
+	{"out": "grilled_fish", "cost": {"perch": 1, "wood": 1}},
+	{"out": "grilled_fish", "cost": {"trout": 1, "wood": 1}},
 ]
 const SMOKE_SECS := 24.0          # one cigarette, start to stub
 const STRONG_DAMAGE := 1          # extra sword damage
@@ -220,6 +224,8 @@ const VALUES := {
 	"shard": 12, "hide": 4, "tusk": 8, "copper": 3, "iron": 5, "pelt": 6, "fang": 12, "pinewood": 3,
 	"shadow_pelt": 25, "tobacco": 2, "cigarette": 3, "raw_meat": 3, "roast_meat": 6, "skewer": 6, "apple_tart": 8, "stew": 15,
 	"red_hand": 6, "stag_hide": 10, "antler": 14, "crown_antlers": 60, "duskmaw_fang": 90,
+	"bluegill": 3, "perch": 4, "trout": 4, "pike": 14, "cavefish": 10, "golden_carp": 35, "ghost_koi": 45,
+	"glimmer_eel": 50, "old_boot": 1, "grilled_fish": 8,
 }
 ## Hunting (world/carcass.gd, state/hunting.gd): how long a body stays fresh, then rots away (seconds);
 ## scavengers; the stag; the Duskmaw that three bodies at night call up.

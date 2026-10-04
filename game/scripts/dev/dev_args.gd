@@ -236,6 +236,23 @@ func _ready() -> void:
 						var p: Vector3 = cave.AT + Vector3(float(spot[0]), 0.0, float(spot[1]))
 						p.y = cave.AT.y + cave.floor_at(float(spot[0]), float(spot[1])) + 0.3
 						get_node("../Player").global_position = p))
+		elif arg.begins_with("--rodgrip="):
+			var g := arg.trim_prefix("--rodgrip=").split(",")
+			Fisher.grip = Vector3(float(g[0]), float(g[1]), float(g[2]))
+		elif arg == "--fishtest" or arg == "--fishcatch":   # fishing at the meadow pond: into the fight (or straight to a catch)
+			var land := arg == "--fishcatch"
+			get_tree().create_timer(1.0).timeout.connect(func() -> void:
+				var pl := get_node("../Player")
+				pl.global_position = Vector3(24.0, WorldShape.new().height_at(24.0, 5.5) + 0.2, 5.5)
+				pl.fisher.start(Region.current, Vector3(24.0, WorldShape.WATER_Y + 0.05, 1.3))
+				get_tree().create_timer(1.2).timeout.connect(func() -> void:
+					pl.fisher._timer = 0.0
+					get_tree().create_timer(0.3).timeout.connect(func() -> void:
+						pl.fisher.tap()
+						pl.fisher.reeling = true
+						if land:
+							pl.fisher.progress = 0.99
+)))
 		elif arg == "--delver":                       # be a Delver
 			Classes.choose.call_deferred("delver")
 		elif arg == "--delvertest":                   # every Delver ability on a pack in the meadow, screenshots to %TEMP%

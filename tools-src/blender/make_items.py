@@ -162,6 +162,79 @@ def duskmaw_fang():
     return b
 
 
+def _flat(b, pts, color, mat="Item", t=0.004):
+    """A thin flat fin through `pts` (in the XZ plane), with a face on each side."""
+    bm = b.bm
+    front = [bm.verts.new(V((p[0], t, p[1]))) for p in pts]
+    back = [bm.verts.new(V((p[0], -t, p[1]))) for p in pts]
+    faces = [bm.faces.new(front), bm.faces.new(list(reversed(back)))]
+    for i in range(len(pts)):
+        j = (i + 1) % len(pts)
+        faces.append(bm.faces.new((front[j], front[i], back[i], back[j])))
+    b.paint(faces, mat, color)
+
+
+def fish(body, belly, fin, length=1.0, height=1.0, eel=False, glow=None, eyes=True):
+    """A faceted fish along +X (nose at +X): a flattened body, darker back and pale belly, tail and fins.
+    `glow`: a colour for glowing spots along its side (and glowing fins)."""
+    b = Builder(["Item", "Glow"])
+    L = 0.3 * length
+    if eel:
+        xs = [-0.5, -0.3, 0.0, 0.3, 0.45, 0.5]
+        hs = [0.02, 0.03, 0.035, 0.035, 0.028, 0.012]
+    else:
+        xs = [-0.5, -0.38, -0.1, 0.18, 0.38, 0.5]
+        hs = [0.02, 0.05, 0.1, 0.1, 0.065, 0.015]
+    pts = [V((x * L, 0, 0)) for x in xs]
+    radii = [(h * height, h * (0.5 if not eel else 0.8)) for h in hs]
+    faces = b.new_faces(lambda: rk.tube(b.bm, pts, radii, ref=V((0, 0, 1)), seg=6))
+    for f in faces:
+        z = f.calc_center_median().z
+        b.paint([f], "Item", belly if z < -0.008 else body)
+    fm = "Glow" if glow else "Item"
+    t0 = -0.5 * L
+    tail = 0.13 * height if not eel else 0.05
+    _flat(b, [(t0 + 0.01, 0), (t0 - 0.22 * L, tail), (t0 - 0.14 * L, 0), (t0 - 0.22 * L, -tail)], fin, fm)
+    top = 0.1 * height if not eel else 0.035
+    if eel:
+        _flat(b, [(-0.45 * L, 0.03), (0.3 * L, 0.03), (0.2 * L, 0.06), (-0.4 * L, 0.055)], fin, fm)
+    else:
+        _flat(b, [(-0.18 * L, top - 0.01), (0.12 * L, top - 0.01), (-0.12 * L, top + 0.07 * height)], fin, fm)
+        _flat(b, [(-0.05 * L, -top + 0.015), (0.1 * L, -top + 0.02), (-0.02 * L, -top - 0.04 * height)], fin, fm)
+    if eyes:
+        for side in (-1, 1):
+            b.paint(b.new_faces(lambda: rk.blob(b.bm, V((0.36 * L, side * 0.02 * (1 if not eel else 1.3), 0.02 * height)),
+                                                     (0.012, 0.012, 0.012), 6, 4)), "Item", (0.06, 0.06, 0.08))
+    if glow:
+        for k in range(5 if eel else 3):
+            x = (-0.35 + k * (0.75 / (5 if eel else 3))) * L
+            for side in (-1, 1):
+                b.paint(b.new_faces(lambda: rk.blob(b.bm, V((x, side * (0.022 if eel else 0.03), 0.004)), (0.01, 0.01, 0.01), 6, 4)),
+                        "Glow", glow)
+    return b
+
+
+def old_boot():
+    """A soggy old boot, fished out of the pond."""
+    b = Builder(["Item"])
+    box(b, V((0, 0, 0.06)), (0.08, 0.09, 0.14), (0.36, 0.27, 0.2), top=0.9)
+    box(b, V((0.06, 0, -0.03)), (0.17, 0.09, 0.06), (0.33, 0.25, 0.19))
+    box(b, V((0.04, 0, -0.065)), (0.2, 0.1, 0.015), (0.2, 0.17, 0.14))
+    tube_faces(b, [V((0.0, 0, 0.13)), V((0.0, 0, 0.15))], [(0.045, 0.05)] * 2, (0.28, 0.21, 0.16), seg=6, ref=V((1, 0, 0)))
+    return b
+
+
+def rod():
+    """A fishing rod along +Z, the grip at the origin: a cork handle, a little reel, a long thin rod (tip at 1.3 m)."""
+    b = Builder(["Item"])
+    tube_faces(b, [V((0, 0, -0.12)), V((0, 0, 0.16))], [(0.03, 0.03), (0.026, 0.026)], (0.78, 0.6, 0.4), seg=6, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, 0, 0.16)), V((0, 0, 0.7)), V((0, 0, 1.3))], [(0.022, 0.022), (0.016, 0.016), (0.008, 0.008)],
+               (0.36, 0.24, 0.16), seg=5, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, 0, 1.26)), V((0, 0, 1.3))], [(0.012, 0.012)] * 2, (0.9, 0.2, 0.15), seg=5, ref=V((1, 0, 0)))
+    tube_faces(b, [V((0, 0.035, 0.05)), V((0, 0.06, 0.05))], [(0.03, 0.03)] * 2, (0.55, 0.57, 0.6), seg=8, ref=V((0, 0, 1)))
+    return b
+
+
 bpy.ops.wm.read_factory_settings(use_empty=True)
 rk.make_materials(COLORS, roughness=0.7)
 os.makedirs(OUT, exist_ok=True)
@@ -397,3 +470,14 @@ export("roast_meat", meat((0.62, 0.34, 0.18)), OUT)
 export("skewer", skewer(), OUT)
 export("stew", bowl((0.6, 0.36, 0.2)), OUT)
 export("apple_tart", tart(), OUT)
+export("bluegill", fish((0.35, 0.5, 0.62), (0.95, 0.75, 0.35), (0.28, 0.4, 0.55), 0.8, 1.3), OUT)
+export("perch", fish((0.5, 0.6, 0.28), (0.92, 0.88, 0.7), (0.9, 0.45, 0.25), 0.95, 1.0), OUT)
+export("golden_carp", fish((1.0, 0.7, 0.18), (1.0, 0.9, 0.55), (0.95, 0.52, 0.15), 1.15, 1.25), OUT)
+export("trout", fish((0.42, 0.52, 0.48), (0.95, 0.78, 0.76), (0.55, 0.6, 0.55), 1.1, 0.85), OUT)
+export("pike", fish((0.28, 0.42, 0.24), (0.86, 0.86, 0.6), (0.52, 0.36, 0.2), 1.5, 0.8), OUT)
+export("ghost_koi", fish((0.9, 0.94, 1.0), (1.0, 1.0, 1.0), (0.65, 0.82, 1.0), 1.2, 1.1, glow=(0.6, 0.85, 1.0)), OUT)
+export("cavefish", fish((0.9, 0.76, 0.78), (1.0, 0.92, 0.92), (0.86, 0.7, 0.74), 0.8, 0.9, eyes=False), OUT)
+export("glimmer_eel", fish((0.14, 0.18, 0.28), (0.3, 0.38, 0.48), (0.2, 0.5, 0.7), 1.7, 1.0, eel=True, glow=(0.45, 0.9, 1.0)), OUT)
+export("grilled_fish", fish((0.58, 0.36, 0.18), (0.82, 0.6, 0.34), (0.42, 0.26, 0.14), 1.0, 1.0), OUT)
+export("old_boot", old_boot(), OUT)
+export("rod", rod(), OUT)

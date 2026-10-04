@@ -100,6 +100,11 @@ func _ready() -> void:
 	lab.visuals = $ResourceVisuals
 	lab.treasure = treasure
 	add_child(lab)
+	var fishing := Node3D.new()                    # fish anywhere along the pond's edge
+	fishing.set_script(preload("res://scripts/world/fishing_spots.gd"))
+	fishing.player = player
+	add_child(fishing)
+	fishing.build(shape)
 	if Region.current == "forest":                 # Glimmerdeep, under the Cave Mouth
 		var cave := Node3D.new()
 		cave.set_script(preload("res://scripts/world/cave.gd"))

@@ -35,6 +35,16 @@ const DEFS := {
 	"antler": {"name": "Antler", "color": Color(0.93, 0.86, 0.72), "rarity": Rarity.UNCOMMON},
 	"crown_antlers": {"name": "Crown Antlers", "color": Color(0.95, 0.88, 0.74), "rarity": Rarity.RARE},
 	"duskmaw_fang": {"name": "Duskmaw Fang", "color": Color(0.5, 0.2, 0.35), "rarity": Rarity.RARE},
+	"bluegill": {"name": "Bluegill", "color": Color(0.4, 0.6, 0.8), "rarity": Rarity.COMMON},
+	"perch": {"name": "Striped Perch", "color": Color(0.6, 0.7, 0.32), "rarity": Rarity.COMMON},
+	"trout": {"name": "Brook Trout", "color": Color(0.6, 0.66, 0.6), "rarity": Rarity.COMMON},
+	"pike": {"name": "Mossback Pike", "color": Color(0.4, 0.58, 0.32), "rarity": Rarity.UNCOMMON},
+	"cavefish": {"name": "Blind Cavefish", "color": Color(0.95, 0.8, 0.82), "rarity": Rarity.UNCOMMON},
+	"golden_carp": {"name": "Golden Carp", "color": Color(1.0, 0.75, 0.2), "rarity": Rarity.RARE},
+	"ghost_koi": {"name": "Ghost Koi", "color": Color(0.8, 0.9, 1.0), "rarity": Rarity.RARE},
+	"glimmer_eel": {"name": "Glimmer Eel", "color": Color(0.4, 0.85, 1.0), "rarity": Rarity.RARE},
+	"old_boot": {"name": "Old Boot", "color": Color(0.4, 0.3, 0.22), "rarity": Rarity.COMMON},
+	"grilled_fish": {"name": "Grilled Fish", "color": Color(0.7, 0.45, 0.22), "rarity": Rarity.COMMON},
 }
 ## Quest items: the trader won't take them.
 const QUEST_ITEMS := ["black_seal"]
@@ -57,10 +67,16 @@ const DESC := {
 	"antler": "A stag's antler. Handles, charms, and the trader likes them.",
 	"crown_antlers": "A whole stag's crown, mounted. A trophy for your wall (Furnish).",
 	"duskmaw_fang": "From the thing that comes for the dead. It is still cold.",
+	"bluegill": "A little pond fish. Grill it at a campfire.", "perch": "A striped pond fish. Grill it at a campfire.",
+	"trout": "A forest stream fish. Grill it at a campfire.", "pike": "A long, toothy forest fish. The trader likes it.",
+	"cavefish": "Pale and eyeless, from the pool in Glimmerdeep.", "golden_carp": "Rare: a fat gold carp, only by day. Worth a lot.",
+	"ghost_koi": "Rare: a white koi that only rises at night. Worth a lot.",
+	"glimmer_eel": "Rare: a glowing eel from deep under the wood.", "old_boot": "Somebody lost this. Nobody wants it back.",
+	"grilled_fish": "Hot off the fire: heals and makes you swift.",
 }
 ## Loot: things you win from enemies and rare finds (the rest are materials or food).
 const LOOT := ["hide", "tusk", "pelt", "fang", "shadow_pelt", "shard", "glowcap", "resin", "stag_hide", "antler",
-	"crown_antlers", "duskmaw_fang"]
+	"crown_antlers", "duskmaw_fang", "pike", "cavefish", "golden_carp", "ghost_koi", "glimmer_eel"]
 const RARITY_NAMES := {Rarity.COMMON: "Common", Rarity.UNCOMMON: "Uncommon", Rarity.RARE: "Rare"}
 
 const MODELS := "res://assets/items/%s.glb"      # tools-src/blender/make_items.py

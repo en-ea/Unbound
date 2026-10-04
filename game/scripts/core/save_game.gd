@@ -58,6 +58,7 @@ func save_game() -> void:
 		"quests": Quests.to_data(),
 		"classes": Classes.to_data(),
 		"hunting": Hunting.to_data(),
+		"fishing": FishData.to_data(),
 		"region": Region.current,
 		"regions": _regions,
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y, "indoors": _indoors()},
@@ -98,6 +99,7 @@ func load_game() -> void:
 	Quests.load_data(data.get("quests", {}))
 	Classes.load_data(data.get("classes", {}))
 	Hunting.load_data(data.get("hunting", {}))
+	FishData.load_data(data.get("fishing", {}))
 	_regions = data.get("regions", {})
 	if not data.has("regions") and data.has("world"):       # a save from before regions: the meadow
 		_regions = {"meadow": {"world": data["world"], "layout": data.get("layout", ""), "saved_at": Time.get_unix_time_from_system()}}
@@ -137,5 +139,6 @@ func start_over() -> void:
 	Quests.load_data({})
 	Classes.reset()
 	Hunting.load_data({})
+	FishData.load_data({})
 	WorldResources.reset()
 	get_tree().reload_current_scene()

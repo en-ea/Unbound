@@ -50,6 +50,7 @@ var _roll_speed := ROLL_SPEED
 var _roll_time := ROLL_TIME
 var abilities: Abilities
 var hauling: Hauling            # dragging a body or riding the ox cart
+var fisher: Fisher              # fishing at the water's edge
 var _guard := 0.0               # guard up (the Parry button): the first part of it is a perfect parry
 var _guard_age := 0.0
 var _guard_rest := 0.0
@@ -254,6 +255,9 @@ func _ready() -> void:
 	hauling = Hauling.new()
 	hauling.name = "Hauling"
 	add_child(hauling)
+	fisher = Fisher.new()
+	fisher.name = "Fisher"
+	add_child(fisher)
 	abilities = Abilities.new()
 	abilities.name = "Abilities"
 	add_child(abilities)

@@ -229,6 +229,12 @@ func _build() -> void:
 	if now >= _hoard_ready_at:
 		_chest = treasure.add_chest(AT + _local(HOARD, 0.36), 0.0)
 	_spawn_wolves()
+	var fish := Node3D.new()                     # fishing in the still pool
+	fish.set_script(preload("res://scripts/world/use_spot.gd"))
+	_built.add_child(fish)
+	var edge := Vector2(POOL.x + POOL.z + 0.6, POOL.y)
+	fish.setup(AT + _local(edge), "Fish", func() -> void:
+		player.fisher.start("cave", AT + Vector3(POOL.x, -0.17, POOL.y)), 1.8)
 
 
 func _build_rock() -> void:

@@ -400,6 +400,28 @@ func open_station(props: Dictionary) -> void:
 
 
 ## Inside your home or back outside (world/home_interior.gd): the Furnish button, no minimap.
+## Fishing (player/fisher.gd): the fight buttons make way for the fishing screen; the joystick stays
+## (walking away stops fishing).
+func open_fishing(fisher: Fisher) -> void:
+	close_fishing()
+	_action.visible = false
+	_roll.visible = false
+	_show_heavy()
+	var ui := Control.new()
+	ui.name = "FishingUI"
+	ui.set_script(preload("res://scripts/ui/fishing_ui.gd"))
+	ui.fisher = fisher
+	add_child(ui)
+
+
+func close_fishing() -> void:
+	var ui := get_node_or_null("FishingUI")
+	if ui:
+		ui.name = "FishingUIGone"
+		ui.queue_free()
+		_set_play_ui(true)
+
+
 ## Down in a cave: no minimap (it shows the land above).
 func set_cave(on: bool) -> void:
 	_indoors = on
