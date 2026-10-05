@@ -321,3 +321,29 @@ an Epic sword (`reward.gear = [slot, rarity]`). Quest items can't be sold (`Item
   `layout` (LAYOUTS: hearth, bright; built-ins, hearth, window and cook spots) and `feel` (FEELS). Rooms are
   `room_<feel>[_bright].glb` from `make_interior.py`. Changing layout moves furniture out of the way.
   House pictures in the home screen come from `ItemIcons.icon("house:<id>")`. Test: `--inside=skep --layout=bright --feel=hill`.
+
+## Grand Swoop Home, stash, rest, rent
+- `Home.UPGRADES` (lodge -> swoophome): `upgrade()` (cost `Balance.HOME_UPGRADE`), `upgraded` (kept if you move out and back),
+  `shown_house()` / `house_model()` / `is_grand()`. A grand home's room is bigger (`GRAND_HALF`, layout "grand",
+  `room_<feel>_grand.glb`); use `Home.room_half()` / `doorway()`, never the constants. `_refit()` moves furniture with the walls.
+- Stash: the trunk indoors ("Stash", `ui/stash_panel.gd`), `Home.store()` / `take_out()`, room `Balance.HOME_STASH` (more if grand).
+- Well Rested: sleeping in your bed (`home_interior._rest`) gives `Food.give("rested", ...)` (`Balance.REST`): XP in `Skills.add`,
+  stamina in `stamina.gd`. A night's sleep is a new day for rent.
+- Rent: a grand home's lodger (`Home.mail_coins`, `new_day()`), village lettings (`state/lettings.gd`, autoload `Lettings`:
+  houses 3, 4, 6 of `village.gd` HOUSES; `buy()`, `do_up()`, `collect()`, `Balance.LETTINGS`). Both are collected at your mailbox
+  or a letting's sign (shop_panel mode "letting"). Furniture per level: `visit_interior.gd` LETTING.
+- Village rooms you can enter: `village.gd` VISITS (residents' homes, the mill) + the lettings. Room feels: `Home.FEELS`
+  (lantern, lodge, hill, swoop, mill) from make_interior.py STYLES. Furniture only for visits (millstone): no cost in
+  `Balance.HOME_FURNITURE`, so `Home.for_sale()` leaves it out.
+- Dev: `--grand` (with `--inside`), `--stash`, `--visit=5` (the mill), `--visit=3`, `--open=letting:3`. Test menu: Grand Swoop Home, A day of rent.
+
+## The bow
+- `fighter.gd` (bow section): hold Attack to draw (`Controls.is_attack_held()`: the HUD's Attack button, left mouse, E), let go
+  to loose; damage grows with the draw, a full draw pierces, letting go within `PERFECT` s of full is a critical. Heavy = Triple
+  Shot. `_aim_target()` prefers enemies in front. You walk slowly while drawing (`aiming()` in player.gd).
+- `player/bow_pose.gd`: arms by two-bone IK, the bare bow (`crystal_bow_bare`, no string) in the left hand, the string drawn
+  in code to the right hand, the nocked arrow. `player_arrow.gd`: homing, swept hits, sticks in what it hits.
+- Where weapons are: drawn only in a fight (`_fight_on()`: an engaged enemy within FIGHT_NEAR, or a swing/shot in the last
+  DRAWN_FOR s); put away at once while your hands are wanted (`_hands_wanted()`: gathering, fishing, hauling/riding, menus);
+  `CharacterVisual.hands_busy` overrides "Sword always in hand". The model faces +Z: things on the back go at -Z
+  (BACK_SWORD_AT, the bow's `back_prop`). Dev: `--bow`, `--bowdraw [--loose]`.

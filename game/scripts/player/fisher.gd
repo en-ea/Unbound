@@ -55,6 +55,11 @@ func is_fishing() -> bool:
 	return phase != Phase.OFF
 
 
+## The hooked fish is pulling hard right now (ease off!).
+func surging() -> bool:
+	return phase == Phase.REEL and _surge > 0.0
+
+
 ## The action: start fishing into `water` ("meadow", "forest", "cave"), the bobber landing at `target`.
 func start(water_id: String, target: Vector3) -> void:
 	if is_fishing() or player.is_down() or player.hauling.carrying or player.hauling.riding:

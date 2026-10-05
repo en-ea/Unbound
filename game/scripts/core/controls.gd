@@ -10,6 +10,14 @@ var locked := false
 var sprint_button := false
 ## The camera's turn (radians, set by the camera): movement is relative to where it looks.
 var cam_yaw := 0.0
+## True while the Attack button (attack_touch, set by the HUD) or the left mouse button / E (attack_key, set
+## by the player) is held: the bow draws while it's held and looses on letting go.
+var attack_touch := false
+var attack_key := false
+
+
+func is_attack_held() -> bool:
+	return not locked and (attack_touch or attack_key)
 
 
 func is_sprint_held() -> bool:

@@ -108,7 +108,7 @@ func _refresh() -> void:
 				var out: String = r["out"]
 				var title := Items.name_of(out) + (" × %d" % r["n"] if r.has("n") else "")
 				_offer(out, title, Food.describe(out), r["cost"], 0, "Roll" if out == "cigarette" else "Cook",
-					Food.cook.bind(r).unbind(0))
+					Food.cook.bind(r))
 		"trade":
 			var names := ["Buy", "Sell"]
 			_grid.columns = 3 if _tab == 0 else 1
@@ -126,7 +126,7 @@ func _refresh() -> void:
 						else Gear.name_of(offer["tool"][0], offer["tool"][1])
 					var text := "Sold out" if offer["sold"] else ("A found tool with a bonus" if item == "tool" else "")
 					_offer("" if item == "tool" else item, label, text, {}, offer["price"], "Buy",
-						Money.buy.bind(offer).unbind(0), offer["sold"], offer.get("tool", []))
+						Money.buy.bind(offer), offer["sold"], offer.get("tool", []))
 			else:
 				var worth := 0
 				var loot := 0
@@ -161,14 +161,14 @@ func _refresh() -> void:
 				_inside_offers()
 				for h: String in Home.HOUSES:
 					if h != Home.house and Home.choosable(h):
-						_offer("house:" + h, Home.HOUSES[h][0], "Done up, waiting for you" if h in Home.upgraded else "", {}, 0, "Move in", Home.change_house.bind(h).unbind(0))
+						_offer("house:" + h, Home.HOUSES[h][0], "Done up, waiting for you" if h in Home.upgraded else "", {}, 0, "Move in", Home.change_house.bind(h))
 			else:
 				var miss := Home.missing()
 				_note.text = "A plot of your own, with a house you choose, and the inside you like (change it any time). " + ("Ready to buy!" if miss.is_empty() else "Still needed: " + "; ".join(miss) + ".")
 				for h: String in Home.HOUSES:
 					if Home.choosable(h):
 						_offer("house:" + h, Home.HOUSES[h][0], "Can be done up later into the " + Home.HOUSES[Home.UPGRADES[h]][0] if Home.UPGRADES.has(h) else "",
-							{}, Balance.HOME["coins"], "Buy" if miss.is_empty() else "Not yet", Home.buy.bind(h).unbind(0), false, [], not miss.is_empty())
+							{}, Balance.HOME["coins"], "Buy" if miss.is_empty() else "Not yet", Home.buy.bind(h), false, [], not miss.is_empty())
 				_inside_offers()
 		"letting":
 			_letting_offers()
@@ -179,7 +179,7 @@ func _refresh() -> void:
 			else:
 				_note.text = "Help the village build this. " + d["text"]
 				_offer("", d["name"], "", Projects.cost(project), Projects.coins(project), "Build",
-					Projects.fund.bind(project).unbind(0))
+					Projects.fund.bind(project))
 
 
 ## What the grand home gives you, in a few lines.
@@ -207,7 +207,7 @@ func _letting_offers() -> void:
 	if lv == 0:
 		_note.text = "For sale. Buy it and a tenant moves in, paying %d coins every day (do it up for more). Rent waits for you here or at your mailbox." % Lettings.rent(i, 1)
 		_offer("", "Buy the " + Lettings.HOUSES[i]["name"], "Rent: %d a day" % Lettings.rent(i, 1), {}, Lettings.price(i), "Buy",
-			Lettings.buy.bind(i).unbind(0))
+			Lettings.buy.bind(i))
 		return
 	_note.text = "Yours, let out (%s). Rent: %d coins a day; all your lettings: %d a day. Walk in the door to look round." % [
 		Lettings.LEVELS[lv].to_lower(), Lettings.rent(i), Lettings.daily()]
@@ -220,7 +220,7 @@ func _letting_offers() -> void:
 		_offer("", "Fully done up", "As fine as it gets. Rent: %d a day." % Lettings.rent(i), {}, 0, "Done", func() -> bool: return false, true)
 	else:
 		_offer("", "Do it up: " + Lettings.LEVELS[lv + 1], "Better furniture. Rent goes up to %d a day." % Lettings.rent(i, lv + 1),
-			c["cost"], c["coins"], "Do it up", Lettings.do_up.bind(i).unbind(0))
+			c["cost"], c["coins"], "Do it up", Lettings.do_up.bind(i))
 
 
 ## The inside: its layout (where the fire and windows are) and its feel (walls, floor, cloth). Free to change.

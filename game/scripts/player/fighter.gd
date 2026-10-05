@@ -9,8 +9,8 @@ const REACH := 2.2
 const BUTTON_REACH := 3.4     # the Attack button shows this far out; the swing steps you in
 const STEP_TO := 1.3          # stepping in stops at this distance
 const STAY_ARMED := 1.2       # seconds the Attack button stays after a swing, even with no target
-const DRAWN_FOR := 3.0        # seconds the sword stays in hand after a swing with nobody near
-const FIGHT_NEAR := 8.0       # an enemy this close keeps it drawn
+const DRAWN_FOR := 2.5        # seconds the sword (or bow) stays in hand after a swing with no fight on
+const FIGHT_NEAR := 8.0       # an enemy this close that's fighting you keeps it drawn
 const COMBO := ["Sword_Regular_A", "Sword_Regular_B", "Sword_Regular_C"]
 const FIST_COMBO := ["Punch_Jab", "Punch_Cross"]    # with no sword
 const CLAW_COMBO := ["Punch_Jab", "Punch_Cross", "Melee_Hook"]   # the Delver's claws: quicker, lighter swipes
@@ -23,14 +23,31 @@ const HIT_SOUNDS := "res://assets/kenney_impact/impactPunch_heavy_%03d.ogg"
 const HEAVY_SWORD := {"anim": "Sword_Attack", "speed": 1.0, "impact": 0.4, "busy": 1.0}
 const HEAVY_FIST := {"anim": "Punch_Cross", "speed": 0.75, "impact": 0.22, "busy": 0.6}
 const HEAVY_REACH := 2.8       # a heavy blow hits every enemy this close in front of you
-## The bow: Attack looses a quick arrow at the nearest enemy in range; Heavy draws a power shot that hits
-## harder and goes through. Bow poses borrow the pistol aim and shot (no bow clips in our library).
-const BOW_RANGE := 24.0
-const QUICK_SHOT := {"mult": 0.7, "draw": 0.16, "busy": 0.42, "pierce": 0}
-const POWER_SHOT := {"mult": 2.2, "draw": 0.62, "busy": 0.95, "pierce": 2}
+## The bow (the Swap button): hold Attack to draw (you slow to a walk and keep facing your target), let go
+## to loose. A quick tap is a light shot; the longer the draw, the harder it hits; fully drawn it goes
+## through. Let go just as it's fully drawn (the flash and the ting) for a Perfect shot: a critical.
+## Heavy is a Triple Shot: three arrows fanned at up to three enemies in front. Arrows bend towards their
+## target. The bow rides on your back outside fights. Arms and string: player/bow_pose.gd.
+const BOW_RANGE := 26.0
+const DRAW_TIME := 0.75       # seconds to a full draw (faster with a swift bow)
+const MIN_DRAW := 0.14        # even a tap draws this long first
+const PERFECT := 0.3          # seconds after the full draw when letting go is Perfect
+const SHOT_REST := 0.22       # after a shot, before the next draw
+const TRIPLE := {"draw": 0.4, "mult": 1.0, "fan": 0.2}
 const ARROW := preload("res://scripts/player/player_arrow.gd")
 const BOW_SOUND := preload("res://assets/sounds/bow_shot.wav")
-var _bow: Node3D
+const BOW_POSE := preload("res://scripts/player/bow_pose.gd")
+const READY_SOUND := preload("res://assets/sounds/tell_glint.wav")
+var _bow: Node3D                # in the left hand, lowered (between shots)
+var _bow_back: Node3D           # on your back
+var _pose: SkeletonModifier3D   # drawn: arms, bow, string and arrow
+var _draw := -1.0               # seconds into a draw (-1: not drawing)
+var _let_go := false            # the button came up: loose once the draw has gone MIN_DRAW
+var _full_at := -1.0            # when the draw came full (for the Perfect window)
+var _triple := false
+var _bow_rest := 0.0
+var _bow_target: Node3D = null
+var _draw_queued := false       # tapped during SHOT_REST: draws as soon as it's over
 const SHOCK_SHADER := preload("res://shaders/shockwave.gdshader")
 const THUD := preload("res://assets/sounds/tree_thud.wav")
 const CRIT_SOUND := preload("res://assets/sounds/crit.wav")
@@ -61,7 +78,7 @@ var _sparks: CPUParticles3D
 
 func _ready() -> void:
 	Gear.changed.connect(show_bow)
-	show_bow.call_deferred()
+	_make_bow.call_deferred()
 	_audio = AudioStreamPlayer3D.new()
 	_audio.unit_size = 6.0
 	player.add_child.call_deferred(_audio)
@@ -111,6 +128,11 @@ func is_busy() -> bool:
 	return _busy > 0.0
 
 
+## Drawing the bow: you walk slowly and keep facing your target.
+func aiming() -> bool:
+	return _draw >= 0.0
+
+
 func _physics_process(delta: float) -> void:
 	_since += delta
 	if _busy > 0.0:
@@ -121,10 +143,16 @@ func _physics_process(delta: float) -> void:
 				attack()
 			if _busy <= 0.0 and visual.tool_shown != "sword":
 				visual.show_tool("")
-	# The sword stays drawn while the fight is on (someone close, or you swung lately), then goes on your back.
-	if _busy <= 0.0 and visual.tool_shown == "sword" and not visual.hand_sword and _since > DRAWN_FOR \
-			and nearest_enemy(FIGHT_NEAR) == null:
+	# The sword stays drawn while the fight is on (an enemy close that's fighting you, or you swung lately),
+	# then goes on your back; at once when your hands are wanted for something else.
+	var busy_hands := _hands_wanted()
+	if busy_hands != visual.hands_busy:
+		visual.hands_busy = busy_hands
+		if busy_hands:
+			cancel_draw()
+	if _busy <= 0.0 and visual.tool_shown == "sword" and (busy_hands or (not visual.hand_sword and _since > DRAWN_FOR and not _fight_on())):
 		visual.show_tool("")
+	_bow_tick(delta)
 	if _impact >= 0.0:
 		_impact -= delta
 		if _heavy:
@@ -136,7 +164,7 @@ func _physics_process(delta: float) -> void:
 		_shock.visible = _shock_t < 1.0
 		_shock_mat.set_shader_parameter("t", _shock_t)
 	var bow := bow_out()
-	target = _nearest_enemy(BOW_RANGE if bow else BUTTON_REACH)
+	target = _aim_target() if bow else _nearest_enemy(BUTTON_REACH)
 	if target and target.get("verb") == "Calm":         # sneaking up to tame it, not to kill it
 		target = null
 	# With the bow, a far enemy only takes the button once the fight is on (so you can still chop and talk).
@@ -154,11 +182,11 @@ func attack() -> void:
 	if verb == "Takedown" and _busy <= 0.0 and is_instance_valid(target):
 		_takedown(target)
 		return
+	if bow_out():
+		_start_draw()
+		return
 	if _busy > 0.0:
 		_queued = _busy < 0.25
-		return
-	if bow_out():
-		_shoot(QUICK_SHOT)
 		return
 	var armed := Gear.tier("sword") >= 0
 	var combo: Array = CLAW_COMBO if _claws() else (COMBO if armed else FIST_COMBO)
@@ -203,7 +231,7 @@ func _takedown(t: Node3D) -> void:
 ## The Heavy button: one big blow. The player has already paid the stamina.
 func heavy() -> void:
 	if bow_out():
-		_shoot(POWER_SHOT)
+		_start_draw(true)
 		return
 	var armed := Gear.tier("sword") >= 0
 	var h: Dictionary = HEAVY_CLAW if _claws() else (HEAVY_SWORD if armed else HEAVY_FIST)
@@ -237,8 +265,9 @@ func end_recovery() -> void:
 	visual.show_tool("")
 
 
-## Stops a swing (a roll cancels it).
+## Stops a swing (a roll cancels it, and a draw).
 func cancel() -> void:
+	cancel_draw()
 	_heavy = false
 	visual.charge_tool(0.0)
 	_busy = 0.0
@@ -400,59 +429,207 @@ func bow_out() -> bool:
 	return Gear.weapon == "bow" and Gear.has_bow and not _claws()
 
 
-## The bow in your left hand while it's your weapon (the sword stays on your back).
+## Your hands are wanted for something else: no sword or bow out (fishing, dragging, riding, gathering,
+## talking or in a menu).
+func _hands_wanted() -> bool:
+	return Controls.locked or player.fisher.is_fishing() or player.hauling.busy() or player.gatherer.is_busy()
+
+
+## Someone close is fighting you.
+func _fight_on() -> bool:
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if e.is_alive() and (e as Node3D).global_position.distance_to(player.global_position) < FIGHT_NEAR \
+				and (not e.has_method("is_engaged") or e.is_engaged()):
+			return true
+	return false
+
+
+func _make_bow() -> void:
+	_bow = visual.hold_prop("crystal_bow", Vector3(90, 0, 0), Vector3(0.0, 0.08, 0.0), "hand_l")
+	_bow.scale = Vector3.ONE * 1.15
+	_bow.visible = false
+	# On the back: slanting the other way from the sword, the string outwards.
+	var along := Vector3(0.55, 1.0, 0.0).normalized()                # the limbs (the model's +Y)
+	var inward := Vector3(0, 0, 1)                                  # the string against your back, the limbs bowing out
+	_bow_back = visual.back_prop(Items.mesh("crystal_bow"), Transform3D(Basis(along.cross(inward), along, inward) * 1.1, Vector3(0.04, 1.22, -0.26)))
+	_bow_back.visible = false
+	_pose = SkeletonModifier3D.new()
+	_pose.set_script(BOW_POSE)
+	_pose.visual = visual
+	_pose.glow = Gear.BOW["glow"]
+	visual.skeleton().add_child(_pose)
+	show_bow()
+
+
+## Where the bow is: drawn (the pose), lowered in your left hand while a fight is on, or on your back.
 func show_bow() -> void:
+	if _bow == null:
+		return
 	var on := bow_out()
-	if on and _bow == null:
-		_bow = visual.hold_prop("crystal_bow", Vector3(90, 0, 0), Vector3(0.0, 0.08, 0.0), "hand_l")
-		_bow.scale = Vector3.ONE * 1.15
-	if _bow:
-		_bow.visible = on
+	var drawn: bool = on and _pose.weight > 0.5
+	var in_hand: bool = on and not drawn and not visual.hands_busy and (_since < DRAWN_FOR or _fight_on())
+	_bow.visible = in_hand
+	_bow_back.visible = on and not drawn and not in_hand
 	if on and visual.tool_shown == "sword":
 		visual.show_tool("")
 
 
-## Draw, then loose an arrow at the target (or straight ahead). `shot` is QUICK_SHOT or POWER_SHOT.
-func _shoot(shot: Dictionary) -> void:
-	var t := target
-	if t:
-		var to := t.global_position - player.global_position
-		visual.rotation.y = atan2(to.x, to.z)
+## The enemy the bow aims at: the nearest in range, favouring those in front of you (or where you push the
+## stick). A tame-able elk you're sneaking up on doesn't count.
+func _aim_target() -> Node3D:
+	if _draw >= 0.0 and is_instance_valid(_bow_target) and _bow_target.is_alive() \
+			and _bow_target.global_position.distance_to(player.global_position) < BOW_RANGE * 1.1:
+		return _bow_target                  # keep the target you started drawing on
+	var m := Controls.get_move()
+	var facing := Vector3(m.x, 0, m.y).normalized() if m.length() > 0.3 else Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
+	var best: Node3D = null
+	var best_score := INF
+	for e in get_tree().get_nodes_in_group("enemy"):
+		if not e.is_alive() or e.get("verb") == "Calm":
+			continue
+		var to: Vector3 = (e as Node3D).global_position - player.global_position
+		to.y = 0.0
+		var d := to.length()
+		if d > BOW_RANGE:
+			continue
+		var score := d * (1.0 + (1.0 - facing.dot(to / maxf(d, 0.01))) * 1.2)
+		if score < best_score:
+			best_score = score
+			best = e
+	return best
+
+
+## Up to `n` enemies in range in front of you, the target first (the Triple Shot).
+func _targets_ahead(n: int) -> Array[Node3D]:
+	var out: Array[Node3D] = []
+	if target:
+		out.append(target)
+	var facing := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
+	var list := get_tree().get_nodes_in_group("enemy").filter(func(e: Node) -> bool:
+		var to: Vector3 = (e as Node3D).global_position - player.global_position
+		to.y = 0.0
+		return e != target and e.is_alive() and e.get("verb") != "Calm" and to.length() < BOW_RANGE and facing.dot(to.normalized()) > 0.5)
+	list.sort_custom(func(a: Node3D, b: Node3D) -> bool:
+		return a.global_position.distance_to(player.global_position) < b.global_position.distance_to(player.global_position))
+	for e: Node3D in list:
+		if out.size() < n:
+			out.append(e)
+	return out
+
+
+## Starts drawing (Attack held), or a Triple Shot (Heavy, the stamina already paid).
+func _start_draw(triple := false) -> void:
+	if _draw >= 0.0 or player.is_down():
+		return
+	if _bow_rest > 0.0:
+		_draw_queued = not triple
+		return
+	_draw_queued = false
+	_draw = 0.0
+	_let_go = triple
+	_full_at = -1.0
+	_triple = triple
+	_bow_target = target
+	_since = 0.0
+	visual.stop_action()
+	_pose.nocked = true
+	_audio.stream = _whoosh
+	_audio.pitch_scale = 0.55
+	_audio.play()
+
+
+## Puts the arrow back (a roll, a hit that stuns, your hands wanted elsewhere).
+func cancel_draw() -> void:
+	if _draw < 0.0:
+		return
+	_draw = -1.0
+	_pose.nocked = false
+
+
+func _bow_tick(delta: float) -> void:
+	if _pose == null:
+		return
+	_bow_rest = maxf(_bow_rest - delta, 0.0)
+	if _draw_queued and _bow_rest <= 0.0 and bow_out():
+		_start_draw()
+	var pace := Gear.speed("sword")
+	if _draw >= 0.0:
+		_draw += delta * pace
+		var full := DRAW_TIME
+		if _triple:
+			full = TRIPLE["draw"]
+		var amount := clampf(_draw / full, 0.0, 1.0)
+		_pose.draw = 1.0 - pow(1.0 - amount, 2.0)
+		if amount >= 1.0 and _full_at < 0.0:
+			_full_at = _draw
+			if not _triple:                    # fully drawn: the string glows and a ting, let go now!
+				_play_once(READY_SOUND, -8.0)
+				player.get_node("Effects").glow_burst(Color(0.5, 1.0, 0.95), 24)
+		var t := target if is_instance_valid(target) else null
+		if t:
+			var to := t.global_position - player.global_position
+			visual.rotation.y = lerp_angle(visual.rotation.y, atan2(to.x, to.z), clampf(delta * 14.0, 0.0, 1.0))
+		if not Controls.is_attack_held():
+			_let_go = true
+		if _let_go and _draw >= MIN_DRAW / pace and (not _triple or amount >= 1.0):
+			_loose(amount)
+	_pose.weight = move_toward(_pose.weight, 1.0 if _draw >= 0.0 or (_bow_rest > 0.0 and bow_out()) else 0.0, delta * (12.0 if _draw >= 0.0 else 5.0))
 	show_bow()
-	var draw: float = shot["draw"] / Gear.speed("sword")
-	if shot == POWER_SHOT:
-		visual.play_action("Pistol_Aim_Neutral", 1.0)
-		visual.charge_tool(0.0)
-	_busy = shot["busy"] / Gear.speed("sword")
-	_impact = -1.0
-	_heavy = false
-	_queued = false
-	_since = -_busy
-	get_tree().create_timer(draw).timeout.connect(func() -> void:
-		if player.is_down() or not bow_out():
-			return
-		visual.play_action("Pistol_Shoot", 1.6)
-		var from := player.global_position + Vector3(0, 1.35, 0) + Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y)) * 0.5
+
+
+## Lets the arrow fly: the longer the draw, the harder (fully drawn it goes through); Perfect on the beat.
+func _loose(amount: float) -> void:
+	var perfect := not _triple and _full_at >= 0.0 and _draw - _full_at <= PERFECT
+	var mult := lerpf(0.55, 1.5, amount)
+	var pierce := 2 if amount >= 1.0 and not _triple else 0
+	if perfect:
+		mult *= 1.4
+	var from := player.global_position + Vector3(0, 1.4, 0) + Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y)) * 0.6
+	if _triple:
+		var aims := _targets_ahead(3)            # the middle arrow at your target, the outer ones at the next two
+		for k in 3:
+			var turn: float = visual.rotation.y + (k - 1) * TRIPLE["fan"]
+			var pick: int = [1, 0, 2][k]
+			_fire(from, Vector3(sin(turn), 0, cos(turn)), aims[pick] if pick < aims.size() else null, TRIPLE["mult"], 0, false, 4.0)
+	else:
 		var dir := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
-		if is_instance_valid(t) and t.is_alive():
+		_fire(from, dir, target if is_instance_valid(target) else null, mult, pierce, perfect, 6.0 if perfect else (3.5 + amount * 2.0))
+	if perfect:
+		FloatText.spawn(get_tree(), player.global_position + Vector3(0, 2.2, 0), "Perfect!", Color(0.55, 1.0, 0.95), true)
+	_audio.stream = BOW_SOUND
+	_audio.pitch_scale = randf_range(0.95, 1.08) * (0.85 if amount >= 1.0 else 1.1)
+	_audio.play()
+	_draw = -1.0
+	_pose.nocked = false
+	_pose.draw = 0.0
+	_bow_rest = SHOT_REST / Gear.speed("sword")
+	_since = 0.0
+
+
+func _fire(from: Vector3, dir: Vector3, t: Node3D, mult: float, pierce: int, crit: bool, homing: float) -> void:
+	if is_instance_valid(t) and t.is_alive():
+		var flat := t.global_position - from
+		flat.y = 0.0
+		if flat.normalized().dot(Vector3(dir.x, 0, dir.z).normalized()) > 0.3:
 			dir = (t.global_position + Vector3(0, 0.7, 0) - from)
-		var arrow := Node3D.new()
-		arrow.set_script(ARROW)
-		player.get_parent().add_child(arrow)
-		arrow.fire(from, dir, self, shot["mult"], shot["pierce"], Gear.BOW["glow"])
-		_audio.stream = BOW_SOUND
-		_audio.pitch_scale = randf_range(0.95, 1.08) * (0.85 if shot == POWER_SHOT else 1.0)
-		_audio.play())
+	else:
+		t = null
+	var arrow := Node3D.new()
+	arrow.set_script(ARROW)
+	player.get_parent().add_child(arrow)
+	arrow.fire(from, dir, self, mult, pierce, Gear.BOW["glow"], t, homing, crit)
 
 
 ## An arrow found its mark (player_arrow.gd): damage like a sword blow, scaled for the shot.
-func arrow_hit(t: Node3D, mult: float) -> void:
+func arrow_hit(t: Node3D, mult: float, crit := false) -> void:
 	if not is_instance_valid(t) or not t.is_alive():
 		return
 	var hit := Gear.hit_damage(mult)
+	if crit:
+		hit = [maxi(hit[0], 1), true]
 	if player.take_counter() or (t.has_method("is_open") and t.is_open()):
 		hit = [hit[0] * 2, true]
 	hit = Abilities.passive_strike(t, hit, player)
-	t.take_hit(player.global_position, hit[0], 1.4 if mult > 1.0 else 0.5)
+	t.take_hit(player.global_position, hit[0], 1.4 if mult > 1.2 else 0.5)
 	_hit_feedback(t, hit[0], hit[1])
 	Skills.add("combat", Balance.XP_PER_SWORD_HIT)

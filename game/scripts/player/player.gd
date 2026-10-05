@@ -359,6 +359,7 @@ func knockback(push: Vector3) -> void:
 		return
 	_knock = push
 	_stun = 0.45
+	fighter.cancel_draw()
 	visual.play_action("Hit_Chest", 1.0)
 	visual.flash()
 
@@ -367,9 +368,13 @@ func knockback(push: Vector3) -> void:
 ## roll, F heavy, R parry, C sneak, T sword/bow, 1 2 3 (or Z X V) abilities, Tab bag, J quests, Esc menu, arrows or a
 ## right-drag turn the camera. Taps on the phone also arrive as emulated clicks: those are ignored here.
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT 			and event.device != InputEvent.DEVICE_ID_EMULATION and not Controls.locked:
-		act()
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.device != InputEvent.DEVICE_ID_EMULATION:
+		Controls.attack_key = event.pressed
+		if event.pressed and not Controls.locked:
+			act()
 		return
+	if event is InputEventKey and event.physical_keycode == KEY_E and not event.echo:
+		Controls.attack_key = event.pressed
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.physical_keycode == KEY_TAB and not Controls.locked:
 			get_tree().call_group("hud", "open_bag")
@@ -514,10 +519,10 @@ func _physics_process(delta: float) -> void:
 	var stick := Controls.get_move()
 	if fighter.recovering() and stick.length() > 0.3:
 		fighter.end_recovery()
-	var swinging: bool = fighter.is_busy() or _guard > 0.0
+	var swinging: bool = fighter.is_busy() or _guard > 0.0 or fighter.aiming()
 	var move := stick if not gatherer.is_busy() else Vector2.ZERO
 	if swinging:
-		move *= 0.35
+		move *= 0.5 if fighter.aiming() else 0.35
 	var strength := move.length()
 	var target_speed := 0.0
 	# Holding Roll after the roll keeps you sprinting while stamina lasts.
@@ -556,7 +561,7 @@ func _physics_process(delta: float) -> void:
 			visual.rotation.y = lerp_angle(visual.rotation.y, atan2(to.x, to.z), clampf(TURN_SPEED * 0.5 * delta, 0.0, 1.0))
 		visual.play_motion(Balance.HUNT["drag_speed"] if strength > 0.1 else 0.0)
 		return
-	if strength > 0.1 and not swinging:
+	if strength > 0.1 and (not swinging or (fighter.aiming() and fighter.target == null)):
 		visual.rotation.y = lerp_angle(visual.rotation.y, atan2(dir.x, dir.z), clampf(TURN_SPEED * delta, 0.0, 1.0))
 	visual.play_motion(speed)
 

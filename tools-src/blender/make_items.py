@@ -400,10 +400,11 @@ def bandit_bow():
     return b
 
 
-def crystal_bow():
+def crystal_bow(with_string=True):
     """The owner's crystal bow (from their picture): angular tan wooden limbs with a jagged kink, an
     ice-blue crystal blade jutting from the back of each limb, crystal tips, a glowing cyan string.
-    Like bandit_bow: the grip at the origin, the bow along Z, the string on the -Y side."""
+    Like bandit_bow: the grip at the origin, the bow along Z, the string on the -Y side. Without the
+    string ("crystal_bow_bare"), the game draws it, pulled back while you draw (player/bow_pose.gd)."""
     b = Builder(["Item", "Glow"])
     wood, wrap, string = (0.66, 0.47, 0.3), (0.42, 0.29, 0.2), (0.35, 1.0, 0.95)
     ice = [(0.74, 0.9, 0.99), (0.6, 0.8, 0.96), (0.88, 0.96, 1.0)]
@@ -423,7 +424,8 @@ def crystal_bow():
         b.paint(b.new_faces(lambda tip=tip, s=s: rk.tube(b.bm, [tip - V((0, -0.01, s * 0.03)), tip + V((0, -0.01, s * 0.04)), tip + V((0, -0.03, s * 0.11))],
                                                         [(0.02, 0.02), (0.026, 0.02), (0.002, 0.002)], ref=V((1, 0, 0)), seg=4)), "Item", ice[2])
     tube_faces(b, [V((0, 0, -0.08)), V((0, 0, 0.08))], [(0.034, 0.03)] * 2, wrap, seg=6, ref=V((1, 0, 0)))
-    tube_faces(b, [V((0, -0.025, -0.7)), V((0, -0.025, 0.7))], [(0.006, 0.006)] * 2, string, seg=3, mat="Glow", ref=V((1, 0, 0)))
+    if with_string:
+        tube_faces(b, [V((0, -0.025, -0.7)), V((0, -0.025, 0.7))], [(0.006, 0.006)] * 2, string, seg=3, mat="Glow", ref=V((1, 0, 0)))
     return b
 
 
@@ -464,6 +466,7 @@ export("bandit_shield", bandit_shield(), OUT)
 export("bandit_bow", bandit_bow(), OUT)
 export("arrow", arrow(), OUT)
 export("crystal_bow", crystal_bow(), OUT)
+export("crystal_bow_bare", crystal_bow(False), OUT)
 export("black_seal", black_seal(), OUT)
 export("red_hand", bandit_token(), OUT)
 export("wood", log(), OUT)

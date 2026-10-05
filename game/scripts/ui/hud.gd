@@ -294,6 +294,7 @@ func _show_buffs() -> void:
 
 
 func _process(delta: float) -> void:
+	Controls.attack_touch = _action.visible and _action.is_held() and _action.swipes.is_empty()
 	_update_roll_button()
 	_update_ability_buttons()
 	_buff_tick -= delta
@@ -434,6 +435,8 @@ func open_fishing(fisher: Fisher) -> void:
 	_action.visible = false
 	_roll.visible = false
 	_show_heavy()
+	_map.visible = false
+	_tracker.visible = false
 	var ui := Control.new()
 	ui.name = "FishingUI"
 	ui.set_script(preload("res://scripts/ui/fishing_ui.gd"))
@@ -446,6 +449,7 @@ func close_fishing() -> void:
 	if ui:
 		ui.name = "FishingUIGone"
 		ui.queue_free()
+		_tracker.visible = true
 		_set_play_ui(true)
 
 

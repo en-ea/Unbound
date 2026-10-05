@@ -31,11 +31,16 @@ var _charged := false
 var _hit_done := false
 var _push := Vector3.ZERO
 var _sense := 0.0
-## Taming (Highlands elk, while you have no elk): sneak up unseen and Calm it, then hold still.
+## Taming (Highlands elk, while you have no elk): sneak up while it grazes (crouched, you're only seen moving
+## close by); if it lifts its head to listen, freeze and it goes back to grazing. Close enough, Calm it,
+## then hold still.
 var verb := ""
 var reach := 4.5
 var _calming := 0.0
+var _moved_while_listening := 0.0
 const CALM_TIME := 2.6
+const FREEZE_GRACE := 0.35      # a listening elk forgives this much moving (the moment you notice it)
+static var _hinted := 0             # 1: told how to sneak up; 2: told about Calm
 var _audio: AudioStreamPlayer3D
 
 
@@ -137,10 +142,13 @@ func _physics_process(delta: float) -> void:
 	if _calming > 0.0:
 		_calm(delta)
 		return
-	verb = "Calm" if Region.current == "highlands" and Hunting.elk.is_empty() and player.get("sneaking") 		and state in [State.GRAZE, State.WALK] else ""
+	var tameable: bool = Region.current == "highlands" and Hunting.elk.is_empty()
+	verb = "Calm" if tameable and player.get("sneaking") and state in [State.GRAZE, State.WALK, State.LISTEN] else ""
 	var to_player := player.global_position - global_position
 	to_player.y = 0.0
 	var dist := to_player.length()
+	if tameable:
+		_taming_hints(dist)
 	var want := Vector3.ZERO
 	_sense -= delta
 	var noticed := false
@@ -167,7 +175,16 @@ func _physics_process(delta: float) -> void:
 				_enter(State.GRAZE)
 		State.LISTEN:
 			_face(to_player, delta * 3.0)
-			if _t > LISTEN_FOR:
+			if player.get("sneaking"):
+				# Crouched: it's listening for you. Keep still and it settles; creep on and it bolts.
+				if _t > FREEZE_GRACE and _player_moving():
+					_moved_while_listening += delta
+				if _moved_while_listening > 0.25 or dist < 1.4:
+					spook(player.global_position)
+				elif _t > LISTEN_FOR * 1.6:
+					_graze_for = randf_range(2.0, 5.0)
+					_enter(State.GRAZE)
+			elif _t > LISTEN_FOR:
 				if _notices(dist * 1.15):
 					spook(player.global_position)
 				else:
@@ -217,13 +234,28 @@ func _physics_process(delta: float) -> void:
 	visual.speed = Vector2(velocity.x, velocity.z).length()
 
 
-## Sees you (all round, but much closer when you sneak) or hears you (Player.noise()).
+## Sees you (all round; sneaking, only when you move close by) or hears you (Player.noise()).
 func _notices(dist: float) -> bool:
 	if not player.can_be_targeted():
 		return false
 	var st: Dictionary = Balance.STAG
-	var sight: float = st["sight_sneak"] if player.sneaking else st["sight"]
-	return dist < sight or dist < player.noise()
+	if player.sneaking:
+		return (dist < st["sight_sneak"] and _player_moving()) or dist < player.noise() * 0.8
+	return dist < st["sight"] or dist < player.noise()
+
+
+func _player_moving() -> bool:
+	return Vector2(player.velocity.x, player.velocity.z).length() > 0.4
+
+
+## The first time you're near a wild elk you could tame: how to do it.
+func _taming_hints(dist: float) -> void:
+	if _hinted == 0 and dist < 14.0:
+		_hinted = 1
+		get_tree().call_group("hud", "hint", "A wild elk. Sneak up while it grazes. If it looks up, freeze!")
+	elif _hinted == 1 and verb == "Calm" and dist < reach:
+		_hinted = 2
+		get_tree().call_group("hud", "hint", "Close enough: press Calm, then hold still.")
 
 
 func _die() -> void:
@@ -253,6 +285,7 @@ func _home_distance() -> float:
 func _enter(new_state: State) -> void:
 	state = new_state
 	_t = 0.0
+	_moved_while_listening = 0.0
 	if new_state != State.WINDUP:
 		visual.tell = 0.0
 	visual.mode = {State.GRAZE: "graze", State.LISTEN: "listen", State.FLEE: "flee", State.WINDUP: "windup",

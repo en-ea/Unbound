@@ -236,7 +236,7 @@ const HUNT := {
 	"drag_speed": 1.3, "carve_time": 1.2, "cart_speed": 6.0, "cart_slots": 3,
 	"summon_count": 3, "summon_spread": 10.0, "summon_wait": 12.0,
 }
-const STAG := {"hp": 24, "damage": 2, "respawn": 90.0, "xp": 30, "sight": 16.0, "sight_sneak": 5.0, "flee_speed": 8.0}
+const STAG := {"hp": 24, "damage": 2, "respawn": 90.0, "xp": 30, "sight": 16.0, "sight_sneak": 3.2, "flee_speed": 8.0}
 const DUSKMAW := {"hp": 160, "damage": 3, "xp": 250, "size": 2.1}
 ## What the trader may stock: [item, amount, price]. "tool" = a found tool with a bonus.
 const STOCK_POOL := [["flint", 3, 18], ["raw_meat", 2, 15], ["glowcap", 1, 40], ["resin", 1, 30],

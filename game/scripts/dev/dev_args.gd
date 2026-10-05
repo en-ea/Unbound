@@ -140,6 +140,8 @@ func _ready() -> void:
 			var props := {"mode": bits[0]}
 			if bits.size() > 1 and bits[0] == "project":
 				props["project"] = bits[1]
+			elif bits.size() > 1 and bits[0] == "letting":    # --open=letting:3 (a village house to let)
+				props["letting"] = int(bits[1])
 			elif bits.size() > 1:
 				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
@@ -160,6 +162,19 @@ func _ready() -> void:
 			get_tree().create_timer(1.2).timeout.connect(func() -> void:
 				get_tree().get_first_node_in_group("build_lab").spawn("boar")
 				get_tree().create_timer(0.6).timeout.connect(func() -> void: get_node("../Player").fighter.heavy()))
+		elif arg == "--stash":                        # the home stash screen (with --inside)
+			get_tree().create_timer(1.5).timeout.connect(func() -> void: get_node("../HUD").open_stash())
+		elif arg == "--bow":                          # the bow as your weapon (on your back outside fights)
+			Gear.weapon = "bow"
+			Gear.changed.emit.call_deferred()
+		elif arg == "--bowdraw":                      # bow out, holding a full draw (a screenshot of the pose; --view=4,-8 side-on)
+			Gear.weapon = "bow"
+			Gear.changed.emit.call_deferred()
+			get_tree().create_timer(1.6).timeout.connect(func() -> void:
+				Controls.attack_key = true
+				get_node("../Player").fighter._start_draw()
+				if "--loose" in OS.get_cmdline_user_args():    # then let go: a full-draw shot
+					get_tree().create_timer(1.2).timeout.connect(func() -> void: Controls.attack_key = false))
 		elif arg == "--bountytest":                   # take the bounties, find and kill the wanted beast, claim
 			add_child(preload("res://scripts/dev/bounty_test.gd").new())
 		elif arg.begins_with("--bounties="):              # take this region's bounties: --bounties=2 takes two (with --open=bounty to see the board)
@@ -282,14 +297,16 @@ func _ready() -> void:
 				var pl := get_node("../Player")
 				pl.global_position = Vector3(24.0, WorldShape.new().height_at(24.0, 5.5) + 0.2, 5.5)
 				pl.fisher.start(Region.current, Vector3(24.0, WorldShape.WATER_Y + 0.05, 1.3))
-				get_tree().create_timer(1.2).timeout.connect(func() -> void:
-					pl.fisher._timer = 0.0
-					get_tree().create_timer(0.3).timeout.connect(func() -> void:
-						pl.fisher.tap()
-						pl.fisher.reeling = true
-						if land:
-							pl.fisher.progress = 0.99
-)))
+				get_tree().create_timer(2.5).timeout.connect(func() -> void:     # straight to a hooked fish
+					var roll := FishData.roll(Region.current, false)
+					pl.fisher.fish = roll[0]
+					pl.fisher.size = roll[1]
+					pl.fisher._hook()
+					pl.fisher.reeling = true
+					pl.fisher.progress = 0.99 if land else 0.45
+					if not land:                          # held mid-fight, for a look at the bars
+						pl.fisher.tension = 0.6
+						pl.fisher.set_process(false)))
 		elif arg.begins_with("--sword="):                 # try a sword look in hand: plain, runeblade, frost
 			CharacterVisual.lab_sword_style = arg.trim_prefix("--sword=")
 			get_tree().create_timer(1.0).timeout.connect(func() -> void: get_node("../Player").visual.show_tool("sword"))

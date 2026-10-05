@@ -5,6 +5,23 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "5 Oct", "title": "Grand Swoop Home, a real bow, homes to let", "lines": [
+		"Own the Swoop Lodge? Do it up into the Grand Swoop Home (at your mailbox): a much bigger room, a",
+		"bigger stash, longer Well Rested, and a lodger who pays rent every day (collect it at the mailbox).",
+		"Your trunk is now a Stash: keep things at home to free up your bag. Sleep in your bed to wake Well",
+		"Rested: 25% more XP and stamina comes back faster. Two new room feels (Swoop, Mill), seven new",
+		"pieces of furniture (counter, barrel, flour sacks, weapon rack, cushioned bench, fig tree...).",
+		"The village: the mill and three more houses you can walk into. Three are for sale: buy one and a",
+		"tenant pays rent every day; do it up (Cosy, Fine) for more rent and nicer rooms. Use the sign by the door.",
+		"The bow, rebuilt: HOLD Attack to draw (he really draws the string now), let go to shoot. The longer",
+		"the draw, the harder; full draw goes through. Let go right at the flash and ting for a PERFECT shot.",
+		"Arrows curve towards your target and stick in. Heavy is now a Triple Shot at up to three enemies.",
+		"Sword and bow go on your back outside fights and when you chop, fish, ride, drag or talk.",
+		"(They were sitting on your chest all along, which you could only see from the front. Fixed.)",
+		"Elk taming works: sneak up while it grazes; if it looks up, FREEZE and it goes back to grazing.",
+		"Calm works while it's listening too. Fishing: the fight is in the middle of the screen now, with",
+		"how close the fish is, the line's tension and a tip, a big HOOK! on a bite, and a tidier screen.",
+	]},
 	{"when": "4 Oct", "title": "Living village, bows, elk riding", "lines": [
 		"The village is rearranged round a green: houses face it, the campfire in the middle, a craft corner west.",
 		"New villagers with a day of their own: Tomas the woodcutter, Elsa the cook, her daughter Nell, Bram the miller.",

@@ -48,14 +48,15 @@ var walk_backward := false      # play the walk in reverse (dragging a body: Pus
 var wear_gear := false          # show the player's worn armour over the look (off in the look picker)
 var back_sword := false         # the player: your sword rides on your back while it isn't in your hand
 var hand_sword := false         # the player's "Sword: always in hand" setting
+var hands_busy := false         # fishing, riding, dragging, talking...: no sword in hand, whatever the setting
 var claws := false              # the Delver: claws on both hands instead of a sword (set_claws)
 var tool_shown := ""
 var _sword_style := ""
 ## Where the sheathed sword sits, in the model's own space (it faces +Z): grip up by the right shoulder,
 ## blade slanting down across the back.
 const BACK_SWORD_TILT := PI + 0.5          # blade down, slanting across the back (turned flat to it first)
-const BACK_SWORD_AT := Vector3(-0.2, 1.58, 0.25)   # far enough off the back to clear coats and cloaks
-const BACK_SWORD_LEAN := -0.16             # the tip angled out from the body, so it doesn't sink into flared clothes
+const BACK_SWORD_AT := Vector3(-0.2, 1.58, -0.25)  # behind you (-Z), far enough off the back to clear coats and cloaks
+const BACK_SWORD_LEAN := 0.16              # the tip angled out from the body, so it doesn't sink into flared clothes
 var _back: Node3D
 var _metal_tint := Color(0, 0, 0, 0)
 
@@ -285,7 +286,7 @@ func show_tool(tool_name: String) -> void:
 	var has_sword := back_sword and Gear.tier("sword") >= 0 and not claws
 	if claws and tool_name == "sword":
 		tool_name = ""
-	if tool_name == "" and hand_sword and has_sword:
+	if tool_name == "" and hand_sword and has_sword and not hands_busy:
 		tool_name = "sword"
 	tool_shown = tool_name
 	if _back:
@@ -506,6 +507,26 @@ func set_two_hand(on: bool) -> void:
 	_hold_on = on
 	if is_instance_valid(_hold_hand_prop):
 		_hold_hand_prop.visible = not on
+
+
+func skeleton() -> Skeleton3D:
+	return _skeleton
+
+
+## A model carried on the back (the bow): `at` places it in the model's own space at rest, like the
+## sword on the back (BACK_SWORD_AT), so it sits the same whatever way the bone points.
+func back_prop(mesh: Mesh, at: Transform3D) -> MeshInstance3D:
+	var spine := _skeleton.find_bone("spine_03")
+	var holder := BoneAttachment3D.new()
+	holder.bone_name = "spine_03" if spine >= 0 else "Head"
+	_skeleton.add_child(holder)
+	var prop := MeshInstance3D.new()
+	prop.mesh = mesh
+	prop.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var skel_in_self := global_transform.affine_inverse() * _skeleton.global_transform
+	prop.transform = (skel_in_self * _skeleton.get_bone_global_rest(maxi(spine, 0))).affine_inverse() * at
+	holder.add_child(prop)
+	return prop
 
 
 ## A spot on the head bone for small props (a cigarette). Made once.
