@@ -30,7 +30,7 @@ var _snap_button: Button
 
 func _ready() -> void:
 	add_to_group("build_mode")
-	_ids = Home.FURNITURE.keys() if room else Home.PIECES.keys()
+	_ids = Home.for_sale() if room else Home.PIECES.keys()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var panel := PanelContainer.new()
@@ -178,7 +178,7 @@ func _wall_hook(id: String, at: Vector2) -> Array:
 	if Home.FURNITURE[id][3] != "wall":
 		return []
 	var depth: float = Home.FURNITURE[id][2].y
-	var h := Home.ROOM_HALF
+	var h := Home.room_half()
 	var gaps := {"back": at.y + h.y, "west": at.x + h.x, "east": h.x - at.x}
 	var wall: String = gaps.keys().reduce(func(a: String, b: String) -> String: return a if gaps[a] <= gaps[b] else b)
 	if gaps[wall] > 1.4:

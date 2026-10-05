@@ -1,8 +1,9 @@
 """Builds the inside of your home and its furniture (faceted low-poly, colours in UVs like the rest).
 
-  room_<feel>[_bright]: the room shell for each feel (lantern = Cottage, lodge = Lodge, hill = Stone) and
+  room_<feel>[_bright|_grand]: the room shell for each feel (lantern = Cottage, lodge = Lodge, hill = Stone,
+                swoop = Swoop, mill = Mill) and
                 layout (the Hearth Room, or the Bright Room: two big windows at the back and the
-                fireplace on the right-hand wall; see Home.LAYOUTS): plank floor, walls
+                fireplace on the right-hand wall; or the Grand Swoop Home's bigger room, GRAND; see Home.LAYOUTS): plank floor, walls
                 that step down towards the camera (a cut-away dollhouse view), a low front wall with
                 the doorway, a stone hearth with a fire and a hanging pot, windows with curtains,
                 shelves, a picture, a doormat. The glass is its own object ("Windows") so the game
@@ -13,7 +14,7 @@
 Room: inner floor x -4.8..4.8, y -3.8..3.8 (front, the doorway, at -Y). Keep in step with
 Home.ROOM_HALF and world/home_interior.gd. Exported to game/assets/interior/.
 
-Run: tools/blender/blender.exe --background --python tools-src/blender/make_interior.py [-- <name>]
+Run: tools/blender/blender.exe --background --python tools-src/blender/make_interior.py [-- <name>[,<name>...]]
 """
 import math
 import os
@@ -58,7 +59,16 @@ STYLES = {
     "hill": {"walls": "stone", "floor": [(0.68, 0.48, 0.31), (0.63, 0.44, 0.28), (0.72, 0.52, 0.34), (0.66, 0.46, 0.3)],
              "plaster": (0.97, 0.9, 0.74), "timber": (0.46, 0.31, 0.2), "lower": STONE,
              "cloth": (0.86, 0.66, 0.3), "window": "round"},
+    # Navy panelling and cream plaster, like the Swoop houses outside; gold curtain ties.
+    "swoop": {"walls": "cottage", "floor": [(0.6, 0.42, 0.28), (0.56, 0.39, 0.26), (0.64, 0.45, 0.3), (0.58, 0.4, 0.27)],
+              "plaster": (0.95, 0.92, 0.84), "timber": (0.3, 0.2, 0.14), "lower": [(0.2, 0.25, 0.42), (0.18, 0.22, 0.38), (0.23, 0.28, 0.46)],
+              "cloth": (0.22, 0.28, 0.5), "window": "tall"},
+    # The miller's: pale pine boards all the way up, sage cloth, a light floor dusted with flour.
+    "mill": {"walls": "planks", "floor": [(0.8, 0.68, 0.5), (0.76, 0.64, 0.46), (0.84, 0.72, 0.54), (0.78, 0.66, 0.48)],
+             "plaster": (0.9, 0.86, 0.76), "timber": (0.52, 0.37, 0.24), "lower": [(0.88, 0.8, 0.64), (0.84, 0.76, 0.6), (0.9, 0.83, 0.68)],
+             "cloth": (0.5, 0.62, 0.4), "window": "square"},
 }
+GRAND = (6.6, 4.8)                   # the Grand Swoop Home's room (inner half sizes); Home.GRAND_HALF
 
 
 # --- helpers -------------------------------------------------------------------------------
@@ -360,6 +370,19 @@ def sconce(b, w, u, v):
 
 
 def room(name, layout="hearth"):
+    """A room for a feel and layout. layout "grand" is the Grand Swoop Home's big room (GRAND sizes):
+    the hearth further left, two windows at the back, shelves on both side walls."""
+    global IX, IY
+    small = (IX, IY)
+    if layout == "grand":
+        IX, IY = GRAND
+    try:
+        return _room(name, layout)
+    finally:
+        IX, IY = small
+
+
+def _room(name, layout):
     s = STYLES[name]
     b = Builder(["Prop", "Glow"])
     glass = Builder(["Prop"])
@@ -368,9 +391,10 @@ def room(name, layout="hearth"):
     back = Wall(V((-IX, IY, 0)), V((1, 0, 0)), V((0, -1, 0)), lambda u: H_BACK)
     west = Wall(V((-IX, -IY, 0)), V((0, 1, 0)), V((1, 0, 0)), slope)
     east = Wall(V((IX, -IY, 0)), V((0, 1, 0)), V((-1, 0, 0)), slope)
-    dress_wall(b, s, back, -T, 2 * IX + T, [0.11, 3.7, 6.9, 2 * IX - 0.11], s["walls"] == "planks")
-    dress_wall(b, s, west, -T, 2 * IY, [0.11, 3.3, 2 * IY - 0.11], s["walls"] == "planks")
-    dress_wall(b, s, east, -T, 2 * IY, [0.11, 3.3, 2 * IY - 0.11], s["walls"] == "planks")
+    grand = layout == "grand"
+    dress_wall(b, s, back, -T, 2 * IX + T, [0.11, 4.85, 9.6, 2 * IX - 0.11] if grand else [0.11, 3.7, 6.9, 2 * IX - 0.11], s["walls"] == "planks")
+    dress_wall(b, s, west, -T, 2 * IY, [0.11, 3.9 if grand else 3.3, 2 * IY - 0.11], s["walls"] == "planks")
+    dress_wall(b, s, east, -T, 2 * IY, [0.11, 6.2 if grand else 3.3, 2 * IY - 0.11], s["walls"] == "planks")
     # The low front wall, either side of the doorway, capped with a timber rail.
     front = Wall(V((-IX - T, -IY, 0)), V((1, 0, 0)), V((0, 1, 0)), lambda u: KNEE)
     for u0, u1 in ((0.0, IX + T - DOOR), (IX + T + DOOR, 2 * (IX + T))):
@@ -392,7 +416,18 @@ def room(name, layout="hearth"):
     box(b, V((0, -IY + 0.5, 0.01)), (1.2, 0.72, 0.02), (0.62, 0.46, 0.3), 0.03)
     for k in range(3):
         box(b, V((0, -IY + 0.3 + k * 0.2, 0.022)), (1.1, 0.06, 0.01), (0.44, 0.3, 0.2), 0.0)
-    if layout == "bright":
+    if grand:
+        # The back wall: the hearth left of the middle, a picture between sconces, two tall windows right;
+        # a window and a second set of shelves on the east wall.
+        hearth(b, back, IX - 3.2)
+        picture(b, back, IX - 0.6, 2.05)
+        sconce(b, back, IX - 1.25, 2.1)
+        sconce(b, back, IX + 0.05, 2.1)
+        window(b, glass, s, back, IX + 1.6, 1.0, 1.3, 1.45)
+        window(b, glass, s, back, IX + 4.4, 1.0, 1.3, 1.45)
+        window(b, glass, s, east, 2 * IY - 0.8, 1.05, 0.9, 0.9)
+        shelf_wall(b, s, east, IY - 0.6)
+    elif layout == "bright":
         # The back wall: two big windows with a picture between; the fireplace on the east wall.
         window(b, glass, s, back, IX - 2.3, 0.95, 1.4, 1.45)
         window(b, glass, s, back, IX + 2.3, 0.95, 1.4, 1.45)
@@ -674,6 +709,122 @@ def mailbox():
     return b
 
 
+def counter():
+    """A kitchen counter against the wall: cupboards under a thick top, a basin, pots, a cutting board."""
+    b = Builder(["Prop"])
+    W, D = 1.6, 0.6
+    soft(b, cube(b, V((0, 0, 0.42)), (W, D, 0.84)), WOOD[0], 0.03)
+    soft(b, cube(b, V((0, -0.02, 0.88)), (W + 0.06, D + 0.06, 0.08)), WOOD_D, 0.02)
+    for k in range(3):
+        soft(b, cube(b, V((-W / 3 + k * W / 3, -D / 2 - 0.01, 0.4)), (W / 3 - 0.07, 0.02, 0.62)), WOOD[2], 0.01)
+        ball(b, V((-W / 3 + k * W / 3 + 0.16, -D / 2 - 0.04, 0.52)), (0.025, 0.025, 0.025), IRON, 6, 4)
+    cyl(b, V((0.4, 0.02, 0.92)), 0.2, 0.1, STONE[2], 10, r_top=0.24)                     # a stone basin
+    cyl(b, V((0.4, 0.02, 0.97)), 0.17, 0.02, (0.5, 0.66, 0.78), 10)
+    box(b, V((-0.25, -0.04, 0.93)), (0.42, 0.28, 0.03), WOOD[2], 0.02)                    # cutting board
+    for k in range(3):
+        ball(b, V((-0.32 + k * 0.08, -0.04, 0.98)), (0.04, 0.04, 0.035), [(0.86, 0.5, 0.2), (0.62, 0.78, 0.3), (0.95, 0.88, 0.6)][k], 6, 4)
+    cyl(b, V((-0.62, 0.08, 0.92)), 0.1, 0.18, IRON, 8)                                     # a pot
+    cyl(b, V((-0.62, 0.08, 1.1)), 0.11, 0.02, IRON, 8)
+    for k in range(3):                                                                     # ladles on a rail
+        rod(b, V((-0.45 + k * 0.3, D / 2 - 0.02, 1.5)), V((-0.45 + k * 0.3, D / 2 - 0.04, 1.2)), 0.012, WOOD_D, 4)
+        cyl(b, V((-0.45 + k * 0.3, D / 2 - 0.05, 1.15)), 0.04, 0.05, IRON, 6)
+    rod(b, V((-0.65, D / 2 - 0.02, 1.5)), V((0.65, D / 2 - 0.02, 1.5)), 0.015, IRON, 4)
+    return b
+
+
+def barrel():
+    b = Builder(["Prop"])
+    staves = [(0.62, 0.42, 0.26), (0.56, 0.38, 0.23), (0.66, 0.46, 0.29)]
+    for k in range(12):
+        a = k * math.tau / 12
+        c = V((math.cos(a) * 0.25, math.sin(a) * 0.25, 0))
+        rod(b, c * 0.92, c * 0.92 + V((0, 0, 0.42)) + c * 0.12, 0.07, staves[k % 3], 4)
+        rod(b, c * 0.92 + V((0, 0, 0.42)) + c * 0.12, c * 0.92 + V((0, 0, 0.84)), 0.07, staves[k % 3], 4)
+    for z in (0.12, 0.42, 0.72):
+        cyl(b, V((0, 0, z)), 0.3 if z == 0.42 else 0.275, 0.05, IRON, 12)
+    cyl(b, V((0, 0, 0.8)), 0.24, 0.04, WOOD[2], 12)
+    box(b, V((0, 0, 0.85)), (0.32, 0.04, 0.03), WOOD_D, 0.0)
+    return b
+
+
+def sacks():
+    """Three flour sacks slumped together, tied at the neck, one spilling a little."""
+    b = Builder(["Prop"])
+    burlap = [(0.86, 0.78, 0.6), (0.8, 0.72, 0.54), (0.9, 0.83, 0.66)]
+    for k, (x, y, s) in enumerate(((-0.22, 0.05, 1.0), (0.2, 0.08, 0.9), (0.0, -0.14, 0.8))):
+        ball(b, V((x, y, 0.24 * s)), (0.24 * s, 0.2 * s, 0.26 * s), burlap[k], 8, 5)
+        ball(b, V((x, y, 0.5 * s)), (0.12 * s, 0.1 * s, 0.1 * s), burlap[(k + 1) % 3], 6, 4)
+        cyl(b, V((x, y, 0.55 * s)), 0.05 * s, 0.05, (0.5, 0.36, 0.22), 6)
+        ball(b, V((x, y, 0.63 * s)), (0.07 * s, 0.07 * s, 0.05 * s), burlap[k], 6, 3)
+    ball(b, V((0.1, -0.36, 0.01)), (0.22, 0.12, 0.03), (0.97, 0.95, 0.9), 8, 3)            # spilt flour
+    return b
+
+
+def weapon_rack():
+    """A rack on the wall with a sword, an axe and a bow on pegs, a shield in the middle."""
+    b = Builder(["Prop"])
+    for x in (-0.55, 0.55):
+        soft(b, cube(b, V((x, 0.1, 0.9)), (0.08, 0.08, 1.8)), WOOD_D, 0.02)
+    for z in (0.5, 1.3):
+        soft(b, cube(b, V((0, 0.1, z)), (1.2, 0.06, 0.1)), WOOD[1], 0.02)
+    rod(b, V((-0.32, 0.0, 0.25)), V((-0.32, 0.0, 1.55)), 0.02, (0.78, 0.8, 0.84), 4)      # a sword
+    box(b, V((-0.32, 0.0, 1.2)), (0.24, 0.05, 0.04), IRON, 0.0)
+    rod(b, V((-0.32, 0.0, 1.22)), V((-0.32, 0.0, 1.45)), 0.025, (0.4, 0.26, 0.18), 5)
+    ball(b, V((0, -0.02, 0.95)), (0.28, 0.06, 0.32), (0.3, 0.42, 0.6), 8, 4)               # a round shield
+    ball(b, V((0, -0.07, 0.95)), (0.07, 0.03, 0.07), GOLD, 6, 4)
+    pts = [V((0.34, 0.0, 0.35)), V((0.4, 0.0, 0.7)), V((0.42, 0.0, 1.05)), V((0.4, 0.0, 1.4)), V((0.34, 0.0, 1.7))]  # a bow
+    for p0, p1 in zip(pts, pts[1:]):
+        rod(b, p0, p1, 0.022, WOOD[0], 4)
+    rod(b, pts[0], pts[-1], 0.006, CREAM, 3)
+    return b
+
+
+def bench_seat():
+    """A long wooden bench with a cushion and a backrest."""
+    b = Builder(["Prop"])
+    soft(b, cube(b, V((0, 0, 0.44)), (1.4, 0.44, 0.07)), WOOD[0], 0.02)
+    for x in (-0.6, 0.6):
+        soft(b, cube(b, V((x, 0, 0.21)), (0.08, 0.38, 0.42)), WOOD_D, 0.02)
+        soft(b, cube(b, V((x, 0.19, 0.72)), (0.07, 0.06, 0.62)), WOOD_D, 0.02)
+    for z in (0.66, 0.9):
+        soft(b, cube(b, V((0, 0.19, z)), (1.3, 0.05, 0.09)), WOOD[2], 0.02)
+    soft(b, cube(b, V((0, -0.02, 0.5)), (1.26, 0.38, 0.07)), (0.36, 0.46, 0.62), 0.03, 2)
+    soft(b, cube(b, V((-0.4, 0.08, 0.62)), (0.32, 0.12, 0.26), Euler((0.3, 0, 0.1))), (0.9, 0.62, 0.34), 0.04, 2)
+    return b
+
+
+def potted_tree():
+    """A little fig tree in a big glazed pot."""
+    b = Builder(["Prop"])
+    cyl(b, V((0, 0, 0)), 0.24, 0.5, (0.32, 0.46, 0.6), 10, r_top=0.3)
+    cyl(b, V((0, 0, 0.5)), 0.32, 0.06, (0.26, 0.38, 0.52), 10)
+    cyl(b, V((0, 0, 0.52)), 0.27, 0.03, (0.3, 0.22, 0.16), 10)
+    rod(b, V((0, 0, 0.52)), V((0.05, 0.02, 1.3)), 0.05, (0.46, 0.34, 0.24), 5)
+    for k in range(5):
+        a = k * math.tau / 5 + rnd.uniform(-0.3, 0.3)
+        top = V((math.cos(a) * 0.35, math.sin(a) * 0.35, 1.45 + rnd.uniform(0, 0.4)))
+        rod(b, V((0.04, 0.02, 1.15)), top, 0.025, (0.46, 0.34, 0.24), 4)
+        clump(b, top, rnd.uniform(0.22, 0.3), 1, rnd, rnd.choice(LEAF), "Prop", 0.75)
+    clump(b, V((0.05, 0.02, 1.85)), 0.3, 1, rnd, LEAF[0], "Prop", 0.8)
+    return b
+
+
+def millstone():
+    """The miller's grinding stones: a round stone on a wooden frame, a hopper above, a flour chute."""
+    b = Builder(["Prop"])
+    for x in (-0.6, 0.6):
+        for y in (-0.6, 0.6):
+            soft(b, cube(b, V((x, y, 0.3)), (0.12, 0.12, 0.6)), WOOD_D, 0.02)
+    soft(b, cube(b, V((0, 0, 0.62)), (1.36, 1.36, 0.08)), WOOD[1], 0.02)
+    cyl(b, V((0, 0, 0.66)), 0.55, 0.16, STONE[1], 14)
+    cyl(b, V((0, 0, 0.82)), 0.52, 0.14, STONE[2], 14)
+    cyl(b, V((0, 0, 0.96)), 0.1, 0.04, IRON, 8)
+    paint(b, b.new_faces(lambda: rk.tube(b.bm, [V((0, 0, 1.1)), V((0, 0, 1.5))], [(0.08, 0.08), (0.3, 0.3)], seg=4)), WOOD[0], 0.02)
+    box(b, V((0, -0.72, 0.5)), (0.2, 0.3, 0.06), WOOD[2], 0.02, rot=Euler((0.5, 0, 0)))
+    ball(b, V((0, -0.95, 0.06)), (0.24, 0.18, 0.06), (0.97, 0.95, 0.9), 8, 3)
+    return b
+
+
 # --- export -------------------------------------------------------------------------------
 
 def export_multi(name, parts):
@@ -709,13 +860,15 @@ os.makedirs(OUT, exist_ok=True)
 ONLY = sys.argv[sys.argv.index("--") + 1] if "--" in sys.argv and len(sys.argv) > sys.argv.index("--") + 1 else ""
 BUILD = {"room_" + h: (lambda h=h: room(h)) for h in STYLES}
 BUILD.update({"room_%s_bright" % h: (lambda h=h: room(h, "bright")) for h in STYLES})
+BUILD.update({"room_%s_grand" % h: (lambda h=h: room(h, "grand")) for h in STYLES})
 for n, fn in {"bed": bed, "table": table, "chair": chair, "stool": stool, "bookshelf": bookshelf, "wardrobe": wardrobe,
               "dresser": dresser, "rug_round": rug_round, "rug_long": rug_long, "plant": plant, "lamp": lamp,
-              "trunk": trunk, "armchair": armchair, "trophy": trophy}.items():
+              "trunk": trunk, "armchair": armchair, "trophy": trophy, "counter": counter, "barrel": barrel, "sacks": sacks,
+              "weapon_rack": weapon_rack, "bench_seat": bench_seat, "potted_tree": potted_tree, "millstone": millstone}.items():
     BUILD["furn_" + n] = (lambda fn=fn: {"Piece": fn()})
 BUILD["mailbox"] = lambda: {"Piece": mailbox()}
 for n, fn in BUILD.items():
-    if ONLY and n != ONLY:
+    if ONLY and n not in ONLY.split(","):
         continue
     rnd.seed(sum(map(ord, n)))
     export_multi(n, fn())

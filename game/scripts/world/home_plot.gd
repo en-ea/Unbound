@@ -53,18 +53,23 @@ func _rebuild() -> void:
 				_stuff.add_child(stake)
 				stake.global_position = _at(c.x + sx * 9.5, c.y - 4.0 + sz * 8.0) + Vector3(0, 0.5, 0)
 		return
-	var house := TREASURE._solid((load(Home.HOUSES[Home.house][1]) as PackedScene).instantiate())
+	var house := TREASURE._solid((load(Home.house_model()) as PackedScene).instantiate())
 	_stuff.add_child(house)
-	house.global_position = _at(c.x, c.y - 7.0)
+	var grand := Home.is_grand()
+	house.global_position = _at(c.x, c.y - (7.6 if grand else 7.0))
 	house.add_to_group("map_building")
-	house.set_meta("map_size", Vector2(6, 5))
-	_collide(house, Vector3(0, 2, 0), Vector3(5.5, 4, 4.5))
+	house.set_meta("map_size", Vector2(7.5, 6.5) if grand else Vector2(6, 5))
+	_collide(house, Vector3(0, 2, 0), Vector3(6.4, 4, 5.0) if grand else Vector3(5.5, 4, 4.5))
+	if grand:                                           # the porch under the front gable
+		_collide(house, Vector3(1.35, 2, 2.9), Vector3(3.2, 4, 1.4))
+	var dx := 1.35 if grand else 0.0                    # the grand home's door is in its front gable
+	var dz := 3.6 - (1.1 if grand else 0.0)
 	var door := Node3D.new()                            # your front door: press Enter, or just walk in
 	door.set_script(USE_SPOT)
 	_stuff.add_child(door)
-	door.setup(_at(c.x, c.y - 3.6), "Enter", interior.enter, 2.0)
-	interior.door_in = _at(c.x, c.y - 4.3)
-	interior.door_out = _at(c.x, c.y - 2.7)
+	door.setup(_at(c.x + dx, c.y - dz), "Enter", interior.enter, 2.0)
+	interior.door_in = _at(c.x + dx, c.y - dz - 0.7)
+	interior.door_out = _at(c.x + dx, c.y - dz + 0.9)
 	var mail := Node3D.new()                            # the mailbox by the path: the home screen
 	mail.set_script(STATION)
 	_stuff.add_child(mail)

@@ -40,6 +40,8 @@ func progress(skill: String) -> float:
 func add(skill: String, amount: int) -> void:
 	if not xp.has(skill) or amount <= 0:
 		return
+	if Food.has("rested"):
+		amount = ceili(amount * Balance.REST["xp"])
 	var before := level(skill)
 	xp[skill] += amount
 	gained.emit(skill, amount)

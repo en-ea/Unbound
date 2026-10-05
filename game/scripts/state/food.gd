@@ -12,6 +12,7 @@ const BUFFS := {
 	"swift": {"name": "Swift", "text": "Runs 20% faster", "color": Color(0.55, 0.9, 1.0)},
 	"nimble": {"name": "Nimble", "text": "Chops and mines 25% faster", "color": Color(0.7, 1.0, 0.5)},
 	"sturdy": {"name": "Sturdy", "text": "Takes 1 less damage", "color": Color(1.0, 0.85, 0.45)},
+	"rested": {"name": "Well Rested", "text": "25% more XP, stamina back faster", "color": Color(0.75, 0.7, 1.0)},
 }
 ## Campfire recipes, in the order shown.
 const RECIPES := Balance.COOKING
@@ -54,6 +55,12 @@ func eat(item: String) -> int:
 		changed.emit()
 	ate.emit(item)
 	return f["heal"]
+
+
+## The action: a buff from something other than food (sleeping in your bed: rested).
+func give(buff: String, secs: float) -> void:
+	_until[buff] = maxf(_until.get(buff, 0.0), _now() + secs)
+	changed.emit()
 
 
 func has(buff: String) -> bool:

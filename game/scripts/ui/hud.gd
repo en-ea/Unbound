@@ -517,6 +517,11 @@ func open_menu() -> void:
 
 
 ## The quest log: every quest you're on and have done; pick the one to follow.
+## The stash in your home's trunk (world/home_interior.gd).
+func open_stash() -> void:
+	_modal(preload("res://scripts/ui/stash_panel.gd"))
+
+
 func open_quests() -> void:
 	_modal(preload("res://scripts/ui/quest_log.gd"))
 

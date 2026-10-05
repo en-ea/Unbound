@@ -13,7 +13,6 @@ const USE_SPOT := preload("res://scripts/world/use_spot.gd")
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 const DOOR_SOUND := preload("res://assets/kenney_impact/impactWood_medium_002.ogg")
 const AT := Vector3(300, -300, 0)       # far east of the map and far below it
-const ENTRY := Vector3(0.0, 0.15, 2.9)
 const MAX_LAMPS := 4
 
 var player: CharacterBody3D
@@ -88,10 +87,10 @@ func _go_in() -> void:
 		_fog_was = env.fog_enabled
 		env.fog_enabled = false
 	day_night.set_indoors(true)
-	player.global_position = origin + ENTRY
+	player.global_position = origin + Vector3(0.0, 0.15, _half().y - 0.9)
 	player.velocity = Vector3.ZERO
 	player.visual.rotation.y = PI
-	get_tree().call_group("camera_rig", "enter_room", origin + Vector3(0, 0.4, -1.1))
+	get_tree().call_group("camera_rig", "enter_room", origin + Vector3(0, 0.4, -1.1), 0.3 if _half().x < 5.0 else 0.6)
 	get_tree().call_group("hud", "set_indoors", true, _is_home())
 	_update_windows()
 
@@ -123,7 +122,7 @@ func _physics_process(delta: float) -> void:
 		if local.length() > 40.0:
 			_back_outside()
 			return
-		if local.z > Home.ROOM_HALF.y + 0.45 and absf(local.x) < 1.2:
+		if local.z > _half().y + 0.45 and absf(local.x) < 1.2:
 			leave()
 		_time += delta
 		_fire.light_energy = lerpf(1.6, 2.3, day_night.night) + sin(_time * 7.3) * 0.18 + sin(_time * 12.7 + 1.3) * 0.12 + randf() * 0.06
@@ -179,6 +178,10 @@ func _furnishing() -> Array:
 	return Home.furniture
 
 
+func _half() -> Vector2:
+	return Home.room_half()
+
+
 func _build_room() -> void:
 	if is_instance_valid(_room):
 		_room.queue_free()
@@ -212,7 +215,7 @@ func _build_room() -> void:
 	var mat := Node3D.new()
 	mat.set_script(USE_SPOT)
 	_room.add_child(mat)
-	mat.setup(origin + Vector3(0, 0, 3.35), "Leave", leave, 0.9)
+	mat.setup(origin + Vector3(0, 0, _half().y - 0.45), "Leave", leave, 0.9)
 	_furniture = Node3D.new()
 	_room.add_child(_furniture)
 	_place_furniture()
@@ -238,8 +241,8 @@ func _void() -> void:
 func _walls() -> void:
 	var body := StaticBody3D.new()
 	_room.add_child(body)
-	var hx := Home.ROOM_HALF.x
-	var hz := Home.ROOM_HALF.y
+	var hx := _half().x
+	var hz := _half().y
 	_box(body, Vector3(0, -0.5, 1.0), Vector3(hx * 2 + 4, 1, hz * 2 + 6))
 	_box(body, Vector3(0, 1.5, -hz - 0.15), Vector3(hx * 2 + 0.6, 3, 0.3))
 	for s: float in [-1.0, 1.0]:
@@ -308,9 +311,16 @@ func _place_furniture() -> void:
 			spot.set_script(USE_SPOT)
 			_furniture.add_child(spot)
 			spot.setup(origin + Vector3(f["x"], 0.0, f["z"]), "Rest", _rest, 1.9)
+		if f["id"] == "trunk" and _is_home():                # your things, kept at home
+			var stash := Node3D.new()
+			stash.set_script(USE_SPOT)
+			_furniture.add_child(stash)
+			stash.setup(origin + Vector3(f["x"], 0.0, f["z"]), "Stash", func() -> void:
+				get_tree().call_group("hud", "open_stash"), 1.5)
 
 
-## Resting in bed: through the night to morning if it's dark, otherwise a short nap. Heals you.
+## Resting in bed: through the night to morning if it's dark, otherwise a short nap. Heals you, and you
+## wake Well Rested (more XP, quicker stamina; for longer in a grand home). A night's sleep is a new day.
 func _rest() -> void:
 	var t: float = day_night.time_of_day
 	var dark := t > 0.76 or t < 0.24
@@ -318,6 +328,11 @@ func _rest() -> void:
 		day_night.time_of_day = 0.27 if dark else fposmod(t + 0.08, 1.0)
 		day_night.set_indoors(true)
 		player.heal_full()
+		var secs: float = Balance.REST["grand_secs" if Home.is_grand() else "secs"]
+		Food.give("rested", secs)
+		if dark:
+			Home.new_day()
+			Lettings.new_day()
 		_update_windows()
-		get_tree().call_group("hud", "hint", "You slept until morning. Fully rested." if dark else "A good nap. Fully rested.")
+		get_tree().call_group("hud", "hint", ("You slept until morning." if dark else "A good nap.") + " Well Rested for %d min." % roundi(secs / 60.0))
 		SaveGame.save_game())

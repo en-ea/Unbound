@@ -36,6 +36,7 @@ var _view_tween: Tween
 var _base_distance := 11.0
 var _outdoor_pitch := -20.0
 var _room := Vector3.INF             # indoors: the room's centre
+var _room_pull := ROOM_PULL          # how far it leans from the room's centre towards you (more in a big room)
 var _yaw := 0.0
 var _yaw_goal := 0.0
 var _lift := 0.0                     # metres the camera is raised to clear a hill (eased)
@@ -104,8 +105,9 @@ func _on_settings_changed() -> void:
 
 
 ## Going indoors: the room view, centred on `center` (the room's middle), facing north.
-func enter_room(center: Vector3) -> void:
+func enter_room(center: Vector3, pull := ROOM_PULL) -> void:
 	_room = center
+	_room_pull = pull
 	_outdoor_yaw = _yaw
 	_set_yaw(0.0)
 	_jump_to(Vector2(ROOM_DISTANCE * Settings.zoom, ROOM_PITCH))
@@ -235,7 +237,7 @@ func drop_in(height: float) -> void:
 
 func _focus() -> Vector3:
 	if _room != Vector3.INF and _offset == Vector3.ZERO:
-		return _room.lerp(target.global_position, ROOM_PULL) + Vector3(0, 0.6, 0)
+		return _room.lerp(target.global_position, _room_pull) + Vector3(0, 0.6, 0)
 	var ahead := Vector3.ZERO
 	if target is CharacterBody3D:
 		var v: Vector3 = (target as CharacterBody3D).velocity

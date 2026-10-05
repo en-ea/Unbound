@@ -21,8 +21,11 @@ const MERCHANT_AT := Vector2(5.4, 16.0)
 const GREETINGS := ["Fine goods today, traveller!", "Wood, stone, hides... I buy it all.",
 	"Mind the boars past the hill.", "Fresh stock every little while!", "Shadow pelts? I pay well for those."]
 
-## Houses with people living in them (Residents) that you can go into: house index -> its room's feel.
-const VISITABLE := {0: "lantern", 1: "lodge", 2: "hill"}
+## Houses you can go into: house index -> its room's feel and layout. The residents' homes (Residents),
+## the mill, and the houses to let (Lettings.HOUSES: their feel; a sign by the door to buy or run them).
+const VISITS := {0: {"feel": "lantern", "layout": "hearth"}, 1: {"feel": "lodge", "layout": "bright"},
+	2: {"feel": "hill", "layout": "hearth"}, 5: {"feel": "mill", "layout": "bright"}}
+const SIGN := preload("res://assets/props/site_board.glb")
 
 @export var player: Node3D
 
@@ -69,13 +72,32 @@ func build(shape: WorldShape) -> void:
 	visit.player = player
 	visit.day_night = get_parent().get_node("WorldEnvironment")
 	add_child(visit)
-	for i: int in VISITABLE:
+	var rooms := VISITS.duplicate()
+	for i: int in Lettings.HOUSES:
+		rooms[i] = {"feel": Lettings.HOUSES[i]["feel"], "layout": "hearth"}
+	for i: int in rooms:
 		var d := door_of(i)
 		var door := Node3D.new()
 		door.set_script(preload("res://scripts/world/use_spot.gd"))
 		add_child(door)
 		var out := Vector3(d.x, shape.height_at(d.x, d.y), d.y)
-		door.setup(out, "Enter", func() -> void: visit.visit(i, VISITABLE[i], out), 1.8)
+		door.setup(out, "Enter", func() -> void: visit.visit(i, rooms[i]["feel"], out, rooms[i]["layout"]), 1.8)
+	for i: int in Lettings.HOUSES:                   # a sign beside the door: buy it, collect rent, do it up
+		var h: Dictionary = HOUSES[i]
+		var to_green: Vector2 = (GREEN - h["at"]).normalized()
+		var spot: Vector2 = door_of(i) + to_green.orthogonal() * (h["size"].x * 0.5 + 0.4) - to_green * 0.4
+		var sign := Node3D.new()
+		sign.set_script(preload("res://scripts/world/station.gd"))
+		add_child(sign)
+		sign.setup(Vector3(spot.x, shape.height_at(spot.x, spot.y), spot.y), "Letting", {"mode": "letting", "letting": i},
+			SIGN, Vector3(1.2, 1.4, 0.3))
+		sign.rotation.y = atan2(to_green.x, to_green.y)
+		sign.reach = 1.8
+		var label := SignLabel.make("For sale" if Lettings.level(i) == 0 else Lettings.HOUSES[i]["name"])
+		sign.add_child(label)
+		Lettings.changed.connect(func() -> void:
+			if is_instance_valid(label):
+				label.text = "For sale" if Lettings.level(i) == 0 else Lettings.HOUSES[i]["name"])
 	for id: String in Npcs.NPCS:
 		if Npcs.NPCS[id].get("region", "meadow") != "meadow":
 			continue

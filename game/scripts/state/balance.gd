@@ -275,4 +275,24 @@ const HOME_FURNITURE := {
 	"trophy": {"crown_antlers": 1, "wood": 2},
 	"rug_round": {"hide": 3, "flower": 2},
 	"rug_long": {"pelt": 2, "hide": 2},
+	"counter": {"wood": 10, "stone": 4},
+	"barrel": {"wood": 5, "iron": 1},
+	"sacks": {"hide": 2, "wood": 1},
+	"weapon_rack": {"pinewood": 6, "iron": 2},
+	"bench_seat": {"wood": 8, "pelt": 1},
+	"potted_tree": {"apple": 2, "stone": 3},
 }
+## Doing up your house (Home.UPGRADES: the Swoop Lodge into the Grand Swoop Home): what it costs, and the
+## lodger's rent each in-game day (it waits in your mailbox, up to rent_days of it).
+const HOME_UPGRADE := {"coins": 1800, "cost": {"pinewood": 30, "stone": 30, "iron": 12, "resin": 6}, "rent": 60, "rent_days": 5}
+## The stash in your trunk: how many different things it holds (in a grand home: more).
+const HOME_STASH := {"kinds": 12, "grand": 30}
+## Sleeping in your own bed: Well Rested (more XP, stamina comes back faster) for this long (a grand home:
+## grand_secs), the XP bonus and the stamina pace.
+## Village houses to let (Lettings): price, rent a day at each level (Plain, Cosy, Fine), what doing one up
+## costs (to Cosy, to Fine), and how many days of rent wait for you at most.
+const LETTINGS := {"price": {3: 700, 4: 1000, 6: 500},
+	"rent": {3: [35, 60, 95], 4: [50, 85, 130], 6: [25, 45, 70]},
+	"do_up": [{"coins": 300, "cost": {"wood": 20, "stone": 10, "hide": 3}}, {"coins": 700, "cost": {"pinewood": 20, "iron": 6, "pelt": 4}}],
+	"days": 5}
+const REST := {"secs": 480.0, "grand_secs": 960.0, "xp": 1.25, "stamina": 1.3}

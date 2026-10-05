@@ -143,12 +143,14 @@ func _ready() -> void:
 			elif bits.size() > 1:
 				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
-		elif arg.begins_with("--visit="):                 # go into a resident's house in the village: --visit=2 (with --time=0.95 they're home)
+		elif arg.begins_with("--visit="):                 # go into a village house: --visit=2 (with --time=0.95 they're home); 5 the mill, 3 4 6 lettings
 			var house := int(arg.trim_prefix("--visit="))
 			get_tree().create_timer(1.0).timeout.connect(func() -> void:
 				var v: Node = get_parent().get_node("Village").find_children("*", "Node3D", false, false).filter(func(n: Node) -> bool: return n.has_method("visit"))[0]
 				var d: Vector2 = preload("res://scripts/world/village.gd").door_of(house)
-				v.visit(house, preload("res://scripts/world/village.gd").VISITABLE[house], Vector3(d.x, 0, d.y)))
+				var room: Dictionary = preload("res://scripts/world/village.gd").VISITS.get(house,
+					{"feel": Lettings.HOUSES.get(house, {}).get("feel", "lantern"), "layout": "hearth"})
+				v.visit(house, room["feel"], Vector3(d.x, 0, d.y), room["layout"]))
 		elif arg == "--elk":                          # you have a tamed elk and start riding it
 			Hunting.elk = {"region": Region.current, "at": Vector2.ZERO, "yaw": 0.0}
 			Hunting.elk_riding = true
@@ -195,6 +197,16 @@ func _ready() -> void:
 			get_tree().call_group.call_deferred("home_interior", "enter", true)
 			if "--furnish" in OS.get_cmdline_user_args():
 				get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").start_build_mode(true))
+		elif arg == "--grand":                            # (after --inside or --house=lodge) the Grand Swoop Home
+			(func() -> void:
+				if not Home.owned():
+					Home.house = "lodge"
+					Home.furniture = Home.STARTER.duplicate(true)
+				Home.house = "lodge"
+				Home.upgraded = ["lodge"]
+				Home._refit(Home.ROOM_HALF, Home.GRAND_HALF)
+				Home.changed.emit()
+				Home.furniture_changed.emit()).call()
 		elif arg.begins_with("--layout="):                # the inside's layout (after --inside): --layout=bright
 			Home.set_layout(arg.trim_prefix("--layout="))
 		elif arg.begins_with("--feel="):                  # the inside's feel: --feel=hill

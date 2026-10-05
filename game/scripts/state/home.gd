@@ -5,6 +5,7 @@ extends Node
 
 signal changed
 signal furniture_changed
+signal stash_changed
 
 ## House choices: [name, model, the inside's feel it starts with (FEELS)].
 const HOUSES := {
@@ -17,10 +18,17 @@ const HOUSES := {
 	"skep": ["Skep Cottage", "res://assets/buildings/house_skep.glb", "lantern"],
 	"hull": ["Hull House", "res://assets/buildings/house_hull.glb", "lodge"],
 	"gable": ["Gable House", "res://assets/buildings/house_gable.glb", "lodge"],
+	"swoophome": ["Grand Swoop Home", "res://assets/buildings/house_swoophome.glb", "swoop"],
 }
+## Houses you get by doing one up (not bought or moved into): the house -> its grand version. The Grand
+## Swoop Home has a bigger room (GRAND_HALF), a bigger stash, longer rest, and a lodger who pays rent.
+const UPGRADES := {"lodge": "swoophome"}
 ## The inside, chosen apart from the house and changeable any time (free): its feel (walls, floor, cloth)
 ## and its layout (where the fireplace and windows are). Rooms: assets/interior/room_<feel>[_bright].glb.
-const FEELS := {"lantern": "Cottage", "lodge": "Lodge", "hill": "Stone"}
+const FEELS := {"lantern": "Cottage", "lodge": "Lodge", "hill": "Stone", "swoop": "Swoop", "mill": "Mill"}
+const FEEL_BLURBS := {"lantern": "Painted panels, cream walls, red curtains.", "lodge": "Warm planks all the way up, dark timber.",
+	"hill": "Fieldstone and whitewash, golden cloth.", "swoop": "Navy panelling, cream plaster, tall windows.",
+	"mill": "Pale pine boards, sage curtains, a light floor."}
 const LAYOUTS := {
 	"hearth": {"name": "Hearth Room", "blurb": "A big fireplace at the back, one wide window.", "file": "",
 		"built_in": [Rect2(-4.8, -3.8, 3.65, 1.2), Rect2(-4.8, -1.3, 0.45, 1.8), Rect2(-4.8, 2.3, 0.45, 0.6)],
@@ -28,6 +36,11 @@ const LAYOUTS := {
 	"bright": {"name": "Bright Room", "blurb": "Two tall windows at the back, the fire on the side wall.", "file": "_bright",
 		"built_in": [Rect2(3.6, -2.95, 1.2, 3.7), Rect2(-4.8, -1.3, 0.45, 1.8), Rect2(-4.8, 2.3, 0.45, 0.6)],
 		"hearth": Vector3(4.2, 0.0, -1.6), "cook": Vector3(3.25, 0.0, -1.6), "window": Vector3(0.0, 2.1, -3.2)},
+	# The Grand Swoop Home's big room only (GRAND_HALF): hearth left of the middle, two back windows,
+	# shelves on both side walls.
+	"grand": {"name": "Grand Hall", "blurb": "A big room: the fire on the back wall, two tall windows, shelves both sides.", "file": "_grand",
+		"built_in": [Rect2(-5.6, -4.8, 3.65, 1.2), Rect2(-6.6, -1.3, 0.45, 1.8), Rect2(-6.6, 3.3, 0.45, 0.6), Rect2(6.15, -0.3, 0.45, 1.8)],
+		"hearth": Vector3(-3.2, 0.0, -4.0), "cook": Vector3(-3.2, 0.0, -3.1), "window": Vector3(1.6, 2.1, -4.2)},
 }
 ## Buildable pieces: [name, model, footprint radius, what pressing the action button does ("" = nothing)].
 const PIECES := {
@@ -57,12 +70,18 @@ const FURNITURE := {
 	"rug_round": ["Round rug", "res://assets/interior/furn_rug_round.glb", Vector2(2.4, 2.4), "rug", ""],
 	"rug_long": ["Long rug", "res://assets/interior/furn_rug_long.glb", Vector2(2.4, 1.6), "rug", ""],
 	"trophy": ["Stag trophy", "res://assets/interior/furn_trophy.glb", Vector2(0.7, 0.3), "wall", ""],
+	"counter": ["Kitchen counter", "res://assets/interior/furn_counter.glb", Vector2(1.6, 0.6), "wall", ""],
+	"barrel": ["Barrel", "res://assets/interior/furn_barrel.glb", Vector2(0.62, 0.62), "", ""],
+	"sacks": ["Flour sacks", "res://assets/interior/furn_sacks.glb", Vector2(0.9, 0.6), "", ""],
+	"weapon_rack": ["Weapon rack", "res://assets/interior/furn_weapon_rack.glb", Vector2(1.2, 0.3), "wall", ""],
+	"bench_seat": ["Cushioned bench", "res://assets/interior/furn_bench_seat.glb", Vector2(1.4, 0.45), "", ""],
+	"potted_tree": ["Fig tree", "res://assets/interior/furn_potted_tree.glb", Vector2(0.7, 0.7), "", ""],
+	"millstone": ["Millstone", "res://assets/interior/furn_millstone.glb", Vector2(1.4, 1.4), "", ""],
 }
-## The room: its floor runs from -ROOM_HALF to +ROOM_HALF (x right, z towards the front door).
+## The room: its floor runs from -half to +half (x right, z towards the front door): ROOM_HALF, or
+## GRAND_HALF in the Grand Swoop Home (room_half()). Match tools-src/blender/make_interior.py.
 const ROOM_HALF := Vector2(4.8, 3.8)
-## The way in from the door: nothing can go there. (The hearth and shelves are in LAYOUTS; match
-## tools-src/blender/make_interior.py.)
-const ROOM_DOORWAY := Rect2(-0.8, 2.6, 1.6, 1.2)
+const GRAND_HALF := Vector2(6.6, 4.8)
 ## What a new home comes with (you can move it, put it away, or place it again for free).
 const STARTER := [
 	{"id": "bed", "x": 3.85, "z": -2.7, "turn": 0.0}, {"id": "trunk", "x": 3.85, "z": -1.05, "turn": 0.0},
@@ -81,20 +100,148 @@ var furniture: Array = []         # [{id, x, z, turn}] in room metres (see ROOM_
 var stored := {}                  # id -> how many you've put away (placing them again is free)
 var feel := ""                    # the inside's feel (FEELS); "" = the house's own
 var layout := "hearth"            # the inside's layout (LAYOUTS)
+var upgraded: Array[String] = []  # houses you've done up (UPGRADES); moving out and back keeps it
+var stash := {}                   # item -> count kept at home (the trunk's Stash)
+var mail_coins := 0               # rent waiting in your mailbox (the Grand home's lodger)
+var _day_secs := 0.0
+
+
+## The house standing on your plot (the grand version once you've done it up).
+func shown_house() -> String:
+	return UPGRADES[house] if UPGRADES.has(house) and house in upgraded else house
+
+
+func house_name() -> String:
+	return HOUSES[shown_house()][0] if owned() else ""
+
+
+func house_model() -> String:
+	return HOUSES[shown_house()][1]
+
+
+func is_grand() -> bool:
+	return owned() and shown_house() != house
+
+
+## The room's floor half-size (bigger in a grand home).
+func room_half() -> Vector2:
+	return GRAND_HALF if is_grand() else ROOM_HALF
+
+
+## The way in from the door: nothing can go there.
+func doorway() -> Rect2:
+	return Rect2(-0.8, room_half().y - 1.2, 1.6, 1.2)
+
+
+## Whether you can do up your house now (and haven't yet).
+func can_upgrade() -> bool:
+	return owned() and UPGRADES.has(house) and house not in upgraded
+
+
+## The action: do your house up into its grand version (spends Balance.HOME_UPGRADE). The furniture moves
+## out with the walls, so pieces by a wall stay by it.
+func upgrade() -> bool:
+	var u: Dictionary = Balance.HOME_UPGRADE
+	if not can_upgrade() or Money.coins < u["coins"] or not Gear.can_afford(u["cost"]):
+		return false
+	Money.spend(u["coins"])
+	for item: String in u["cost"]:
+		Inventory.remove(item, u["cost"][item])
+	upgraded.append(house)
+	_refit(ROOM_HALF, GRAND_HALF)
+	changed.emit()
+	furniture_changed.emit()
+	stash_changed.emit()
+	return true
+
+
+## Moves furniture from a room of one size to another: pieces near a wall keep their gap to it, the rest
+## spread out with the floor. Then anything in the way of the hearth or shelves moves aside.
+func _refit(from: Vector2, to: Vector2) -> void:
+	if from == to:
+		return
+	for f: Dictionary in furniture:
+		var x: float = f["x"]
+		var z: float = f["z"]
+		f["x"] = x + signf(x) * (to.x - from.x) if absf(x) > from.x - 1.4 else x * to.x / from.x
+		f["z"] = z - (to.y - from.y) if z < -from.y + 1.4 else (z + (to.y - from.y) if z > from.y - 1.4 else z * to.y / from.y)
+	_clear_built_ins()
+
+
+# --- the stash (the trunk) ---------------------------------------------------------------------
+
+## How many different things the stash holds.
+func stash_room() -> int:
+	return Balance.HOME_STASH["grand" if is_grand() else "kinds"]
+
+
+## The action: put `amount` of an item from your bag into the stash.
+func store(item: String, amount: int) -> bool:
+	amount = mini(amount, Inventory.count(item))
+	if amount <= 0 or (not stash.has(item) and stash.size() >= stash_room()):
+		return false
+	Inventory.remove(item, amount)
+	stash[item] = stash.get(item, 0) + amount
+	stash_changed.emit()
+	return true
+
+
+## The action: take `amount` of an item out of the stash into your bag (if there's room).
+func take_out(item: String, amount: int) -> bool:
+	amount = mini(amount, stash.get(item, 0))
+	if amount <= 0 or not Inventory.has_room(item):
+		return false
+	stash[item] -= amount
+	if stash[item] <= 0:
+		stash.erase(item)
+	Inventory.add(item, amount)
+	stash_changed.emit()
+	return true
+
+
+# --- rent ------------------------------------------------------------------------------------
+
+## Each in-game day in a grand home, the lodger leaves rent in your mailbox (up to a few days' worth).
+func _process(delta: float) -> void:
+	if not is_grand():
+		return
+	_day_secs += delta
+	if _day_secs >= Bounties.DAY_SECS:
+		new_day()
+
+
+## A new day (a day went by, or you slept through the night): rent comes in.
+func new_day() -> void:
+	_day_secs = 0.0
+	if is_grand():
+		var rent: int = Balance.HOME_UPGRADE["rent"]
+		mail_coins = mini(mail_coins + rent, rent * Balance.HOME_UPGRADE["rent_days"])
+		changed.emit()
+
+
+## The action: take the rent out of the mailbox.
+func collect_rent() -> int:
+	var got := mail_coins
+	if got > 0:
+		Money.earn(got)
+		mail_coins = 0
+		changed.emit()
+	return got
 
 
 ## The feel the room has now.
 func room_feel() -> String:
-	return feel if FEELS.has(feel) else (HOUSES[house][2] if HOUSES.has(house) else "lantern")
+	return feel if FEELS.has(feel) else (HOUSES[shown_house()][2] if HOUSES.has(shown_house()) else "lantern")
 
 
 ## The room model for the feel and layout.
 func room_model() -> String:
-	return "res://assets/interior/room_%s%s.glb" % [room_feel(), LAYOUTS[layout]["file"]]
+	return "res://assets/interior/room_%s%s.glb" % [room_feel(), room_layout()["file"]]
 
 
+## The layout in use (a grand home always has its Grand Hall).
 func room_layout() -> Dictionary:
-	return LAYOUTS[layout]
+	return LAYOUTS["grand" if is_grand() else layout]
 
 
 ## The action: change the inside's feel (free).
@@ -106,12 +253,13 @@ func set_feel(id: String) -> void:
 
 ## The action: change the layout (free). Furniture where the new hearth or shelves stand is put away.
 func set_layout(id: String) -> void:
-	if not LAYOUTS.has(id) or id == layout:
+	if not LAYOUTS.has(id) or id == layout or id == "grand":
 		return
 	layout = id
 	_clear_built_ins()
 	changed.emit()
 	furniture_changed.emit()
+	stash_changed.emit()
 
 
 ## Furniture standing where this layout's hearth or shelves are moves to the nearest free spot (or is put
@@ -123,7 +271,7 @@ func _clear_built_ins() -> void:
 	for f: Dictionary in all:
 		var r := footprint(f["id"], f["x"], f["z"], f["turn"])
 		var hit := false
-		for b: Rect2 in LAYOUTS[layout]["built_in"]:
+		for b: Rect2 in room_layout()["built_in"]:
 			hit = hit or r.intersects(b)
 		if hit:
 			blocked.append(f)
@@ -131,10 +279,11 @@ func _clear_built_ins() -> void:
 			furniture.append(f)
 	for f: Dictionary in blocked:
 		var best := Vector2.INF
-		var x := -ROOM_HALF.x + 0.5
-		while x < ROOM_HALF.x:
-			var z := -ROOM_HALF.y + 0.5
-			while z < ROOM_HALF.y:
+		var half := room_half()
+		var x := -half.x + 0.5
+		while x < half.x:
+			var z := -half.y + 0.5
+			while z < half.y:
 				if room_fits(f["id"], x, z, f["turn"]) and Vector2(x, z).distance_to(Vector2(f["x"], f["z"])) < best.distance_to(Vector2(f["x"], f["z"])):
 					best = Vector2(x, z)
 				z += 0.25
@@ -167,7 +316,7 @@ func missing() -> Array[String]:
 
 ## The action: buy the plot with a house.
 func buy(choice: String) -> bool:
-	if owned() or not HOUSES.has(choice) or not missing().is_empty():
+	if owned() or not choosable(choice) or not missing().is_empty():
 		return false
 	Money.spend(Balance.HOME["coins"])
 	house = choice
@@ -175,16 +324,27 @@ func buy(choice: String) -> bool:
 	_clear_built_ins()
 	changed.emit()
 	furniture_changed.emit()
+	stash_changed.emit()
 	return true
 
 
-## The action: move into another of the houses (free; what you built in the yard stays).
+## The action: move into another of the houses (free; what you built in the yard stays, and a house you
+## did up stays done up for when you move back).
 func change_house(choice: String) -> bool:
-	if not owned() or not HOUSES.has(choice) or choice == house:
+	if not owned() or not choosable(choice) or choice == house:
 		return false
+	var before := room_half()
 	house = choice
+	_refit(before, room_half())
 	changed.emit()
+	furniture_changed.emit()
+	stash_changed.emit()
 	return true
+
+
+## Houses you can buy or move into (not the grand versions: you do those up).
+func choosable(id: String) -> bool:
+	return HOUSES.has(id) and id not in UPGRADES.values()
 
 
 ## The action (test menu only): give the home back: no house, empty yard, the plot for sale again.
@@ -195,8 +355,13 @@ func reset() -> void:
 	stored = {}
 	feel = ""
 	layout = "hearth"
+	upgraded = []
+	stash = {}
+	mail_coins = 0
 	changed.emit()
 	furniture_changed.emit()
+	stash_changed.emit()
+	stash_changed.emit()
 
 
 func inside(x: float, z: float) -> bool:
@@ -268,12 +433,13 @@ func footprint(id: String, x: float, z: float, turn: float) -> Rect2:
 ## (rugs only mind other rugs; everything else stands on rugs). `skip` ignores one placed piece.
 func room_fits(id: String, x: float, z: float, turn: float, skip := -1) -> bool:
 	var r := footprint(id, x, z, turn).grow(-0.02)
-	if absf(r.position.x) > ROOM_HALF.x or r.end.x > ROOM_HALF.x or r.position.y < -ROOM_HALF.y or r.end.y > ROOM_HALF.y:
+	var half := room_half()
+	if absf(r.position.x) > half.x or r.end.x > half.x or r.position.y < -half.y or r.end.y > half.y:
 		return false
 	var rug: bool = FURNITURE[id][3] == "rug"
-	if not rug and r.intersects(ROOM_DOORWAY):
+	if not rug and r.intersects(doorway()):
 		return false
-	for b: Rect2 in LAYOUTS[layout]["built_in"]:
+	for b: Rect2 in room_layout()["built_in"]:
 		if r.intersects(b):
 			return false
 	for i in furniture.size():
@@ -286,7 +452,12 @@ func room_fits(id: String, x: float, z: float, turn: float, skip := -1) -> bool:
 
 
 func can_furnish(id: String) -> bool:
-	return stored.get(id, 0) > 0 or Gear.can_afford(Balance.HOME_FURNITURE[id])
+	return stored.get(id, 0) > 0 or (Balance.HOME_FURNITURE.has(id) and Gear.can_afford(Balance.HOME_FURNITURE[id]))
+
+
+## Furniture you can make (some pieces only stand in other people's houses).
+static func for_sale() -> Array:
+	return FURNITURE.keys().filter(func(id: String) -> bool: return Balance.HOME_FURNITURE.has(id))
 
 
 ## The action: place a piece of furniture (one you put away is free, otherwise it costs materials).
@@ -330,7 +501,8 @@ func furniture_near(x: float, z: float) -> int:
 
 
 func to_data() -> Dictionary:
-	return {"house": house, "pieces": pieces, "furniture": furniture, "stored": stored, "feel": feel, "layout": layout}
+	return {"house": house, "pieces": pieces, "furniture": furniture, "stored": stored, "feel": feel, "layout": layout,
+		"upgraded": upgraded, "stash": stash, "mail": mail_coins, "day_secs": _day_secs}
 
 
 func load_data(data: Variant) -> void:
@@ -340,6 +512,10 @@ func load_data(data: Variant) -> void:
 	stored = {}
 	feel = ""
 	layout = "hearth"
+	upgraded = []
+	stash = {}
+	mail_coins = 0
+	_day_secs = 0.0
 	if data is Dictionary:
 		feel = str(data.get("feel", "")) if FEELS.has(str(data.get("feel", ""))) else ""
 		layout = str(data.get("layout", "hearth")) if LAYOUTS.has(str(data.get("layout", ""))) else "hearth"
@@ -352,6 +528,16 @@ func load_data(data: Variant) -> void:
 		for f: Variant in data.get("furniture", []):
 			if f is Dictionary and FURNITURE.has(String(f.get("id", ""))):
 				furniture.append({"id": String(f["id"]), "x": float(f["x"]), "z": float(f["z"]), "turn": float(f.get("turn", 0.0))})
+		for u: Variant in data.get("upgraded", []):
+			if UPGRADES.has(str(u)):
+				upgraded.append(str(u))
+		var sh: Variant = data.get("stash", {})
+		if sh is Dictionary:
+			for item: String in sh:
+				if Items.DEFS.has(item) and int(sh[item]) > 0:
+					stash[item] = int(sh[item])
+		mail_coins = int(data.get("mail", 0))
+		_day_secs = float(data.get("day_secs", 0.0))
 		var st: Variant = data.get("stored", {})
 		if st is Dictionary:
 			for id: String in st:
@@ -359,3 +545,4 @@ func load_data(data: Variant) -> void:
 					stored[id] = int(st[id])
 	changed.emit()
 	furniture_changed.emit()
+	stash_changed.emit()

@@ -239,8 +239,21 @@ func _cheat_page() -> void:
 				Skills.add(sk, Skills.xp_for(target) - Skills.xp[sk])
 			Money.earn(Balance.HOME["coins"])],
 		["Undo home + yard", func() -> void: Home.reset()],
+		["Grand Swoop Home", func() -> void:          # own the Swoop Lodge, done up (free)
+			if not Home.owned():
+				Home.house = "lodge"
+				Home.furniture = Home.STARTER.duplicate(true)
+			if not Home.is_grand():
+				Home.change_house("lodge")
+				Home.upgraded.append("lodge")
+				Home._refit(Home.ROOM_HALF, Home.GRAND_HALF)
+			Home.changed.emit()
+			Home.furniture_changed.emit()],
+		["A day of rent", func() -> void:
+			Home.new_day()
+			Lettings.new_day()],
 		["One of each furniture", func() -> void:        # put away, so placing them is free
-			for id: String in Home.FURNITURE:
+			for id: String in Home.for_sale():
 				Home.stored[id] = Home.stored.get(id, 0) + 1
 			Home.furniture_changed.emit()],
 		["Morrow's job: up to the seal", func() -> void:

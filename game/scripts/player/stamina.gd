@@ -54,7 +54,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if value >= max_value():
 		return
-	value = minf(value + Balance.STAMINA["regen"] * delta, max_value())
+	value = minf(value + Balance.STAMINA["regen"] * delta * (Balance.REST["stamina"] if Food.has("rested") else 1.0), max_value())
 	if winded and value >= Balance.STAMINA["winded_until"]:
 		winded = false
 	changed.emit(value, max_value(), winded)
