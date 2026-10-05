@@ -162,6 +162,23 @@ func _ready() -> void:
 			get_tree().create_timer(1.2).timeout.connect(func() -> void:
 				get_tree().get_first_node_in_group("build_lab").spawn("boar")
 				get_tree().create_timer(0.6).timeout.connect(func() -> void: get_node("../Player").fighter.heavy()))
+		elif arg == "--cinder":                       # a Pyromancer with Cinder at your shoulder (--cinder=3: her level)
+			Classes.choose("pyromancer")
+			Companions.owned["cinder"] = {"level": 1, "xp": 0}
+			Companions.changed.emit()
+		elif arg.begins_with("--cinder="):
+			Classes.choose("pyromancer")
+			Companions.owned["cinder"] = {"level": int(arg.trim_prefix("--cinder=")), "xp": 0}
+			Companions.changed.emit()
+		elif arg == "--tenant":                       # own the Hill House with Odo in it, asking for wood (and the wood in your bag)
+			Lettings.owned[3] = 1
+			Lettings.mood[3] = 60
+			Lettings.asks[3] = ["wood", 8]
+			Inventory.add("wood", 8)
+			get_tree().create_timer(2.0).timeout.connect(func() -> void:
+				var talk := Lettings.talk("tenant_odo")
+				print("TENANT ", talk["text"], " | ", talk["options"].map(func(o: Dictionary) -> String: return o["label"]))
+				print("TENANT after: ", talk["options"][0]["do"].call().get("text", ""), " | mood ", Lettings.mood[3], " rent ", Lettings.rent(3)))
 		elif arg == "--stash":                        # the home stash screen (with --inside)
 			get_tree().create_timer(1.5).timeout.connect(func() -> void: get_node("../HUD").open_stash())
 		elif arg == "--bow":                          # the bow as your weapon (on your back outside fights)

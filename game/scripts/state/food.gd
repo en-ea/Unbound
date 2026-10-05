@@ -4,6 +4,7 @@ extends Node
 
 signal changed        # buffs started or ended
 signal ate(item: String)
+signal cooked                # something was cooked at a fire (a Pyromancer's first meets Cinder)
 
 ## heal: hearts back. buff: a short boost (see BUFFS), for secs. Numbers in Balance.
 const FOODS := Balance.FOODS
@@ -42,6 +43,7 @@ func cook(recipe: Dictionary) -> bool:
 	for item: String in recipe["cost"]:
 		Inventory.remove(item, recipe["cost"][item])
 	Inventory.add(recipe["out"], recipe.get("n", 1))
+	cooked.emit()
 	return true
 
 

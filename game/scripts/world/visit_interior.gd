@@ -98,8 +98,17 @@ func _go_in() -> void:
 		spot += 1
 	if Lettings.HOUSES.has(_house):
 		var lv := Lettings.level(_house)
-		get_tree().call_group("hud", "hint", "Empty, and for sale (the sign by the door)." if lv == 0 else
-			"Your letting, %s. The tenant's out at work." % Lettings.LEVELS[lv].to_lower())
+		if lv == 0:
+			get_tree().call_group("hud", "hint", "Empty, and for sale (the sign by the door).")
+		else:
+			var tenant: String = Lettings.TENANTS[_house]
+			var npc := Node3D.new()
+			npc.set_script(preload("res://scripts/world/npc.gd"))
+			add_child(npc)
+			npc.setup(tenant, null, origin + SPOTS[0])
+			_people.append(npc)
+			get_tree().call_group("hud", "hint", "%s is at home (%s)%s." % [Npcs.get_def(tenant)["name"], Lettings.mood_word(_house),
+				", and wants something" if Lettings.asks.has(_house) else ""])
 	elif _house == 5:
 		get_tree().call_group("hud", "hint", "Bram's mill. The stones rumble overhead.")
 	elif _people.is_empty():

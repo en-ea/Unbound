@@ -18,6 +18,9 @@ const REGEN_EVERY := 9.0          # then one heart this often
 ## Run it empty and you are winded: no sprint, roll or heavy until it is back to `winded_until`.
 const STAMINA := {"max": 100.0, "regen": 34.0, "delay": 0.6, "sprint": 20.0, "roll": 26.0, "heavy": 34.0,
 	"guard": 10.0, "block": 24.0, "winded_until": 35.0}
+## Companions (world/companion.gd), per level 1..5: fire bolt damage, seconds between bolts; how far from
+## you she'll shoot, the level her bolts start setting things alight, and XP for a kill she helped with.
+const COMPANIONS := {"cinder": {"bolt": [1, 2, 2, 3, 4], "every": [3.0, 2.7, 2.4, 2.1, 1.8], "range": 11.0, "ignite_at": 3, "xp_kill": 12}}
 ## The bow (fighter.gd): damage (times a sword blow) for a tap and a full draw, Perfect's multiplier, what's left
 ## at the far end of the range, stamina a full shot costs (a tap half), and a second held at full draw.
 const BOW := {"weak": 0.35, "full": 1.0, "perfect": 1.7, "far": 0.6, "shot": 14.0, "hold": 12.0}
@@ -297,5 +300,9 @@ const HOME_STASH := {"kinds": 12, "grand": 30}
 const LETTINGS := {"price": {3: 700, 4: 1000, 6: 500},
 	"rent": {3: [35, 60, 95], 4: [50, 85, 130], 6: [25, 45, 70]},
 	"do_up": [{"coins": 300, "cost": {"wood": 20, "stone": 10, "hide": 3}}, {"coins": 700, "cost": {"pinewood": 20, "iron": 6, "pelt": 4}}],
-	"days": 5}
+	"days": 5,
+	# Tenants: rent from 70% (unhappy) to 125% (delighted) of the level's rent; mood at the start, a day without
+	# an ask, an ask left waiting a day, an ask handed over, doing the house up; the chance of an ask each day.
+	"mood_rent": Vector2(0.7, 1.25), "mood_start": 60, "mood_day": 3, "mood_wait": 12, "mood_ask": 20, "mood_do_up": 20,
+	"ask_chance": 0.45}
 const REST := {"secs": 480.0, "grand_secs": 960.0, "xp": 1.25, "stamina": 1.3}

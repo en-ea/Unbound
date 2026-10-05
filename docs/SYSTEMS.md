@@ -347,3 +347,26 @@ an Epic sword (`reward.gear = [slot, rarity]`). Quest items can't be sold (`Item
   DRAWN_FOR s); put away at once while your hands are wanted (`_hands_wanted()`: gathering, fishing, hauling/riding, menus);
   `CharacterVisual.hands_busy` overrides "Sword always in hand". The model faces +Z: things on the back go at -Z
   (BACK_SWORD_AT, the bow's `back_prop`). Dev: `--bow`, `--bowdraw [--loose]`.
+
+## Waystones and the map
+- `state/waystones.gd` (autoload `Waystones`): STONES (one per region, a clearing in WorldShape.REGIONS), `attune()`, `travel()`
+  (same region: a fade; another: Region.travel). `world/waystone.gd`: wakes when you come close, Travel opens the map.
+- `ui/world_map.gd` (`WorldMap`): a region's ground painted once (`paint_ground`, also used by the minimap; other regions borrow
+  their WorldShape), with places, villages, board, camp, home, gates, the quest target, you. Opened by a minimap tap, Menu > Map, M,
+  or a waystone (`travel` true). Dev: none needed (walk up to a stone).
+
+## Companions
+- `state/companions.gd` (autoload `Companions`): DEFS (class-bound), `owned` {id: level, xp}, `with_you()`, `stat()`,
+  `add_xp()`; Cinder joins a Pyromancer who cooks at a campfire (`Food.cooked`). Numbers: `Balance.COMPANIONS`.
+- `world/companion.gd`: follows at your shoulder, animates the parts of `assets/creatures/cinder.glb`
+  (`tools-src/blender/make_companion.py`), throws `world/companion_bolt.gd` at the enemy you fight, light at night.
+  Dev: `--cinder[=level]`; Test menu: Cinder joins you.
+
+## Tenants
+- `Lettings.TENANTS` (villagers `tenant_*` in npcs.gd with "region": "letting"): at home in their letting (visit_interior).
+  `mood` sets the rent (`Balance.LETTINGS` mood_*), `asks` (ASKS) appear on new days; `Lettings.talk()` (via Quests.talk), `give()`.
+  Dev: `--tenant --visit=3`.
+
+## Performance notes
+- Villagers and bandits: `CharacterVisual.merge = true` joins the shown parts into one mesh with colours baked into UV/UV2
+  (`merge_parts`), one draw each. Dev: `--drawlog` (what each part of the scene costs), `--memlog`, `--traveltest`.

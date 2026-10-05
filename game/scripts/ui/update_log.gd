@@ -5,6 +5,19 @@ extends Control
 ## every published update.
 
 const ENTRIES := [
+	{"when": "5 Oct (later)", "title": "Cinder, tenants, waystones and the map, a fairer bow", "lines": [
+		"Cinder, the Pyromancer's companion: a little fire spirit. As a Pyromancer, cook something at a campfire",
+		"and she leaps out of the flames. She floats at your shoulder, lights the dark, and throws fire at what",
+		"you're fighting. She grows with every fight won (up to level 5; from level 3 her fire sets enemies alight).",
+		"Tenants: the houses you let now have people in them: Odo, Mira and Fen. Their mood sets the rent. Now",
+		"and then they ask for something: bring it and talk to them inside for a tip and a happier tenant.",
+		"Waystones: an old rune stone in each region. Walk up to wake it; at any woken one, Travel takes you",
+		"to another. The map: tap the minimap (or Menu > Map, or M) to see the whole region, its places and",
+		"villages, the gates, your home, where your quest wants you, and you.",
+		"The bow is fairer: 15 m range, it only aims where you face, arrows fly straight (only a Perfect shot",
+		"curves), wolves can dodge, it hits softer far away, and every shot costs stamina.",
+		"Faster: villagers and bandits now draw in one go each (the village went from about 670 draw calls to 445).",
+	]},
 	{"when": "5 Oct", "title": "Grand Swoop Home, a real bow, homes to let", "lines": [
 		"Own the Swoop Lodge? Do it up into the Grand Swoop Home (at your mailbox): a much bigger room, a",
 		"bigger stash, longer Well Rested, and a lodger who pays rent every day (collect it at the mailbox).",

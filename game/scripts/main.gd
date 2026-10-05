@@ -131,6 +131,11 @@ func _ready() -> void:
 	critters.day_night = $WorldEnvironment
 	add_child(critters)
 	critters.build(shape)
+	var companion := Node3D.new()                  # Cinder, a Pyromancer's fire spirit (Companions)
+	companion.set_script(preload("res://scripts/world/companion.gd"))
+	companion.player = player
+	companion.day_night = $WorldEnvironment
+	add_child(companion)
 	$Player/Sounds.shape = shape
 	var spawn := WorldShape.SPAWN
 	player.global_position = Vector3(spawn.x, shape.height_at(spawn.x, spawn.y) + 0.3, spawn.y)

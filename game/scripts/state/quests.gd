@@ -290,6 +290,8 @@ func talk(npc: String) -> Dictionary:
 					{"label": "Later", "do": func() -> Dictionary: return {}}])
 	if def.has("resident"):
 		return Residents.talk(npc)
+	if Lettings.house_of(npc) >= 0:
+		return Lettings.talk(npc)
 	return _screen(def["chatter"].pick_random(), [{"label": "Bye", "do": func() -> Dictionary: return {}}])
 
 

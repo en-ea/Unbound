@@ -38,6 +38,7 @@ Bounties="*res://scripts/state/bounties.gd"
 Residents="*res://scripts/state/residents.gd"
 Lettings="*res://scripts/state/lettings.gd"
 Waystones="*res://scripts/state/waystones.gd"
+Companions="*res://scripts/state/companions.gd"
 
 [display]
 

@@ -80,6 +80,46 @@ const NPCS := {
 				"evening": ["Tell me a story about the forest!"],
 				"home": ["I'm supposed to be asleep..."]}},
 	},
+	# Tenants in the village houses you let (Lettings.TENANTS): they live inside, "region" keeps them out of the village.
+	"tenant_odo": {
+		"name": "Odo", "title": "Your tenant, an old sailor", "at": Vector2.ZERO, "region": "letting", "scale": Vector3(1.08, 1.0, 1.08),
+		"look": {
+			"parts": {"eyes": "narrow", "brows": "thick", "mouth": "grin", "nose": "broad", "hair": "short", "beard": "full",
+				"head": "cap", "top": "coat", "waist": "none", "chest": "none", "shoulders": "none", "back": "none", "feet": "boots"},
+			"colors": {"Skin": 2, "Hair": 7, "Main": 1, "Second": 0, "Cloth": 3, "Leather": 1},
+		},
+		"theme": {"bg": Color(0.06, 0.08, 0.11, 0.95), "accent": Color(0.6, 0.8, 0.95), "text": Color(0.95, 0.97, 1.0),
+			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "morrow"},
+		"portrait": {"look_at": Vector3(0.05, 1.62, 0), "cam": Vector3(0.22, 1.78, 2.2), "fov": 34.0, "turn": -10.0},
+		"greetings": ["Ahoy, landlord!", "Dry land suits me.", "Hm? Ah, it's you."],
+		"chatter": ["Forty years at sea, and now a hill. Funny old life."],
+	},
+	"tenant_mira": {
+		"name": "Mira", "title": "Your tenant, a weaver", "at": Vector2.ZERO, "region": "letting", "scale": Vector3(0.95, 0.98, 0.95),
+		"look": {
+			"parts": {"eyes": "bright", "brows": "arched", "mouth": "open", "nose": "button", "hair": "bun", "beard": "none",
+				"head": "none", "top": "tunic", "waist": "apron", "chest": "none", "shoulders": "none", "back": "none", "feet": "shoes"},
+			"colors": {"Skin": 1, "Hair": 4, "Main": 9, "Second": 2, "Cloth": 5, "Leather": 2},
+		},
+		"theme": {"bg": Color(0.09, 0.07, 0.1, 0.95), "accent": Color(0.95, 0.7, 0.85), "text": Color(1.0, 0.96, 0.98),
+			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "wren"},
+		"portrait": {"look_at": Vector3(0.05, 1.55, 0), "cam": Vector3(0.22, 1.7, 2.1), "fov": 34.0, "turn": -10.0},
+		"greetings": ["Oh! Come in, come in.", "Mind the threads.", "Hello, landlord!"],
+		"chatter": ["The light in here is perfect for weaving."],
+	},
+	"tenant_fen": {
+		"name": "Fen", "title": "Your tenant, a travelling scribe", "at": Vector2.ZERO, "region": "letting", "scale": Vector3(0.96, 1.04, 0.96),
+		"look": {
+			"parts": {"eyes": "happy", "brows": "raised", "mouth": "flat", "nose": "long", "hair": "messy", "beard": "stubble",
+				"head": "none", "top": "coat", "waist": "none", "chest": "strap", "shoulders": "none", "back": "backpack", "feet": "boots"},
+			"colors": {"Skin": 0, "Hair": 2, "Main": 5, "Second": 4, "Cloth": 0, "Leather": 0},
+		},
+		"theme": {"bg": Color(0.08, 0.08, 0.06, 0.95), "accent": Color(0.9, 0.85, 0.6), "text": Color(1.0, 0.98, 0.9),
+			"font": "res://assets/fonts/Almendra-Regular.ttf", "name_font": "res://assets/fonts/Almendra-Bold.ttf", "voice": "wren"},
+		"portrait": {"look_at": Vector3(0.05, 1.62, 0), "cam": Vector3(0.22, 1.78, 2.2), "fov": 34.0, "turn": -10.0},
+		"greetings": ["Ah, the landlord. Ink everywhere, sorry.", "Good day!", "Writing it all down."],
+		"chatter": ["Every village has a story. This one has a few."],
+	},
 	"bram": {
 		"name": "Bram", "title": "Miller", "at": Vector2(13.5, 7.5), "scale": Vector3(0.94, 1.1, 0.94),
 		"look": {

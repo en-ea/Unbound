@@ -249,6 +249,12 @@ func _cheat_page() -> void:
 				Home._refit(Home.ROOM_HALF, Home.GRAND_HALF)
 			Home.changed.emit()
 			Home.furniture_changed.emit()],
+		["Cinder joins you", func() -> void:          # become a Pyromancer with the fire spirit
+			Classes.choose("pyromancer")
+			if not Companions.owned.has("cinder"):
+				Companions.owned["cinder"] = {"level": 1, "xp": 0}
+				Companions.joined.emit("cinder")
+			Companions.changed.emit()],
 		["A day of rent", func() -> void:
 			Home.new_day()
 			Lettings.new_day()],
