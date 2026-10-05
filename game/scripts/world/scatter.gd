@@ -532,6 +532,7 @@ func _flush() -> void:
 			if mm.use_custom_data:
 				mm.set_instance_custom_data(i, _tint(list[i].origin))
 		var mmi := MultiMeshInstance3D.new()
+		mmi.set_meta("kind", parts[1])
 		mmi.multimesh = mm
 		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if kind["shadow"] else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if kind["range"] > 0.0:

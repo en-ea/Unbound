@@ -515,12 +515,20 @@ func open_menu() -> void:
 	menu.open_class.connect(func() -> void: open_class_panel(false))
 	menu.open_settings.connect(open_settings)
 	menu.open_quests.connect(open_quests)
+	menu.open_map.connect(func() -> void: _modal(preload("res://scripts/ui/world_map.gd"), {"travel": false}))
 	menu.to_title.connect(func() -> void:
 		SaveGame.save_game()
 		show_title())
 
 
 ## The quest log: every quest you're on and have done; pick the one to follow.
+## The big map (ui/world_map.gd); `travel` when opened at a woken waystone.
+func open_map(travel := false) -> void:
+	if Controls.locked:
+		return
+	_modal(preload("res://scripts/ui/world_map.gd"), {"travel": travel})
+
+
 ## The stash in your home's trunk (world/home_interior.gd).
 func open_stash() -> void:
 	_modal(preload("res://scripts/ui/stash_panel.gd"))

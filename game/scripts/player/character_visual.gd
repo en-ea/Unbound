@@ -50,6 +50,8 @@ var back_sword := false         # the player: your sword rides on your back whil
 var hand_sword := false         # the player's "Sword: always in hand" setting
 var hands_busy := false         # fishing, riding, dragging, talking...: no sword in hand, whatever the setting
 var claws := false              # the Delver: claws on both hands instead of a sword (set_claws)
+var merge := false              # a look that won't change (villagers, bandits): parts joined into one mesh (merge_parts)
+var _merged := false
 var tool_shown := ""
 var _sword_style := ""
 ## Where the sheathed sword sits, in the model's own space (it faces +Z): grip up by the right shoulder,
@@ -89,6 +91,8 @@ func _ready() -> void:
 		mi.free()   # the grey mannequin
 	_attach_hero()
 	apply_hero_look()
+	if merge:
+		merge_parts()
 	for anim_name in [IDLE, WALK, RUN, SPRINT]:
 		_anim.get_animation(anim_name).loop_mode = Animation.LOOP_LINEAR
 	_add_extra_animations()
@@ -377,6 +381,8 @@ func tint_tool(tool_name: String, color: Color) -> void:
 
 ## Shows the hero's chosen parts and applies its colours.
 func apply_hero_look() -> void:
+	if _merged:
+		return
 	if is_player_look:
 		scale = Vector3(hero_look.build, hero_look.height, hero_look.build)
 	if body_model != "":                    # a ready-made body: every part shows, only the materials need setting
@@ -413,6 +419,97 @@ func apply_hero_look() -> void:
 			var src := mi.mesh.surface_get_material(s)
 			if src:
 				mi.set_surface_override_material(s, _slot_material(src))
+
+
+## Joins every shown part into one skinned mesh, so a character draws in one call (two with glowing bits)
+## and as many for its shadow, instead of twenty or more. Each part's colour (its slot material's albedo)
+## is baked into its vertices (the shader reads colours from UV/UV2), so the parts share one material.
+## For looks that won't change: villagers, bandits. The hidden parts are freed. Leaves things as they
+## are if the parts don't share a skin.
+func merge_parts() -> void:
+	var skin: Skin = null
+	var groups := {}                  # glow -> Array of [mesh, surface, linear colour]
+	for mi in _parts:
+		if not mi.visible:
+			continue
+		if skin == null:
+			skin = mi.skin
+		elif mi.skin != skin:
+			return
+		for s in mi.mesh.get_surface_count():
+			var mat := mi.get_surface_override_material(s) as ShaderMaterial
+			if mat == null:
+				return
+			var glow: float = mat.get_shader_parameter("glow") if mat.get_shader_parameter("glow") != null else 0.0
+			var albedo: Color = mat.get_shader_parameter("albedo") if mat.get_shader_parameter("albedo") != null else Color.WHITE
+			if not groups.has(glow):
+				groups[glow] = []
+			groups[glow].append([mi.mesh, s, albedo.srgb_to_linear()])
+	if groups.is_empty():
+		return
+	var joined := ArrayMesh.new()
+	var mats := {}
+	for glow: float in groups:
+		var arrays := _join_surfaces(groups[glow])
+		if arrays.is_empty():
+			return
+		var first: Array = groups[glow][0]
+		var eight: bool = (first[0] as Mesh).surface_get_format(first[1]) & Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS
+		joined.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if eight else 0)
+		var m := ShaderMaterial.new()
+		m.shader = SOLID_SHADER
+		m.set_shader_parameter("sway", 0.0)
+		m.set_shader_parameter("albedo", Color.WHITE)
+		m.set_shader_parameter("glow", glow)
+		joined.surface_set_material(joined.get_surface_count() - 1, m)
+		mats["merged_%d" % joined.get_surface_count()] = m
+	var one := MeshInstance3D.new()
+	one.name = "Merged"
+	one.mesh = joined
+	one.skin = skin
+	_skeleton.add_child(one)
+	one.skeleton = NodePath("..")
+	one.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	for mi in _parts:
+		mi.queue_free()
+	_parts = [one]
+	_slot_materials = mats            # the hit flash and the red warning glow find them here
+	_merged = true
+
+
+## The surfaces' arrays end to end (indices shifted, each one's colour baked into UV/UV2), or [] if they
+## don't have the same arrays.
+func _join_surfaces(list: Array) -> Array:
+	var out := []
+	out.resize(Mesh.ARRAY_MAX)
+	var count := 0
+	for entry: Array in list:
+		var a: Array = (entry[0] as Mesh).surface_get_arrays(entry[1])
+		var c: Color = entry[2]
+		var n: int = (a[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+		if a[Mesh.ARRAY_TEX_UV] == null or a[Mesh.ARRAY_TEX_UV2] == null:
+			return []
+		var uv: PackedVector2Array = a[Mesh.ARRAY_TEX_UV]
+		var uv2: PackedVector2Array = a[Mesh.ARRAY_TEX_UV2]
+		for i in n:
+			uv[i] = Vector2(uv[i].x * c.r, uv[i].y * c.g)
+			uv2[i] = Vector2(uv2[i].x * c.b, uv2[i].y)
+		a[Mesh.ARRAY_TEX_UV] = uv
+		a[Mesh.ARRAY_TEX_UV2] = uv2
+		for k in Mesh.ARRAY_MAX:
+			if count > 0 and (a[k] == null) != (out[k] == null):
+				return []
+			if a[k] == null:
+				continue
+			if k == Mesh.ARRAY_INDEX:
+				var idx: PackedInt32Array = a[k]
+				for i in idx.size():
+					idx[i] += count
+				out[k] = idx if out[k] == null else out[k] + idx
+			else:
+				out[k] = a[k] if out[k] == null else out[k] + a[k]
+		count += n
+	return out
 
 
 ## The look's parts, with worn armour on top when `wear_gear` is on: a helm (unless hidden), the

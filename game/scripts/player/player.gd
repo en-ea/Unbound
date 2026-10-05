@@ -380,6 +380,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_tree().call_group("hud", "open_bag")
 		elif event.physical_keycode == KEY_J and not Controls.locked:
 			get_tree().call_group("hud", "open_quests")
+		elif event.physical_keycode == KEY_M and not Controls.locked:
+			get_tree().call_group("hud", "open_map", false)
 		elif event.physical_keycode == KEY_ESCAPE and not Controls.locked:
 			get_tree().call_group("hud", "open_menu")
 		elif event.physical_keycode == KEY_E:

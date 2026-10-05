@@ -368,6 +368,11 @@ func _ready() -> void:
 			get_tree().create_timer(3.0).timeout.connect(_census)
 		elif arg == "--touchtest":
 			_touch_test = true
+		elif arg == "--traveltest":                   # (with --memlog) travel meadow <-> forest every 15 s (leaks across region reloads)
+			get_tree().create_timer(15.0).timeout.connect(func() -> void:
+				Region.travel("forest" if Region.current == "meadow" else "meadow", Vector2.INF))
+		elif arg == "--drawlog":                      # after 10 s: what draws the most (visible mesh surfaces within 70 m, by owner)
+			get_tree().create_timer(10.0).timeout.connect(_drawlog)
 		elif arg == "--memlog":                       # print memory and object counts every 5 s (leak hunt)
 			var t := Timer.new()
 			t.wait_time = 5.0
@@ -609,6 +614,60 @@ func _hud_cost() -> void:
 		c.visible = true
 		var what: String = c.get_script().resource_path.get_file() if c.get_script() else c.get_class()
 		print("HUDCOST ", what, " ", before - after)
+
+
+func _drawlog() -> void:
+	var cam := get_viewport().get_camera_3d()
+	var by := {}
+	for n in get_tree().root.find_children("*", "GeometryInstance3D", true, false):
+		var g := n as GeometryInstance3D
+		if not g.is_visible_in_tree() or g.global_position.distance_to(cam.global_position) > 70.0:
+			continue
+		var surfaces := 1
+		if g is MeshInstance3D and (g as MeshInstance3D).mesh:
+			surfaces = (g as MeshInstance3D).mesh.get_surface_count()
+		elif g is MultiMeshInstance3D:
+			surfaces = 1
+		var top: Node = g
+		while top.get_parent() and top.get_parent() != get_parent():
+			top = top.get_parent()
+		var key := "%s/%s" % [top.name, g.get_class()]
+		by[key] = by.get(key, 0) + surfaces
+	var keys := by.keys()
+	keys.sort_custom(func(a: String, b: String) -> bool: return by[a] > by[b])
+	for k: String in keys.slice(0, 25):
+		print("DRAW ", by[k], " ", k)
+	print("DRAW frame total ", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), " tris ",
+		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
+	var main := get_parent()
+	var base: float = Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+	for n in main.get_children():                   # each part hidden in turn: what it costs (4 or more)
+		if not (n is Node3D or n is CanvasLayer) or not n.visible:
+			continue
+		n.visible = false
+		for i in 3:
+			await get_tree().process_frame
+		var cost: float = base - Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)
+		if cost >= 4.0:
+			print("DRAW %s costs %d" % [n.name, cost])
+		n.visible = true
+		for i in 2:
+			await get_tree().process_frame
+	var scatter := main.get_node("Scatter")
+	for kind: String in ["tree", "bush", "rock", "small", "ground"]:
+		var hidden := []
+		for c in scatter.get_children():
+			if c is MultiMeshInstance3D and c.get_meta("kind", "") == kind and c.visible:
+				c.visible = false
+				hidden.append(c)
+		for i in 3:
+			await get_tree().process_frame
+		print("DRAW without %s: %d (%d batches)" % [kind, Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), hidden.size()])
+		for c in hidden:
+			c.visible = true
+		for i in 2:
+			await get_tree().process_frame
+	get_tree().quit()
 
 
 func _memlog() -> void:

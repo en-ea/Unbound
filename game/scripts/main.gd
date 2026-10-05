@@ -54,6 +54,11 @@ func _ready() -> void:
 	bounty_board.set_script(preload("res://scripts/world/bounty_board.gd"))
 	add_child(bounty_board)
 	bounty_board.build(shape)
+	var waystone := Node3D.new()                   # fast travel (Waystones)
+	waystone.set_script(preload("res://scripts/world/waystone.gd"))
+	waystone.player = player
+	add_child(waystone)
+	waystone.build(shape)
 	var places := Node3D.new()
 	places.set_script(preload("res://scripts/world/places.gd"))
 	places.player = player

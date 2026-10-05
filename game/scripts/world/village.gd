@@ -120,6 +120,7 @@ static func door_of(index: int) -> Vector2:
 
 func _add_merchant(shape: WorldShape) -> void:
 	_merchant = CharacterVisual.new()
+	_merchant.merge = true
 	var look := CharacterLook.new()
 	look.outfit = "Wanderer"
 	while look.outfit != "Merchant":

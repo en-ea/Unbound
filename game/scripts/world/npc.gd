@@ -46,6 +46,7 @@ func setup(id: String, shape: WorldShape, fixed := Vector3.INF) -> void:
 	else:
 		global_position = Vector3(at.x, shape.height_at(at.x, at.y), at.y)
 	_visual = Npcs.make_visual(id)
+	_visual.merge = true
 	add_child(_visual)
 	Npcs.dress_visual(id, _visual, false, true)
 	var body := StaticBody3D.new()

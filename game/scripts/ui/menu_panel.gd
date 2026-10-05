@@ -7,6 +7,7 @@ signal open_character
 signal open_settings
 signal open_class
 signal open_quests
+signal open_map
 signal to_title
 
 @export var day_night: Node
@@ -34,6 +35,9 @@ func _ready() -> void:
 		save.text = "Saved")
 	UIStyle.menu_button(column, "Quests").pressed.connect(func() -> void:
 		open_quests.emit()
+		queue_free())
+	UIStyle.menu_button(column, "Map").pressed.connect(func() -> void:
+		open_map.emit()
 		queue_free())
 	UIStyle.menu_button(column, "Character").pressed.connect(func() -> void:
 		open_character.emit()

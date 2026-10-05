@@ -21,30 +21,15 @@ var _circle := PackedVector2Array()
 
 
 func setup(shape: WorldShape, trees: Array[Vector2]) -> void:
-	const PX := 160
-	var img := Image.create(PX, PX, false, Image.FORMAT_RGBA8)
-	for y in PX:
-		for x in PX:
-			var p := (Vector2(x + 0.5, y + 0.5) / PX - Vector2(0.5, 0.5)) * SPAN
-			var h := shape.height_at(p.x, p.y)
-			var c := Color(0.4, 0.6, 0.3).lightened(clampf(h * 0.05, 0.0, 0.3))
-			if h < WorldShape.WATER_Y:
-				c = Color(0.36, 0.58, 0.78)
-			elif shape.path_distance(p) < 1.6:
-				c = Color(0.82, 0.72, 0.52)
-			elif shape.in_clearing(p):
-				c = Color(0.62, 0.66, 0.4)
-			if maxf(absf(p.x), absf(p.y)) > WorldShape.PLAY_HALF:
-				c = c.darkened(0.45)
-			img.set_pixel(x, y, c)
-	for t in trees:
-		var m := Vector2i(((t + Vector2.ONE * SPAN * 0.5) / SPAN * PX).floor())
-		img.fill_rect(Rect2i(m, Vector2i(2, 2)), Color(0.18, 0.34, 0.16))
-	_tex = ImageTexture.create_from_image(img)
+	_tex = WorldMap.paint_ground(shape, trees, 160, SPAN)
 
 
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_STOP           # a tap opens the big map
+	gui_input.connect(func(e: InputEvent) -> void:
+		if (e is InputEventScreenTouch and e.pressed) or (e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT):
+			accept_event()
+			get_tree().call_group("hud", "open_map", false))
 	custom_minimum_size = Vector2(SIZE, SIZE)
 	size = Vector2(SIZE, SIZE)
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR

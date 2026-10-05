@@ -5,7 +5,7 @@ extends Node3D
 ## enemy it hit (for a moment), or in the ground.
 
 const SPEED := 38.0
-const LIFE := 1.3
+const LIFE := 0.55                 # about 20 m, then it drops
 const HIT_RADIUS := 0.75
 const HIT_SOUND := preload("res://assets/sounds/arrow_hit.wav")
 
@@ -72,7 +72,7 @@ func _physics_process(delta: float) -> void:
 	var from := global_position
 	global_position += _dir * SPEED * delta
 	for e in get_tree().get_nodes_in_group("enemy"):
-		if _hit.has(e) or not e.is_alive():
+		if _hit.has(e) or not e.is_alive() or (e.has_method("is_evading") and e.is_evading()):
 			continue
 		var c: Vector3 = (e as Node3D).global_position + Vector3(0, 0.7, 0)
 		var on_path := Geometry3D.get_closest_point_to_segment(c, from, global_position)

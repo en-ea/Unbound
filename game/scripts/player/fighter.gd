@@ -24,16 +24,20 @@ const HEAVY_SWORD := {"anim": "Sword_Attack", "speed": 1.0, "impact": 0.4, "busy
 const HEAVY_FIST := {"anim": "Punch_Cross", "speed": 0.75, "impact": 0.22, "busy": 0.6}
 const HEAVY_REACH := 2.8       # a heavy blow hits every enemy this close in front of you
 ## The bow (the Swap button): hold Attack to draw (you slow to a walk and keep facing your target), let go
-## to loose. A quick tap is a light shot; the longer the draw, the harder it hits; fully drawn it goes
-## through. Let go just as it's fully drawn (the flash and the ting) for a Perfect shot: a critical.
-## Heavy is a Triple Shot: three arrows fanned at up to three enemies in front. Arrows bend towards their
-## target. The bow rides on your back outside fights. Arms and string: player/bow_pose.gd.
-const BOW_RANGE := 26.0
-const DRAW_TIME := 0.75       # seconds to a full draw (faster with a swift bow)
+## to loose. It only aims at an enemy in front of you, within BOW_RANGE; arrows fly straight at where the
+## target is now (a moving one can be missed, a wolf may hop aside), and hit softer far away. A quick tap
+## is a light shot; the longer the draw, the harder. Let go just as it's fully drawn (the flash and the ting)
+## for a Perfect shot: a critical that curves onto its target and goes through. Hold too long and your arm
+## shakes. Every shot costs stamina (Balance.BOW). Heavy is a Triple Shot at up to three enemies in front.
+## The bow rides on your back outside fights. Arms and string: player/bow_pose.gd.
+const BOW_RANGE := 15.0
+const AIM_CONE := 0.55        # how far off your facing a target can be (dot)
+const DRAW_TIME := 0.9        # seconds to a full draw (faster with a swift bow)
 const MIN_DRAW := 0.14        # even a tap draws this long first
-const PERFECT := 0.3          # seconds after the full draw when letting go is Perfect
+const PERFECT := 0.25         # seconds after the full draw when letting go is Perfect
+const SHAKE_AFTER := 1.2      # seconds held at full before the arm starts to shake
 const SHOT_REST := 0.22       # after a shot, before the next draw
-const TRIPLE := {"draw": 0.4, "mult": 1.0, "fan": 0.2}
+const TRIPLE := {"draw": 0.45, "mult": 0.55, "fan": 0.2}
 const ARROW := preload("res://scripts/player/player_arrow.gd")
 const BOW_SOUND := preload("res://assets/sounds/bow_shot.wav")
 const BOW_POSE := preload("res://scripts/player/bow_pose.gd")
@@ -492,7 +496,10 @@ func _aim_target() -> Node3D:
 		var d := to.length()
 		if d > BOW_RANGE:
 			continue
-		var score := d * (1.0 + (1.0 - facing.dot(to / maxf(d, 0.01))) * 1.2)
+		var ahead := facing.dot(to / maxf(d, 0.01))
+		if ahead < AIM_CONE:
+			continue                         # you have to face it
+		var score := d * (1.0 + (1.0 - ahead) * 1.2)
 		if score < best_score:
 			best_score = score
 			best = e
@@ -508,7 +515,7 @@ func _targets_ahead(n: int) -> Array[Node3D]:
 	var list := get_tree().get_nodes_in_group("enemy").filter(func(e: Node) -> bool:
 		var to: Vector3 = (e as Node3D).global_position - player.global_position
 		to.y = 0.0
-		return e != target and e.is_alive() and e.get("verb") != "Calm" and to.length() < BOW_RANGE and facing.dot(to.normalized()) > 0.5)
+		return e != target and e.is_alive() and e.get("verb") != "Calm" and to.length() < BOW_RANGE and facing.dot(to.normalized()) > AIM_CONE)
 	list.sort_custom(func(a: Node3D, b: Node3D) -> bool:
 		return a.global_position.distance_to(player.global_position) < b.global_position.distance_to(player.global_position))
 	for e: Node3D in list:
@@ -520,6 +527,9 @@ func _targets_ahead(n: int) -> Array[Node3D]:
 ## Starts drawing (Attack held), or a Triple Shot (Heavy, the stamina already paid).
 func _start_draw(triple := false) -> void:
 	if _draw >= 0.0 or player.is_down():
+		return
+	if player.stamina.winded:
+		get_tree().call_group("hud", "hint", "Too tired to draw")
 		return
 	if _bow_rest > 0.0:
 		_draw_queued = not triple
@@ -565,6 +575,12 @@ func _bow_tick(delta: float) -> void:
 			if not _triple:                    # fully drawn: the string glows and a ting, let go now!
 				_play_once(READY_SOUND, -8.0)
 				player.get_node("Effects").glow_burst(Color(0.5, 1.0, 0.95), 24)
+		if _full_at >= 0.0 and not _triple:   # holding it drawn tires the arm, then it shakes
+			player.stamina._spend(Balance.BOW["hold"] * delta)
+			if _draw - _full_at > SHAKE_AFTER:
+				_pose.draw = 1.0 + sin(_draw * 40.0) * 0.04
+			if player.stamina.winded:
+				_let_go = true
 		var t := target if is_instance_valid(target) else null
 		if t:
 			var to := t.global_position - player.global_position
@@ -580,20 +596,27 @@ func _bow_tick(delta: float) -> void:
 ## Lets the arrow fly: the longer the draw, the harder (fully drawn it goes through); Perfect on the beat.
 func _loose(amount: float) -> void:
 	var perfect := not _triple and _full_at >= 0.0 and _draw - _full_at <= PERFECT
-	var mult := lerpf(0.55, 1.5, amount)
-	var pierce := 2 if amount >= 1.0 and not _triple else 0
+	var shaking := not _triple and _full_at >= 0.0 and _draw - _full_at > SHAKE_AFTER
+	var b: Dictionary = Balance.BOW
+	var mult := lerpf(b["weak"], b["full"], amount)
+	var pierce := 2 if perfect else 0
 	if perfect:
-		mult *= 1.4
+		mult *= b["perfect"]
+	player.stamina._spend(b["shot"] * (0.5 + amount * 0.5))
 	var from := player.global_position + Vector3(0, 1.4, 0) + Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y)) * 0.6
 	if _triple:
 		var aims := _targets_ahead(3)            # the middle arrow at your target, the outer ones at the next two
 		for k in 3:
 			var turn: float = visual.rotation.y + (k - 1) * TRIPLE["fan"]
 			var pick: int = [1, 0, 2][k]
-			_fire(from, Vector3(sin(turn), 0, cos(turn)), aims[pick] if pick < aims.size() else null, TRIPLE["mult"], 0, false, 4.0)
+			_fire(from, Vector3(sin(turn), 0, cos(turn)), aims[pick] if pick < aims.size() else null, TRIPLE["mult"], 0, false, 0.0)
 	else:
-		var dir := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
-		_fire(from, dir, target if is_instance_valid(target) else null, mult, pierce, perfect, 6.0 if perfect else (3.5 + amount * 2.0))
+		var turn := visual.rotation.y + (randf_range(-0.14, 0.14) if shaking else 0.0)
+		var dir := Vector3(sin(turn), 0, cos(turn))
+		var t: Node3D = target if is_instance_valid(target) and not shaking else null
+		if t and t.has_method("sense_swing"):
+			t.sense_swing()                  # a wary wolf may hop aside
+		_fire(from, dir, t, mult, pierce, perfect, 5.0 if perfect else 0.0)
 	if perfect:
 		FloatText.spawn(get_tree(), player.global_position + Vector3(0, 2.2, 0), "Perfect!", Color(0.55, 1.0, 0.95), true)
 	_audio.stream = BOW_SOUND
@@ -624,6 +647,8 @@ func _fire(from: Vector3, dir: Vector3, t: Node3D, mult: float, pierce: int, cri
 func arrow_hit(t: Node3D, mult: float, crit := false) -> void:
 	if not is_instance_valid(t) or not t.is_alive():
 		return
+	var far := t.global_position.distance_to(player.global_position)
+	mult *= lerpf(1.0, Balance.BOW["far"], clampf((far - 6.0) / (BOW_RANGE - 6.0), 0.0, 1.0))
 	var hit := Gear.hit_damage(mult)
 	if crit:
 		hit = [maxi(hit[0], 1), true]

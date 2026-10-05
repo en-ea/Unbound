@@ -66,6 +66,7 @@ func save_game() -> void:
 		"bounties": Bounties.to_data(),
 		"residents": Residents.to_data(),
 		"lettings": Lettings.to_data(),
+		"waystones": Waystones.to_data(),
 		"fishing": FishData.to_data(),
 		"region": Region.current,
 		"regions": _regions,
@@ -110,6 +111,7 @@ func load_game() -> void:
 	Bounties.load_data(data.get("bounties", {}))
 	Residents.load_data(data.get("residents", {}))
 	Lettings.load_data(data.get("lettings", {}))
+	Waystones.load_data(data.get("waystones", []))
 	FishData.load_data(data.get("fishing", {}))
 	_regions = data.get("regions", {})
 	if not data.has("regions") and data.has("world"):       # a save from before regions: the meadow
@@ -146,6 +148,7 @@ func restore_belongings() -> void:
 	Bounties.load_data(data.get("bounties", {}))
 	Residents.load_data(data.get("residents", {}))
 	Lettings.load_data(data.get("lettings", {}))
+	Waystones.load_data(data.get("waystones", []))
 	FishData.load_data(data.get("fishing", {}))
 
 
@@ -190,6 +193,7 @@ func start_over() -> void:
 	Bounties.load_data({})
 	Residents.load_data({})
 	Lettings.load_data({})
+	Waystones.load_data([])
 	FishData.load_data({})
 	WorldResources.reset()
 	get_tree().reload_current_scene()

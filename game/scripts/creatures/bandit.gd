@@ -87,6 +87,7 @@ func _ready() -> void:
 	col.position = Vector3(0, 0.9, 0)
 	add_child(col)
 	visual = CharacterVisual.new()
+	visual.merge = true
 	visual.hero_look = look
 	visual.is_player_look = false
 	add_child(visual)

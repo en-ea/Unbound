@@ -18,6 +18,9 @@ const REGEN_EVERY := 9.0          # then one heart this often
 ## Run it empty and you are winded: no sprint, roll or heavy until it is back to `winded_until`.
 const STAMINA := {"max": 100.0, "regen": 34.0, "delay": 0.6, "sprint": 20.0, "roll": 26.0, "heavy": 34.0,
 	"guard": 10.0, "block": 24.0, "winded_until": 35.0}
+## The bow (fighter.gd): damage (times a sword blow) for a tap and a full draw, Perfect's multiplier, what's left
+## at the far end of the range, stamina a full shot costs (a tap half), and a second held at full draw.
+const BOW := {"weak": 0.35, "full": 1.0, "perfect": 1.7, "far": 0.6, "shot": 14.0, "hold": 12.0}
 ## The Red Hand bandits (creatures/bandit.gd): hit points, damage (hearts), run speed, how far they
 ## circle, how often they block a hit from the front, combo length, XP and coins dropped.
 const BANDITS := {
