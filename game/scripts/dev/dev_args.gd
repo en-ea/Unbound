@@ -302,6 +302,10 @@ func _ready() -> void:
 			add_child(lt)
 		elif arg == "--carttest":                     # meteor a villager, carry the body to the ox cart
 			add_child(preload("res://scripts/dev/cart_carry_test.gd").new())
+		elif arg == "--thumb":                       # Hilmi's thumb area for this run (not saved)
+			Settings.thumb_controls = true
+		elif arg == "--controlstest":                # switch Settings > Controls both ways, print what shows
+			add_child(preload("res://scripts/dev/controls_test.gd").new())
 		elif arg.begins_with("--class="):            # start as a class: --class=pyromancer|delver|shade
 			Classes.choose.call_deferred(arg.trim_prefix("--class="))
 		elif arg == "--classpanel":                  # open the class screen as the shrine would

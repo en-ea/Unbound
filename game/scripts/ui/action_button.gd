@@ -46,7 +46,7 @@ const DIRS := {"up": Vector2(0, -1), "down": Vector2(0, 1), "left": Vector2(-1, 
 const CREAM := Color(1, 0.97, 0.9)
 const GOLD := Color(1.0, 0.82, 0.42)
 const AbilityIcons := preload("res://scripts/ui/ability_icons.gd")
-static var _soft: GradientTexture2D  # the soft round light behind glows, gloss and shadows
+const Look := preload("res://scripts/ui/button_look.gd")
 
 
 func is_held() -> bool:
@@ -268,34 +268,12 @@ func _draw() -> void:
 		draw_arc(c, r + 8.0, 0.0, TAU, 48, Color(GOLD, 0.9), 2.0, true)
 
 
-## A soft round light (or shadow): full in the middle, fading out to `radii`.
 func _blob(at: Vector2, radii: Vector2, col: Color) -> void:
-	if _soft == null:
-		var g := Gradient.new()
-		g.offsets = PackedFloat32Array([0.0, 0.35, 0.7, 1.0])
-		g.colors = PackedColorArray([Color(1, 1, 1, 1), Color(1, 1, 1, 0.78), Color(1, 1, 1, 0.3), Color(1, 1, 1, 0)])
-		_soft = GradientTexture2D.new()
-		_soft.gradient = g
-		_soft.width = 128
-		_soft.height = 128
-		_soft.fill = GradientTexture2D.FILL_RADIAL
-		_soft.fill_from = Vector2(0.5, 0.5)
-		_soft.fill_to = Vector2(0.5, 0.0)
-	draw_texture_rect(_soft, Rect2(at - radii, radii * 2.0), false, col)
+	Look.blob(self, at, radii, col)
 
 
-## A ring shaded like metal: bright where the light falls (top left), dark underneath.
 func _metal_ring(c: Vector2, r: float, width: float, light: Color, dark: Color) -> void:
-	var pts := PackedVector2Array()
-	var cols := PackedColorArray()
-	var sun := Vector2(-0.45, -0.9).normalized()
-	for k in 73:
-		var a := TAU * k / 72.0
-		var d := Vector2(cos(a), sin(a))
-		pts.append(c + d * r)
-		var t := 0.5 + 0.5 * d.dot(sun)
-		cols.append(dark.lerp(light, t * t))
-	draw_polyline_colors(pts, cols, width, true)
+	Look.metal_ring(self, c, r, width, light, dark)
 
 
 ## Its symbol: an ability's (by id) or one of the drawn ones below.

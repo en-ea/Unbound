@@ -7,6 +7,8 @@ const Feel := preload("res://scripts/studio/player/contact_feel.gd")
 const TapRule := preload("res://scripts/studio/player/tap_rule.gd")
 const People := preload("res://scripts/studio/village/sim/people.gd")
 const FONT := preload("res://assets/fonts/Almendra-Regular.ttf")
+const Look := preload("res://scripts/ui/button_look.gd") # merge-fix: the buttons' look
+const AbilityIcons := preload("res://scripts/ui/ability_icons.gd") # merge-fix: the powers' symbols
 var player
 var driver
 var pointers := {}
@@ -349,7 +351,7 @@ var _hint_words := "Use / flick strike / push shove" # As last drawn, so the boa
 ## Where the hint's baseline is centred: above the arcs (act) or above the power row (discs).
 func hint_at() -> Vector2:
 	if scheme=="act":
-		return surfaces().act-Vector2(0,ACT_RADIUS+ARC_GAP+ARC_BAND+30)*unit()
+		return surfaces().act-Vector2(110,ACT_RADIUS+ARC_GAP+ARC_BAND+30)*unit() # merge-fix: left, clear of the Bow button
 	return centres().hand+Vector2(-77,-200)*unit()
 func stick_hint_at() -> Vector2:
 	return Vector2(220,get_viewport().get_visible_rect().size.y-95)
@@ -359,41 +361,82 @@ func _pill_rect(at: Vector2,words: String,font_size: int) -> Rect2:
 	var pad := 6*unit()
 	return Rect2(at.x-width*0.5-pad,at.y-FONT.get_ascent(size)-pad*0.5,width+pad*2,FONT.get_ascent(size)+FONT.get_descent(size)+pad)
 func _pill(at: Vector2,words: String,color: Color,font_size: int) -> void:
-	draw_rect(_pill_rect(at,words,font_size),BACKING,true)
+	var box := StyleBoxFlat.new() # merge-fix: rounded, with a faint gold edge
+	box.bg_color=BACKING
+	box.set_corner_radius_all(roundi(10*unit()))
+	box.border_color=Color(1.0,0.82,0.42,0.35)
+	box.set_border_width_all(1)
+	box.anti_aliasing=true
+	draw_style_box(box,_pill_rect(at,words,font_size).grow_individual(4*unit(),0,4*unit(),0))
 	_text(at,words,color,font_size)
-## Slice 4 (act): the thumb area with a dark under-stroke so its edge reads on white, and the power arcs, each a
-## dark band with its name in cream and its cooldown along the outer edge in the class colour.
+## Slice 4 (act): the thumb area and the power arcs above it. merge-fix: drawn in the buttons' look (button_look.gd):
+## a glass body with a gold metal rim and a hand symbol; each power a glassy band in the class colour with its
+## symbol, a dark shade over the cooldown still to wait (and the seconds), and a soft glow once it's ready.
 func _draw_act(u: float) -> void:
 	var area: Vector2=surfaces().act
-	draw_circle(area,ACT_RADIUS*u,Color(0.06,0.04,0.03,0.18),true,-1,true)
-	draw_arc(area,ACT_RADIUS*u,0,TAU,64,Color(0.05,0.04,0.03,0.6),5*u,true)
-	draw_arc(area,ACT_RADIUS*u,0,TAU,64,Color(0.92,0.75,0.45,0.9),2*u,true)
+	var r := ACT_RADIUS*u
+	var held := pointers.values().any(func(g) -> bool: return g.role=="act")
+	Look.blob(self,area+Vector2(0,r*0.08),Vector2.ONE*r*1.22,Color(0,0,0,0.32))
+	draw_circle(area,r,Color(0.05,0.06,0.09,0.42),true,-1,true)
+	Look.blob(self,area+Vector2(0,r*0.1),Vector2.ONE*r*0.95,Color(1.0,0.78,0.42,0.2+(0.18 if held else 0.0)))
+	Look.blob(self,area-Vector2(0,r*0.52),Vector2(r*0.66,r*0.32),Color(1,1,1,0.12))
+	draw_arc(area,r+4*u,0,TAU,96,Color(0,0,0,0.5),2*u,true)
+	Look.metal_ring(self,area,r,6*u,Color(1.0,0.93,0.66),Color(0.5,0.31,0.1))
+	draw_arc(area,r-3.5*u,0,TAU,96,Color(0.15,0.08,0.02,0.55),1.5*u,true)
+	draw_arc(area,r+2.4*u,PI*1.08,PI*1.62,24,Color(1,1,1,0.45),1.2*u,true)
+	var icon_at := area+Vector2(0,-6)*u
+	Look.hand(self,icon_at+Vector2(0,3)*u,24*u,Color(0,0,0,0.45))
+	Look.hand(self,icon_at,24*u,Color(INK,0.92))
 	if words:
-		_pill(area+Vector2(0,6)*u,"Hand",INK,16)
+		_pill(area+Vector2(0,44)*u,"Hand",INK,14)
 	var arc := arcs()
 	var r0 := (ACT_RADIUS+ARC_GAP)*u
 	var r1 := r0+ARC_BAND*u
+	var font := get_theme_default_font()
 	for role: String in arc:
 		var a0: float=arc[role].x
 		var a1: float=arc[role].y
 		var color := Classes.color()
-		var points := PackedVector2Array()
-		for i in 17:
-			points.append(area+Vector2.from_angle(lerpf(a0,a1,i/16.0))*r1)
-		for i in range(16,-1,-1):
-			points.append(area+Vector2.from_angle(lerpf(a0,a1,i/16.0))*r0)
-		draw_colored_polygon(points,BACKING)
-		points.append(points[0])
-		draw_polyline(points,color,2*u,true)
 		var ability := role.trim_prefix("power:")
 		var dragging: bool=ability=="burrow" and player.burrowed()
-		var label := str(Classes.ABILITIES[ability]["short"])
-		if dragging:
-			label="Drag" if not player.abilities.delver.dragged_this_dive else "Used"
-		if words:
-			_text(area+Vector2.from_angle((a0+a1)*0.5)*(r0+r1)*0.5+Vector2(0,6)*u,label,INK,16)
 		var left := 0.0 if dragging else Classes.cooldown_left(ability)
-		draw_arc(area,r1+4*u,a0,a0+(a1-a0)*(1.0-left),24,color,3*u,true)
+		var mid := area+Vector2.from_angle((a0+a1)*0.5)*(r0+r1)*0.5
+		if left<=0.0:   # ready: a soft glow in the class colour, beating
+			var beat := 0.5+0.5*sin(Time.get_ticks_msec()*0.004)
+			Look.blob(self,mid,Vector2.ONE*ARC_BAND*u*(0.95+0.08*beat),Color(color,0.22+0.14*beat))
+		var points := PackedVector2Array()
+		var tints := PackedColorArray()
+		for i in 17:   # the outer edge lit, the inner one deep
+			points.append(area+Vector2.from_angle(lerpf(a0,a1,i/16.0))*r1)
+			tints.append(Color(color.darkened(0.35),0.85))
+		for i in range(16,-1,-1):
+			points.append(area+Vector2.from_angle(lerpf(a0,a1,i/16.0))*r0)
+			tints.append(Color(0.05,0.05,0.08,0.88))
+		draw_polygon(points,tints)
+		if left>0.0:   # the part still cooling, shaded from the end back
+			var shade := PackedVector2Array()
+			var from := a0+(a1-a0)*(1.0-left)
+			for i in 9:
+				shade.append(area+Vector2.from_angle(lerpf(from,a1,i/8.0))*r1)
+			for i in range(8,-1,-1):
+				shade.append(area+Vector2.from_angle(lerpf(from,a1,i/8.0))*r0)
+			draw_colored_polygon(shade,Color(0.01,0.02,0.04,0.6))
+		points.append(points[0])
+		draw_polyline(points,Color(0,0,0,0.5),3.5*u,true)
+		draw_polyline(points,Color(color.lightened(0.4),0.9 if left<=0.0 else 0.5),1.6*u,true)
+		var ink := Color(INK,1.0 if left<=0.0 else 0.4)
+		if dragging:
+			_text(mid+Vector2(0,6)*u,"Drag" if not player.abilities.delver.dragged_this_dive else "Used",INK,16)
+		else:
+			AbilityIcons.draw(self,ability,mid+Vector2(0,2)*u,17*u,Color(0,0,0,0.45*ink.a),Color(0.05,0.06,0.09))
+			AbilityIcons.draw(self,ability,mid,17*u,ink,Color(0.05,0.06,0.09))
+		if left>0.0:
+			var secs := str(ceili(left*Classes.cooldown_of(ability)))
+			var size := roundi(20*u)
+			var w := font.get_string_size(secs,HORIZONTAL_ALIGNMENT_LEFT,-1,size).x
+			draw_string_outline(font,mid+Vector2(-w*0.5,size*0.36),secs,HORIZONTAL_ALIGNMENT_LEFT,-1,size,maxi(roundi(4*u),3),Color(0,0,0,0.7))
+			draw_string(font,mid+Vector2(-w*0.5,size*0.36),secs,HORIZONTAL_ALIGNMENT_LEFT,-1,size,Color(1,1,1,0.97))
+		draw_arc(area,r1+4*u,a0,a0+(a1-a0)*(1.0-left),24,Color(color.lightened(0.2),0.95),3*u,true)
 ## Slice 4's board check: for each control's words, screen points that show only its backing (the pill's inner
 ## edge, or the arc band away from its name), and the ink drawn on it. The probe samples the rendered pixels there.
 ## The screen space the controls and their words take, for speech.gd's bubbles to keep clear of.
