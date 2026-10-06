@@ -57,15 +57,16 @@ func _refresh() -> void:
 	_row("Minimap", "On" if Settings.show_map else "Off", func() -> void: Settings.set_show_map(not Settings.show_map))
 	_row("Performance stats", "On" if Settings.show_stats else "Off", func() -> void: Settings.set_show_stats(not Settings.show_stats))
 	_row("Camera", Settings.ZOOMS.get(Settings.zoom, "Normal"), Settings.next_zoom)
-	_row("Controls", "Thumb area (new)" if Settings.thumb_controls else "Buttons",
+	_row("Controls", "Hilmi's thumb area" if Settings.thumb_controls else "Buttons",
 		func() -> void: Settings.set_thumb_controls(not Settings.thumb_controls))
-	_row("Buttons", "Compact (flicks)" if Settings.compact_controls else "All shown",
-		func() -> void: Settings.set_compact_controls(not Settings.compact_controls))
-	_row("Slide between buttons", "On" if Settings.slide_buttons else "Off",
-		func() -> void: Settings.set_slide_buttons(not Settings.slide_buttons))
-	_row("Button layout", "Move / resize", func() -> void:
-		_close()
-		get_tree().call_group.call_deferred("hud", "edit_buttons"))
+	if not Settings.thumb_controls:     # the button options only matter with the buttons
+		_row("Buttons", "Compact (flicks)" if Settings.compact_controls else "All shown",
+			func() -> void: Settings.set_compact_controls(not Settings.compact_controls))
+		_row("Slide between buttons", "On" if Settings.slide_buttons else "Off",
+			func() -> void: Settings.set_slide_buttons(not Settings.slide_buttons))
+		_row("Button layout", "Move / resize", func() -> void:
+			_close()
+			get_tree().call_group.call_deferred("hud", "edit_buttons"))
 	_row("Sword", "Always in hand" if Settings.sword_in_hand else "On back till a fight",
 		func() -> void: Settings.set_sword_in_hand(not Settings.sword_in_hand))
 	if _page == "code":
