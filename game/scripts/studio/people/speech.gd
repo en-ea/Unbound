@@ -62,6 +62,7 @@ const HUD_SHARE := 0.25       # a HUD control this share of the screen or more i
 const CLEAR := 6.0            # px a bubble keeps from space in use
 const MOVE_MOST := 0.4        # of the screen's width: further than this, a bubble stays put rather than wander off
 static var _back_texture: ImageTexture
+const BUBBLE := preload("res://scripts/ui/speech_bubble.gdshader")
 const HEIGHT := 2.3           # metres over the feet (a grown body; a child's is scaled with them)
 const SECONDS_PER_WORD := 0.42
 const MIN_SECONDS := 2.4
@@ -401,10 +402,22 @@ func _backing(label: Label3D) -> Sprite3D:
 	back.render_priority = 1                                   # under the outline (2) and the words (3)
 	back.pixel_size = label.pixel_size
 	back.modulate = Color(BACKING, 0.0)
-	var sx := (text.x + 2.0 * pad) / 16.0
-	var sy := (text.y + 2.0 * pad) / 16.0
+	# merge-fix (owner, 6 Oct: "a bit nicer"): a rounded box with a faint gold edge and a tail down to the speaker,
+	# drawn by ui/speech_bubble.gdshader; the quad is the box plus the tail under it.
+	var box := text + Vector2(3.0, 2.0) * pad    # a little more room at the sides
+	var tail := label.font_size * 0.45
+	var sx := box.x / 16.0
+	var sy := (box.y + tail) / 16.0
 	back.scale = label.scale * Vector3(sx, sy, 1.0)
-	back.offset = Vector2(0.0, 8.0 - pad / sy)                 # its centre half the words' height up
+	back.offset = Vector2(0.0, 8.0 - (pad + tail) / sy)        # the box's bottom PAD under the words, the tail below
+	var mat := ShaderMaterial.new()
+	mat.shader = BUBBLE
+	mat.set_shader_parameter("box_px", box)
+	mat.set_shader_parameter("tail_px", tail)
+	mat.set_shader_parameter("radius_px", minf(box.y * 0.45, label.font_size * 0.7))
+	mat.set_shader_parameter("edge_px", maxf(label.font_size * 0.06, 1.5))
+	mat.render_priority = 1
+	back.material_override = mat
 	back.position = label.position
 	return back
 

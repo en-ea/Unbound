@@ -77,3 +77,15 @@ stones, % explored); village growth projects; dangerous nights. Done: bounty boa
 - **Over time it's people you know:** the wedding can be someone you've helped, rented to or fought beside, so it means something.
 - **You choose how to take part:** go and enjoy it (sit, eat, dance, give a gift), or ruin it (start a fight, set it on fire, blow the place up), and the village remembers either way.
 - Builds on Hilmi's goings-on (`studio/village/sim/goings_on.gd`), which already gathers people in the square for weddings, funerals, market and trials, but shows nothing yet.
+
+## Big ideas the owner kept (6 Oct, from Claude's list)
+- **Village raids (yes):** bandits or beasts attack the village at night; villagers fight, flee or die and are remembered; you build walls and towers and defend people you know.
+- **Rising through the village (always planned):** not just laws: become a hero or anything else; positions come from what you do and your money. Villagers climb the ranks too, and may eventually **spread out on their own**: found new places, build up their own things and people. **Cults** are part of this.
+- **Monster hunts (maybe, keep):** big named beasts tracked across regions; break their parts; craft their armour set with its own powers.
+- **Recruit villagers (we'll see):** take a hunter or smith adventuring; they can die for good and their family reacts.
+- **A family line (owner loved it):** marry, have children who grow up over the years, and in a hardcore mode carry on as your child when you die.
+- **Giants:** not a world-wrecking titan, but **a giant race** eventually.
+- **Freedom in how you treat people:** many options for what you do to whom and how. The owner wonders if this will need a **switchable item inventory** for more precise actions; open.
+- **Businesses:** yes, would be nice (a shop or forge, hire villagers, prices that follow scarcity).
+- **Seasons that change the map:** eventually maybe.
+- **A big tameable beast per region (yes):** strong, unique beasts you tame, which can also work for a village or protect it.

@@ -160,7 +160,13 @@ func _ready() -> void:
 				var d: Vector2 = preload("res://scripts/world/village.gd").door_of(house)
 				var room: Dictionary = preload("res://scripts/world/village.gd").VISITS.get(house,
 					{"feel": Lettings.HOUSES.get(house, {}).get("feel", "lantern"), "layout": "hearth"})
-				v.visit(house, room["feel"], Vector3(d.x, 0, d.y), room["layout"]))
+				v.visit(house, room["feel"], Vector3(d.x, 0, d.y), room["layout"])
+				if "--homesay" in OS.get_cmdline_user_args():   # someone inside speaks (bubble check)
+					get_tree().create_timer(1.0).timeout.connect(func() -> void:
+						for n in get_tree().get_nodes_in_group("interactable"):
+							if n.get("verb") == "Talk" and n.global_position.y < -200.0:
+								n.interact()
+								break))
 		elif arg == "--elk":                          # you have a tamed elk and start riding it
 			Hunting.elk = {"region": Region.current, "at": Vector2.ZERO, "yaw": 0.0}
 			Hunting.elk_riding = true
