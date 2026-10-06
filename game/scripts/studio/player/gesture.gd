@@ -14,6 +14,9 @@ const SHARP := 2400.0 # Unit px/s at which a flick reaches full force.
 const FORCE_MIN := 300
 const FORCE_MAX := 1000
 const HEAVY_FORCE := 750 # people_actions: force >= 750 knocks down.
+## merge-fix (owner, 6 Oct): in the act area the flick's direction picks the act, not its speed: up strikes,
+## right is the heavy blow, left parries (keep holding to block), down shoves. A tap still uses.
+static var by_direction := true
 var finger := -1
 var role := ""
 var origin := Vector2.ZERO
@@ -55,11 +58,24 @@ func drag(pointer: int, at: Vector2, relative: Vector2) -> bool:
 			prepared_age=age
 			if role=="act":
 				speed=arming_speed()
-				intent="shove" if speed<FLICK else "heavy" if flick_force()>=HEAVY_FORCE else "strike"
+				if by_direction:
+					intent=direction_intent(offset)
+				else:
+					intent="shove" if speed<FLICK else "heavy" if flick_force()>=HEAVY_FORCE else "strike"
 		armed=true
 		if role=="hand" and intent!="heavy":
 			intent="strike"
 	return true
+## merge-fix: which act a stroke this way is (by_direction): the stronger axis wins.
+static func direction_intent(moved: Vector2) -> String:
+	if absf(moved.y)>=absf(moved.x):
+		return "strike" if moved.y<0.0 else "shove"
+	return "heavy" if moved.x>0.0 else "guard"
+## The blow's force: by direction, a strike is mid (faster is harder, never a knock-down) and the heavy blow full.
+func force() -> int:
+	if not by_direction or role!="act":
+		return flick_force()
+	return 1000 if intent=="heavy" else clampi(flick_force(),450,HEAVY_FORCE-10)
 ## The blow's force from the arming speed (act role); 0 for a push.
 func flick_force() -> int:
 	if speed<FLICK:

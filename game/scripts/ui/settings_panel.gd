@@ -57,11 +57,17 @@ func _refresh() -> void:
 	_row("Minimap", "On" if Settings.show_map else "Off", func() -> void: Settings.set_show_map(not Settings.show_map))
 	_row("Performance stats", "On" if Settings.show_stats else "Off", func() -> void: Settings.set_show_stats(not Settings.show_stats))
 	_row("Camera", Settings.ZOOMS.get(Settings.zoom, "Normal"), Settings.next_zoom)
-	_row("Controls", "Hilmi's thumb area" if Settings.thumb_controls else "Buttons",
-		func() -> void: Settings.set_thumb_controls(not Settings.thumb_controls))
+	# Three ways to play: every button, the compact buttons (flicks on the main one), or the thumb area.
+	var style := "Thumb Area" if Settings.thumb_controls else "Compact (flicks)" if Settings.compact_controls else "All buttons"
+	_row("Controls", style, func() -> void:
+		if Settings.thumb_controls:
+			Settings.set_compact_controls(false)
+			Settings.set_thumb_controls(false)
+		elif Settings.compact_controls:
+			Settings.set_thumb_controls(true)
+		else:
+			Settings.set_compact_controls(true))
 	if not Settings.thumb_controls:     # the button options only matter with the buttons
-		_row("Buttons", "Compact (flicks)" if Settings.compact_controls else "All shown",
-			func() -> void: Settings.set_compact_controls(not Settings.compact_controls))
 		_row("Slide between buttons", "On" if Settings.slide_buttons else "Off",
 			func() -> void: Settings.set_slide_buttons(not Settings.slide_buttons))
 		_row("Button layout", "Move / resize", func() -> void:

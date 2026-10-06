@@ -119,8 +119,8 @@ func _input(event: InputEvent) -> void:
 			if intent!="cancel":
 				var strength := clampf(gesture.offset.length()/(80*unit()),0,1)
 				if gesture.role=="act" and intent in ["strike","heavy"]:
-					gesture.target.force=gesture.flick_force() # Slice 2: the flick's speed is the blow's force.
-					strength=gesture.flick_force()/1000.0
+					gesture.target.force=gesture.force() # Slice 2: the flick's speed is the blow's force.
+					strength=gesture.force()/1000.0
 				var released: Dictionary=gesture.target.duplicate()
 				released.merge({"verb":intent,"phase":"released","strength":strength},true)
 				intent_changed.emit(released) # Physical release cue, not an accepted fact/assault.
@@ -143,7 +143,8 @@ func _input(event: InputEvent) -> void:
 		var gesture=pointers[event.index]
 		if gesture.drag(event.index,event.position,event.relative):
 			if gesture.armed and not gesture.cancelled and gesture.intent in ["strike","heavy","shove"]:
-				driver.aim_target(gesture.target,driver.direction(gesture.offset,gesture.target.yaw))
+				var aim: Vector2=Vector2(0,-1) if Gesture.by_direction and gesture.role=="act" else gesture.offset # merge-fix: by direction, blows go ahead
+				driver.aim_target(gesture.target,driver.direction(aim,gesture.target.yaw))
 			elif gesture.role.begins_with("power:") and not gesture.cancelled and gesture.armed:
 				gesture.target.forward=driver.direction(gesture.offset,gesture.target.yaw)
 			get_viewport().set_input_as_handled()
@@ -223,7 +224,7 @@ func preview() -> Dictionary:
 			break # Carrying: the flick strikes nobody, so the body does not lean into a blow.
 		var strength := clampf(gesture.offset.length()/(80*unit()),0,1)
 		if gesture.role=="act" and gesture.armed and gesture.intent in ["strike","heavy"]:
-			strength=gesture.flick_force()/1000.0 # Slice 5: the lean shows the blow's force while it is aimed.
+			strength=gesture.force()/1000.0 # Slice 5: the lean shows the blow's force while it is aimed.
 		return {"verb":gesture.intent,"phase":"cancelled" if gesture.cancelled else "prepared",
 			"strength":strength,"forward":gesture.target.get("forward",Vector3.ZERO),
 			"target":gesture.target.get("target",-2)}
@@ -347,7 +348,7 @@ func _draw() -> void:
 		# Above the power row, not squeezed between it and Palm/Hand (owner screenshot 161221: label overlapped the rings).
 		_text(hint_at(),preview,tint,19)
 const STICK_WORDS := "flick dodge / tap crouch"
-var _hint_words := "Use / flick strike / push shove" # As last drawn, so the board samples the drawn pill.
+var _hint_words := "Tap: Use" # As last drawn, so the board samples the drawn pill.
 ## Where the hint's baseline is centred: above the arcs (act) or above the power row (discs).
 func hint_at() -> Vector2:
 	if scheme=="act":
@@ -387,7 +388,22 @@ func _draw_act(u: float) -> void:
 	var icon_at := area+Vector2(0,-6)*u
 	Look.hand(self,icon_at+Vector2(0,3)*u,24*u,Color(0,0,0,0.45))
 	Look.hand(self,icon_at,24*u,Color(INK,0.92))
-	if words:
+	if Gesture.by_direction: # merge-fix: each flick's act at its edge, a small arrow pointing out
+		var striking := TapRule.strikes_while(driver.load_kind())
+		var font_dir := get_theme_default_font()
+		for mark: Array in [[Vector2(0,-1),"Hit",striking],[Vector2(1,0),"Heavy",striking],[Vector2(-1,0),"Parry",true],[Vector2(0,1),"Shove",true]]:
+			var dir: Vector2=mark[0]
+			var on: bool=mark[2]
+			var at := area+dir*(r-30*u)
+			var side := Vector2(-dir.y,dir.x)
+			var tip := area+dir*(r-10*u)
+			draw_colored_polygon(PackedVector2Array([tip,tip-dir*8*u+side*7*u,tip-dir*8*u-side*7*u]),Color(1.0,0.82,0.42,0.9 if on else 0.3))
+			var size := roundi(15*u)
+			var w := font_dir.get_string_size(mark[1],HORIZONTAL_ALIGNMENT_LEFT,-1,size).x
+			var p := at+Vector2(-w*0.5,size*0.36)-dir*Vector2(w*0.35,0).abs()*absf(dir.x)
+			draw_string_outline(font_dir,p,mark[1],HORIZONTAL_ALIGNMENT_LEFT,-1,size,maxi(roundi(4*u),3),Color(0,0,0,0.6))
+			draw_string(font_dir,p,mark[1],HORIZONTAL_ALIGNMENT_LEFT,-1,size,Color(INK,0.95 if on else 0.35))
+	elif words:
 		_pill(area+Vector2(0,44)*u,"Hand",INK,14)
 	var arc := arcs()
 	var r0 := (ACT_RADIUS+ARC_GAP)*u

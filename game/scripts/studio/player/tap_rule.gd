@@ -16,6 +16,7 @@ extends RefCounted
 ##   tap order   urgent > picking up or setting down > village action > talk and stations > gathering > Use
 ##   flick/push  strike and shove are the stroke's, never the tap's; while carrying, a flick does not strike
 ##               (Enea's haul: "no fighting"), a push still shoves
+const Gesture := preload("res://scripts/studio/player/gesture.gd") # merge-fix: the hint follows how strokes pick acts
 const URGENT := ["erupt", "extinguish", "get_off", "takedown"]
 const USE_ORDER := ["erupt", "extinguish", "get_off", "takedown", "village_station", "station", "lower", "gather"]
 const EMPTY := {"kind": "empty", "verb": "Use"}
@@ -53,4 +54,6 @@ static func strikes_while(load: String) -> bool:
 
 ## The hint's words for the stroke, honest about the load: "<tap verb> / flick strike / push shove".
 static func hint(tap_verb: String, load: String) -> String:
-	return tap_verb + (" / flick strike / push shove" if strikes_while(load) else " / push shove")
+	if not Gesture.by_direction: # merge-fix: the flick's direction picks the act
+		return tap_verb + (" / flick strike / push shove" if strikes_while(load) else " / push shove")
+	return "Tap: " + tap_verb # the directions are marked round the thumb area itself
