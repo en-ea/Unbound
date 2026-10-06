@@ -7,9 +7,9 @@ extends RefCounted
 ## Distances are unit px (viewport px / unit), as in gesture.gd, so the same thumb motion reads the same on any phone.
 const TAP_TRAVEL := 14.0
 const TAP_LIFE := 0.25
-const DODGE_LIFE := 0.3
+const DODGE_LIFE := 0.2 # merge-fix: was 0.3 (a short walk read as a flick and rolled)
 const DODGE_REACH := 48.0 # Unit px from where the thumb landed: 0.6 of the stick's 80 px radius.
-const FLICK := 450.0 # Unit px/s over the last WINDOW when the reach is crossed: gesture.gd's flick line.
+const FLICK := 800.0 # merge-fix: was 450. Unit px/s over the last WINDOW when the reach is crossed: gesture.gd's flick line.
 const WINDOW := 0.1
 var finger := -1
 var origin := Vector2.ZERO

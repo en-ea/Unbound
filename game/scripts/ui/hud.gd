@@ -306,6 +306,8 @@ func _show_buffs() -> void:
 
 func _process(delta: float) -> void:
 	Controls.attack_touch = _action.visible and _action.is_held() and _action.swipes.is_empty()
+	if _hands != null and not _thumb() and _joystick.is_visible_in_tree() and not VillageSession.background:
+		_hands.driver.step(delta)   # merge-fix: with the buttons, walking into people and carried loads still touch them
 	_update_roll_button()
 	_update_ability_buttons()
 	_buff_tick -= delta
@@ -468,13 +470,13 @@ func close_fishing() -> void:
 ## Down in a cave: no minimap (it shows the land above).
 func set_cave(on: bool) -> void:
 	_indoors = on
-	_map.visible = _hands.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
+	_map.visible = _joystick.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
 
 
 func set_indoors(on: bool, own_home := true) -> void:
 	_indoors = on
 	_furnish.visible = on and own_home
-	_map.visible = _hands.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
+	_map.visible = _joystick.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
 
 
 ## Building in your yard, or furnishing your home (`room`): joystick stays, the build bar replaces
@@ -603,9 +605,9 @@ func _title_camera() -> void:
 func _set_play_ui(on: bool) -> void:
 	_joystick.visible = on
 	_camera_drag.visible = on
-	_hands.visible=on and not _bow_out() # studio: one phone control authority; merge interim: his bow keeps his Attack button
-	_action.visible=on and _bow_out() # studio: merge interim - his Attack draws and looses the bow until Body's controls take it
-	_roll.visible=false # studio: Feet owns dodge, stick rim owns sprint
+	_hands.visible=on and _thumb() and not _bow_out() # studio: one phone control authority; merge interim: his bow keeps his Attack button
+	_action.visible=on and (not _thumb() or _bow_out()) # studio: merge interim - his Attack draws and looses the bow until Body's controls take it
+	_roll.visible=on and not _thumb() # studio: Feet owns dodge, stick rim owns sprint (merge-fix: the buttons when Settings says so)
 	if not on:
 		Controls.sprint_button = false
 	_show_heavy()
@@ -615,6 +617,35 @@ func _set_play_ui(on: bool) -> void:
 	_map.visible = on and Settings.show_map and not _indoors
 
 
+## merge-fix: with the buttons, what the action button can do to people that the thumb area does: put out a
+## burning person, lift someone down (or dead), put them down. {} when nothing (or in thumb mode).
+func people_context() -> Dictionary:
+	if _hands == null or _thumb() or VillageSession.village == null:
+		return {}
+	var d = _hands.driver
+	var facts: Dictionary = d.facts()
+	if facts.has("extinguish"):
+		return {"how": "use", "context": facts.extinguish, "verb": "Put out"}
+	var g: Dictionary = d.grip()
+	if str(g.kind) == "person":
+		return {"how": "grip", "context": g, "verb": "Lift"}
+	if str(g.kind) == "person_down":
+		return {"how": "grip", "context": g, "verb": "Put down"}
+	return {}
+
+
+func people_act(c: Dictionary) -> void:
+	var d = _hands.driver
+	var intent: Dictionary = d.capture("hand")
+	intent.context = c.context
+	d.commit(str(c.how), intent)
+
+
+## merge-fix: Hilmi's thumb area, or Enea's buttons (Settings: Controls).
+func _thumb() -> bool:
+	return _hands != null and Settings.thumb_controls
+
+
 ## studio: merge interim - the bow is out: his Attack button drives it (Body's controls unit replaces this).
 func _bow_out() -> bool: # studio:
 	return Gear.has_bow and Gear.weapon == "bow" # studio:
@@ -622,7 +653,7 @@ func _bow_out() -> bool: # studio:
 
 ## Roll button: sprint while held, its rim shows stamina, it lights up while sprinting.
 func _update_roll_button() -> void:
-	if _hands!=null: # studio: the retired button cannot drive sprint or meter the live input owner
+	if _thumb(): # studio: the retired button cannot drive sprint or meter the live input owner
 		Controls.sprint_button=false # studio: stick rim supplies the continuous movement intent
 		return # studio: preserve the dormant implementation below
 	Controls.sprint_button = _roll.visible and _roll.held_for() >= HOLD_TO_SPRINT
@@ -641,7 +672,7 @@ func _update_roll_button() -> void:
 
 ## The fight buttons are always there while you play (Compact: flicks on Attack instead of Heavy and Parry).
 func _show_heavy() -> void:
-	if _hands!=null: # studio: one intent surface replaces provisional per-behaviour controls
+	if _thumb(): # studio: one intent surface replaces provisional per-behaviour controls
 		_heavy.visible=false
 		_parry.visible=false
 		_sneak.visible=false
@@ -677,8 +708,8 @@ func _update_ability_buttons() -> void:
 	var list := Classes.abilities()
 	for i: int in _ability_buttons:
 		var b: ActionButton = _ability_buttons[i]
-		var show: bool = _hands==null and i < list.size() and _action.visible # studio: power glyphs aim/release on Hands
-		b.visible = show or (_hands==null and ActionButton.editing and _action.visible) # studio: merge - his Move buttons editor, without Hands
+		var show: bool = not _thumb() and i < list.size() and _action.visible # studio: power glyphs aim/release on Hands
+		b.visible = show or (not _thumb() and ActionButton.editing and _action.visible) # studio: merge - his Move buttons editor, without Hands
 		if not show:
 			if ActionButton.editing:
 				b.set_verb("Skill %d" % (i + 1))
@@ -738,8 +769,10 @@ func slow_tint(seconds: float) -> void:
 
 func _on_settings_changed() -> void:
 	_fps_label.visible = Settings.show_stats
-	if _map and _hands.is_visible_in_tree(): # studio: settings follow the live surface, including region arrival
+	if _map and _joystick.is_visible_in_tree(): # studio: settings follow the live surface, including region arrival
 		_map.visible = Settings.show_map and not _indoors
+	if _joystick.is_visible_in_tree() and get_node_or_null("FishingUI") == null and _hands.visible != (_thumb() and not _bow_out()):
+		_set_play_ui(true)   # merge-fix: Controls switched in Settings
 
 
 func _add_vignette() -> void:

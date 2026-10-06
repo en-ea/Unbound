@@ -22,6 +22,7 @@ var compact_controls := false   # fewer buttons: flick Attack up for Heavy, left
 var sword_in_hand := false      # keep the sword drawn (otherwise it rides on your back outside fights)
 var button_spots := {}          # button id -> its centre from the bottom-right corner, where the player moved it
 var button_scale := 1.0         # all touch buttons bigger or smaller
+var thumb_controls := false     # merge-fix: Hilmi's one-thumb controls (tap use, flick strike, push shove) instead of the buttons
 var slide_buttons := false      # slide a thumb from one fight button onto another to press it (no lifting)
 
 
@@ -41,6 +42,7 @@ func _ready() -> void:
 		button_spots = cfg.get_value("controls", "button_spots", button_spots)
 		button_scale = cfg.get_value("controls", "button_scale", button_scale)
 		slide_buttons = cfg.get_value("controls", "slide_buttons", slide_buttons)
+		thumb_controls = cfg.get_value("controls", "thumb_controls", thumb_controls)
 	apply()
 
 
@@ -75,6 +77,11 @@ func set_living_village(value: bool) -> void:   # studio
 
 func set_music_on(value: bool) -> void:
 	music_on = value
+	_save_and_apply()
+
+
+func set_thumb_controls(value: bool) -> void:
+	thumb_controls = value
 	_save_and_apply()
 
 
@@ -136,6 +143,7 @@ func _save_and_apply() -> void:
 	cfg.set_value("studio", "living_village", living_village)
 	cfg.set_value("ui", "tracker_small", tracker_small)
 	cfg.set_value("controls", "compact", compact_controls)
+	cfg.set_value("controls", "thumb_controls", thumb_controls)
 	cfg.set_value("controls", "sword_in_hand", sword_in_hand)
 	cfg.set_value("controls", "button_spots", button_spots)
 	cfg.set_value("controls", "button_scale", button_scale)

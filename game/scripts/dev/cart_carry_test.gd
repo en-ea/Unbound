@@ -47,13 +47,14 @@ func _physics_process(delta: float) -> void:
 		_step = 3
 		_mark = _t
 	elif _step == 3 and _t > _mark + 1.0:
+		print("CARTTEST action button says %s" % _player.verb)
 		var d = hud._hands.driver
 		var intent: Dictionary = d.capture("grip")
 		print("CARTTEST grip context %s" % intent.context)
 		d.commit("grip", intent)
 		_step = 4
 	elif _step == 4 and _t > _mark + 2.0:
-		print("CARTTEST carrying person=%s" % _player.has_meta("studio_people_load"))
+		print("CARTTEST carrying person=%s, action button says %s" % [_player.has_meta("studio_people_load"), _player.verb])
 		var cart := get_tree().get_first_node_in_group("ox_cart") as Node3D
 		_player.global_position = cart.global_position + Vector3(7, 0.5, 0)
 		var to := Vector2(-1, 0)

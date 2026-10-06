@@ -57,6 +57,8 @@ func _refresh() -> void:
 	_row("Minimap", "On" if Settings.show_map else "Off", func() -> void: Settings.set_show_map(not Settings.show_map))
 	_row("Performance stats", "On" if Settings.show_stats else "Off", func() -> void: Settings.set_show_stats(not Settings.show_stats))
 	_row("Camera", Settings.ZOOMS.get(Settings.zoom, "Normal"), Settings.next_zoom)
+	_row("Controls", "Thumb area (new)" if Settings.thumb_controls else "Buttons",
+		func() -> void: Settings.set_thumb_controls(not Settings.thumb_controls))
 	_row("Buttons", "Compact (flicks)" if Settings.compact_controls else "All shown",
 		func() -> void: Settings.set_compact_controls(not Settings.compact_controls))
 	_row("Slide between buttons", "On" if Settings.slide_buttons else "Off",

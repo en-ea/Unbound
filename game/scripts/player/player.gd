@@ -41,6 +41,7 @@ var spawn_point := Vector3.ZERO
 const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
 
 var _station: Node3D = null     # a workbench (or other "interactable") in reach
+var _people := {}               # merge-fix: a people act the action button does now (hud.people_context)
 var _since_hit := 99.0
 var _regen := 0.0
 var _down := 0.0
@@ -249,6 +250,9 @@ func act() -> void:
 	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or Controls.locked:
 		return
 	_station = _nearest_station() if not hauling.riding else null   # studio: validate the same local target at input time
+	if not _people.is_empty() and verb == _people.verb:   # merge-fix: Put out / Lift / Put down (buttons mode)
+		get_tree().call_group("hud", "people_act", _people)
+		return
 	if burrowed():
 		abilities.delver.erupt()
 	elif hauling.riding:
@@ -317,6 +321,12 @@ func _nearest_station() -> Node3D:
 			best_d = score
 			best = n
 	return best
+
+
+## merge-fix: what the action button can do to people right now (buttons mode), from the HUD.
+func _people_context() -> Dictionary:
+	var hud := get_tree().get_first_node_in_group("hud")
+	return hud.people_context() if hud != null and hud.has_method("people_context") else {}
 
 
 ## Dodge roll: a quick roll in the stick direction (or forward). Charges miss you mid-roll.
@@ -535,6 +545,13 @@ func _physics_process(delta: float) -> void:
 		new_verb = _station.verb if _station else ("" if hauling.busy() else gatherer.verb)
 	if new_verb == "":
 		new_verb = "Get off" if hauling.riding else ("Drop" if hauling.carrying else ("Shoot" if fighter.bow_out() else "Attack"))
+	_people = _people_context()   # merge-fix: people acts on the action button (buttons mode)
+	if not _people.is_empty():
+		var loading: bool = is_instance_valid(_station) and _station.verb == "Load"
+		if _people.verb == "Put out" or (_people.verb == "Put down" and not loading) 				or (_people.verb == "Lift" and fighter.verb == "" and not loading and not hauling.busy()):
+			new_verb = _people.verb
+		else:
+			_people = {}
 	if new_verb != verb:
 		verb = new_verb
 		verb_changed.emit(verb)
