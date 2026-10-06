@@ -36,9 +36,14 @@ static func tap(facts: Dictionary, gripping: Dictionary) -> Dictionary:
 		if facts.has(s):
 			slot = s
 			break
-	if slot in URGENT or str(gripping.get("kind", "empty")) == "empty":
+	if slot in URGENT or str(gripping.get("kind", "empty")) == "empty" or _cart_load(facts):
 		return {"tap": "use", "context": use_of(facts), "slot": slot if slot != "" else "empty"}
 	return {"tap": "grip", "context": gripping, "slot": "grip"}
+
+
+## merge-fix: at the ox cart with a load, the tap puts it in the bed (or takes one out) rather than setting it down.
+static func _cart_load(facts: Dictionary) -> bool:
+	return str(facts.get("station", {}).get("verb", "")) in ["Load", "Take out"]
 
 
 ## Whether a released flick strikes while this load is carried (a carcass dragged, a person on the shoulders): no.

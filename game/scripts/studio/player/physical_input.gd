@@ -131,6 +131,8 @@ func grip() -> Dictionary:
 			var p=v.people[id]
 			if p.body_facts.has("carried") and str(p.body_facts.carried.carrier)==actor():
 				return {"kind":"person_down","id":id,"verb":"Lower"}
+			if p.body_facts.has("carried"): # merge-fix: someone else's load (the ox cart's bed): the cart's Take out
+				continue
 			if (not p.alive or p.body_facts.has("down") or p.hurt>=60) and not res.bodies[id].hands_held():
 				return {"kind":"person","id":id,"verb":"Lift"}
 	for node in player.get_tree().get_nodes_in_group("interactable"):

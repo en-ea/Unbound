@@ -295,7 +295,9 @@ func _ready() -> void:
 			_fight_test = true
 		elif arg == "--pyrotest":                     # with --lab: meteor and flame dash on three foes
 			add_child(preload("res://scripts/dev/pyro_test.gd").new())
-		elif arg == "--classpanel":                   # open the class screen as the shrine would
+		elif arg == "--carttest":                     # meteor a villager, carry the body to the ox cart
+			add_child(preload("res://scripts/dev/cart_carry_test.gd").new())
+		elif arg == "--classpanel":                  # open the class screen as the shrine would
 			get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").open_class_panel(true))
 		elif arg == "--sealtest":                     # with --region=forest: Varek drops Morrow's seal
 			add_child(preload("res://scripts/dev/seal_test.gd").new())

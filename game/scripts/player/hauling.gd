@@ -51,7 +51,7 @@ func _walk_normally() -> void:
 
 
 func mount(cart: Node3D) -> void:
-	if busy():
+	if busy() or player.has_meta("studio_people_load"):   # merge-fix: not with a villager on your shoulders
 		return
 	riding = cart
 	player.set_sneaking(false)

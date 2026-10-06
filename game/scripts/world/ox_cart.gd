@@ -12,6 +12,8 @@ const HITCH := 3.1              # axle to the ox's middle
 const TURN := 1.5               # radians a second at full speed
 const WHEEL_R := 0.55
 const SEAT := Vector3(0.0, 0.62, 0.62)       # where you sit (the model's feet), on the cart
+const PeopleContact := preload("res://scripts/studio/village/contact.gd")
+const CART_ACTOR := "cart:ox"   # the cart as a carrier in the village's people rules (a villager lying in the bed)
 const LOAD_SPOTS := [Vector3(0.0, 0.9, 0.35), Vector3(0.0, 0.9, -0.3), Vector3(0.0, 0.9, -0.8)]
 
 var player: Node3D
@@ -96,10 +98,67 @@ func interact() -> void:
 	var h: Variant = player.hauling
 	if h.carrying:
 		load_body(h.carrying)
+	elif _person_on_player() >= 0:
+		_load_person(_person_on_player())
+	elif _person_in_bed() >= 0 and _at_back():
+		_unload_person(_person_in_bed())
 	else:
 		h.mount(self)
 		_moo(0.9)
 		get_tree().call_group("hud", "hint", "On the cart. Steer with the stick; Get off to step down.")
+
+
+## A villager the player carries (studio people system), or -1.
+func _person_on_player() -> int:
+	return int(player.get_meta("studio_people_load", -1)) if is_instance_valid(player) else -1
+
+
+## A villager lying in the bed, or -1 (the people system marks its carrier).
+func _person_in_bed() -> int:
+	return int(get_meta("studio_people_load", -1))
+
+
+## Standing behind the cart (the bed's open end) rather than by the bench.
+func _at_back() -> bool:
+	var to := player.global_position - global_position
+	return to.dot(Vector3(sin(rotation.y), 0, cos(rotation.y))) < -0.4
+
+
+## Into the bed: the player sets them down, then the cart carries them (two checked acts).
+func _load_person(id: int) -> void:
+	var res := PeopleContact.registry(get_tree())
+	if res == null:
+		return
+	var press := "cart:%d" % Time.get_ticks_usec()
+	var down: Dictionary = PeopleContact.perform(get_tree(), PeopleContact.actor_of(player), player, "set_down",
+		{"press_id": press + ":down"}, player.global_position, 1.8, Vector3.ZERO, id)
+	if not down.get("accepted", false):
+		get_tree().call_group("hud", "hint", "Can't put them in the cart right now.")
+		return
+	var body: Node3D = res.bodies.get(id)
+	if is_instance_valid(body):
+		PeopleContact.perform(get_tree(), CART_ACTOR, self, "carry", {"press_id": press + ":bed"},
+			body.global_position, 2.5, Vector3.ZERO, id, Vector3.INF, {"can_carry": true})
+	if int(player.get_meta("studio_people_load", -1)) == id:
+		player.remove_meta("studio_people_load")   # the people system only clears it when nobody carries them
+	get_tree().call_group("hud", "hint", "In the cart. Stand behind it to take them out.")
+
+
+## Out of the bed and onto the player's shoulders.
+func _unload_person(id: int) -> void:
+	var res := PeopleContact.registry(get_tree())
+	if res == null or player.hauling.busy():
+		return
+	var press := "cart:%d" % Time.get_ticks_usec()
+	var body: Node3D = res.bodies.get(id)
+	if not is_instance_valid(body):
+		return
+	var out: Dictionary = PeopleContact.perform(get_tree(), CART_ACTOR, self, "set_down", {"press_id": press + ":out"},
+		body.global_position, 2.5, Vector3.ZERO, id)
+	if out.get("accepted", false):
+		remove_meta("studio_people_load")
+		PeopleContact.perform(get_tree(), PeopleContact.actor_of(player), player, "carry", {"press_id": press + ":lift"},
+			player.global_position, 3.0, Vector3.ZERO, id, Vector3.INF, {"can_carry": true})
 
 
 ## The action: a body goes in the bed.
@@ -145,7 +204,18 @@ func _physics_process(delta: float) -> void:
 		Hunting.cart["yaw"] = _heading
 		Hunting.cart["region"] = Region.current
 		_rot_check()
-	verb = "Load" if is_instance_valid(player) and player.hauling.carrying else "Ride"
+	if _save_tick == 1.0:
+		var res := PeopleContact.registry(get_tree())
+		if res != null:
+			res.people_bridge.register_actor(CART_ACTOR, self)   # so a villager left in the bed rides along after a load
+	if not is_instance_valid(player):
+		verb = "Ride"
+	elif player.hauling.carrying or _person_on_player() >= 0:
+		verb = "Load"
+	elif _person_in_bed() >= 0 and _at_back():
+		verb = "Take out"
+	else:
+		verb = "Ride"
 
 
 ## The cart trails the ox: the axle keeps its distance from the hitch, the wheels roll.
