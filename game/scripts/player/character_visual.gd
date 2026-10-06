@@ -445,7 +445,7 @@ func merge_parts() -> void:
 			var albedo: Color = mat.get_shader_parameter("albedo") if mat.get_shader_parameter("albedo") != null else Color.WHITE
 			if not groups.has(glow):
 				groups[glow] = []
-			groups[glow].append([mi.mesh, s, albedo.srgb_to_linear()])
+			groups[glow].append([mi.mesh, s, albedo])
 	if groups.is_empty():
 		return
 	var joined := ArrayMesh.new()

@@ -295,6 +295,11 @@ func _ready() -> void:
 			_fight_test = true
 		elif arg == "--pyrotest":                     # with --lab: meteor and flame dash on three foes
 			add_child(preload("res://scripts/dev/pyro_test.gd").new())
+		elif arg.begins_with("--looktest="):         # screenshot named NPCs up close: --looktest=tomas,morrow
+			var lt := preload("res://scripts/dev/look_test.gd").new()
+			lt.ids = Array(arg.trim_prefix("--looktest=").split(","))
+			lt.suffix = "_off" if "--studio-merge=off" in OS.get_cmdline_user_args() else ""
+			add_child(lt)
 		elif arg == "--carttest":                     # meteor a villager, carry the body to the ox cart
 			add_child(preload("res://scripts/dev/cart_carry_test.gd").new())
 		elif arg == "--classpanel":                  # open the class screen as the shrine would
