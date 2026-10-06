@@ -197,18 +197,32 @@ func _draw() -> void:
 	var c := center() + Vector2(sin(_shake * 40.0) * 6.0 * _shake, 0)
 	var active := (verb != "" or icon != "") and not dim
 	var r := radius * (1.0 - 0.08 * _pulse)
-	var fill := Color(0.07, 0.09, 0.14, 0.6 if active else 0.32)
-	if lit:
-		fill = lit_fill
-	draw_circle(c + Vector2(0, 4), r, Color(0, 0, 0, 0.22), true, -1.0, true)
-	draw_circle(c, r, fill, true, -1.0, true)
-	draw_circle(c, r * 0.86, Color(1, 1, 1, 0.04 if active else 0.0), true, -1.0, true)
-	if _held != -1 and not editing:
-		draw_circle(c, r, Color(1, 1, 1, 0.1), true, -1.0, true)
-	var rim := Color(1, 0.95, 0.8, 0.85 if active else 0.25)
+	var big := home_radius >= 60.0          # the main action button gets the gold ring
+	var alpha := 1.0 if active else 0.45
+	var pressed := _held != -1 and not editing
+	# Soft shadow: a few faint discs, offset down.
+	for k in 4:
+		draw_circle(c + Vector2(0, 3.0 + k * 1.5), r + 2.0 + k * 2.0, Color(0, 0, 0, 0.07 * alpha), true, -1.0, true)
+	# Body: a dark glass disc, lighter towards the top (stacked discs make the gradient).
+	var base := lit_fill if lit else Color(0.09, 0.11, 0.17)
+	var layers := 10
+	for k in layers:
+		var t := float(k) / layers
+		var col := base.lerp(base.lightened(0.28), t)
+		col.a = (0.82 if active else 0.5) if not lit else lit_fill.a + 0.1
+		draw_circle(c - Vector2(0, r * 0.22 * t), r * (1.0 - 0.55 * t), col, true, -1.0, true)
+	if pressed:
+		draw_circle(c, r, Color(1, 1, 1, 0.12), true, -1.0, true)
+	# Glass highlight across the top.
+	draw_arc(c, r * 0.8, PI * 1.18, PI * 1.82, 24, Color(1, 1, 1, 0.16 * alpha), r * 0.1, true)
+	# Rims: a dark outer line, then a bright (gold on the big one) inner ring.
+	draw_arc(c, r + 1.5, 0.0, TAU, 72, Color(0, 0, 0, 0.45 * alpha), 2.0, true)
+	var rim := Color(GOLD, 0.95 * alpha) if big else Color(1, 1, 1, 0.55 * alpha)
 	if lit and sweep:
 		rim = meter_color.lightened(0.35)
-	draw_arc(c, r, 0.0, TAU, 64, rim, 3.0, true)
+	draw_arc(c, r - 1.5, 0.0, TAU, 72, rim, 3.0 if big else 2.0, true)
+	if big:
+		draw_arc(c, r - 6.0, 0.0, TAU, 72, Color(GOLD, 0.18 * alpha), 1.5, true)
 	var cooling := sweep and meter < 1.0
 	if cooling:               # cooldown: a dark wedge over what's still to wait
 		var pts := PackedVector2Array([c])
@@ -271,7 +285,7 @@ func _draw_flicks(c: Vector2, r: float, font: Font) -> void:
 
 func _text(font: Font, at: Vector2, text: String, size: int, col: Color) -> void:
 	var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	draw_string(font, at + Vector2(-w / 2.0 + 1.0, 1.5), text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, Color(0, 0, 0, 0.45 * col.a))
+	draw_string_outline(font, at - Vector2(w / 2.0, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, maxi(int(size * 0.18), 3), Color(0, 0, 0, 0.55 * col.a))
 	draw_string(font, at - Vector2(w / 2.0, 0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, col)
 
 
