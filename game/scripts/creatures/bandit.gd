@@ -30,6 +30,8 @@ const TOOL_DROP := preload("res://scripts/world/tool_drop.gd")
 const ARROW := preload("res://scripts/creatures/arrow.gd")
 
 var kind := "cutthroat"
+var title := "Varek"             # a leader's name (dungeons give their own: the cannibals' chief)
+var trophy := "red_hand"         # what they may drop as proof ("" for none)
 var camp: Node
 var player: Node3D
 var day_night: Node
@@ -188,7 +190,7 @@ func take_hit(from: Vector3, damage := 1, push := 1.0) -> void:
 		return
 	if kind == "leader" and not _phase2 and health * 2 <= max_health:
 		_phase2 = true
-		FloatText.spawn(get_tree(), global_position + Vector3(0, 2.4, 0), "Varek is enraged!", Color(1.0, 0.3, 0.2), true)
+		FloatText.spawn(get_tree(), global_position + Vector3(0, 2.4, 0), "%s is enraged!" % title, Color(1.0, 0.3, 0.2), true)
 		if camp:
 			camp.raise_alarm(global_position, true)
 		_stagger(0.6)
@@ -261,8 +263,8 @@ func _die(quiet: bool) -> void:
 
 func _loot() -> Array[String]:
 	var items: Array[String] = []
-	if randf() < 0.7:
-		items.append("red_hand")
+	if trophy != "" and randf() < 0.7:
+		items.append(trophy)
 	if randf() < 0.3:
 		items.append("roast_meat")
 	return items

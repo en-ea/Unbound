@@ -125,6 +125,13 @@ func _ready() -> void:
 		cave.treasure = treasure
 		cave.door_out = Vector3(-62, shape.height_at(-62, 76.5) + 0.3, 76.5)
 		add_child(cave)
+	var dungeon := Node3D.new()                    # the dungeons under their entrances (scripts/dungeons/)
+	dungeon.set_script(preload("res://scripts/dungeons/dungeon.gd"))
+	dungeon.player = player
+	dungeon.day_night = $WorldEnvironment
+	dungeon.treasure = treasure
+	add_child(dungeon)
+	preload("res://scripts/dungeons/sites.gd").build_entrances(self, shape)
 	var critters := Node3D.new()
 	critters.set_script(preload("res://scripts/world/critters.gd"))
 	critters.player = player

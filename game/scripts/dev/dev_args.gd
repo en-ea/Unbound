@@ -151,6 +151,13 @@ func _ready() -> void:
 			elif bits.size() > 1:
 				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
+		elif arg.begins_with("--dungeon="):              # go straight down a dungeon: --dungeon=cannibal_den (dungeons/sites.gd)
+			var parts := arg.trim_prefix("--dungeon=").split(":")    # --dungeon=cannibal_den:goal starts at the end room
+			get_tree().create_timer(1.2).timeout.connect(func() -> void:
+				var p := get_tree().get_first_node_in_group("player") as Node3D
+				get_tree().call_group("dungeon", "enter", parts[0], p.global_position)
+				if parts.size() > 1:
+					get_tree().create_timer(1.5).timeout.connect(func() -> void: get_tree().call_group("dungeon", "jump_to", parts[1])))
 		elif arg.begins_with("--homeverb="):              # with --visit: everyone home is sleeping / eating / at_home
 			preload("res://scripts/world/home_folk.gd").dev_verb = arg.trim_prefix("--homeverb=")
 		elif arg.begins_with("--visit="):                 # go into a village house: --visit=2 (with --time=0.95 they're home); 5 the mill, 3 4 6 lettings

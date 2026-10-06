@@ -22,7 +22,7 @@ const REGIONS := {
 			Vector3(-20.0, 10.5, 5.5), Vector3(-4.5, 17.0, 2.6), Vector3(-1.0, 18.0, 7.0),         # smithy, campfire, the green
 			Vector3(-76, -62, 8.0), Vector3(72, 44, 11.0), Vector3(-70, 58, 7.0),     # the places (places.gd)
 			Vector3(-40, 36, 9.0), Vector3(-40, 41, 9.0),                           # your home plot (Home)
-			Vector3(-6.0, 44.0, 3.2)],                                              # the waystone (Waystones)
+			Vector3(-6.0, 44.0, 3.2), Vector3(62, -48, 6.0)],                       # the waystone (Waystones), the Old Barrow (dungeons/sites.gd)
 		"keep_clear": [Vector3(-38, -12, 4.0), Vector3(40, 22, 4.0), Vector3(31, -40, 1.5), Vector3(10.8, -3.0, 3.2),
 			Vector3(-19, 26, 4.5), Vector3(-21, 32, 5.0)],  # the Seeker; the butcher's rack and the ox cart
 	},
@@ -34,7 +34,7 @@ const REGIONS := {
 			Vector2(30, 40), Vector2(26, 60), Vector2(20, 80), Vector2(18, 100), Vector2(18, 125)],    # on to the highlands
 		"clearings": [Vector3(0.0, -47.0, 5.0), Vector3(1.5, -83.0, 5.0),
 			Vector3(-70, -45, 9.0), Vector3(66, 52, 8.0), Vector3(-62, 74, 8.0), Vector3(74, 10, 16.0),     # camp + the places + the Red Hand camp
-			Vector3(-30, 15, 15.5), Vector3(-11.0, 9.0, 3.2)],                                          # Fernhollow, the waystone
+			Vector3(-30, 15, 15.5), Vector3(-11.0, 9.0, 3.2), Vector3(58, -72, 6.0)],                   # Fernhollow, the waystone, the Cannibal Den (dungeons/sites.gd)
 		"keep_clear": [Vector3(34, -18, 4.0), Vector3(-36, 30, 1.5), Vector3(-40, -40, 1.5)],
 	},
 	"highlands": {
