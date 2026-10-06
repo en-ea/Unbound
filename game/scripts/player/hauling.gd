@@ -27,6 +27,7 @@ func start_carry(body: Node3D) -> void:
 	player.visual.walk_anim = "Push"         # bent over, hands on it, stepping backwards
 	player.visual.walk_backward = true
 	get_tree().call_group("hud", "hint", "Dragging it. Slow going, and no fighting: Drop to let go.")
+	preload("res://scripts/studio/player/haul.gd").start(player, body)   # studio: a wolf or stag on the shoulders, the rest dragged forward (note 230032)
 
 
 func drop() -> void:
@@ -46,6 +47,7 @@ func let_go_of(body: Node3D) -> void:
 func _walk_normally() -> void:
 	player.visual.walk_anim = ""
 	player.visual.walk_backward = false
+	preload("res://scripts/studio/player/haul.gd").stop(player)   # studio: (note 230032)
 
 
 func mount(cart: Node3D) -> void:

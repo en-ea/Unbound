@@ -1,0 +1,22 @@
+# Unbound look board 1 (29 Sep 2026): the proposed camera framings, both renderers, day and dusk.
+# The player stands on the path south of the village at (2, 44); the camera faces north as always.
+# <row>-<column> names: rows are framings, columns are renderer and time. build = today's camera.
+build-compat-day gl_compatibility --frame=build --at=2,44 --time=0.4
+build-mobile-day mobile --frame=build --at=2,44 --time=0.4
+build-compat-dusk gl_compatibility --frame=build --at=2,44 --time=0.72
+build-mobile-dusk mobile --frame=build --at=2,44 --time=0.72
+fight-compat-day gl_compatibility --frame=fight --at=2,44 --time=0.4
+fight-mobile-day mobile --frame=fight --at=2,44 --time=0.4
+fight-compat-dusk gl_compatibility --frame=fight --at=2,44 --time=0.72
+fight-mobile-dusk mobile --frame=fight --at=2,44 --time=0.72
+explore-compat-day gl_compatibility --frame=explore --at=2,44 --time=0.4
+explore-mobile-day mobile --frame=explore --at=2,44 --time=0.4
+explore-compat-dusk gl_compatibility --frame=explore --at=2,44 --time=0.72
+explore-mobile-dusk mobile --frame=explore --at=2,44 --time=0.72
+vantage-compat-day gl_compatibility --frame=vantage --at=2,44 --time=0.4
+vantage-mobile-day mobile --frame=vantage --at=2,44 --time=0.4
+vantage-compat-dusk gl_compatibility --frame=vantage --at=2,44 --time=0.72
+vantage-mobile-dusk mobile --frame=vantage --at=2,44 --time=0.72
+# The same horizon framings with the fog pushed out from 22-95 m to 60-300 m (the world past 95 m, uncovered)
+explore-compat-farfog gl_compatibility --frame=explore --at=2,44 --time=0.4 --fog=60,300
+vantage-compat-farfog gl_compatibility --frame=vantage --at=2,44 --time=0.4 --fog=60,300

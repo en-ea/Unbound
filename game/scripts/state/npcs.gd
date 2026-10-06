@@ -254,13 +254,15 @@ const NPCS := {
 
 
 static func get_def(id: String) -> Dictionary:
+	if id.begins_with("resident:"):   # studio: a simulated villager, made from the resident (studio/village/resident_talk.gd)
+		return load("res://scripts/studio/village/resident_talk.gd").def(id)   # studio
 	return NPCS[id]
 
 
 ## The body of a villager, built from their entry (used in the world by world/npc.gd and as the portrait
 ## in the talk screen). Not added to the tree yet.
 static func make_visual(id: String) -> CharacterVisual:
-	var def: Dictionary = NPCS[id]
+	var def: Dictionary = get_def(id)   # studio: was NPCS[id]; the same for Enea's own, a made def for a resident
 	var visual := CharacterVisual.new()
 	var look := CharacterLook.new()
 	var made: Dictionary = def.get("look", {"parts": {}, "colors": {}})
@@ -277,7 +279,7 @@ static func make_visual(id: String) -> CharacterVisual:
 ## After the visual is in the tree: scale, shoulders, and what they hold or smoke. `carry` (a second prop,
 ## like Brakk's anvil under his arm) only shows in the build lab.
 static func dress_visual(id: String, visual: CharacterVisual, portrait := false, in_world := false) -> void:
-	var def: Dictionary = NPCS[id]
+	var def: Dictionary = get_def(id)   # studio: was NPCS[id]
 	visual.scale = def["scale"]
 	if def.has("shoulders"):
 		visual.widen_shoulders(def["shoulders"])

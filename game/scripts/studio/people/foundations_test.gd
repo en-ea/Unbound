@@ -1,0 +1,30 @@
+extends RefCounted
+const Owners := preload("res://scripts/studio/people/owners.gd")
+const Nearby := preload("res://scripts/studio/people/nearby.gd")
+const Mover := preload("res://scripts/studio/people/mover.gd")
+const Persona := preload("res://scripts/studio/people/persona.gd")
+static func report() -> PackedStringArray:
+	var out := PackedStringArray()
+	var owners := Owners.new()
+	owners.claim("actor:any", "stage", 5, Callable(), true)
+	owners.claim("actor:any", "low", 2, Callable(), true, true)
+	owners.claim("actor:any", "choice", 4, Callable(), true, true)
+	owners.release("actor:any", "stage")
+	out.append(("PASS" if owners.held("actor:any", "choice") else "FAIL") + " queued highest owner resumes")
+	owners.release("actor:any", "choice")
+	out.append(("PASS" if owners.held("actor:any", "low") else "FAIL") + " lower waiting owner retained")
+	var body := Node3D.new()
+	var mover := Mover.new(body, Persona.motion({"key": 1}))
+	mover.constraints["restraint"] = {"move": false, "postures": ["upright"]}
+	mover.constraints["injury"] = {"move": false}
+	mover.go(PackedVector2Array([Vector2(5, 0)]), INF, "walk")
+	out.append(("PASS" if mover.want(0.1) == Vector2.ZERO and not mover.can_posture("down") else "FAIL") + " constraints compose independent of owner")
+	mover.constraints.erase("injury")
+	out.append(("PASS" if not mover.can_move() else "FAIL") + " releasing one constraint retains restraint")
+	mover.constraints.clear()
+	out.append(("PASS" if mover.can_move() else "FAIL") + " physical release preserves requested path")
+	body.free()
+	var nearby := Nearby.new()
+	nearby.snapshot(PackedVector2Array([Vector2.ZERO, Vector2(8,0), Vector2(60,0)]), [{"key":"a"},{"key":"b"},{"key":"far"}])
+	out.append(("PASS" if nearby.query(Vector2.ZERO, 10).size() == 2 else "FAIL") + " one shared grid bounds queries")
+	return out

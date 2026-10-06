@@ -1,0 +1,23 @@
+---
+title: "People integration - first worker ports"
+created: 2026-10-03
+type: build-record
+voice: agent-draft
+author: Codex, Foundations integration lead
+status: original worker commits integrated; dependent elements and guarded validation pending
+next_step: Claude advances its own preserved checkout from the named dependency_base in outer integration.md
+---
+
+Input primary pass3 e9e917d476d84352e5c9f31f799c390a44dfc01a. Non-fast-forward merges preserve Body's runtime 2dbe842689ed171039f65351938bfaeda522af4f (merge e89b04c) and Claude's capability/check-tool history through adfca5f20825bbd43c8bf42c881c71b27d51eb47 (merge f7baa8a). The resulting dependency commit, including this record/index and bridge seam, is recorded in outer `plan/handoffs/people-build/20261003/integration.md`.
+
+**Actual B6-B8/P4/S5 seam [repo]:** Body reconciles accepted fact deed/revision/removal and active age into one runtime's named layers. Rehydration suppresses transition announcements, vocals and impulses. Stagger, walking and physical constraints use the same mover, including crowd separation. Claude consumes these layers in the existing authored villager body: skeletal contributions, posture lock, limp, surface and effects. Bridge's existing tension/pain producer now calls `residents.express_body` rather than directly calling pose.expression. Mind's projected producer will replace that producer when its actual kernel lands; source does not invent its fields or edit either owner's feature files.
+
+**Follow-up prerequisite [repo]:** source also merged Body's25b35d4 and62020cf in d33e94f, preserving their original commits. This carries the actual look_at_point method-call correction, current held-body geometry, compatible layers with forbidden posture removed, prepared generic contact and Hands.intent_changed/preview. Claude can now build both fact elements and the scoped player pose from the next named dependency_base; no guessed port remains. Body's candidate control scheme is not phone acceptance. Mind's full producer and guarded Body/Mind/animation validation remain pending.
+
+**Shared follow-up [repo]:** bridge retains the first measured contacts/accounts across save failure, keyed by village/actor/press/verb; actor and verb also enter root identity. Candidate-clock revalidation never remeasures occurrence evidence. One unaccepted capture per actor is replaced by a new intent; accepted roots remain saved authority. Callback reentry cannot mutate this capture. Validated fact revisions now reach notices. One discovered `sources/injured.gd` supplies anonymous later injury from the accepted snapshot; burning declares experienced felt_harm for Mind. The existing Acceptance writer is optionally injected only at bridge construction for permanent no-user-save checks; production still uses the checked SaveGame path. Added three narrow checks are prepared, not run.
+
+**Remaining boundaries [repo/design]:** Claude preserves its branch history and advances its OWN checkout from the named base after begin_edits succeeds. Impact/down/burning rewrites, hurt/doused/dead/carried elements and player hand pose are not yet delivered. Continuous cower must also respect held/terminal postures while retaining compatible head/spine/flinch/fire contributions. Interest/alertness/regard and actual recorded cries are not established by capability alone. Body's Contact.pending currently compares a cloned Village object: its owner must use the stable runtime village ID plus live bridge identity so an intervening checked memory save cannot discard failed input solely because the candidate object changed.
+
+**Evidence [run]:** Claude w1 imported successfully; animation checks5 PASS/6 FAIL, and impact/limp captures were obscured by the title card. Original logs/images remain under outer `plan/evidence/people-animation/20261003/w1/`. Committed harness/settle fixes through9c9ef87 and the layers row throughadfca5f have not been rerun. Body's first batch was refused retained cooling before any engine launch. No new engine/import/capture/export/Blender/phone action by source in this integration slice. Existing checked shared75ef0f3 evidence remains historical, not validation of these merged ports. Final encounter, hidden before/after and phone judgement remain pending.
+
+No new Enea proposal authored by integration. Integrated Body proposals: `game/scripts/core/controls.gd`, `game/scripts/ui/{joystick,hud}.gd`, `game/scripts/player/{player,fighter,abilities}.gd`; all marked # studio:, with exact anchors in Body's handoff. All26 compatibility modules,5.0/f3fc1d7, dormant files and inherited/generated uid files preserved. No worker checkout manipulation, feature push, studio/main merge, deletion, message or new chat.

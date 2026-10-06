@@ -49,6 +49,7 @@ func _show(animate: bool) -> void:
 	col.position = Vector3(0, 1.5, 0.0 if Projects.is_built(_id) else 0.2)
 	body.add_child(col)
 	_building.add_child(body)
+	preload("res://scripts/studio/world/fit_colliders.gd").add(_building, _id if Projects.is_built(_id) else "scaffold")   # studio: the scaffold's whole frame is solid, nothing walks in among its posts (note 233349)
 	if animate:
 		_building.scale = Vector3(1, 0.01, 1)
 		create_tween().tween_property(_building, "scale", Vector3.ONE, 0.8).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

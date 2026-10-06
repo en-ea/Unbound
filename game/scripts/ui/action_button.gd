@@ -20,6 +20,7 @@ var swipes := {}                 # dir -> label; with any set, a tap acts on rel
 var radius := 68.0
 var margin := Vector2(150, 150)
 var font_size := 28
+var _safe := Rect2()                 # where the whole button must stay (clear of notches and the home bar)
 
 var verb := ""
 var icon := ""                   # a drawn symbol: sword, heavy, shield, roll, sneak (the verb goes small underneath)
@@ -61,6 +62,8 @@ func refuse() -> void:
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_update_safe()
+	get_viewport().size_changed.connect(_update_safe)
 	_all.append(self)
 	tree_exiting.connect(func() -> void: _all.erase(self))
 
@@ -105,7 +108,14 @@ func set_verb(new_verb: String) -> void:
 
 
 func center() -> Vector2:
-	return get_viewport().get_visible_rect().size - margin
+	var c := get_viewport().get_visible_rect().size - margin
+	var r := Vector2(radius, radius) * 1.15
+	return c.clamp(_safe.position + r, _safe.end - r) # studio: notch-safe (29 Sep phone fix) on his public centre
+
+
+func _update_safe() -> void: # studio:
+	_safe = preload("res://scripts/ui/safe_area.gd").rect(get_viewport())
+	queue_redraw()
 
 
 ## True if a touch here would press this button (the camera drag leaves those alone).
@@ -122,11 +132,16 @@ func _flick(moved: Vector2) -> String:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible or editing:
+	# studio: own the complete gesture even when pressing opens a panel and hides this button.
+	# studio: touch emulation sends a mouse press afterwards; it must not hit the new panel.
+	if _held != -1 and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT: # studio:
+		get_viewport().set_input_as_handled() # studio:
+		return # studio:
+	if editing:
 		return
-	if event is InputEventScreenDrag and event.index == _held and _slide(event.position):
+	if event is InputEventScreenDrag and visible and event.index == _held and _slide(event.position):
 		return
-	if event is InputEventScreenDrag and event.index == _held and not swipes.is_empty() and not _swiped:
+	if event is InputEventScreenDrag and visible and event.index == _held and not swipes.is_empty() and not _swiped:
 		_finger = event.position
 		var dir := _flick(_finger - _start)
 		if dir != "":
@@ -138,7 +153,16 @@ func _input(event: InputEvent) -> void:
 	if not event is InputEventScreenTouch:
 		return
 	var touch := event as InputEventScreenTouch
-	if touch.pressed and touch.position.distance_to(center()) < radius * 1.25:
+	# studio: the release is ours even if the press opened a panel and hid the button (or it stays held for ever)
+	if not touch.pressed and touch.index == _held:
+		if visible and not swipes.is_empty() and not _swiped:
+			_pulse = 1.0
+			pressed.emit()        # a plain tap, now that it wasn't a flick
+		released.emit()           # (held_for() still answers here)
+		_held = -1
+		get_viewport().set_input_as_handled() # studio:
+		queue_redraw()
+	elif visible and touch.pressed and touch.position.distance_to(center()) < radius * 1.25:
 		_held = touch.index
 		_held_for = 0.0
 		_start = touch.position
@@ -148,13 +172,6 @@ func _input(event: InputEvent) -> void:
 			_pulse = 1.0
 			pressed.emit()
 		get_viewport().set_input_as_handled()
-		queue_redraw()
-	elif not touch.pressed and touch.index == _held:
-		if not swipes.is_empty() and not _swiped:
-			_pulse = 1.0
-			pressed.emit()        # a plain tap, now that it wasn't a flick
-		released.emit()           # (held_for() still answers here)
-		_held = -1
 		queue_redraw()
 
 

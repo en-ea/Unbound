@@ -143,6 +143,8 @@ func _ready() -> void:
 	_hunting_arrival.call_deferred()
 	var arrive := Region.arrive
 	SaveGame.attach(player, $WorldEnvironment)
+	VillageSession.attach(self) # studio: persistent authority, disposable presentation
+	StaticBatch.attach(self) # studio: proposal (graphics S1)
 	if arrive != Vector2.INF:          # came through a gate: stand just inside it, facing in
 		player.global_position = Vector3(arrive.x, shape.height_at(arrive.x, arrive.y) + 0.3, arrive.y)
 		player.visual.rotation.y = atan2(-arrive.x, -arrive.y)

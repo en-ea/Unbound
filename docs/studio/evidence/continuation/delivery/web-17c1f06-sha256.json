@@ -1,0 +1,26 @@
+[
+  {
+    "Path": "C:\\Users\\hilmi\\Downloads\\Unbound-Studio\\game\\build\\web\\index.html",
+    "Hash": "0B052F187A94D093132B7C6CEB4B58F76B3A63097706A460D8C93EE0C876B415"
+  },
+  {
+    "Path": "C:\\Users\\hilmi\\Downloads\\Unbound-Studio\\game\\build\\web\\index.js",
+    "Hash": "33C94CB3175F3333B82E2A3BE5E8E86F77986F0AA2042B1631F6367A4E5BB6BA"
+  },
+  {
+    "Path": "C:\\Users\\hilmi\\Downloads\\Unbound-Studio\\game\\build\\web\\index.wasm",
+    "Hash": "FC74679E3B97F76878947FCD4FBE1268CBFA6188182A2E33BBC3F5DC9BFA57D0"
+  },
+  {
+    "Path": "C:\\Users\\hilmi\\Downloads\\Unbound-Studio\\game\\build\\web\\index.pck",
+    "Hash": "8C70EFBCE5B9B51C4DEE2AC7AF4901A8118930A874BED1BCBFA4E34A9840B1DA"
+  },
+  {
+    "Path": "C:\\Users\\hilmi\\Downloads\\Unbound-Studio\\game\\build\\web\\app.webmanifest",
+    "Hash": "0E31A9E7E544A18D55C6269C2E984C75904651DF120CBF3B65108E39C8C6E422"
+  },
+  {
+    "Path": "C:\\Users\\hilmi\\Downloads\\Unbound-Studio\\game\\build\\web\\offline.sw.js",
+    "Hash": "CFFFBA7F424DC4B814ED5AA4EB76E37BB1A9F12E4FC4F552AC257443440F4BB5"
+  }
+]

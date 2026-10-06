@@ -1,0 +1,13 @@
+10-01 15:38:57.715  2725  3122 I ActivityManager: Start proc 9804:com.unboundstudio.unbound.dev/u0a415 for activelaunch {com.unboundstudio.unbound.dev/com.godot.game.GodotAppLauncher}
+10-01 15:41:35.767  9804  9890 I scudo   : Can't populate more pages for size class 1104.
+10-01 15:42:04.563  9804  9890 I scudo   : Can't populate more pages for size class 4112.
+10-01 15:43:27.869  9804  9890 E godot   : SCRIPT ERROR: Trying to assign invalid previously freed instance.
+10-01 15:43:27.869  9804  9890 E godot   :    at: _name_tag (res://scripts/studio/village/residents.gd:644)
+10-01 15:43:27.869  9804  9890 E godot   :        [0] _name_tag (res://scripts/studio/village/residents.gd:644)
+10-01 15:43:27.870  9804  9890 E godot   : SCRIPT ERROR: Trying to assign invalid previously freed instance.
+10-01 15:43:27.870  9804  9890 E godot   :    at: _show_sub (res://scripts/studio/village/hold_to_fight.gd:97)
+10-01 15:43:27.870  9804  9890 E godot   :        [0] _show_sub (res://scripts/studio/village/hold_to_fight.gd:97)
+10-01 16:00:25.043  2725  3120 I am_pss  : [9804,10415,com.unboundstudio.unbound.dev,0,0,0,3923943424,2,2,4]
+10-01 16:01:31.459  2725  3120 I am_pss  : [9804,10415,com.unboundstudio.unbound.dev,0,0,0,7816716288,0,2,328]
+10-01 16:01:35.499   996   996 I lmkd    : Reclaim 'com.unboundstudio.unbound.dev' (9804), uid 10415, oom_score_adj 0, state 7 to free 221004kB rss, 1325884kB swap; reason: min2x watermark is breached even after kill; level: 2
+10-01 16:01:36.558  2725  4206 I ActivityManager: Process com.unboundstudio.unbound.dev (pid 9804) has died: fg  TOP (67,902)

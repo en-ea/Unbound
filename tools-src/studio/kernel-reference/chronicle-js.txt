@@ -1,0 +1,4276 @@
+  0  Fenoris is founded by the Mainlanders
+  0  Torgarpel is founded by the Mainlanders
+  0  Wenor is founded by the Mainlanders
+  0  Wentoryr is founded by the Mainlanders
+  0  Kelsil is founded by the Ashfolk
+  0  Cordun is founded by the Ashfolk
+  0  Fenhol is founded by the Ashfolk
+  0  Venwenkel is founded by the Ashfolk
+  0  Norpelash is founded by the Tethered
+  0  Dunor is founded by the Tethered
+  0  Arduntor is founded by the Tethered
+  0  Fenbel is founded by the Tethered
+  1  drought in Venwenkel
+  2  drought in Fenoris
+  3  hunger in Venwenkel: 3 die or leave
+  4  drought in Wenor
+  4  Cordun discovers charcoal
+  4  hunger in Venwenkel: 3 die or leave
+  4  drought in Norpelash
+  4  a flood takes 7 lives in Arduntor
+  4  drought in Fenbel
+  5  Fenoris discovers pottery
+  5  hunger in Venwenkel: 1 die or leave
+  5  drought in Norpelash
+  5  hunger in Norpelash: 2 die or leave
+  6  Torgarpel discovers charcoal
+  6  drought in Kelsil
+  6  hunger in Kelsil: 4 die or leave
+  6  hunger in Cordun: 2 die or leave
+  6  drought in Venwenkel
+  6  hunger in Venwenkel: 3 die or leave
+  6  Dunor discovers pottery
+  6  drought in Fenbel
+  6  hunger in Fenbel: 2 die or leave
+  6  Fenbel discovers pottery
+  7  hunger in Kelsil: 2 die or leave
+  7  hunger in Cordun: 2 die or leave
+  7  hunger in Fenhol: 3 die or leave
+  7  hunger in Venwenkel: 1 die or leave
+  7  drought in Norpelash
+  7  hunger in Norpelash: 3 die or leave
+  8  hunger in Kelsil: 3 die or leave
+  8  hunger in Cordun: 2 die or leave
+  8  drought in Fenhol
+  8  hunger in Fenhol: 3 die or leave
+  8  hunger in Venwenkel: 1 die or leave
+  8  drought in Dunor
+  9  hunger in Kelsil: 1 die or leave
+  9  hunger in Cordun: 1 die or leave
+  9  hunger in Fenhol: 2 die or leave
+  9  hunger in Venwenkel: 1 die or leave
+ 10  hunger in Kelsil: 1 die or leave
+ 10  hunger in Cordun: 2 die or leave
+ 10  hunger in Fenhol: 1 die or leave
+ 10  hunger in Venwenkel: 1 die or leave
+ 10  drought in Norpelash
+ 10  hunger in Norpelash: 2 die or leave
+ 10  drought in Dunor
+ 10  hunger in Dunor: 3 die or leave
+ 11  drought in Kelsil
+ 11  hunger in Kelsil: 2 die or leave
+ 11  hunger in Cordun: 2 die or leave
+ 11  hunger in Fenhol: 1 die or leave
+ 11  hunger in Venwenkel: 1 die or leave
+ 12  hunger in Kelsil: 2 die or leave
+ 12  hunger in Cordun: 2 die or leave
+ 12  hunger in Fenhol: 1 die or leave
+ 12  hunger in Venwenkel: 1 die or leave
+ 13  hunger in Kelsil: 1 die or leave
+ 13  hunger in Cordun: 1 die or leave
+ 13  hunger in Fenhol: 1 die or leave
+ 13  hunger in Venwenkel: 1 die or leave
+ 13  drought in Arduntor
+ 14  hunger in Kelsil: 1 die or leave
+ 14  hunger in Cordun: 1 die or leave
+ 14  hunger in Fenhol: 1 die or leave
+ 14  hunger in Venwenkel: 1 die or leave
+ 14  Wenor learns charcoal from Torgarpel
+ 15  Torgarpel discovers pottery
+ 15  drought in Wentoryr
+ 15  hunger in Kelsil: 1 die or leave
+ 15  hunger in Cordun: 1 die or leave
+ 15  Cordun forgets charcoal
+ 15  hunger in Fenhol: 1 die or leave
+ 15  hunger in Venwenkel: 1 die or leave
+ 16  hunger in Kelsil: 1 die or leave
+ 16  hunger in Cordun: 1 die or leave
+ 16  hunger in Fenhol: 1 die or leave
+ 16  hunger in Venwenkel: 1 die or leave
+ 16  drought in Norpelash
+ 16  hunger in Norpelash: 2 die or leave
+ 16  drought in Arduntor
+ 16  hunger in Arduntor: 4 die or leave
+ 17  hunger in Kelsil: 1 die or leave
+ 17  hunger in Cordun: 1 die or leave
+ 17  drought in Fenhol
+ 17  hunger in Fenhol: 1 die or leave
+ 17  hunger in Venwenkel: 1 die or leave
+ 17  Dunor discovers charcoal
+ 18  drought in Kelsil
+ 18  hunger in Kelsil: 1 die or leave
+ 18  hunger in Cordun: 1 die or leave
+ 18  hunger in Fenhol: 1 die or leave
+ 18  hunger in Venwenkel: 1 die or leave
+ 18  Fenoris learns charcoal from Torgarpel
+ 19  a flood takes 12 lives in Wenor
+ 19  hunger in Kelsil: 1 die or leave
+ 19  hunger in Cordun: 1 die or leave
+ 19  hunger in Fenhol: 1 die or leave
+ 19  hunger in Venwenkel: 1 die or leave
+ 20  hunger in Kelsil: 1 die or leave
+ 20  hunger in Cordun: 1 die or leave
+ 20  hunger in Fenhol: 1 die or leave
+ 20  hunger in Venwenkel: 1 die or leave
+ 20  Arduntor learns charcoal from Dunor
+ 21  hunger in Kelsil: 1 die or leave
+ 21  hunger in Cordun: 1 die or leave
+ 21  hunger in Fenhol: 1 die or leave
+ 21  hunger in Venwenkel: 1 die or leave
+ 21  Norpelash discovers farming
+ 22  hunger in Kelsil: 1 die or leave
+ 22  hunger in Cordun: 1 die or leave
+ 22  hunger in Fenhol: 1 die or leave
+ 22  hunger in Venwenkel: 1 die or leave
+ 23  hunger in Kelsil: 1 die or leave
+ 23  hunger in Cordun: 1 die or leave
+ 23  hunger in Fenhol: 1 die or leave
+ 23  hunger in Venwenkel: 1 die or leave
+ 23  Venwenkel is abandoned
+ 24  hunger in Kelsil: 1 die or leave
+ 24  hunger in Cordun: 1 die or leave
+ 24  hunger in Fenhol: 1 die or leave
+ 24  drought in Arduntor
+ 24  hunger in Arduntor: 3 die or leave
+ 25  hunger in Kelsil: 1 die or leave
+ 25  hunger in Cordun: 1 die or leave
+ 25  hunger in Fenhol: 1 die or leave
+ 25  Norpelash discovers charcoal
+ 26  hunger in Kelsil: 1 die or leave
+ 26  hunger in Cordun: 1 die or leave
+ 26  hunger in Fenhol: 1 die or leave
+ 27  hunger in Kelsil: 1 die or leave
+ 27  hunger in Cordun: 1 die or leave
+ 27  hunger in Fenhol: 1 die or leave
+ 27  Fenhol is abandoned
+ 28  drought in Torgarpel
+ 28  hunger in Kelsil: 1 die or leave
+ 28  hunger in Cordun: 1 die or leave
+ 28  Kelsil is abandoned
+ 29  drought in Fenoris
+ 29  hunger in Cordun: 1 die or leave
+ 29  Cordun is abandoned
+ 30  drought in Fenoris
+ 30  drought in Dunor
+ 30  hunger in Dunor: 6 die or leave
+ 30  Norpelash sends 21 grain to Dunor
+ 31  Dunor learns farming from Norpelash
+ 32  Wentoryr discovers pottery
+ 34  Wentoryr discovers farming
+ 35  Arduntor discovers farming
+ 35  drought in Fenbel
+ 35  hunger in Fenbel: 8 die or leave
+ 41  Wentoryr discovers charcoal
+ 41  Arduntor discovers pottery
+ 42  Norpelash discovers pottery
+ 43  Wentoryr discovers the mill
+ 44  drought in Fenoris
+ 44  Dunor discovers the mill
+ 45  a flood takes 21 lives in Wentoryr and destroys the mill
+ 45  drought in Dunor
+ 45  drought in Arduntor
+ 47  Fenoris discovers writing
+ 47  Wenor discovers pottery
+ 47  Wentoryr rediscovers the mill
+ 49  Fenoris discovers farming
+ 49  a flood takes 17 lives in Wentoryr and destroys the mill
+ 50  Arduntor discovers the mill
+ 50  Fenbel discovers charcoal
+ 52  Torgarpel discovers writing
+ 53  settlers from Fenoris found Holpel
+ 54  drought in Wenor
+ 55  drought in Holpel
+ 56  drought in Fenoris
+ 56  Fenoris discovers medicine
+ 56  settlers from Torgarpel found Dunholash
+ 56  settlers from Wenor found Norfen
+ 56  drought in Arduntor
+ 57  drought in Wentoryr
+ 57  drought in Norpelash
+ 58  Norpelash discovers copper
+ 58  Fenbel discovers farming
+ 59  drought in Arduntor
+ 60  Dunor discovers bread
+ 60  Torgarpel learns farming from Fenoris
+ 61  Holpel learns writing from Fenoris
+ 62  drought in Fenoris
+ 62  Wentoryr rediscovers the mill
+ 62  Fenbel discovers the mill
+ 62  Fenbel discovers bread
+ 62  Wenor learns writing from Torgarpel
+ 63  drought in Norpelash
+ 63  a flood takes 26 lives in Arduntor and destroys the mill
+ 64  drought in Norpelash
+ 64  Dunholash discovers copper
+ 65  settlers from Torgarpel found Norranwen
+ 65  Dunholash learns writing from Torgarpel
+ 66  settlers from Fenoris found Ranranis
+ 66  Torgarpel discovers the mill
+ 66  Fenbel discovers writing
+ 66  Norfen learns copper from Dunholash
+ 68  Norfen discovers iron
+ 68  drought in Norranwen
+ 69  Dunor discovers copper
+ 69  Dunholash learns medicine from Fenoris
+ 69  Ranranis learns writing from Holpel
+ 70  drought in Torgarpel
+ 70  a flood takes 15 lives in Holpel
+ 70  Dunholash discovers iron
+ 70  Norranwen learns writing from Torgarpel
+ 70  Norranwen learns copper from Dunholash
+ 71  a flood takes 20 lives in Wenor
+ 71  Norpelash discovers the mill
+ 71  Arduntor learns copper from Dunor
+ 71  Holpel learns medicine from Dunholash
+ 71  Holpel learns copper from Norfen
+ 72  drought in Wenor
+ 72  Norpelash discovers writing
+ 72  Dunholash learns farming from Fenoris
+ 72  Fenoris learns copper from Norranwen
+ 73  drought in Wentoryr
+ 73  Wenor learns copper from Dunholash
+ 73  Norranwen learns medicine from Ranranis
+ 74  Fenbel discovers medicine
+ 74  a flood takes 12 lives in Ranranis
+ 75  drought in Fenoris
+ 76  drought in Wenor
+ 76  drought in Wentoryr
+ 76  Dunor discovers writing
+ 76  drought in Dunholash
+ 76  Norfen learns farming from Dunholash
+ 77  drought in Fenoris
+ 77  settlers from Fenoris found Ulash
+ 77  drought in Wenor
+ 77  Wenor learns farming from Norranwen
+ 78  Dunor discovers medicine
+ 78  drought in Dunholash
+ 79  Dunholash discovers the mill
+ 79  Ulash learns writing from Torgarpel
+ 80  drought in Fenbel
+ 80  Norranwen discovers iron
+ 81  Dunor discovers iron
+ 81  settlers from Fenbel found Corsilven
+ 81  drought in Dunholash
+ 82  Fenoris discovers boats
+ 82  drought in Norpelash
+ 82  Norpelash discovers medicine
+ 82  Arduntor discovers writing
+ 82  settlers from Fenbel found Kelbrin
+ 83  a flood takes 11 lives in Corsilven and destroys the mill
+ 83  Kelbrin discovers copper
+ 83  Norfen learns writing from Norranwen
+ 84  drought in Dunor
+ 84  Arduntor rediscovers the mill
+ 84  drought in Fenbel
+ 84  Ulash discovers boats
+ 85  settlers from Torgarpel found Gartorel
+ 85  settlers from Fenbel found Norbel
+ 86  Arduntor discovers bread
+ 86  drought in Norfen
+ 86  drought in Norranwen
+ 86  drought in Gartorel
+ 86  Gartorel learns writing from Fenoris
+ 86  Torgarpel learns copper from Dunholash
+ 87  drought in Torgarpel
+ 87  drought in Holpel
+ 87  drought in Gartorel
+ 87  hunger in Gartorel: 4 die or leave
+ 87  Gartorel raids Dunholash for 91 grain; 5 fall
+ 87  drought in Norbel
+ 87  Gartorel learns copper from Holpel
+ 87  Norranwen learns the mill from Gartorel
+ 87  Gartorel learns iron from Norranwen
+ 87  Norbel learns copper from Kelbrin
+ 88  Holpel discovers iron
+ 88  drought in Ranranis
+ 88  Corsilven rediscovers the mill
+ 89  drought in Norranwen
+ 89  drought in Norbel
+ 89  Torgarpel learns iron from Dunholash
+ 89  Gartorel learns medicine from Norranwen
+ 90  Wenor discovers boats
+ 90  drought in Norpelash
+ 90  Wenor learns medicine from Gartorel
+ 91  Wentoryr discovers writing
+ 91  Torgarpel learns boats from Fenoris
+ 91  Fenoris learns iron from Gartorel
+ 92  Wenor discovers iron
+ 92  Norpelash discovers bread
+ 92  drought in Norranwen
+ 93  Norpelash discovers iron
+ 93  drought in Norfen
+ 94  drought in Dunor
+ 94  drought in Norfen
+ 94  Norfen learns medicine from Fenoris
+ 95  Wentoryr discovers medicine
+ 95  Norpelash discovers boats
+ 95  settlers from Arduntor found Torashpel
+ 96  a flood takes 53 lives in Wentoryr and destroys the mill
+ 96  Arduntor discovers iron
+ 96  settlers from Arduntor found Ranyr
+ 96  a flood takes 29 lives in Dunholash and destroys the mill
+ 96  Fenoris learns the mill from Torgarpel
+ 96  Ranranis learns copper from Norranwen
+ 97  settlers from Wentoryr found Morkel
+ 97  settlers from Norpelash found Isnor
+ 97  Arduntor discovers medicine
+ 97  Dunholash rediscovers the mill
+ 97  Ranranis discovers boats
+ 97  Kelbrin discovers iron
+ 97  Torgarpel learns medicine from Norranwen
+ 98  Torashpel learns iron from Arduntor
+ 98  Corsilven learns copper from Kelbrin
+ 98  Corsilven learns iron from Kelbrin
+ 99  settlers from Arduntor found Ashor
+ 99  Ulash discovers iron
+ 99  drought in Gartorel
+ 99  drought in Torashpel
+ 99  Ranranis learns iron from Fenoris
+100  Wentoryr rediscovers the mill
+100  Norranwen discovers boats
+100  Norfen learns boats from Ranranis
+102  Torgarpel discovers bread
+102  drought in Fenbel
+102  settlers from Fenbel found Lornornor
+103  drought in Fenoris
+103  Wenor learns the mill from Norranwen
+104  Torashpel discovers boats
+104  Isnor learns writing from Norranwen
+105  drought in Wenor
+105  Arduntor discovers boats
+105  drought in Corsilven
+105  drought in Gartorel
+106  Fenbel discovers copper
+107  a flood takes 36 lives in Wenor and destroys the mill
+107  a flood takes 31 lives in Dunholash and destroys the mill
+107  drought in Torashpel
+107  Wenor learns the mill from Norranwen
+108  Dunholash rediscovers the mill
+108  drought in Ulash
+108  drought in Kelbrin
+108  Holpel learns the mill from Wenor
+108  Wenor learns bread from Torashpel
+108  Norfen learns the mill from Gartorel
+108  Ulash learns the mill from Torashpel
+109  drought in Wenor
+109  drought in Dunor
+109  Dunholash discovers boats
+109  a flood takes 14 lives in Ranyr and destroys the mill
+109  drought in Morkel
+109  Holpel learns boats from Fenoris
+109  Norfen learns bread from Torgarpel
+109  Gartorel learns boats from Wenor
+110  drought in Holpel
+110  drought in Ranranis
+110  a flood takes 16 lives in Corsilven and destroys the mill
+110  Corsilven rediscovers the mill
+110  a flood takes 11 lives in Ranyr
+110  Morkel learns writing from Wentoryr
+110  Dunholash learns bread from Norpelash
+111  Ranyr learns the mill from Arduntor
+112  Ashor discovers boats
+112  Lornornor learns writing from Fenbel
+112  Ranranis learns the mill from Norfen
+113  a flood takes 52 lives in Wentoryr and destroys the mill
+113  drought in Fenbel
+113  drought in Gartorel
+113  drought in Ashor
+114  Corsilven discovers boats
+114  drought in Morkel
+114  Ashor learns writing from Fenbel
+115  a flood takes 32 lives in Wenor and destroys the mill
+115  drought in Norpelash
+115  drought in Arduntor
+115  a flood takes 50 lives in Arduntor and destroys the mill
+115  drought in Corsilven
+115  drought in Ranyr
+115  Ranyr learns bread from Fenbel
+116  a flood takes 31 lives in Dunholash and destroys the mill
+116  Torashpel learns writing from Wenor
+116  Dunholash learns the mill from Torashpel
+116  Torashpel learns medicine from Dunholash
+117  Wenor rediscovers the mill
+117  drought in Holpel
+117  Ulash discovers bread
+117  drought in Corsilven
+117  drought in Lornornor
+117  Norranwen learns bread from Isnor
+117  Ranranis learns bread from Ulash
+117  Corsilven learns bread from Kelbrin
+117  Norbel learns iron from Kelbrin
+118  drought in Arduntor
+118  a flood takes 27 lives in Ranranis and destroys the mill
+118  Arduntor learns the mill from Isnor
+118  Holpel learns bread from Ulash
+118  Corsilven learns writing from Ranranis
+119  Lornornor learns copper from Fenbel
+120  drought in Morkel
+120  Fenoris learns bread from Torgarpel
+120  Fenbel learns boats from Ashor
+120  Ranranis learns the mill from Gartorel
+120  Norbel learns writing from Lornornor
+121  drought in Wenor
+121  drought in Dunor
+121  drought in Norranwen
+122  drought in Norfen
+122  drought in Ranranis
+122  Wenor learns bread from Fenoris
+122  Arduntor learns bread from Kelbrin
+123  drought in Norranwen
+123  Ranranis learns bread from Fenoris
+124  Wentoryr rediscovers the mill
+124  drought in Gartorel
+124  drought in Torashpel
+125  drought in Torgarpel
+125  drought in Wentoryr
+125  drought in Norpelash
+125  drought in Corsilven
+125  Kelbrin discovers writing
+125  a flood takes 12 lives in Ranyr and destroys the mill
+126  drought in Norpelash
+126  Fenbel discovers iron
+126  Kelbrin discovers boats
+127  hunger in Norpelash: 44 die or leave
+127  Dunor sends 285 grain to Norpelash
+127  Dunholash learns bread from Torashpel
+127  Gartorel learns bread from Isnor
+128  drought in Dunholash
+128  drought in Ranranis
+128  drought in Ulash
+128  Lornornor discovers boats
+128  Lornornor learns iron from Dunholash
+129  drought in Fenoris
+129  drought in Ulash
+129  drought in Ashor
+130  drought in Norranwen
+130  Ranyr learns the mill from Ashor
+132  drought in Fenbel
+132  drought in Ranyr
+133  drought in Wentoryr
+133  drought in Holpel
+133  drought in Gartorel
+133  drought in Ashor
+134  drought in Wenor
+134  drought in Wentoryr
+134  hunger in Norpelash: 90 die or leave
+134  Norfen sends 221 grain to Norpelash
+135  Norbel discovers boats
+135  Ranyr learns bread from Kelbrin
+137  drought in Dunor
+137  hunger in Dunor: 105 die or leave
+137  Arduntor sends 184 grain to Dunor
+137  drought in Fenbel
+137  drought in Kelbrin
+137  drought in Torashpel
+137  Ranyr learns writing from Ashor
+138  drought in Lornornor
+139  hunger in Norpelash: 99 die or leave
+139  Norranwen sends 221 grain to Norpelash
+139  drought in Holpel
+139  drought in Norbel
+139  drought in Ashor
+140  hunger in Dunor: 67 die or leave
+140  Arduntor sends 128 grain to Dunor
+140  drought in Norranwen
+141  a flood takes 13 lives in Ranyr and destroys the mill
+141  Ranyr rediscovers the mill
+141  drought in Lornornor
+142  a flood takes 31 lives in Corsilven and destroys the mill
+143  hunger in Dunor: 103 die or leave
+143  Torashpel sends 96 grain to Dunor
+143  drought in Dunholash
+144  Dunor discovers boats
+144  drought in Arduntor
+145  hunger in Norpelash: 59 die or leave
+145  Norranwen sends 229 grain to Norpelash
+145  drought in Dunor
+145  hunger in Dunor: 104 die or leave
+145  Dunor raids Ulash for 322 grain; 17 fall
+145  drought in Isnor
+146  drought in Wenor
+146  drought in Wentoryr
+146  hunger in Wentoryr: 30 die or leave
+146  Morkel sends 97 grain to Wentoryr
+146  drought in Holpel
+146  drought in Ulash
+146  Corsilven rediscovers the mill
+147  drought in Norbel
+148  drought in Fenoris
+148  hunger in Fenoris: 51 die or leave
+148  Norranwen sends 209 grain to Fenoris
+148  Wentoryr discovers bread
+148  hunger in Arduntor: 36 die or leave
+148  Arduntor raids Torgarpel for 274 grain; 23 fall
+148  Ranyr discovers bread
+148  Ranyr learns boats from Dunor
+149  a flood takes 115 lives in Holpel and destroys the mill
+149  hunger in Norfen: 65 die or leave
+149  Norfen raids Kelbrin for 267 grain; 15 fall
+149  drought in Ulash
+150  drought in Torgarpel
+150  hunger in Norpelash: 79 die or leave
+150  Norranwen sends 171 grain to Norpelash
+150  drought in Arduntor
+150  hunger in Holpel: 36 die or leave
+150  Dunholash sends 153 grain to Holpel
+150  Holpel rediscovers the mill
+150  a flood takes 66 lives in Dunholash and destroys the mill
+151  a flood takes 70 lives in Wenor and destroys the mill
+151  drought in Holpel
+151  hunger in Holpel: 29 die or leave
+151  Ranranis sends 140 grain to Holpel
+151  Corsilven discovers bread
+151  drought in Norbel
+151  Morkel learns the mill from Wentoryr
+151  Ranyr learns medicine from Ashor
+152  hunger in Torgarpel: 34 die or leave
+152  Norranwen sends 140 grain to Torgarpel
+152  drought in Norpelash
+152  hunger in Norpelash: 64 die or leave
+152  Gartorel sends 137 grain to Norpelash
+152  drought in Ranyr
+152  Holpel learns bread from Lornornor
+152  Dunholash learns the mill from Norfen
+153  Wenor learns the mill from Ranranis
+154  hunger in Fenoris: 71 die or leave
+154  Isnor sends 145 grain to Fenoris
+154  hunger in Dunor: 88 die or leave
+154  Torashpel sends 136 grain to Dunor
+154  hunger in Arduntor: 32 die or leave
+154  Ranranis sends 131 grain to Arduntor
+154  hunger in Norfen: 62 die or leave
+154  Norfen raids Lornornor for 183 grain; 10 fall
+155  Wenor learns bread from Gartorel
+156  hunger in Norpelash: 44 die or leave
+156  Isnor sends 141 grain to Norpelash
+157  hunger in Torgarpel: 38 die or leave
+157  Gartorel sends 140 grain to Torgarpel
+157  drought in Dunor
+157  hunger in Dunor: 127 die or leave
+157  Dunor raids Wenor for 189 grain; 14 fall
+157  hunger in Norfen: 92 die or leave
+157  Norranwen sends 125 grain to Norfen
+157  drought in Ulash
+157  hunger in Ulash: 30 die or leave
+157  Ranranis sends 127 grain to Ulash
+157  drought in Norbel
+157  drought in Lornornor
+157  Dunholash learns bread from Wenor
+158  hunger in Fenoris: 39 die or leave
+158  Isnor sends 136 grain to Fenoris
+158  drought in Fenbel
+158  drought in Ulash
+158  hunger in Ulash: 62 die or leave
+158  Torashpel sends 130 grain to Ulash
+159  hunger in Wentoryr: 55 die or leave
+159  Morkel sends 149 grain to Wentoryr
+159  drought in Dunor
+159  hunger in Dunor: 63 die or leave
+159  Ashor sends 127 grain to Dunor
+159  a flood takes 112 lives in Arduntor and destroys the mill
+159  hunger in Arduntor: 44 die or leave
+159  Isnor sends 110 grain to Arduntor
+159  drought in Ulash
+159  hunger in Ulash: 47 die or leave
+159  Gartorel sends 107 grain to Ulash
+159  drought in Torashpel
+159  a flood takes 61 lives in Torashpel and destroys the mill
+159  drought in Morkel
+159  drought in Isnor
+159  drought in Lornornor
+159  Torashpel learns the mill from Ashor
+160  hunger in Norpelash: 77 die or leave
+160  Ranranis sends 99 grain to Norpelash
+160  Arduntor rediscovers the mill
+160  hunger in Fenbel: 27 die or leave
+160  Corsilven sends 100 grain to Fenbel
+160  hunger in Norfen: 42 die or leave
+160  Ashor sends 97 grain to Norfen
+161  hunger in Torgarpel: 48 die or leave
+161  Dunholash sends 94 grain to Torgarpel
+161  a flood takes 70 lives in Wenor and destroys the mill
+161  drought in Kelbrin
+161  Torashpel learns bread from Ranyr
+162  hunger in Fenoris: 32 die or leave
+162  Corsilven sends 92 grain to Fenoris
+162  drought in Norpelash
+162  hunger in Norpelash: 36 die or leave
+162  Gartorel sends 85 grain to Norpelash
+162  drought in Holpel
+162  hunger in Holpel: 36 die or leave
+162  Ashor sends 85 grain to Holpel
+162  drought in Corsilven
+162  a flood takes 42 lives in Corsilven and destroys the mill
+162  Wenor learns the mill from Holpel
+162  Wenor learns bread from Holpel
+163  hunger in Arduntor: 30 die or leave
+163  Isnor sends 92 grain to Arduntor
+163  hunger in Fenbel: 33 die or leave
+163  Lornornor sends 90 grain to Fenbel
+163  hunger in Norfen: 41 die or leave
+163  Torashpel sends 81 grain to Norfen
+163  Corsilven rediscovers the mill
+163  hunger in Kelbrin: 29 die or leave
+163  Ranranis sends 83 grain to Kelbrin
+163  Morkel discovers bread
+164  hunger in Torgarpel: 32 die or leave
+164  Isnor sends 77 grain to Torgarpel
+164  a flood takes 58 lives in Wenor and destroys the mill
+164  drought in Norpelash
+164  hunger in Norpelash: 66 die or leave
+164  Wenor sends 75 grain to Norpelash
+164  a flood takes 85 lives in Ranranis and destroys the mill
+164  Ranranis rediscovers the mill
+164  drought in Ashor
+164  Wenor learns the mill from Gartorel
+164  Ranranis learns bread from Norfen
+165  hunger in Fenoris: 45 die or leave
+165  Torashpel sends 76 grain to Fenoris
+165  hunger in Wentoryr: 100 die or leave
+165  Morkel sends 113 grain to Wentoryr
+165  hunger in Dunor: 106 die or leave
+165  Dunor raids Ulash for 102 grain; 21 fall
+165  hunger in Norranwen: 118 die or leave
+165  Lornornor sends 75 grain to Norranwen
+165  a flood takes 34 lives in Corsilven and destroys the mill
+165  Arduntor learns bread from Isnor
+166  hunger in Fenbel: 41 die or leave
+166  Gartorel sends 64 grain to Fenbel
+166  a flood takes 99 lives in Holpel and destroys the mill
+166  hunger in Norfen: 68 die or leave
+166  Isnor sends 78 grain to Norfen
+166  drought in Kelbrin
+166  hunger in Kelbrin: 31 die or leave
+166  Ranranis sends 70 grain to Kelbrin
+166  drought in Gartorel
+166  hunger in Gartorel: 48 die or leave
+166  Corsilven sends 68 grain to Gartorel
+167  hunger in Torgarpel: 68 die or leave
+167  Torashpel sends 70 grain to Torgarpel
+167  drought in Dunholash
+167  hunger in Norranwen: 84 die or leave
+167  Isnor sends 64 grain to Norranwen
+167  drought in Ranranis
+168  hunger in Fenoris: 71 die or leave
+168  Ashor sends 66 grain to Fenoris
+168  hunger in Fenbel: 59 die or leave
+168  Lornornor sends 64 grain to Fenbel
+168  hunger in Holpel: 34 die or leave
+168  Torashpel sends 55 grain to Holpel
+168  drought in Ranranis
+168  hunger in Ranranis: 22 die or leave
+168  Isnor sends 54 grain to Ranranis
+168  hunger in Norbel: 37 die or leave
+168  Corsilven sends 59 grain to Norbel
+168  Holpel learns the mill from Norbel
+169  hunger in Norpelash: 47 die or leave
+169  Ulash sends 48 grain to Norpelash
+169  drought in Dunor
+169  hunger in Dunor: 61 die or leave
+169  Ranyr sends 52 grain to Dunor
+169  drought in Arduntor
+169  hunger in Arduntor: 43 die or leave
+169  Ashor sends 50 grain to Arduntor
+169  drought in Dunholash
+169  hunger in Dunholash: 40 die or leave
+169  Isnor sends 45 grain to Dunholash
+169  hunger in Norfen: 76 die or leave
+169  Norfen raids Lornornor for 68 grain; 16 fall
+169  hunger in Kelbrin: 26 die or leave
+169  Corsilven sends 45 grain to Kelbrin
+169  Wenor learns bread from Ranranis
+170  a flood takes 54 lives in Wenor and destroys the mill
+170  hunger in Wentoryr: 49 die or leave
+170  Morkel sends 175 grain to Wentoryr
+170  drought in Fenbel
+170  hunger in Fenbel: 58 die or leave
+170  Torashpel sends 51 grain to Fenbel
+170  hunger in Norranwen: 68 die or leave
+170  Ranyr sends 49 grain to Norranwen
+170  hunger in Norbel: 38 die or leave
+170  Norbel raids Wenor for 69 grain; 9 fall
+170  drought in Isnor
+170  hunger in Isnor: 26 die or leave
+170  Ranyr sends 47 grain to Isnor
+171  hunger in Fenoris: 64 die or leave
+171  Ashor sends 43 grain to Fenoris
+171  hunger in Torgarpel: 51 die or leave
+171  Torashpel sends 40 grain to Torgarpel
+171  drought in Corsilven
+171  hunger in Kelbrin: 53 die or leave
+171  Ranranis sends 45 grain to Kelbrin
+171  Holpel learns bread from Arduntor
+172  drought in Wenor
+172  hunger in Norpelash: 60 die or leave
+172  Gartorel sends 34 grain to Norpelash
+172  hunger in Dunor: 69 die or leave
+172  Ranyr sends 47 grain to Dunor
+172  Corsilven rediscovers the mill
+173  drought in Torgarpel
+173  hunger in Torgarpel: 49 die or leave
+173  Ranyr sends 46 grain to Torgarpel
+173  hunger in Dunholash: 44 die or leave
+173  Ranranis sends 37 grain to Dunholash
+173  drought in Norranwen
+173  hunger in Norranwen: 60 die or leave
+173  Torashpel sends 36 grain to Norranwen
+173  hunger in Norbel: 50 die or leave
+173  Ranranis sends 30 grain to Norbel
+174  hunger in Fenoris: 33 die or leave
+174  Ranyr sends 47 grain to Fenoris
+174  hunger in Norfen: 40 die or leave
+174  Isnor sends 39 grain to Norfen
+174  drought in Torashpel
+174  hunger in Torashpel: 29 die or leave
+174  Ashor sends 34 grain to Torashpel
+175  hunger in Wentoryr: 52 die or leave
+175  Morkel sends 187 grain to Wentoryr
+175  hunger in Norpelash: 72 die or leave
+175  Isnor sends 31 grain to Norpelash
+175  a flood takes 91 lives in Arduntor and destroys the mill
+175  hunger in Fenbel: 54 die or leave
+175  Ranyr sends 48 grain to Fenbel
+175  hunger in Kelbrin: 36 die or leave
+175  Corsilven sends 35 grain to Kelbrin
+175  hunger in Norbel: 32 die or leave
+175  Ranranis sends 29 grain to Norbel
+176  hunger in Dunor: 53 die or leave
+176  Ranyr sends 49 grain to Dunor
+176  drought in Arduntor
+176  hunger in Arduntor: 24 die or leave
+176  Ranyr sends 32 grain to Arduntor
+176  drought in Norfen
+176  hunger in Norfen: 59 die or leave
+176  Corsilven sends 24 grain to Norfen
+176  hunger in Norranwen: 70 die or leave
+176  Isnor sends 24 grain to Norranwen
+176  hunger in Ulash: 43 die or leave
+176  Lornornor sends 23 grain to Ulash
+177  hunger in Dunholash: 42 die or leave
+177  Ranyr sends 39 grain to Dunholash
+177  hunger in Gartorel: 54 die or leave
+177  Ranyr sends 26 grain to Gartorel
+177  Corsilven learns bread from Norfen
+178  hunger in Fenoris: 35 die or leave
+178  Ranyr sends 36 grain to Fenoris
+178  hunger in Torgarpel: 40 die or leave
+178  Torashpel sends 26 grain to Torgarpel
+178  hunger in Wenor: 31 die or leave
+178  Ranranis sends 25 grain to Wenor
+178  Wenor rediscovers the mill
+178  drought in Norpelash
+178  hunger in Norpelash: 68 die or leave
+178  Isnor sends 17 grain to Norpelash
+178  hunger in Arduntor: 35 die or leave
+178  Ranyr sends 24 grain to Arduntor
+178  hunger in Norranwen: 68 die or leave
+178  Corsilven sends 21 grain to Norranwen
+178  hunger in Ulash: 75 die or leave
+178  Torashpel sends 18 grain to Ulash
+178  drought in Corsilven
+178  hunger in Corsilven: 14 die or leave
+178  Ranranis sends 17 grain to Corsilven
+178  hunger in Kelbrin: 53 die or leave
+178  Ranyr sends 16 grain to Kelbrin
+178  drought in Norbel
+178  hunger in Norbel: 36 die or leave
+178  Dunholash sends 12 grain to Norbel
+178  hunger in Lornornor: 25 die or leave
+178  Fenoris sends 12 grain to Lornornor
+179  hunger in Dunor: 85 die or leave
+179  Ranyr sends 29 grain to Dunor
+179  hunger in Norfen: 66 die or leave
+179  Ranyr sends 19 grain to Norfen
+179  hunger in Lornornor: 54 die or leave
+179  Corsilven sends 20 grain to Lornornor
+180  hunger in Fenoris: 30 die or leave
+180  Ranyr sends 32 grain to Fenoris
+180  hunger in Wentoryr: 74 die or leave
+180  Morkel sends 161 grain to Wentoryr
+180  hunger in Fenbel: 47 die or leave
+180  Ranyr sends 21 grain to Fenbel
+180  hunger in Holpel: 58 die or leave
+180  Torashpel sends 18 grain to Holpel
+180  drought in Kelbrin
+180  hunger in Kelbrin: 48 die or leave
+180  Corsilven sends 27 grain to Kelbrin
+180  hunger in Gartorel: 59 die or leave
+180  Corsilven sends 18 grain to Gartorel
+180  hunger in Ashor: 33 die or leave
+180  Ranyr sends 34 grain to Ashor
+181  hunger in Torgarpel: 48 die or leave
+181  Ranyr sends 22 grain to Torgarpel
+181  hunger in Arduntor: 38 die or leave
+181  Ranyr sends 15 grain to Arduntor
+181  hunger in Ulash: 42 die or leave
+181  Norpelash sends 14 grain to Ulash
+181  a flood takes 69 lives in Kelbrin and destroys the mill
+181  hunger in Norbel: 28 die or leave
+181  Corsilven sends 25 grain to Norbel
+181  hunger in Isnor: 53 die or leave
+181  Ranyr sends 30 grain to Isnor
+182  Arduntor rediscovers the mill
+182  hunger in Dunholash: 27 die or leave
+182  Ranyr sends 20 grain to Dunholash
+182  hunger in Norranwen: 85 die or leave
+182  Corsilven sends 17 grain to Norranwen
+183  drought in Torgarpel
+183  hunger in Torgarpel: 29 die or leave
+183  Ranyr sends 33 grain to Torgarpel
+183  hunger in Dunor: 56 die or leave
+183  Ranyr sends 22 grain to Dunor
+183  a flood takes 100 lives in Ranranis and destroys the mill
+183  hunger in Ranranis: 29 die or leave
+183  Corsilven sends 24 grain to Ranranis
+183  hunger in Ashor: 59 die or leave
+183  Ranyr sends 34 grain to Ashor
+183  hunger in Lornornor: 38 die or leave
+183  Corsilven sends 28 grain to Lornornor
+183  Wenor learns bread from Isnor
+184  hunger in Fenoris: 35 die or leave
+184  Ranyr sends 22 grain to Fenoris
+184  hunger in Wentoryr: 70 die or leave
+184  Morkel sends 112 grain to Wentoryr
+184  hunger in Arduntor: 13 die or leave
+184  Wenor sends 16 grain to Arduntor
+184  hunger in Fenbel: 48 die or leave
+184  Corsilven sends 19 grain to Fenbel
+184  hunger in Ulash: 69 die or leave
+184  Ranyr sends 15 grain to Ulash
+184  hunger in Kelbrin: 15 die or leave
+184  Corsilven sends 24 grain to Kelbrin
+184  hunger in Gartorel: 53 die or leave
+184  Corsilven sends 16 grain to Gartorel
+184  Arduntor learns bread from Holpel
+185  hunger in Norpelash: 72 die or leave
+185  Wenor sends 18 grain to Norpelash
+185  hunger in Holpel: 60 die or leave
+185  Ranyr sends 29 grain to Holpel
+185  drought in Dunholash
+185  hunger in Dunholash: 53 die or leave
+185  Ranyr sends 19 grain to Dunholash
+185  hunger in Ranranis: 28 die or leave
+185  Arduntor sends 16 grain to Ranranis
+185  hunger in Isnor: 33 die or leave
+185  Ranyr sends 31 grain to Isnor
+186  drought in Wentoryr
+186  hunger in Wentoryr: 89 die or leave
+186  Morkel sends 67 grain to Wentoryr
+186  hunger in Dunor: 108 die or leave
+186  Ranyr sends 21 grain to Dunor
+186  hunger in Norfen: 36 die or leave
+186  Corsilven sends 22 grain to Norfen
+186  hunger in Norbel: 44 die or leave
+186  Corsilven sends 25 grain to Norbel
+187  hunger in Fenoris: 40 die or leave
+187  Ranyr sends 32 grain to Fenoris
+187  hunger in Norranwen: 58 die or leave
+187  Arduntor sends 30 grain to Norranwen
+187  hunger in Ranranis: 38 die or leave
+187  Wenor sends 27 grain to Ranranis
+187  hunger in Kelbrin: 34 die or leave
+187  Corsilven sends 26 grain to Kelbrin
+187  hunger in Torashpel: 50 die or leave
+187  Ranyr sends 21 grain to Torashpel
+187  hunger in Lornornor: 51 die or leave
+187  Wenor sends 18 grain to Lornornor
+188  drought in Ulash
+188  hunger in Ulash: 63 die or leave
+188  Ranyr sends 32 grain to Ulash
+188  hunger in Isnor: 66 die or leave
+188  Ranyr sends 38 grain to Isnor
+188  hunger in Ashor: 54 die or leave
+188  Arduntor sends 30 grain to Ashor
+188  Ranranis learns the mill from Isnor
+189  hunger in Wentoryr: 89 die or leave
+189  Morkel sends 21 grain to Wentoryr
+189  hunger in Norfen: 31 die or leave
+189  Arduntor sends 28 grain to Norfen
+189  drought in Norranwen
+189  hunger in Norranwen: 103 die or leave
+189  Corsilven sends 27 grain to Norranwen
+189  drought in Lornornor
+189  hunger in Lornornor: 43 die or leave
+189  Corsilven sends 26 grain to Lornornor
+190  hunger in Torgarpel: 52 die or leave
+190  Ranyr sends 42 grain to Torgarpel
+190  a flood takes 62 lives in Wenor and destroys the mill
+190  hunger in Norpelash: 56 die or leave
+190  Wenor sends 24 grain to Norpelash
+190  hunger in Fenbel: 46 die or leave
+190  Ranyr sends 28 grain to Fenbel
+190  drought in Dunholash
+190  hunger in Dunholash: 48 die or leave
+190  Arduntor sends 26 grain to Dunholash
+190  hunger in Gartorel: 57 die or leave
+190  Corsilven sends 24 grain to Gartorel
+190  hunger in Morkel: 91 die or leave
+190  Wenor learns the mill from Torashpel
+191  drought in Norfen
+191  hunger in Norfen: 43 die or leave
+191  Ranyr sends 35 grain to Norfen
+191  hunger in Norbel: 22 die or leave
+191  Ulash sends 23 grain to Norbel
+191  hunger in Torashpel: 33 die or leave
+191  Arduntor sends 24 grain to Torashpel
+191  hunger in Morkel: 66 die or leave
+191  Ranranis learns bread from Lornornor
+192  hunger in Fenoris: 45 die or leave
+192  Ranyr sends 39 grain to Fenoris
+192  hunger in Wentoryr: 59 die or leave
+192  hunger in Dunor: 73 die or leave
+192  Ranyr sends 26 grain to Dunor
+192  hunger in Holpel: 48 die or leave
+192  Arduntor sends 23 grain to Holpel
+192  drought in Norranwen
+192  hunger in Norranwen: 55 die or leave
+192  Corsilven sends 23 grain to Norranwen
+192  drought in Isnor
+192  hunger in Isnor: 30 die or leave
+192  Ranyr sends 33 grain to Isnor
+192  Wenor learns bread from Ranyr
+193  hunger in Wentoryr: 43 die or leave
+193  drought in Arduntor
+193  hunger in Arduntor: 19 die or leave
+193  Ranyr sends 22 grain to Arduntor
+193  hunger in Kelbrin: 22 die or leave
+193  Corsilven sends 25 grain to Kelbrin
+193  drought in Ashor
+193  hunger in Ashor: 42 die or leave
+193  Ranyr sends 30 grain to Ashor
+194  drought in Holpel
+194  hunger in Holpel: 50 die or leave
+194  Wenor sends 30 grain to Holpel
+194  drought in Ulash
+194  hunger in Ulash: 43 die or leave
+194  Ranranis sends 31 grain to Ulash
+194  hunger in Norbel: 35 die or leave
+194  Norranwen sends 23 grain to Norbel
+195  hunger in Norpelash: 65 die or leave
+195  Wenor sends 27 grain to Norpelash
+195  drought in Norfen
+195  hunger in Norfen: 29 die or leave
+195  Ranyr sends 35 grain to Norfen
+195  hunger in Torashpel: 26 die or leave
+195  Ranranis sends 28 grain to Torashpel
+195  hunger in Morkel: 81 die or leave
+196  hunger in Fenoris: 50 die or leave
+196  Ranyr sends 37 grain to Fenoris
+196  drought in Torgarpel
+196  hunger in Torgarpel: 27 die or leave
+196  Ranyr sends 24 grain to Torgarpel
+196  hunger in Dunor: 90 die or leave
+196  a flood takes 86 lives in Holpel and destroys the mill
+196  Holpel rediscovers the mill
+196  drought in Dunholash
+196  hunger in Dunholash: 46 die or leave
+196  Arduntor sends 26 grain to Dunholash
+196  hunger in Isnor: 53 die or leave
+196  Ranyr sends 29 grain to Isnor
+197  drought in Torgarpel
+197  hunger in Torgarpel: 55 die or leave
+197  Wenor sends 25 grain to Torgarpel
+197  hunger in Fenbel: 44 die or leave
+197  Corsilven sends 25 grain to Fenbel
+197  hunger in Kelbrin: 22 die or leave
+197  Ranranis sends 31 grain to Kelbrin
+197  hunger in Gartorel: 58 die or leave
+197  Wenor sends 23 grain to Gartorel
+197  drought in Ranyr
+197  hunger in Ranyr: 27 die or leave
+197  Arduntor sends 23 grain to Ranyr
+197  drought in Lornornor
+197  hunger in Lornornor: 55 die or leave
+197  Norranwen sends 20 grain to Lornornor
+198  hunger in Holpel: 39 die or leave
+198  Wenor sends 21 grain to Holpel
+198  drought in Norfen
+198  hunger in Norfen: 29 die or leave
+198  Ranranis sends 20 grain to Norfen
+198  a flood takes 41 lives in Ranyr and destroys the mill
+198  Kelbrin learns the mill from Torashpel
+199  drought in Fenoris
+199  hunger in Fenoris: 33 die or leave
+199  Arduntor sends 19 grain to Fenoris
+199  hunger in Dunor: 87 die or leave
+199  drought in Dunholash
+199  hunger in Dunholash: 17 die or leave
+199  Wenor sends 19 grain to Dunholash
+199  drought in Kelbrin
+199  hunger in Kelbrin: 15 die or leave
+199  Ranranis sends 22 grain to Kelbrin
+199  hunger in Norbel: 29 die or leave
+199  Corsilven sends 17 grain to Norbel
+199  hunger in Torashpel: 40 die or leave
+199  Arduntor sends 16 grain to Torashpel
+199  Holpel learns bread from Wenor
+199  Kelbrin learns bread from Norbel
+200  hunger in Norranwen: 45 die or leave
+200  Ranyr sends 22 grain to Norranwen
+200  drought in Kelbrin
+200  hunger in Kelbrin: 32 die or leave
+200  Ranranis sends 17 grain to Kelbrin
+200  drought in Ranyr
+200  hunger in Ranyr: 14 die or leave
+200  Wenor sends 16 grain to Ranyr
+200  hunger in Isnor: 39 die or leave
+200  Holpel sends 16 grain to Isnor
+200  drought in Ashor
+200  hunger in Ashor: 58 die or leave
+200  Arduntor sends 13 grain to Ashor
+201  hunger in Wentoryr: 81 die or leave
+201  Morkel sends 11 grain to Wentoryr
+201  a flood takes 85 lives in Ranranis and destroys the mill
+201  Ranranis rediscovers the mill
+201  hunger in Ulash: 30 die or leave
+201  Holpel sends 20 grain to Ulash
+201  Ranyr rediscovers the mill
+201  drought in Isnor
+201  hunger in Isnor: 57 die or leave
+201  Wenor sends 15 grain to Isnor
+202  hunger in Norpelash: 68 die or leave
+202  Holpel sends 13 grain to Norpelash
+202  hunger in Fenbel: 37 die or leave
+202  Kelbrin sends 20 grain to Fenbel
+202  hunger in Norranwen: 101 die or leave
+202  Dunholash sends 14 grain to Norranwen
+202  hunger in Gartorel: 41 die or leave
+202  Kelbrin sends 27 grain to Gartorel
+202  hunger in Norbel: 41 die or leave
+202  Holpel sends 18 grain to Norbel
+202  drought in Lornornor
+202  hunger in Lornornor: 39 die or leave
+202  Kelbrin sends 18 grain to Lornornor
+203  hunger in Torgarpel: 26 die or leave
+203  Ranyr sends 21 grain to Torgarpel
+203  hunger in Norfen: 51 die or leave
+203  Holpel sends 19 grain to Norfen
+203  hunger in Ulash: 53 die or leave
+203  Wenor sends 14 grain to Ulash
+203  hunger in Corsilven: 30 die or leave
+203  Holpel sends 13 grain to Corsilven
+203  drought in Norbel
+203  hunger in Norbel: 40 die or leave
+203  Kelbrin sends 25 grain to Norbel
+203  hunger in Torashpel: 26 die or leave
+203  Kelbrin sends 16 grain to Torashpel
+203  hunger in Morkel: 86 die or leave
+203  Ranranis learns bread from Fenoris
+204  hunger in Fenoris: 45 die or leave
+204  Ranyr sends 21 grain to Fenoris
+204  drought in Corsilven
+204  hunger in Corsilven: 26 die or leave
+204  Holpel sends 16 grain to Corsilven
+204  hunger in Ashor: 47 die or leave
+204  Kelbrin sends 23 grain to Ashor
+205  a flood takes 133 lives in Wentoryr and destroys the mill
+205  hunger in Wentoryr: 54 die or leave
+205  hunger in Norpelash: 41 die or leave
+205  Norranwen sends 13 grain to Norpelash
+206  hunger in Torgarpel: 36 die or leave
+206  Ranyr sends 27 grain to Torgarpel
+206  hunger in Wentoryr: 46 die or leave
+206  hunger in Dunor: 92 die or leave
+206  Ranyr sends 18 grain to Dunor
+206  hunger in Arduntor: 47 die or leave
+206  Kelbrin sends 27 grain to Arduntor
+206  hunger in Fenbel: 33 die or leave
+206  Norbel sends 18 grain to Fenbel
+206  a flood takes 157 lives in Norranwen and destroys the mill
+206  drought in Ulash
+206  hunger in Ulash: 59 die or leave
+206  Ranranis sends 23 grain to Ulash
+206  hunger in Gartorel: 30 die or leave
+206  Kelbrin sends 28 grain to Gartorel
+206  hunger in Torashpel: 23 die or leave
+206  Holpel sends 22 grain to Torashpel
+206  a flood takes 34 lives in Ranyr and destroys the mill
+207  hunger in Norfen: 60 die or leave
+207  Ranyr sends 22 grain to Norfen
+207  hunger in Norranwen: 55 die or leave
+207  Kelbrin sends 19 grain to Norranwen
+207  Ranyr rediscovers the mill
+207  hunger in Morkel: 42 die or leave
+207  hunger in Lornornor: 46 die or leave
+207  Kelbrin sends 23 grain to Lornornor
+208  hunger in Dunholash: 45 die or leave
+208  Ranyr sends 23 grain to Dunholash
+208  Norranwen rediscovers the mill
+209  hunger in Fenoris: 25 die or leave
+209  Ranranis sends 25 grain to Fenoris
+209  hunger in Torgarpel: 38 die or leave
+209  Ranyr sends 24 grain to Torgarpel
+209  hunger in Wenor: 25 die or leave
+209  Kelbrin sends 24 grain to Wenor
+209  hunger in Wentoryr: 22 die or leave
+209  hunger in Norranwen: 39 die or leave
+209  Norbel sends 22 grain to Norranwen
+209  drought in Ulash
+209  hunger in Ulash: 66 die or leave
+209  Holpel sends 26 grain to Ulash
+209  hunger in Corsilven: 33 die or leave
+209  Ranranis sends 20 grain to Corsilven
+209  hunger in Torashpel: 44 die or leave
+209  Kelbrin sends 24 grain to Torashpel
+209  hunger in Isnor: 66 die or leave
+209  Ranyr sends 25 grain to Isnor
+209  Norranwen learns bread from Fenoris
+210  drought in Wenor
+210  hunger in Wenor: 27 die or leave
+210  Holpel sends 17 grain to Wenor
+210  hunger in Norpelash: 47 die or leave
+210  Ranranis sends 13 grain to Norpelash
+210  hunger in Dunor: 95 die or leave
+210  Ranyr sends 16 grain to Dunor
+210  hunger in Gartorel: 53 die or leave
+210  Norranwen sends 28 grain to Gartorel
+210  hunger in Morkel: 80 die or leave
+210  hunger in Ashor: 51 die or leave
+210  Kelbrin sends 24 grain to Ashor
+211  Wentoryr rediscovers the mill
+211  hunger in Fenbel: 20 die or leave
+211  Ranyr sends 19 grain to Fenbel
+212  hunger in Fenoris: 43 die or leave
+212  Norranwen sends 39 grain to Fenoris
+212  drought in Norpelash
+212  hunger in Norpelash: 28 die or leave
+212  Norranwen sends 26 grain to Norpelash
+212  hunger in Arduntor: 40 die or leave
+212  Ulash sends 22 grain to Arduntor
+212  hunger in Dunholash: 47 die or leave
+212  Kelbrin sends 22 grain to Dunholash
+213  hunger in Torgarpel: 33 die or leave
+213  Norranwen sends 35 grain to Torgarpel
+213  hunger in Norfen: 51 die or leave
+213  Ranyr sends 28 grain to Norfen
+213  a flood takes 67 lives in Kelbrin and destroys the mill
+213  Kelbrin rediscovers the mill
+213  hunger in Lornornor: 27 die or leave
+213  Norranwen sends 40 grain to Lornornor
+214  hunger in Wentoryr: 27 die or leave
+214  Morkel sends 12 grain to Wentoryr
+214  hunger in Fenbel: 23 die or leave
+214  Norranwen sends 27 grain to Fenbel
+214  drought in Corsilven
+214  hunger in Corsilven: 34 die or leave
+214  Norranwen sends 34 grain to Corsilven
+214  hunger in Torashpel: 30 die or leave
+214  Ranyr sends 25 grain to Torashpel
+214  drought in Isnor
+214  hunger in Isnor: 46 die or leave
+214  Ulash sends 24 grain to Isnor
+215  hunger in Dunor: 105 die or leave
+215  Ranyr sends 24 grain to Dunor
+215  Kelbrin learns bread from Arduntor
+216  hunger in Wenor: 44 die or leave
+216  Norranwen sends 36 grain to Wenor
+216  hunger in Arduntor: 39 die or leave
+216  Norranwen sends 24 grain to Arduntor
+216  drought in Holpel
+216  hunger in Holpel: 50 die or leave
+216  Ranyr sends 22 grain to Holpel
+216  hunger in Gartorel: 27 die or leave
+216  Norranwen sends 29 grain to Gartorel
+216  hunger in Norbel: 37 die or leave
+216  Kelbrin sends 26 grain to Norbel
+216  hunger in Ashor: 27 die or leave
+216  Ranyr sends 20 grain to Ashor
+217  hunger in Fenoris: 44 die or leave
+217  Norranwen sends 19 grain to Fenoris
+217  hunger in Torgarpel: 39 die or leave
+217  Kelbrin sends 17 grain to Torgarpel
+217  hunger in Fenbel: 52 die or leave
+217  Ulash sends 14 grain to Fenbel
+217  hunger in Norfen: 56 die or leave
+217  Dunor sends 15 grain to Norfen
+217  drought in Norranwen
+217  hunger in Norranwen: 65 die or leave
+217  Ranyr sends 14 grain to Norranwen
+217  hunger in Ranranis: 60 die or leave
+217  Wenor sends 13 grain to Ranranis
+217  drought in Kelbrin
+217  hunger in Kelbrin: 16 die or leave
+217  hunger in Torashpel: 39 die or leave
+217  hunger in Morkel: 69 die or leave
+217  hunger in Lornornor: 47 die or leave
+217  Ranyr learns bread from Norfen
+218  hunger in Wentoryr: 31 die or leave
+218  hunger in Norpelash: 47 die or leave
+218  a flood takes 95 lives in Holpel and destroys the mill
+218  hunger in Dunholash: 23 die or leave
+218  Ranyr sends 14 grain to Dunholash
+218  drought in Torashpel
+218  hunger in Torashpel: 50 die or leave
+218  Norranwen sends 23 grain to Torashpel
+218  hunger in Lornornor: 31 die or leave
+218  Norranwen sends 15 grain to Lornornor
+219  hunger in Norpelash: 41 die or leave
+219  Dunor sends 10 grain to Norpelash
+219  drought in Arduntor
+219  hunger in Arduntor: 41 die or leave
+219  Ranyr sends 26 grain to Arduntor
+219  hunger in Holpel: 23 die or leave
+219  Ranyr sends 18 grain to Holpel
+219  hunger in Ulash: 38 die or leave
+219  Ranyr sends 12 grain to Ulash
+219  hunger in Corsilven: 38 die or leave
+219  Norranwen sends 27 grain to Corsilven
+219  drought in Gartorel
+219  hunger in Gartorel: 32 die or leave
+219  Kelbrin sends 20 grain to Gartorel
+219  hunger in Norbel: 38 die or leave
+219  Norranwen sends 18 grain to Norbel
+219  hunger in Ashor: 31 die or leave
+219  Ranyr sends 25 grain to Ashor
+220  hunger in Fenoris: 38 die or leave
+220  Ranyr sends 16 grain to Fenoris
+220  hunger in Torgarpel: 56 die or leave
+220  Kelbrin sends 13 grain to Torgarpel
+220  a flood takes 69 lives in Holpel
+220  hunger in Dunholash: 37 die or leave
+220  Torashpel sends 12 grain to Dunholash
+220  hunger in Isnor: 80 die or leave
+220  Norranwen sends 27 grain to Isnor
+221  hunger in Wentoryr: 26 die or leave
+221  hunger in Dunor: 106 die or leave
+221  Ranyr sends 27 grain to Dunor
+221  hunger in Ranranis: 42 die or leave
+221  Norranwen sends 32 grain to Ranranis
+221  hunger in Ulash: 56 die or leave
+221  Ranyr sends 18 grain to Ulash
+221  drought in Gartorel
+221  hunger in Gartorel: 24 die or leave
+221  Kelbrin sends 26 grain to Gartorel
+221  hunger in Morkel: 67 die or leave
+222  hunger in Wenor: 35 die or leave
+222  Ranyr sends 28 grain to Wenor
+222  hunger in Fenbel: 50 die or leave
+222  Norranwen sends 21 grain to Fenbel
+222  hunger in Norfen: 53 die or leave
+222  Ranyr sends 19 grain to Norfen
+223  drought in Ulash
+223  hunger in Ulash: 53 die or leave
+223  Ranyr sends 27 grain to Ulash
+223  hunger in Corsilven: 48 die or leave
+223  Norranwen sends 36 grain to Corsilven
+223  hunger in Norbel: 43 die or leave
+223  Kelbrin sends 32 grain to Norbel
+223  hunger in Ashor: 37 die or leave
+223  Ranyr sends 33 grain to Ashor
+224  hunger in Wentoryr: 32 die or leave
+224  hunger in Norpelash: 69 die or leave
+224  Norranwen sends 24 grain to Norpelash
+224  drought in Ranyr
+224  drought in Isnor
+224  hunger in Isnor: 40 die or leave
+224  Norranwen sends 25 grain to Isnor
+225  hunger in Fenoris: 51 die or leave
+225  Kelbrin sends 27 grain to Fenoris
+225  drought in Wentoryr
+225  a flood takes 72 lives in Wentoryr and destroys the mill
+225  hunger in Wentoryr: 34 die or leave
+225  hunger in Dunholash: 35 die or leave
+225  Kelbrin sends 18 grain to Dunholash
+225  drought in Norfen
+225  hunger in Norfen: 36 die or leave
+225  Torashpel sends 18 grain to Norfen
+225  a flood takes 138 lives in Norranwen and destroys the mill
+226  hunger in Wenor: 21 die or leave
+226  Ulash sends 19 grain to Wenor
+226  drought in Wentoryr
+226  hunger in Wentoryr: 14 die or leave
+226  Wentoryr rediscovers the mill
+226  drought in Dunor
+226  hunger in Dunor: 92 die or leave
+226  Ranyr sends 18 grain to Dunor
+226  Norranwen rediscovers the mill
+226  drought in Ranyr
+226  hunger in Ranyr: 18 die or leave
+226  Kelbrin sends 21 grain to Ranyr
+226  drought in Ashor
+226  hunger in Ashor: 40 die or leave
+226  Ulash sends 16 grain to Ashor
+226  hunger in Lornornor: 31 die or leave
+226  Kelbrin sends 14 grain to Lornornor
+227  hunger in Torgarpel: 49 die or leave
+227  Corsilven sends 12 grain to Torgarpel
+227  hunger in Ranranis: 36 die or leave
+227  Isnor sends 12 grain to Ranranis
+227  hunger in Gartorel: 25 die or leave
+227  Ulash sends 13 grain to Gartorel
+228  hunger in Wenor: 42 die or leave
+228  Ranyr sends 22 grain to Wenor
+228  hunger in Arduntor: 43 die or leave
+228  Ranyr sends 14 grain to Arduntor
+228  hunger in Morkel: 66 die or leave
+228  Wentoryr sends 27 grain to Morkel
+229  drought in Fenoris
+229  hunger in Fenoris: 24 die or leave
+229  Ranyr sends 24 grain to Fenoris
+229  drought in Wenor
+229  hunger in Wenor: 21 die or leave
+229  Ranyr sends 16 grain to Wenor
+229  Holpel rediscovers the mill
+229  hunger in Norfen: 63 die or leave
+229  Kelbrin sends 14 grain to Norfen
+229  hunger in Norranwen: 59 die or leave
+229  Dunor sends 11 grain to Norranwen
+229  hunger in Ranranis: 55 die or leave
+229  Ranyr sends 11 grain to Ranranis
+229  drought in Corsilven
+229  hunger in Corsilven: 49 die or leave
+229  hunger in Gartorel: 51 die or leave
+229  Kelbrin sends 11 grain to Gartorel
+229  hunger in Norbel: 52 die or leave
+229  hunger in Torashpel: 43 die or leave
+229  hunger in Lornornor: 34 die or leave
+230  a flood takes 47 lives in Wentoryr and destroys the mill
+230  Wentoryr rediscovers the mill
+230  hunger in Arduntor: 27 die or leave
+230  Ranyr sends 21 grain to Arduntor
+230  drought in Fenbel
+230  hunger in Fenbel: 40 die or leave
+230  Ranyr sends 14 grain to Fenbel
+230  hunger in Holpel: 36 die or leave
+230  hunger in Dunholash: 23 die or leave
+230  drought in Gartorel
+230  hunger in Gartorel: 22 die or leave
+230  hunger in Isnor: 56 die or leave
+230  Ranyr sends 22 grain to Isnor
+231  hunger in Torgarpel: 27 die or leave
+231  Ranyr sends 15 grain to Torgarpel
+231  Wentoryr discovers bread
+231  hunger in Norpelash: 35 die or leave
+231  hunger in Dunor: 68 die or leave
+231  drought in Arduntor
+231  hunger in Arduntor: 22 die or leave
+231  hunger in Holpel: 32 die or leave
+231  hunger in Dunholash: 21 die or leave
+231  hunger in Norranwen: 33 die or leave
+231  hunger in Torashpel: 51 die or leave
+231  hunger in Lornornor: 27 die or leave
+232  hunger in Norpelash: 33 die or leave
+232  Wenor sends 10 grain to Norpelash
+232  drought in Arduntor
+232  hunger in Arduntor: 29 die or leave
+232  Ranyr sends 22 grain to Arduntor
+232  drought in Dunholash
+232  hunger in Dunholash: 24 die or leave
+232  Ranyr sends 15 grain to Dunholash
+232  drought in Norranwen
+232  hunger in Norranwen: 24 die or leave
+232  Ranyr sends 10 grain to Norranwen
+232  hunger in Ulash: 73 die or leave
+232  hunger in Norbel: 34 die or leave
+233  hunger in Fenbel: 38 die or leave
+233  Ranyr sends 18 grain to Fenbel
+233  drought in Gartorel
+233  hunger in Gartorel: 26 die or leave
+233  Ranyr sends 12 grain to Gartorel
+233  drought in Isnor
+233  hunger in Isnor: 56 die or leave
+233  Ranyr sends 20 grain to Isnor
+233  Norranwen learns bread from Dunholash
+234  hunger in Fenoris: 36 die or leave
+234  Ranyr sends 13 grain to Fenoris
+234  hunger in Torgarpel: 25 die or leave
+234  hunger in Dunor: 77 die or leave
+234  Arduntor sends 11 grain to Dunor
+234  hunger in Corsilven: 19 die or leave
+234  Norranwen sends 28 grain to Corsilven
+234  hunger in Kelbrin: 32 die or leave
+234  Norranwen sends 18 grain to Kelbrin
+234  drought in Norbel
+234  hunger in Norbel: 25 die or leave
+234  Norranwen sends 12 grain to Norbel
+234  hunger in Ashor: 34 die or leave
+234  Ranyr sends 20 grain to Ashor
+235  hunger in Torgarpel: 43 die or leave
+235  Ranyr sends 13 grain to Torgarpel
+235  hunger in Norpelash: 42 die or leave
+235  Dunholash sends 11 grain to Norpelash
+235  drought in Norfen
+235  hunger in Norfen: 65 die or leave
+235  Arduntor sends 14 grain to Norfen
+235  hunger in Morkel: 62 die or leave
+235  Wentoryr sends 109 grain to Morkel
+235  hunger in Lornornor: 22 die or leave
+235  Norranwen sends 30 grain to Lornornor
+236  drought in Torgarpel
+236  hunger in Torgarpel: 21 die or leave
+236  Norranwen sends 20 grain to Torgarpel
+236  drought in Arduntor
+236  hunger in Arduntor: 48 die or leave
+236  Ranyr sends 19 grain to Arduntor
+236  hunger in Ranranis: 32 die or leave
+236  Norranwen sends 35 grain to Ranranis
+236  hunger in Ulash: 61 die or leave
+237  hunger in Wenor: 22 die or leave
+237  Norranwen sends 23 grain to Wenor
+237  hunger in Fenbel: 22 die or leave
+237  Ranyr sends 22 grain to Fenbel
+237  drought in Morkel
+237  hunger in Morkel: 55 die or leave
+237  Wentoryr sends 113 grain to Morkel
+238  hunger in Fenoris: 29 die or leave
+238  Norranwen sends 36 grain to Fenoris
+238  hunger in Norpelash: 61 die or leave
+238  Norranwen sends 24 grain to Norpelash
+238  drought in Arduntor
+238  hunger in Arduntor: 17 die or leave
+238  Ranyr sends 23 grain to Arduntor
+238  hunger in Kelbrin: 40 die or leave
+238  Norranwen sends 35 grain to Kelbrin
+238  hunger in Isnor: 65 die or leave
+238  Ranyr sends 24 grain to Isnor
+238  hunger in Ashor: 53 die or leave
+238  Norranwen sends 23 grain to Ashor
+238  Holpel learns bread from Norpelash
+239  drought in Wentoryr
+239  drought in Dunor
+239  hunger in Dunor: 48 die or leave
+239  Torgarpel sends 19 grain to Dunor
+239  drought in Arduntor
+239  hunger in Arduntor: 37 die or leave
+239  Norranwen sends 16 grain to Arduntor
+239  drought in Norfen
+239  hunger in Norfen: 53 die or leave
+239  Norbel sends 16 grain to Norfen
+239  hunger in Ranranis: 33 die or leave
+239  Norranwen sends 28 grain to Ranranis
+239  drought in Isnor
+239  hunger in Isnor: 34 die or leave
+239  Ranyr sends 23 grain to Isnor
+240  hunger in Wenor: 48 die or leave
+240  Norranwen sends 19 grain to Wenor
+240  hunger in Fenbel: 32 die or leave
+240  Ranyr sends 16 grain to Fenbel
+240  hunger in Corsilven: 26 die or leave
+240  Norranwen sends 29 grain to Corsilven
+241  hunger in Dunholash: 56 die or leave
+241  Holpel sends 29 grain to Dunholash
+241  hunger in Ulash: 48 die or leave
+241  Arduntor sends 27 grain to Ulash
+241  drought in Corsilven
+241  hunger in Corsilven: 40 die or leave
+241  Norranwen sends 34 grain to Corsilven
+241  hunger in Torashpel: 27 die or leave
+241  Norranwen sends 23 grain to Torashpel
+241  hunger in Lornornor: 41 die or leave
+241  Holpel sends 19 grain to Lornornor
+242  drought in Torgarpel
+242  hunger in Torgarpel: 51 die or leave
+242  Ranyr sends 23 grain to Torgarpel
+242  hunger in Ranranis: 27 die or leave
+242  Norranwen sends 29 grain to Ranranis
+243  hunger in Fenoris: 39 die or leave
+243  Arduntor sends 28 grain to Fenoris
+243  drought in Dunor
+243  hunger in Dunor: 79 die or leave
+243  Ranyr sends 21 grain to Dunor
+243  hunger in Fenbel: 49 die or leave
+243  Holpel sends 20 grain to Fenbel
+243  hunger in Gartorel: 48 die or leave
+243  Norranwen sends 31 grain to Gartorel
+244  hunger in Norpelash: 58 die or leave
+244  Norranwen sends 21 grain to Norpelash
+244  drought in Holpel
+244  hunger in Holpel: 38 die or leave
+244  Arduntor sends 36 grain to Holpel
+244  drought in Norfen
+244  hunger in Norfen: 51 die or leave
+244  Arduntor sends 24 grain to Norfen
+244  hunger in Kelbrin: 52 die or leave
+244  Norranwen sends 23 grain to Kelbrin
+244  hunger in Norbel: 50 die or leave
+244  Torgarpel sends 16 grain to Norbel
+244  hunger in Torashpel: 32 die or leave
+244  Ranyr sends 18 grain to Torashpel
+244  hunger in Ashor: 38 die or leave
+244  Arduntor sends 16 grain to Ashor
+244  drought in Lornornor
+244  hunger in Lornornor: 43 die or leave
+244  Norranwen sends 16 grain to Lornornor
+245  drought in Wenor
+245  hunger in Wenor: 46 die or leave
+245  Isnor sends 20 grain to Wenor
+245  drought in Norranwen
+245  hunger in Norranwen: 49 die or leave
+245  Arduntor sends 19 grain to Norranwen
+245  drought in Corsilven
+245  hunger in Corsilven: 33 die or leave
+245  Holpel sends 22 grain to Corsilven
+245  drought in Gartorel
+245  hunger in Gartorel: 49 die or leave
+245  Ranyr sends 15 grain to Gartorel
+245  hunger in Morkel: 75 die or leave
+245  Wentoryr sends 140 grain to Morkel
+246  hunger in Dunholash: 35 die or leave
+246  Holpel sends 24 grain to Dunholash
+246  drought in Norfen
+246  hunger in Norfen: 41 die or leave
+246  Arduntor sends 20 grain to Norfen
+246  hunger in Ranranis: 39 die or leave
+246  Norranwen sends 19 grain to Ranranis
+246  drought in Norbel
+246  hunger in Norbel: 38 die or leave
+246  Holpel sends 16 grain to Norbel
+247  hunger in Fenoris: 26 die or leave
+247  Torgarpel sends 14 grain to Fenoris
+247  drought in Fenbel
+247  hunger in Fenbel: 47 die or leave
+247  Ranyr sends 14 grain to Fenbel
+247  hunger in Ashor: 43 die or leave
+247  Norranwen sends 23 grain to Ashor
+248  hunger in Norpelash: 46 die or leave
+248  Holpel sends 20 grain to Norpelash
+248  hunger in Dunor: 81 die or leave
+248  Arduntor sends 20 grain to Dunor
+248  hunger in Torashpel: 25 die or leave
+248  Norranwen sends 23 grain to Torashpel
+248  a flood takes 83 lives in Ranyr and destroys the mill
+248  drought in Isnor
+248  hunger in Isnor: 69 die or leave
+248  Norfen sends 22 grain to Isnor
+248  hunger in Lornornor: 41 die or leave
+248  Holpel sends 21 grain to Lornornor
+249  hunger in Fenoris: 28 die or leave
+249  Arduntor sends 19 grain to Fenoris
+249  drought in Holpel
+249  hunger in Holpel: 17 die or leave
+249  Arduntor sends 18 grain to Holpel
+249  hunger in Dunholash: 22 die or leave
+249  Norranwen sends 15 grain to Dunholash
+249  drought in Norranwen
+249  a flood takes 140 lives in Norranwen and destroys the mill
+249  hunger in Norranwen: 29 die or leave
+249  Norfen sends 20 grain to Norranwen
+249  Norranwen rediscovers the mill
+249  hunger in Ranranis: 33 die or leave
+249  Norfen sends 14 grain to Ranranis
+249  hunger in Ulash: 37 die or leave
+249  Corsilven sends 12 grain to Ulash
+249  hunger in Kelbrin: 42 die or leave
+249  Arduntor sends 12 grain to Kelbrin
+249  hunger in Ranyr: 35 die or leave
+249  Fenbel sends 10 grain to Ranyr
+250  Ranyr learns the mill from Norfen
+251  hunger in Torgarpel: 50 die or leave
+251  Holpel sends 15 grain to Torgarpel
+251  hunger in Dunholash: 26 die or leave
+251  Holpel sends 18 grain to Dunholash
+251  drought in Norranwen
+251  hunger in Norranwen: 63 die or leave
+251  Norfen sends 18 grain to Norranwen
+251  drought in Ulash
+251  hunger in Ulash: 35 die or leave
+251  Arduntor sends 15 grain to Ulash
+251  drought in Norbel
+251  hunger in Norbel: 28 die or leave
+251  Norfen sends 12 grain to Norbel
+251  hunger in Ranyr: 20 die or leave
+251  Holpel sends 12 grain to Ranyr
+251  hunger in Morkel: 71 die or leave
+251  Wentoryr sends 174 grain to Morkel
+251  hunger in Ashor: 35 die or leave
+251  drought in Lornornor
+251  hunger in Lornornor: 24 die or leave
+252  hunger in Norpelash: 31 die or leave
+252  hunger in Kelbrin: 38 die or leave
+252  Holpel sends 15 grain to Kelbrin
+252  hunger in Gartorel: 31 die or leave
+252  Arduntor sends 12 grain to Gartorel
+252  hunger in Torashpel: 28 die or leave
+252  Norranwen sends 11 grain to Torashpel
+252  a flood takes 53 lives in Ranyr and destroys the mill
+252  drought in Morkel
+252  hunger in Morkel: 53 die or leave
+252  Wentoryr sends 139 grain to Morkel
+252  hunger in Isnor: 44 die or leave
+252  Norfen sends 11 grain to Isnor
+252  hunger in Ashor: 41 die or leave
+252  Holpel sends 10 grain to Ashor
+253  hunger in Fenoris: 33 die or leave
+253  hunger in Norpelash: 64 die or leave
+253  hunger in Dunor: 61 die or leave
+253  drought in Norfen
+253  hunger in Norfen: 48 die or leave
+253  Holpel sends 13 grain to Norfen
+253  a flood takes 99 lives in Ranranis and destroys the mill
+253  hunger in Ranranis: 26 die or leave
+253  Norranwen sends 11 grain to Ranranis
+253  hunger in Corsilven: 39 die or leave
+253  drought in Kelbrin
+253  hunger in Kelbrin: 38 die or leave
+253  drought in Ranyr
+253  hunger in Ranyr: 19 die or leave
+253  drought in Morkel
+253  hunger in Morkel: 61 die or leave
+253  Wentoryr sends 115 grain to Morkel
+253  hunger in Lornornor: 34 die or leave
+254  hunger in Fenoris: 24 die or leave
+254  drought in Torgarpel
+254  hunger in Torgarpel: 43 die or leave
+254  hunger in Wenor: 48 die or leave
+254  drought in Dunor
+254  hunger in Dunor: 58 die or leave
+254  drought in Arduntor
+254  hunger in Arduntor: 35 die or leave
+254  drought in Norranwen
+254  hunger in Norranwen: 24 die or leave
+254  hunger in Ranranis: 38 die or leave
+254  Holpel sends 14 grain to Ranranis
+254  hunger in Corsilven: 28 die or leave
+254  drought in Ashor
+254  hunger in Ashor: 45 die or leave
+254  Norranwen learns bread from Fenbel
+255  hunger in Dunholash: 43 die or leave
+255  Holpel sends 13 grain to Dunholash
+255  hunger in Ulash: 61 die or leave
+255  Norfen sends 14 grain to Ulash
+255  hunger in Gartorel: 54 die or leave
+255  Norranwen sends 27 grain to Gartorel
+255  hunger in Torashpel: 24 die or leave
+255  Norranwen sends 18 grain to Torashpel
+255  hunger in Isnor: 78 die or leave
+255  Norranwen sends 12 grain to Isnor
+255  Ranyr learns the mill from Arduntor
+255  Ranyr learns bread from Gartorel
+256  hunger in Wenor: 33 die or leave
+256  hunger in Fenbel: 37 die or leave
+256  drought in Ranranis
+256  hunger in Ranranis: 35 die or leave
+256  Norranwen sends 33 grain to Ranranis
+256  Ranranis rediscovers the mill
+256  drought in Gartorel
+256  hunger in Gartorel: 42 die or leave
+256  Norranwen sends 22 grain to Gartorel
+256  drought in Isnor
+256  hunger in Isnor: 35 die or leave
+256  Ranyr sends 26 grain to Isnor
+256  Ranranis learns bread from Norranwen
+257  hunger in Torgarpel: 30 die or leave
+257  Ranyr sends 17 grain to Torgarpel
+257  drought in Wenor
+257  hunger in Wenor: 38 die or leave
+257  Norranwen sends 15 grain to Wenor
+257  drought in Arduntor
+257  hunger in Arduntor: 31 die or leave
+257  Ashor sends 14 grain to Arduntor
+257  hunger in Fenbel: 26 die or leave
+257  Norfen sends 13 grain to Fenbel
+257  drought in Torashpel
+257  hunger in Torashpel: 22 die or leave
+257  Norranwen sends 34 grain to Torashpel
+258  hunger in Fenoris: 33 die or leave
+258  Ranyr sends 28 grain to Fenoris
+258  drought in Norpelash
+258  hunger in Norpelash: 41 die or leave
+258  Ranranis sends 26 grain to Norpelash
+258  drought in Corsilven
+258  hunger in Corsilven: 28 die or leave
+258  Norranwen sends 45 grain to Corsilven
+258  hunger in Norbel: 43 die or leave
+258  Ranranis sends 32 grain to Norbel
+258  a flood takes 41 lives in Ranyr and destroys the mill
+258  drought in Ashor
+258  hunger in Ashor: 29 die or leave
+258  Norranwen sends 30 grain to Ashor
+258  Ranyr learns the mill from Ranranis
+258  Ranyr learns bread from Ashor
+259  hunger in Dunholash: 30 die or leave
+259  Ranyr sends 26 grain to Dunholash
+259  hunger in Ulash: 39 die or leave
+259  Ranranis sends 35 grain to Ulash
+259  drought in Ashor
+259  hunger in Ashor: 15 die or leave
+259  Norranwen sends 42 grain to Ashor
+259  hunger in Lornornor: 27 die or leave
+259  Norranwen sends 28 grain to Lornornor
+260  drought in Fenoris
+260  hunger in Fenoris: 44 die or leave
+260  Ranyr sends 36 grain to Fenoris
+260  drought in Wenor
+260  hunger in Wenor: 15 die or leave
+260  Isnor sends 26 grain to Wenor
+260  hunger in Dunor: 45 die or leave
+260  Ranyr sends 24 grain to Dunor
+260  drought in Kelbrin
+260  hunger in Kelbrin: 39 die or leave
+260  Norranwen sends 39 grain to Kelbrin
+260  drought in Gartorel
+260  hunger in Gartorel: 20 die or leave
+260  Ranranis sends 36 grain to Gartorel
+261  a flood takes 79 lives in Dunholash and destroys the mill
+261  Dunholash rediscovers the mill
+262  hunger in Fenbel: 19 die or leave
+262  Ranyr sends 53 grain to Fenbel
+262  hunger in Dunholash: 25 die or leave
+262  Norranwen sends 45 grain to Dunholash
+262  hunger in Norfen: 45 die or leave
+262  Ranranis sends 36 grain to Norfen
+262  a flood takes 109 lives in Norranwen and destroys the mill
+262  drought in Kelbrin
+262  hunger in Kelbrin: 42 die or leave
+262  Norranwen sends 36 grain to Kelbrin
+262  drought in Torashpel
+262  hunger in Torashpel: 24 die or leave
+262  Ranranis sends 36 grain to Torashpel
+263  hunger in Dunor: 76 die or leave
+263  Ranyr sends 54 grain to Dunor
+263  drought in Norranwen
+263  hunger in Norranwen: 41 die or leave
+263  Ashor sends 41 grain to Norranwen
+263  hunger in Morkel: 64 die or leave
+263  Wentoryr sends 241 grain to Morkel
+263  Norranwen learns the mill from Wenor
+264  hunger in Torgarpel: 60 die or leave
+264  Ranyr sends 53 grain to Torgarpel
+264  Norranwen discovers bread
+264  hunger in Ulash: 59 die or leave
+264  Ranranis sends 44 grain to Ulash
+264  drought in Kelbrin
+264  hunger in Kelbrin: 33 die or leave
+264  Ranyr sends 35 grain to Kelbrin
+264  hunger in Lornornor: 27 die or leave
+264  Wenor sends 31 grain to Lornornor
+265  hunger in Holpel: 48 die or leave
+265  Ashor sends 42 grain to Holpel
+265  hunger in Norbel: 44 die or leave
+265  Norranwen sends 54 grain to Norbel
+265  drought in Morkel
+265  hunger in Morkel: 81 die or leave
+265  Wentoryr sends 179 grain to Morkel
+266  hunger in Norpelash: 82 die or leave
+266  Ranranis sends 38 grain to Norpelash
+266  hunger in Norfen: 60 die or leave
+266  Ranyr sends 57 grain to Norfen
+267  hunger in Dunholash: 24 die or leave
+267  Norranwen sends 66 grain to Dunholash
+267  hunger in Corsilven: 34 die or leave
+267  Norranwen sends 72 grain to Corsilven
+268  drought in Wenor
+268  hunger in Wenor: 24 die or leave
+268  Ranyr sends 70 grain to Wenor
+268  hunger in Arduntor: 47 die or leave
+268  Norranwen sends 48 grain to Arduntor
+268  hunger in Fenbel: 32 die or leave
+268  Ranyr sends 46 grain to Fenbel
+268  drought in Isnor
+268  hunger in Isnor: 33 die or leave
+268  Norranwen sends 59 grain to Isnor
+268  hunger in Lornornor: 53 die or leave
+268  Ranranis sends 45 grain to Lornornor
+268  Dunholash learns bread from Corsilven
+269  drought in Torgarpel
+269  hunger in Torgarpel: 53 die or leave
+269  Ranyr sends 46 grain to Torgarpel
+269  hunger in Dunor: 97 die or leave
+269  Ashor sends 45 grain to Dunor
+269  hunger in Holpel: 45 die or leave
+269  Kelbrin sends 39 grain to Holpel
+269  hunger in Torashpel: 53 die or leave
+269  Norranwen sends 65 grain to Torashpel
+269  drought in Ashor
+269  hunger in Ashor: 37 die or leave
+269  Ranyr sends 45 grain to Ashor
+270  hunger in Ulash: 34 die or leave
+270  Ranranis sends 38 grain to Ulash
+270  hunger in Norbel: 51 die or leave
+270  Norranwen sends 67 grain to Norbel
+271  hunger in Norpelash: 30 die or leave
+271  Norranwen sends 45 grain to Norpelash
+271  hunger in Isnor: 36 die or leave
+271  Ranyr sends 57 grain to Isnor
+272  hunger in Fenbel: 34 die or leave
+272  Norranwen sends 53 grain to Fenbel
+272  hunger in Holpel: 52 die or leave
+272  Kelbrin sends 39 grain to Holpel
+272  hunger in Corsilven: 22 die or leave
+272  Norranwen sends 57 grain to Corsilven
+273  hunger in Fenoris: 55 die or leave
+273  Ranyr sends 50 grain to Fenoris
+273  hunger in Dunor: 95 die or leave
+273  Dunholash sends 41 grain to Dunor
+273  hunger in Arduntor: 36 die or leave
+273  Norranwen sends 38 grain to Arduntor
+273  hunger in Norfen: 64 die or leave
+273  Wenor sends 36 grain to Norfen
+273  hunger in Ulash: 72 die or leave
+273  Ranyr sends 34 grain to Ulash
+273  drought in Corsilven
+273  hunger in Corsilven: 48 die or leave
+273  Norranwen sends 45 grain to Corsilven
+273  hunger in Morkel: 72 die or leave
+273  Wentoryr sends 123 grain to Morkel
+274  hunger in Norpelash: 81 die or leave
+274  Dunholash sends 31 grain to Norpelash
+274  drought in Norfen
+274  hunger in Norfen: 61 die or leave
+274  Ranyr sends 34 grain to Norfen
+274  hunger in Isnor: 38 die or leave
+274  Norranwen sends 49 grain to Isnor
+275  a flood takes 112 lives in Norranwen and destroys the mill
+275  hunger in Gartorel: 35 die or leave
+275  Norranwen sends 39 grain to Gartorel
+275  drought in Norbel
+275  hunger in Norbel: 20 die or leave
+275  Kelbrin sends 31 grain to Norbel
+275  drought in Ashor
+275  hunger in Ashor: 40 die or leave
+275  Ranyr sends 45 grain to Ashor
+275  hunger in Lornornor: 46 die or leave
+275  Ranranis sends 28 grain to Lornornor
+276  hunger in Torgarpel: 63 die or leave
+276  Ranyr sends 30 grain to Torgarpel
+276  drought in Wentoryr
+276  hunger in Wentoryr: 85 die or leave
+276  Morkel sends 18 grain to Wentoryr
+276  hunger in Fenbel: 51 die or leave
+276  Norranwen sends 26 grain to Fenbel
+276  hunger in Holpel: 25 die or leave
+276  Dunholash sends 25 grain to Holpel
+276  drought in Dunholash
+276  hunger in Dunholash: 43 die or leave
+276  Wenor sends 23 grain to Dunholash
+276  hunger in Torashpel: 61 die or leave
+276  Norranwen sends 22 grain to Torashpel
+276  hunger in Morkel: 41 die or leave
+276  drought in Lornornor
+276  hunger in Lornornor: 49 die or leave
+277  drought in Fenoris
+277  hunger in Fenoris: 62 die or leave
+277  Ranyr sends 30 grain to Fenoris
+277  a flood takes 79 lives in Wenor and destroys the mill
+277  hunger in Arduntor: 28 die or leave
+277  Norfen sends 20 grain to Arduntor
+277  drought in Holpel
+277  hunger in Holpel: 22 die or leave
+277  Ranyr sends 20 grain to Holpel
+277  drought in Torashpel
+277  hunger in Torashpel: 29 die or leave
+277  Ashor sends 19 grain to Torashpel
+277  a flood takes 56 lives in Ranyr and destroys the mill
+277  hunger in Morkel: 57 die or leave
+277  hunger in Isnor: 83 die or leave
+277  Norranwen sends 18 grain to Isnor
+278  hunger in Wentoryr: 80 die or leave
+278  hunger in Dunor: 85 die or leave
+278  Ashor sends 17 grain to Dunor
+278  hunger in Gartorel: 25 die or leave
+278  hunger in Norbel: 36 die or leave
+278  Dunholash sends 17 grain to Norbel
+278  hunger in Morkel: 86 die or leave
+278  Ranyr learns the mill from Ashor
+279  hunger in Wenor: 27 die or leave
+279  Ranyr sends 18 grain to Wenor
+279  Wenor rediscovers the mill
+279  Wenor discovers bread
+279  hunger in Norpelash: 63 die or leave
+279  Norfen sends 17 grain to Norpelash
+279  hunger in Arduntor: 52 die or leave
+279  Norranwen sends 14 grain to Arduntor
+279  hunger in Ranranis: 50 die or leave
+279  Dunholash sends 15 grain to Ranranis
+279  hunger in Ulash: 49 die or leave
+279  Kelbrin sends 14 grain to Ulash
+279  hunger in Corsilven: 44 die or leave
+279  Norranwen sends 11 grain to Corsilven
+279  hunger in Gartorel: 35 die or leave
+279  Ashor sends 14 grain to Gartorel
+279  drought in Isnor
+279  hunger in Isnor: 37 die or leave
+279  Ranyr sends 14 grain to Isnor
+280  hunger in Fenbel: 21 die or leave
+280  Wenor sends 12 grain to Fenbel
+280  a flood takes 69 lives in Dunholash and destroys the mill
+280  Dunholash rediscovers the mill
+280  drought in Norranwen
+280  hunger in Norranwen: 61 die or leave
+280  Ashor sends 11 grain to Norranwen
+280  hunger in Kelbrin: 47 die or leave
+280  Norranwen learns the mill from Arduntor
+281  hunger in Fenoris: 47 die or leave
+281  Ranyr sends 10 grain to Fenoris
+281  hunger in Torgarpel: 52 die or leave
+281  hunger in Holpel: 60 die or leave
+281  Wenor sends 13 grain to Holpel
+281  a flood takes 53 lives in Dunholash and destroys the mill
+281  hunger in Ranranis: 57 die or leave
+281  Dunholash sends 13 grain to Ranranis
+281  hunger in Kelbrin: 40 die or leave
+281  hunger in Gartorel: 48 die or leave
+281  hunger in Norbel: 19 die or leave
+281  drought in Lornornor
+281  hunger in Lornornor: 36 die or leave
+281  Ranyr learns bread from Holpel
+282  drought in Wentoryr
+282  hunger in Wentoryr: 31 die or leave
+282  hunger in Fenbel: 33 die or leave
+282  Wenor sends 14 grain to Fenbel
+282  a flood takes 41 lives in Dunholash
+282  hunger in Ulash: 31 die or leave
+282  Dunholash sends 16 grain to Ulash
+282  hunger in Corsilven: 24 die or leave
+282  Norranwen sends 14 grain to Corsilven
+282  drought in Kelbrin
+282  hunger in Kelbrin: 27 die or leave
+282  Dunholash sends 10 grain to Kelbrin
+282  hunger in Norbel: 27 die or leave
+282  hunger in Torashpel: 44 die or leave
+283  hunger in Norpelash: 55 die or leave
+283  Wenor sends 13 grain to Norpelash
+283  hunger in Dunor: 80 die or leave
+283  Ranyr sends 20 grain to Dunor
+283  drought in Arduntor
+283  hunger in Arduntor: 35 die or leave
+283  Ranyr sends 13 grain to Arduntor
+283  hunger in Norfen: 38 die or leave
+283  Dunholash sends 14 grain to Norfen
+283  drought in Gartorel
+283  hunger in Gartorel: 50 die or leave
+283  Norranwen sends 14 grain to Gartorel
+283  hunger in Isnor: 41 die or leave
+283  Ranyr sends 21 grain to Isnor
+284  hunger in Torgarpel: 49 die or leave
+284  Ranyr sends 14 grain to Torgarpel
+284  drought in Ranranis
+284  hunger in Ranranis: 34 die or leave
+284  Dunholash sends 17 grain to Ranranis
+284  drought in Gartorel
+284  hunger in Gartorel: 34 die or leave
+284  Kelbrin sends 13 grain to Gartorel
+284  hunger in Morkel: 76 die or leave
+285  hunger in Fenoris: 33 die or leave
+285  Ranyr sends 21 grain to Fenoris
+285  hunger in Wentoryr: 64 die or leave
+285  hunger in Norfen: 48 die or leave
+285  Dunholash sends 18 grain to Norfen
+285  hunger in Ulash: 45 die or leave
+285  Wenor sends 15 grain to Ulash
+285  hunger in Corsilven: 32 die or leave
+285  Norranwen sends 13 grain to Corsilven
+285  drought in Norbel
+285  hunger in Norbel: 31 die or leave
+285  Gartorel sends 13 grain to Norbel
+285  hunger in Torashpel: 37 die or leave
+285  Ranyr sends 14 grain to Torashpel
+285  hunger in Ashor: 37 die or leave
+285  Ranyr sends 20 grain to Ashor
+285  Norranwen learns bread from Kelbrin
+286  drought in Dunholash
+286  hunger in Dunholash: 14 die or leave
+286  Ranyr sends 13 grain to Dunholash
+286  drought in Ranranis
+286  hunger in Ranranis: 21 die or leave
+286  Norranwen sends 32 grain to Ranranis
+286  drought in Ulash
+286  hunger in Ulash: 26 die or leave
+286  Kelbrin sends 12 grain to Ulash
+286  a flood takes 55 lives in Ranyr and destroys the mill
+286  drought in Ashor
+286  hunger in Ashor: 32 die or leave
+286  Norranwen sends 21 grain to Ashor
+286  Ranyr learns the mill from Wenor
+286  Dunholash learns the mill from Dunor
+287  hunger in Norpelash: 74 die or leave
+287  Gartorel sends 16 grain to Norpelash
+287  hunger in Dunor: 93 die or leave
+287  Norranwen sends 14 grain to Dunor
+287  hunger in Fenbel: 39 die or leave
+287  Wenor sends 13 grain to Fenbel
+287  hunger in Holpel: 62 die or leave
+287  Ranyr sends 12 grain to Holpel
+287  Dunholash learns bread from Lornornor
+288  drought in Fenbel
+288  hunger in Fenbel: 42 die or leave
+288  Norranwen sends 31 grain to Fenbel
+288  drought in Holpel
+288  hunger in Holpel: 40 die or leave
+288  Gartorel sends 17 grain to Holpel
+288  a flood takes 31 lives in Dunholash and destroys the mill
+288  hunger in Norfen: 29 die or leave
+288  Dunholash sends 22 grain to Norfen
+288  drought in Kelbrin
+288  hunger in Kelbrin: 34 die or leave
+288  Norranwen sends 41 grain to Kelbrin
+288  hunger in Isnor: 40 die or leave
+288  Norranwen sends 27 grain to Isnor
+288  hunger in Lornornor: 39 die or leave
+288  Norranwen sends 18 grain to Lornornor
+289  hunger in Arduntor: 32 die or leave
+289  Gartorel sends 17 grain to Arduntor
+289  drought in Torashpel
+289  hunger in Torashpel: 47 die or leave
+289  Norranwen sends 30 grain to Torashpel
+289  Ranyr learns bread from Arduntor
+290  hunger in Fenoris: 50 die or leave
+290  Dunholash sends 25 grain to Fenoris
+290  hunger in Corsilven: 43 die or leave
+290  Norranwen sends 36 grain to Corsilven
+290  drought in Ashor
+290  hunger in Ashor: 34 die or leave
+290  Dunholash sends 27 grain to Ashor
+291  a flood takes 82 lives in Arduntor and destroys the mill
+291  drought in Norfen
+291  hunger in Norfen: 30 die or leave
+291  Dunholash sends 27 grain to Norfen
+291  hunger in Morkel: 72 die or leave
+291  drought in Ashor
+291  hunger in Ashor: 40 die or leave
+291  Norranwen sends 39 grain to Ashor
+291  Dunholash learns the mill from Fenoris
+292  a flood takes 142 lives in Wentoryr and destroys the mill
+292  hunger in Wentoryr: 41 die or leave
+292  hunger in Arduntor: 28 die or leave
+292  Ranyr sends 39 grain to Arduntor
+292  drought in Gartorel
+292  hunger in Gartorel: 27 die or leave
+292  Norranwen sends 39 grain to Gartorel
+292  hunger in Isnor: 63 die or leave
+292  Ranyr sends 38 grain to Isnor
+292  Dunholash learns bread from Norbel
+293  hunger in Torgarpel: 64 die or leave
+293  Dunholash sends 28 grain to Torgarpel
+293  hunger in Wenor: 27 die or leave
+293  Norranwen sends 26 grain to Wenor
+293  hunger in Wentoryr: 41 die or leave
+293  hunger in Dunor: 43 die or leave
+293  Ranyr sends 25 grain to Dunor
+293  drought in Dunholash
+293  hunger in Ulash: 75 die or leave
+293  Fenbel sends 23 grain to Ulash
+293  hunger in Morkel: 45 die or leave
+293  drought in Isnor
+293  hunger in Isnor: 38 die or leave
+293  Norranwen sends 29 grain to Isnor
+293  hunger in Lornornor: 45 die or leave
+293  Kelbrin sends 21 grain to Lornornor
+293  Arduntor learns the mill from Norfen
+294  hunger in Wentoryr: 46 die or leave
+294  hunger in Norpelash: 33 die or leave
+294  Norranwen sends 19 grain to Norpelash
+294  drought in Fenbel
+294  hunger in Fenbel: 40 die or leave
+294  Ranyr sends 28 grain to Fenbel
+294  a flood takes 28 lives in Dunholash and destroys the mill
+294  drought in Norfen
+294  hunger in Norfen: 66 die or leave
+294  Ashor sends 25 grain to Norfen
+294  hunger in Ranranis: 44 die or leave
+294  Dunholash sends 24 grain to Ranranis
+294  drought in Norbel
+294  hunger in Norbel: 21 die or leave
+294  Gartorel sends 23 grain to Norbel
+294  drought in Ranyr
+294  hunger in Ranyr: 33 die or leave
+294  Norranwen sends 22 grain to Ranyr
+295  drought in Dunholash
+296  drought in Fenoris
+296  hunger in Fenoris: 36 die or leave
+296  Ashor sends 24 grain to Fenoris
+296  hunger in Wenor: 39 die or leave
+296  Norranwen sends 23 grain to Wenor
+296  drought in Wentoryr
+296  hunger in Wentoryr: 32 die or leave
+296  hunger in Dunor: 83 die or leave
+296  Torashpel sends 22 grain to Dunor
+296  hunger in Arduntor: 31 die or leave
+296  Ranyr sends 21 grain to Arduntor
+296  a flood takes 83 lives in Torashpel and destroys the mill
+297  hunger in Norpelash: 77 die or leave
+297  Isnor sends 22 grain to Norpelash
+297  hunger in Holpel: 51 die or leave
+297  Ranyr sends 27 grain to Holpel
+297  Dunholash learns the mill from Corsilven
+298  drought in Wenor
+298  hunger in Wenor: 37 die or leave
+298  Dunholash sends 32 grain to Wenor
+298  a flood takes 92 lives in Holpel and destroys the mill
+298  hunger in Ulash: 56 die or leave
+298  Dunholash sends 32 grain to Ulash
+298  hunger in Corsilven: 27 die or leave
+298  Norranwen sends 27 grain to Corsilven
+298  hunger in Kelbrin: 48 die or leave
+298  Ranyr sends 30 grain to Kelbrin
+298  hunger in Norbel: 21 die or leave
+298  Gartorel sends 23 grain to Norbel
+298  hunger in Torashpel: 42 die or leave
+298  Ashor sends 22 grain to Torashpel
+298  hunger in Morkel: 38 die or leave
+298  drought in Isnor
+298  hunger in Isnor: 55 die or leave
+298  Ranyr sends 31 grain to Isnor
+298  hunger in Lornornor: 22 die or leave
+298  Dunholash sends 21 grain to Lornornor
+298  Dunholash learns bread from Fenoris
+298  Arduntor learns bread from Kelbrin
+299  hunger in Fenoris: 58 die or leave
+299  Fenbel sends 21 grain to Fenoris
+299  drought in Torgarpel
+299  hunger in Torgarpel: 54 die or leave
+299  Ranyr sends 21 grain to Torgarpel
+299  drought in Dunor
+299  hunger in Dunor: 96 die or leave
+299  Norranwen sends 18 grain to Dunor
+299  hunger in Holpel: 20 die or leave
+299  Gartorel sends 16 grain to Holpel
+299  drought in Norranwen
+299  hunger in Norranwen: 48 die or leave
+299  Dunholash sends 34 grain to Norranwen
+299  hunger in Ranranis: 27 die or leave
+299  Dunholash sends 23 grain to Ranranis
+299  Torashpel rediscovers the mill
+299  hunger in Morkel: 66 die or leave
+299  drought in Isnor
+299  hunger in Isnor: 43 die or leave
+299  Ranyr sends 24 grain to Isnor
+300  Wentoryr rediscovers the mill
+300  Holpel rediscovers the mill
+300  drought in Norranwen
+300  hunger in Norranwen: 45 die or leave
+300  Dunholash sends 36 grain to Norranwen
+300  Torashpel discovers bread
+300  drought in Isnor
+300  hunger in Isnor: 28 die or leave
+300  Ranyr sends 26 grain to Isnor
+300  Holpel learns bread from Torgarpel
+301  hunger in Corsilven: 52 die or leave
+301  Dunholash sends 45 grain to Corsilven
+301  hunger in Norbel: 37 die or leave
+301  Dunholash sends 30 grain to Norbel
+301  hunger in Lornornor: 38 die or leave
+301  Norranwen sends 20 grain to Lornornor
+302  drought in Fenoris
+302  hunger in Fenoris: 38 die or leave
+302  Ranyr sends 27 grain to Fenoris
+302  hunger in Norfen: 64 die or leave
+302  Dunholash sends 40 grain to Norfen
+302  hunger in Ranranis: 28 die or leave
+302  Arduntor sends 29 grain to Ranranis
+302  hunger in Kelbrin: 33 die or leave
+302  Dunholash sends 27 grain to Kelbrin
+303  hunger in Torgarpel: 41 die or leave
+303  Isnor sends 33 grain to Torgarpel
+303  hunger in Norpelash: 74 die or leave
+303  Isnor sends 22 grain to Norpelash
+303  a flood takes 68 lives in Arduntor and destroys the mill
+303  Arduntor rediscovers the mill
+303  hunger in Ulash: 68 die or leave
+303  Dunholash sends 38 grain to Ulash
+303  hunger in Gartorel: 48 die or leave
+303  Ranyr sends 26 grain to Gartorel
+304  hunger in Wentoryr: 36 die or leave
+304  Morkel sends 14 grain to Wentoryr
+304  drought in Holpel
+304  hunger in Holpel: 21 die or leave
+304  Isnor sends 26 grain to Holpel
+304  drought in Norranwen
+304  hunger in Norranwen: 86 die or leave
+304  Dunholash sends 45 grain to Norranwen
+304  Arduntor learns bread from Norranwen
+305  hunger in Fenbel: 22 die or leave
+305  Ranyr sends 31 grain to Fenbel
+305  hunger in Norbel: 32 die or leave
+305  Dunholash sends 50 grain to Norbel
+305  hunger in Lornornor: 57 die or leave
+305  Dunholash sends 33 grain to Lornornor
+306  drought in Holpel
+306  hunger in Holpel: 38 die or leave
+306  Isnor sends 36 grain to Holpel
+306  hunger in Ranranis: 32 die or leave
+306  Dunholash sends 41 grain to Ranranis
+306  hunger in Kelbrin: 34 die or leave
+306  Arduntor sends 36 grain to Kelbrin
+306  hunger in Ashor: 25 die or leave
+306  Norranwen sends 35 grain to Ashor
+307  hunger in Wenor: 46 die or leave
+307  Torashpel sends 32 grain to Wenor
+307  hunger in Dunor: 103 die or leave
+307  Isnor sends 32 grain to Dunor
+307  hunger in Norfen: 49 die or leave
+307  Dunholash sends 46 grain to Norfen
+307  drought in Kelbrin
+307  hunger in Kelbrin: 37 die or leave
+307  Arduntor sends 32 grain to Kelbrin
+307  hunger in Gartorel: 49 die or leave
+307  Ranyr sends 32 grain to Gartorel
+307  hunger in Morkel: 61 die or leave
+308  hunger in Torgarpel: 47 die or leave
+308  Norranwen sends 31 grain to Torgarpel
+308  drought in Wenor
+308  hunger in Wenor: 47 die or leave
+308  Dunholash sends 30 grain to Wenor
+308  hunger in Wentoryr: 20 die or leave
+308  hunger in Norpelash: 53 die or leave
+308  Isnor sends 28 grain to Norpelash
+308  hunger in Fenbel: 25 die or leave
+308  Ranyr sends 26 grain to Fenbel
+308  hunger in Ulash: 44 die or leave
+308  Dunholash sends 38 grain to Ulash
+308  hunger in Corsilven: 46 die or leave
+308  Holpel sends 32 grain to Corsilven
+308  drought in Ranyr
+308  hunger in Ranyr: 32 die or leave
+308  Arduntor sends 28 grain to Ranyr
+308  hunger in Morkel: 73 die or leave
+309  a flood takes 81 lives in Wentoryr and destroys the mill
+309  Wentoryr rediscovers the mill
+309  drought in Norpelash
+309  hunger in Norpelash: 40 die or leave
+309  Norranwen sends 27 grain to Norpelash
+309  hunger in Ranranis: 41 die or leave
+309  Dunholash sends 44 grain to Ranranis
+309  hunger in Ashor: 57 die or leave
+309  Holpel sends 30 grain to Ashor
+310  drought in Arduntor
+310  hunger in Arduntor: 19 die or leave
+310  Dunholash sends 29 grain to Arduntor
+310  hunger in Norbel: 43 die or leave
+310  Dunholash sends 37 grain to Norbel
+311  hunger in Fenoris: 44 die or leave
+311  Isnor sends 31 grain to Fenoris
+311  a flood takes 64 lives in Wentoryr and destroys the mill
+311  Wentoryr rediscovers the mill
+311  hunger in Fenbel: 30 die or leave
+311  Holpel sends 28 grain to Fenbel
+312  hunger in Torgarpel: 32 die or leave
+312  Dunholash sends 42 grain to Torgarpel
+312  hunger in Dunor: 98 die or leave
+312  Dunholash sends 28 grain to Dunor
+312  hunger in Ulash: 70 die or leave
+312  Dunholash sends 35 grain to Ulash
+312  drought in Ashor
+312  hunger in Ashor: 36 die or leave
+312  Ranyr sends 31 grain to Ashor
+312  hunger in Lornornor: 45 die or leave
+312  Holpel sends 31 grain to Lornornor
+313  hunger in Norfen: 61 die or leave
+313  Dunholash sends 39 grain to Norfen
+313  hunger in Corsilven: 40 die or leave
+313  Dunholash sends 26 grain to Corsilven
+313  hunger in Gartorel: 57 die or leave
+313  Arduntor sends 30 grain to Gartorel
+313  hunger in Norbel: 41 die or leave
+313  Holpel sends 24 grain to Norbel
+314  drought in Norpelash
+314  hunger in Norpelash: 31 die or leave
+314  Norranwen sends 22 grain to Norpelash
+314  hunger in Fenbel: 32 die or leave
+314  Ranyr sends 24 grain to Fenbel
+314  drought in Dunholash
+314  hunger in Ranranis: 37 die or leave
+314  Arduntor sends 26 grain to Ranranis
+314  drought in Isnor
+314  hunger in Isnor: 41 die or leave
+314  Wenor sends 21 grain to Isnor
+315  hunger in Fenoris: 26 die or leave
+315  Holpel sends 20 grain to Fenoris
+315  drought in Holpel
+315  hunger in Holpel: 38 die or leave
+315  Arduntor sends 21 grain to Holpel
+315  drought in Ulash
+315  hunger in Ulash: 58 die or leave
+315  Dunholash sends 19 grain to Ulash
+316  hunger in Torgarpel: 30 die or leave
+316  Ranyr sends 20 grain to Torgarpel
+316  hunger in Norranwen: 99 die or leave
+316  Dunholash sends 27 grain to Norranwen
+316  hunger in Kelbrin: 31 die or leave
+316  Dunholash sends 18 grain to Kelbrin
+316  hunger in Torashpel: 32 die or leave
+316  Arduntor sends 17 grain to Torashpel
+316  hunger in Lornornor: 26 die or leave
+316  Holpel sends 13 grain to Lornornor
+317  hunger in Dunor: 112 die or leave
+317  Ranyr sends 14 grain to Dunor
+317  hunger in Fenbel: 47 die or leave
+317  Dunholash sends 12 grain to Fenbel
+317  hunger in Ranranis: 51 die or leave
+317  Dunholash sends 22 grain to Ranranis
+317  hunger in Corsilven: 22 die or leave
+317  Dunholash sends 15 grain to Corsilven
+317  hunger in Norbel: 33 die or leave
+317  Holpel sends 13 grain to Norbel
+317  drought in Torashpel
+317  hunger in Torashpel: 29 die or leave
+317  Arduntor sends 14 grain to Torashpel
+318  hunger in Fenoris: 23 die or leave
+318  Ulash sends 11 grain to Fenoris
+318  hunger in Torgarpel: 51 die or leave
+318  Dunholash sends 10 grain to Torgarpel
+318  drought in Wentoryr
+318  hunger in Norpelash: 49 die or leave
+318  hunger in Norfen: 48 die or leave
+318  Dunholash sends 20 grain to Norfen
+318  hunger in Kelbrin: 51 die or leave
+318  Dunholash sends 14 grain to Kelbrin
+318  hunger in Morkel: 83 die or leave
+318  Wentoryr sends 47 grain to Morkel
+318  hunger in Ashor: 24 die or leave
+318  Holpel sends 12 grain to Ashor
+318  hunger in Lornornor: 44 die or leave
+319  hunger in Wenor: 23 die or leave
+319  Arduntor sends 11 grain to Wenor
+319  drought in Dunor
+319  hunger in Dunor: 39 die or leave
+319  hunger in Norranwen: 76 die or leave
+319  Dunholash sends 22 grain to Norranwen
+319  hunger in Gartorel: 46 die or leave
+319  a flood takes 88 lives in Torashpel and destroys the mill
+319  hunger in Torashpel: 18 die or leave
+319  Dunholash sends 15 grain to Torashpel
+319  hunger in Isnor: 61 die or leave
+319  Holpel sends 11 grain to Isnor
+319  Torashpel learns the mill from Holpel
+320  hunger in Fenoris: 53 die or leave
+320  Dunholash sends 10 grain to Fenoris
+320  hunger in Wenor: 29 die or leave
+320  hunger in Norpelash: 35 die or leave
+320  hunger in Corsilven: 26 die or leave
+320  Dunholash sends 20 grain to Corsilven
+320  hunger in Gartorel: 35 die or leave
+320  hunger in Norbel: 45 die or leave
+320  Dunholash sends 13 grain to Norbel
+320  hunger in Ranyr: 41 die or leave
+320  drought in Isnor
+320  hunger in Isnor: 33 die or leave
+320  hunger in Ashor: 31 die or leave
+321  hunger in Wenor: 18 die or leave
+321  drought in Wentoryr
+321  drought in Arduntor
+321  hunger in Arduntor: 36 die or leave
+321  hunger in Fenbel: 19 die or leave
+321  hunger in Norfen: 32 die or leave
+321  Dunholash sends 21 grain to Norfen
+321  hunger in Ulash: 74 die or leave
+321  Dunholash sends 14 grain to Ulash
+321  hunger in Torashpel: 29 die or leave
+321  hunger in Ranyr: 43 die or leave
+321  hunger in Ashor: 40 die or leave
+321  Torashpel learns bread from Dunor
+322  hunger in Torgarpel: 26 die or leave
+322  drought in Wentoryr
+322  hunger in Wentoryr: 35 die or leave
+322  hunger in Fenbel: 47 die or leave
+322  hunger in Ranranis: 29 die or leave
+322  Dunholash sends 21 grain to Ranranis
+322  hunger in Lornornor: 32 die or leave
+322  Dunholash sends 14 grain to Lornornor
+323  hunger in Torgarpel: 48 die or leave
+323  drought in Wentoryr
+323  hunger in Wentoryr: 19 die or leave
+323  drought in Corsilven
+323  hunger in Corsilven: 45 die or leave
+323  Dunholash sends 20 grain to Corsilven
+323  hunger in Kelbrin: 46 die or leave
+323  Dunholash sends 14 grain to Kelbrin
+323  drought in Norbel
+323  hunger in Norbel: 23 die or leave
+323  hunger in Morkel: 63 die or leave
+324  hunger in Fenoris: 35 die or leave
+324  Torashpel sends 18 grain to Fenoris
+324  hunger in Wenor: 43 die or leave
+324  Torashpel sends 12 grain to Wenor
+324  hunger in Norpelash: 66 die or leave
+324  hunger in Dunor: 67 die or leave
+324  hunger in Norfen: 51 die or leave
+324  Dunholash sends 19 grain to Norfen
+324  hunger in Norranwen: 101 die or leave
+324  Dunholash sends 13 grain to Norranwen
+324  hunger in Morkel: 67 die or leave
+325  hunger in Holpel: 59 die or leave
+325  Torashpel sends 15 grain to Holpel
+325  drought in Torashpel
+325  hunger in Torashpel: 23 die or leave
+325  Dunholash sends 18 grain to Torashpel
+325  drought in Isnor
+325  hunger in Isnor: 64 die or leave
+325  Dunholash sends 12 grain to Isnor
+326  drought in Dunor
+326  hunger in Dunor: 100 die or leave
+326  drought in Arduntor
+326  hunger in Arduntor: 33 die or leave
+326  hunger in Ranranis: 51 die or leave
+326  Dunholash sends 17 grain to Ranranis
+326  hunger in Gartorel: 40 die or leave
+326  drought in Norbel
+326  hunger in Norbel: 23 die or leave
+326  Dunholash sends 11 grain to Norbel
+327  hunger in Ulash: 32 die or leave
+327  Dunholash sends 16 grain to Ulash
+328  drought in Wentoryr
+328  hunger in Wentoryr: 17 die or leave
+328  Morkel sends 13 grain to Wentoryr
+328  drought in Arduntor
+328  hunger in Arduntor: 24 die or leave
+328  Torashpel sends 23 grain to Arduntor
+328  hunger in Norfen: 34 die or leave
+328  Dunholash sends 18 grain to Norfen
+328  hunger in Corsilven: 25 die or leave
+328  Torashpel sends 15 grain to Corsilven
+328  drought in Gartorel
+328  hunger in Gartorel: 20 die or leave
+328  Dunor sends 15 grain to Gartorel
+328  hunger in Lornornor: 36 die or leave
+328  Dunholash sends 12 grain to Lornornor
+329  hunger in Fenoris: 25 die or leave
+329  Torashpel sends 18 grain to Fenoris
+329  Wentoryr discovers bread
+329  hunger in Fenbel: 30 die or leave
+329  Torashpel sends 12 grain to Fenbel
+329  hunger in Norranwen: 47 die or leave
+329  Isnor sends 18 grain to Norranwen
+329  hunger in Kelbrin: 37 die or leave
+329  Dunholash sends 15 grain to Kelbrin
+329  hunger in Ranyr: 54 die or leave
+329  Dunor sends 15 grain to Ranyr
+330  hunger in Holpel: 48 die or leave
+330  Torashpel sends 14 grain to Holpel
+330  hunger in Ulash: 33 die or leave
+330  Dunholash sends 16 grain to Ulash
+330  drought in Ashor
+330  hunger in Ashor: 52 die or leave
+330  Torashpel sends 15 grain to Ashor
+330  drought in Lornornor
+330  hunger in Lornornor: 22 die or leave
+330  Dunholash sends 10 grain to Lornornor
+331  hunger in Torgarpel: 60 die or leave
+331  Isnor sends 15 grain to Torgarpel
+331  hunger in Norpelash: 72 die or leave
+331  Dunor sends 11 grain to Norpelash
+331  hunger in Norfen: 66 die or leave
+331  Arduntor sends 12 grain to Norfen
+331  hunger in Ranranis: 35 die or leave
+331  Dunholash sends 12 grain to Ranranis
+331  hunger in Corsilven: 29 die or leave
+331  Torashpel sends 10 grain to Corsilven
+331  hunger in Norbel: 24 die or leave
+332  hunger in Fenoris: 32 die or leave
+332  Torashpel sends 12 grain to Fenoris
+332  a flood takes 82 lives in Wenor and destroys the mill
+332  hunger in Wenor: 15 die or leave
+332  hunger in Fenbel: 21 die or leave
+332  hunger in Norranwen: 103 die or leave
+332  Dunholash sends 12 grain to Norranwen
+332  hunger in Ulash: 68 die or leave
+332  hunger in Norbel: 22 die or leave
+332  hunger in Morkel: 49 die or leave
+332  Wentoryr sends 87 grain to Morkel
+332  drought in Ashor
+332  hunger in Ashor: 43 die or leave
+332  Torashpel sends 12 grain to Ashor
+333  hunger in Wenor: 15 die or leave
+333  hunger in Dunor: 66 die or leave
+333  hunger in Fenbel: 42 die or leave
+333  hunger in Kelbrin: 37 die or leave
+333  Dunholash sends 10 grain to Kelbrin
+333  drought in Norbel
+333  hunger in Norbel: 25 die or leave
+333  Wenor learns the mill from Ulash
+334  hunger in Wenor: 31 die or leave
+334  Torashpel sends 11 grain to Wenor
+334  drought in Ranyr
+334  hunger in Ranyr: 46 die or leave
+334  Norranwen sends 13 grain to Ranyr
+334  hunger in Isnor: 39 die or leave
+334  drought in Ashor
+334  hunger in Ashor: 32 die or leave
+335  hunger in Fenoris: 34 die or leave
+335  hunger in Norpelash: 76 die or leave
+335  hunger in Holpel: 24 die or leave
+335  drought in Norranwen
+335  hunger in Norranwen: 64 die or leave
+335  hunger in Ranranis: 29 die or leave
+335  hunger in Corsilven: 22 die or leave
+335  hunger in Gartorel: 56 die or leave
+335  hunger in Isnor: 36 die or leave
+336  hunger in Torgarpel: 31 die or leave
+336  Torashpel sends 11 grain to Torgarpel
+336  hunger in Dunor: 98 die or leave
+336  hunger in Arduntor: 32 die or leave
+336  hunger in Holpel: 47 die or leave
+336  drought in Norfen
+336  hunger in Norfen: 36 die or leave
+336  hunger in Ranranis: 36 die or leave
+336  hunger in Corsilven: 19 die or leave
+336  drought in Morkel
+336  hunger in Morkel: 65 die or leave
+336  Wentoryr sends 147 grain to Morkel
+336  hunger in Lornornor: 38 die or leave
+337  drought in Fenoris
+337  hunger in Fenoris: 26 die or leave
+337  Ashor sends 12 grain to Fenoris
+337  hunger in Arduntor: 49 die or leave
+337  drought in Holpel
+337  hunger in Holpel: 43 die or leave
+337  hunger in Ulash: 49 die or leave
+337  hunger in Kelbrin: 37 die or leave
+337  Norranwen sends 13 grain to Kelbrin
+337  drought in Torashpel
+337  hunger in Torashpel: 34 die or leave
+337  hunger in Lornornor: 21 die or leave
+338  drought in Torgarpel
+338  hunger in Torgarpel: 51 die or leave
+338  Ashor sends 13 grain to Torgarpel
+338  drought in Holpel
+338  hunger in Holpel: 36 die or leave
+338  Dunor sends 10 grain to Holpel
+339  hunger in Wenor: 20 die or leave
+339  Norranwen sends 13 grain to Wenor
+339  Wenor discovers bread
+339  hunger in Dunholash: 21 die or leave
+339  Holpel sends 14 grain to Dunholash
+339  hunger in Isnor: 58 die or leave
+339  Norranwen sends 11 grain to Isnor
+340  hunger in Corsilven: 23 die or leave
+340  Holpel sends 19 grain to Corsilven
+340  hunger in Gartorel: 30 die or leave
+340  Ashor sends 16 grain to Gartorel
+340  drought in Torashpel
+340  hunger in Torashpel: 25 die or leave
+340  Wenor sends 14 grain to Torashpel
+341  hunger in Fenbel: 44 die or leave
+341  Wenor sends 20 grain to Fenbel
+341  drought in Holpel
+341  hunger in Holpel: 24 die or leave
+341  Ashor sends 13 grain to Holpel
+341  hunger in Dunholash: 20 die or leave
+341  Wenor sends 13 grain to Dunholash
+341  hunger in Norfen: 66 die or leave
+341  Torgarpel sends 11 grain to Norfen
+341  hunger in Ulash: 74 die or leave
+341  drought in Kelbrin
+341  hunger in Kelbrin: 34 die or leave
+342  hunger in Fenoris: 46 die or leave
+342  Ashor sends 10 grain to Fenoris
+342  hunger in Norpelash: 38 die or leave
+342  Wenor sends 18 grain to Norpelash
+342  drought in Norranwen
+342  hunger in Norranwen: 58 die or leave
+342  Wenor sends 12 grain to Norranwen
+342  drought in Ulash
+342  hunger in Ulash: 25 die or leave
+342  Holpel sends 16 grain to Ulash
+342  hunger in Norbel: 26 die or leave
+342  Holpel sends 10 grain to Norbel
+342  hunger in Ranyr: 58 die or leave
+342  Arduntor sends 10 grain to Ranyr
+342  drought in Ashor
+342  hunger in Ashor: 39 die or leave
+343  hunger in Dunor: 83 die or leave
+343  drought in Norranwen
+343  hunger in Norranwen: 76 die or leave
+343  Wenor sends 17 grain to Norranwen
+343  drought in Ranranis
+343  hunger in Ranranis: 32 die or leave
+343  Holpel sends 18 grain to Ranranis
+343  drought in Corsilven
+343  hunger in Corsilven: 41 die or leave
+343  Holpel sends 12 grain to Corsilven
+343  a flood takes 76 lives in Torashpel and destroys the mill
+343  hunger in Lornornor: 36 die or leave
+343  Wenor sends 12 grain to Lornornor
+344  hunger in Dunholash: 37 die or leave
+344  Holpel sends 18 grain to Dunholash
+344  drought in Norfen
+344  hunger in Norfen: 40 die or leave
+344  Wenor sends 16 grain to Norfen
+344  a flood takes 90 lives in Ranranis and destroys the mill
+344  drought in Ulash
+344  hunger in Ulash: 55 die or leave
+344  Holpel sends 12 grain to Ulash
+344  hunger in Kelbrin: 23 die or leave
+344  Norranwen sends 15 grain to Kelbrin
+344  hunger in Norbel: 37 die or leave
+344  Torashpel learns the mill from Norranwen
+345  drought in Holpel
+345  hunger in Holpel: 17 die or leave
+345  Wenor sends 19 grain to Holpel
+345  drought in Norranwen
+345  a flood takes 134 lives in Norranwen and destroys the mill
+345  hunger in Norranwen: 50 die or leave
+345  Wenor sends 12 grain to Norranwen
+345  hunger in Ranranis: 38 die or leave
+345  Norfen sends 11 grain to Ranranis
+345  hunger in Gartorel: 54 die or leave
+345  Ulash sends 15 grain to Gartorel
+345  drought in Torashpel
+345  hunger in Torashpel: 29 die or leave
+345  Ulash sends 10 grain to Torashpel
+345  hunger in Morkel: 39 die or leave
+345  Wentoryr sends 232 grain to Morkel
+345  hunger in Isnor: 52 die or leave
+345  Norranwen learns the mill from Torgarpel
+345  Norranwen learns bread from Ranyr
+345  Ranranis learns the mill from Norbel
+346  hunger in Torgarpel: 56 die or leave
+346  Ashor sends 10 grain to Torgarpel
+346  hunger in Norpelash: 61 die or leave
+346  Wenor sends 15 grain to Norpelash
+346  hunger in Dunor: 107 die or leave
+346  Dunor raids Wenor for 16 grain; 12 fall
+346  a flood takes 90 lives in Arduntor and destroys the mill
+346  hunger in Arduntor: 31 die or leave
+346  Arduntor rediscovers the mill
+346  Ranranis discovers bread
+346  hunger in Ranyr: 44 die or leave
+346  Norranwen sends 30 grain to Ranyr
+347  hunger in Fenoris: 41 die or leave
+347  Norranwen sends 20 grain to Fenoris
+347  drought in Wenor
+347  hunger in Wenor: 24 die or leave
+347  Holpel sends 18 grain to Wenor
+347  hunger in Arduntor: 24 die or leave
+347  Ulash sends 17 grain to Arduntor
+347  hunger in Fenbel: 31 die or leave
+347  Norranwen sends 13 grain to Fenbel
+347  drought in Ulash
+347  hunger in Ulash: 23 die or leave
+347  Holpel sends 22 grain to Ulash
+347  hunger in Torashpel: 17 die or leave
+347  Norranwen sends 34 grain to Torashpel
+347  Torashpel discovers bread
+347  hunger in Isnor: 54 die or leave
+347  Norranwen sends 23 grain to Isnor
+347  hunger in Lornornor: 47 die or leave
+347  Norranwen sends 15 grain to Lornornor
+347  Arduntor learns bread from Wenor
+348  drought in Dunor
+348  hunger in Dunor: 80 die or leave
+348  Dunor raids Wenor for 23 grain; 11 fall
+348  drought in Corsilven
+348  hunger in Corsilven: 33 die or leave
+348  Norranwen sends 34 grain to Corsilven
+348  hunger in Norbel: 19 die or leave
+348  Holpel sends 25 grain to Norbel
+349  a flood takes 87 lives in Dunholash and destroys the mill
+349  hunger in Dunholash: 23 die or leave
+349  Arduntor sends 25 grain to Dunholash
+349  Dunholash learns the mill from Dunor
+349  Dunholash learns bread from Ulash
+350  hunger in Norpelash: 72 die or leave
+350  Norranwen sends 45 grain to Norpelash
+350  drought in Fenbel
+350  hunger in Fenbel: 34 die or leave
+350  Torashpel sends 34 grain to Fenbel
+350  hunger in Kelbrin: 33 die or leave
+350  Norranwen sends 51 grain to Kelbrin
+350  hunger in Gartorel: 28 die or leave
+350  Ranranis sends 42 grain to Gartorel
+350  a flood takes 83 lives in Ranyr and destroys the mill
+350  drought in Morkel
+350  hunger in Morkel: 102 die or leave
+350  Wentoryr sends 192 grain to Morkel
+351  a flood takes 80 lives in Kelbrin and destroys the mill
+351  Kelbrin rediscovers the mill
+351  hunger in Ranyr: 37 die or leave
+351  Norranwen sends 53 grain to Ranyr
+351  hunger in Ashor: 52 die or leave
+351  Ulash sends 47 grain to Ashor
+351  Kelbrin learns bread from Wenor
+352  hunger in Fenoris: 54 die or leave
+352  Torashpel sends 41 grain to Fenoris
+352  hunger in Torgarpel: 43 die or leave
+352  Holpel sends 40 grain to Torgarpel
+353  drought in Norfen
+353  hunger in Norfen: 58 die or leave
+353  Norranwen sends 54 grain to Norfen
+353  a flood takes 64 lives in Kelbrin and destroys the mill
+353  hunger in Norbel: 25 die or leave
+353  Norranwen sends 54 grain to Norbel
+353  hunger in Lornornor: 35 die or leave
+353  Wenor sends 51 grain to Lornornor
+353  Kelbrin learns the mill from Dunholash
+354  drought in Ulash
+354  hunger in Ulash: 46 die or leave
+354  Arduntor sends 55 grain to Ulash
+354  a flood takes 82 lives in Corsilven and destroys the mill
+354  hunger in Corsilven: 22 die or leave
+354  Ranranis sends 53 grain to Corsilven
+354  a flood takes 49 lives in Kelbrin and destroys the mill
+355  a flood takes 67 lives in Arduntor and destroys the mill
+355  drought in Gartorel
+355  hunger in Gartorel: 33 die or leave
+355  Norranwen sends 65 grain to Gartorel
+355  Kelbrin learns the mill from Gartorel
+356  Corsilven rediscovers the mill
+356  drought in Norbel
+356  hunger in Norbel: 44 die or leave
+356  Torashpel sends 56 grain to Norbel
+356  hunger in Ranyr: 21 die or leave
+356  Norranwen sends 55 grain to Ranyr
+356  hunger in Morkel: 97 die or leave
+356  Wentoryr sends 127 grain to Morkel
+356  hunger in Isnor: 39 die or leave
+356  Wenor sends 53 grain to Isnor
+357  Arduntor rediscovers the mill
+357  hunger in Fenbel: 42 die or leave
+357  Holpel sends 48 grain to Fenbel
+357  drought in Norbel
+357  hunger in Norbel: 36 die or leave
+357  Norranwen sends 46 grain to Norbel
+357  Ranyr learns the mill from Gartorel
+358  hunger in Torgarpel: 66 die or leave
+358  Torashpel sends 47 grain to Torgarpel
+358  Arduntor discovers bread
+358  drought in Ranranis
+358  hunger in Ranranis: 30 die or leave
+358  Wenor sends 44 grain to Ranranis
+358  hunger in Corsilven: 28 die or leave
+358  Ulash sends 50 grain to Corsilven
+358  drought in Norbel
+358  hunger in Norbel: 20 die or leave
+358  Norranwen sends 39 grain to Norbel
+358  drought in Torashpel
+358  hunger in Torashpel: 37 die or leave
+358  Kelbrin sends 37 grain to Torashpel
+358  hunger in Ashor: 47 die or leave
+358  Dunholash sends 35 grain to Ashor
+358  Ranyr learns bread from Torashpel
+359  hunger in Norpelash: 32 die or leave
+359  Holpel sends 34 grain to Norpelash
+359  hunger in Norfen: 42 die or leave
+359  Arduntor sends 39 grain to Norfen
+359  hunger in Lornornor: 42 die or leave
+359  Ulash sends 38 grain to Lornornor
+360  hunger in Fenoris: 29 die or leave
+360  Wenor sends 32 grain to Fenoris
+360  a flood takes 144 lives in Norranwen and destroys the mill
+360  drought in Ulash
+360  hunger in Ulash: 32 die or leave
+360  Arduntor sends 34 grain to Ulash
+360  hunger in Gartorel: 37 die or leave
+360  Kelbrin sends 29 grain to Gartorel
+360  drought in Torashpel
+360  hunger in Torashpel: 38 die or leave
+360  Norranwen sends 28 grain to Torashpel
+360  hunger in Morkel: 64 die or leave
+360  Wentoryr sends 50 grain to Morkel
+360  drought in Isnor
+360  hunger in Isnor: 41 die or leave
+360  Ranyr sends 26 grain to Isnor
+361  hunger in Norpelash: 37 die or leave
+361  Wenor sends 25 grain to Norpelash
+361  hunger in Dunor: 126 die or leave
+361  Arduntor sends 23 grain to Dunor
+361  drought in Ulash
+361  hunger in Ulash: 22 die or leave
+361  Norbel sends 24 grain to Ulash
+361  Corsilven learns bread from Holpel
+362  drought in Wenor
+362  hunger in Wenor: 19 die or leave
+362  Ranyr sends 24 grain to Wenor
+362  hunger in Fenbel: 29 die or leave
+362  Ranranis sends 21 grain to Fenbel
+362  hunger in Morkel: 44 die or leave
+362  hunger in Ashor: 37 die or leave
+362  Arduntor sends 29 grain to Ashor
+363  hunger in Fenoris: 27 die or leave
+363  Torashpel sends 28 grain to Fenoris
+363  drought in Torgarpel
+363  hunger in Torgarpel: 36 die or leave
+363  Norbel sends 24 grain to Torgarpel
+363  drought in Wentoryr
+363  hunger in Wentoryr: 58 die or leave
+363  hunger in Norfen: 68 die or leave
+363  Arduntor sends 25 grain to Norfen
+363  hunger in Norranwen: 29 die or leave
+363  Ranyr sends 22 grain to Norranwen
+363  drought in Ranranis
+363  hunger in Ranranis: 31 die or leave
+363  Kelbrin sends 20 grain to Ranranis
+363  Kelbrin discovers bread
+363  hunger in Gartorel: 62 die or leave
+363  Ulash sends 25 grain to Gartorel
+363  drought in Morkel
+363  hunger in Morkel: 78 die or leave
+363  hunger in Isnor: 50 die or leave
+363  Ranyr sends 20 grain to Isnor
+363  hunger in Lornornor: 27 die or leave
+363  Norbel sends 19 grain to Lornornor
+363  Norranwen learns the mill from Norbel
+364  hunger in Wentoryr: 37 die or leave
+364  hunger in Norpelash: 53 die or leave
+364  Ulash sends 17 grain to Norpelash
+364  hunger in Dunor: 104 die or leave
+364  Torashpel sends 26 grain to Dunor
+364  a flood takes 68 lives in Arduntor and destroys the mill
+364  Arduntor rediscovers the mill
+364  hunger in Fenbel: 25 die or leave
+364  Torashpel sends 18 grain to Fenbel
+364  hunger in Holpel: 44 die or leave
+364  Arduntor sends 16 grain to Holpel
+364  hunger in Dunholash: 31 die or leave
+364  Kelbrin sends 14 grain to Dunholash
+364  drought in Norfen
+364  hunger in Norfen: 33 die or leave
+364  Ranyr sends 13 grain to Norfen
+365  hunger in Fenoris: 40 die or leave
+365  Kelbrin sends 21 grain to Fenoris
+365  hunger in Wentoryr: 64 die or leave
+365  drought in Dunor
+365  hunger in Dunor: 91 die or leave
+365  Torashpel sends 19 grain to Dunor
+365  hunger in Dunholash: 48 die or leave
+365  Ulash sends 18 grain to Dunholash
+365  hunger in Norranwen: 58 die or leave
+365  Norbel sends 15 grain to Norranwen
+365  drought in Ranranis
+365  hunger in Ranranis: 42 die or leave
+365  Kelbrin sends 14 grain to Ranranis
+365  hunger in Lornornor: 40 die or leave
+365  Kelbrin sends 20 grain to Lornornor
+366  hunger in Torgarpel: 57 die or leave
+366  Torashpel sends 19 grain to Torgarpel
+366  hunger in Wentoryr: 78 die or leave
+366  hunger in Holpel: 34 die or leave
+366  Dunor sends 19 grain to Holpel
+366  drought in Norbel
+366  hunger in Norbel: 24 die or leave
+366  Kelbrin sends 24 grain to Norbel
+366  drought in Morkel
+366  hunger in Morkel: 46 die or leave
+366  hunger in Isnor: 52 die or leave
+366  Ulash sends 23 grain to Isnor
+366  hunger in Ashor: 38 die or leave
+366  Torashpel sends 18 grain to Ashor
+367  hunger in Norpelash: 48 die or leave
+367  Ulash sends 15 grain to Norpelash
+367  a flood takes 55 lives in Arduntor and destroys the mill
+367  hunger in Fenbel: 23 die or leave
+367  Ranyr sends 18 grain to Fenbel
+367  drought in Kelbrin
+367  hunger in Kelbrin: 30 die or leave
+367  Corsilven sends 16 grain to Kelbrin
+367  drought in Lornornor
+367  hunger in Lornornor: 45 die or leave
+367  Ranranis sends 15 grain to Lornornor
+368  Arduntor rediscovers the mill
+368  Arduntor discovers bread
+368  hunger in Norranwen: 37 die or leave
+368  Dunor sends 34 grain to Norranwen
+368  hunger in Gartorel: 42 die or leave
+368  Dunor sends 23 grain to Gartorel
+368  drought in Ashor
+368  hunger in Ashor: 52 die or leave
+368  Torashpel sends 21 grain to Ashor
+369  hunger in Fenoris: 58 die or leave
+369  Kelbrin sends 18 grain to Fenoris
+369  a flood takes 100 lives in Holpel and destroys the mill
+369  hunger in Holpel: 17 die or leave
+369  Arduntor sends 28 grain to Holpel
+369  hunger in Dunholash: 21 die or leave
+369  Dunor sends 24 grain to Dunholash
+369  hunger in Morkel: 48 die or leave
+369  drought in Ashor
+369  hunger in Ashor: 32 die or leave
+369  Kelbrin sends 25 grain to Ashor
+370  hunger in Norpelash: 39 die or leave
+370  Ulash sends 17 grain to Norpelash
+370  hunger in Fenbel: 25 die or leave
+370  Torashpel sends 17 grain to Fenbel
+370  a flood takes 105 lives in Norranwen and destroys the mill
+370  Norranwen rediscovers the mill
+370  hunger in Isnor: 41 die or leave
+370  Arduntor sends 32 grain to Isnor
+371  hunger in Wenor: 34 die or leave
+371  Kelbrin sends 29 grain to Wenor
+371  hunger in Holpel: 37 die or leave
+371  Arduntor sends 34 grain to Holpel
+371  hunger in Norfen: 53 die or leave
+371  Dunor sends 27 grain to Norfen
+371  drought in Gartorel
+371  hunger in Gartorel: 53 die or leave
+371  Kelbrin sends 31 grain to Gartorel
+371  drought in Ranyr
+371  hunger in Ranyr: 56 die or leave
+371  Norranwen sends 24 grain to Ranyr
+371  drought in Lornornor
+371  hunger in Lornornor: 37 die or leave
+371  Kelbrin sends 20 grain to Lornornor
+372  hunger in Torgarpel: 63 die or leave
+372  Torgarpel raids Arduntor for 34 grain; 10 fall
+372  drought in Ulash
+372  hunger in Ulash: 34 die or leave
+372  Arduntor sends 24 grain to Ulash
+372  a flood takes 86 lives in Corsilven and destroys the mill
+372  hunger in Corsilven: 32 die or leave
+372  Norranwen sends 21 grain to Corsilven
+372  Norranwen learns bread from Dunor
+373  hunger in Fenbel: 32 die or leave
+373  Kelbrin sends 25 grain to Fenbel
+373  hunger in Dunholash: 45 die or leave
+373  Arduntor sends 29 grain to Dunholash
+373  drought in Ranranis
+373  hunger in Ranranis: 51 die or leave
+373  Norranwen sends 40 grain to Ranranis
+373  Holpel learns the mill from Gartorel
+373  Corsilven learns the mill from Norfen
+374  hunger in Wenor: 34 die or leave
+374  Norranwen sends 27 grain to Wenor
+374  hunger in Wentoryr: 71 die or leave
+374  drought in Norpelash
+374  hunger in Norpelash: 44 die or leave
+374  Dunor sends 21 grain to Norpelash
+374  hunger in Corsilven: 17 die or leave
+374  Norranwen sends 43 grain to Corsilven
+374  hunger in Morkel: 35 die or leave
+375  hunger in Fenoris: 50 die or leave
+375  Kelbrin sends 36 grain to Fenoris
+375  drought in Norpelash
+375  hunger in Norpelash: 57 die or leave
+375  Norranwen sends 29 grain to Norpelash
+375  hunger in Holpel: 30 die or leave
+375  Arduntor sends 42 grain to Holpel
+375  drought in Norfen
+375  hunger in Norfen: 66 die or leave
+375  Arduntor sends 28 grain to Norfen
+375  hunger in Isnor: 69 die or leave
+375  Norranwen sends 42 grain to Isnor
+376  drought in Wenor
+376  hunger in Wenor: 44 die or leave
+376  Kelbrin sends 34 grain to Wenor
+376  drought in Wentoryr
+376  hunger in Wentoryr: 41 die or leave
+376  drought in Arduntor
+376  hunger in Arduntor: 28 die or leave
+376  Norranwen sends 28 grain to Arduntor
+376  hunger in Ulash: 36 die or leave
+376  Kelbrin sends 22 grain to Ulash
+376  Corsilven discovers bread
+376  hunger in Norbel: 54 die or leave
+376  Norranwen sends 41 grain to Norbel
+376  hunger in Morkel: 70 die or leave
+377  drought in Wentoryr
+377  hunger in Wentoryr: 36 die or leave
+377  hunger in Dunor: 67 die or leave
+377  Norranwen sends 28 grain to Dunor
+377  hunger in Torashpel: 53 die or leave
+377  Norranwen sends 39 grain to Torashpel
+377  hunger in Ranyr: 58 die or leave
+377  Kelbrin sends 31 grain to Ranyr
+378  hunger in Fenbel: 34 die or leave
+378  Norranwen sends 26 grain to Fenbel
+378  a flood takes 89 lives in Dunholash and destroys the mill
+378  hunger in Dunholash: 36 die or leave
+378  Arduntor sends 35 grain to Dunholash
+378  drought in Kelbrin
+378  hunger in Kelbrin: 24 die or leave
+378  Norranwen sends 37 grain to Kelbrin
+378  drought in Morkel
+378  hunger in Morkel: 32 die or leave
+378  Dunholash learns the mill from Arduntor
+379  drought in Dunholash
+379  hunger in Dunholash: 33 die or leave
+379  Arduntor sends 35 grain to Dunholash
+379  hunger in Ulash: 35 die or leave
+379  Arduntor sends 24 grain to Ulash
+379  drought in Lornornor
+379  hunger in Lornornor: 55 die or leave
+379  Norranwen sends 43 grain to Lornornor
+380  hunger in Torgarpel: 48 die or leave
+380  Norranwen sends 29 grain to Torgarpel
+380  hunger in Dunor: 98 die or leave
+380  Norpelash sends 21 grain to Dunor
+380  hunger in Holpel: 24 die or leave
+380  Arduntor sends 27 grain to Holpel
+380  hunger in Ashor: 39 die or leave
+380  Norranwen sends 36 grain to Ashor
+381  hunger in Fenoris: 58 die or leave
+381  Kelbrin sends 29 grain to Fenoris
+381  hunger in Norfen: 73 die or leave
+381  Arduntor sends 29 grain to Norfen
+381  drought in Ulash
+381  hunger in Ulash: 70 die or leave
+381  Corsilven sends 21 grain to Ulash
+381  drought in Torashpel
+381  hunger in Torashpel: 54 die or leave
+381  Norranwen sends 39 grain to Torashpel
+381  hunger in Isnor: 80 die or leave
+381  Norranwen sends 26 grain to Isnor
+382  hunger in Gartorel: 37 die or leave
+382  Kelbrin sends 33 grain to Gartorel
+382  hunger in Norbel: 37 die or leave
+382  Norranwen sends 31 grain to Norbel
+382  Dunholash learns bread from Norbel
+383  hunger in Fenbel: 19 die or leave
+383  Kelbrin sends 22 grain to Fenbel
+383  hunger in Holpel: 23 die or leave
+383  Arduntor sends 39 grain to Holpel
+383  drought in Norfen
+383  hunger in Norfen: 54 die or leave
+383  Arduntor sends 26 grain to Norfen
+383  drought in Norbel
+383  hunger in Norbel: 24 die or leave
+383  Norranwen sends 33 grain to Norbel
+383  hunger in Ranyr: 53 die or leave
+383  Norranwen sends 22 grain to Ranyr
+383  drought in Morkel
+383  hunger in Morkel: 66 die or leave
+383  Wentoryr sends 22 grain to Morkel
+383  hunger in Ashor: 53 die or leave
+383  Kelbrin sends 21 grain to Ashor
+383  drought in Lornornor
+383  hunger in Lornornor: 26 die or leave
+383  Dunholash sends 20 grain to Lornornor
+384  drought in Torgarpel
+384  hunger in Torgarpel: 35 die or leave
+384  Corsilven sends 18 grain to Torgarpel
+384  hunger in Norpelash: 52 die or leave
+384  Norranwen sends 15 grain to Norpelash
+384  hunger in Ranranis: 34 die or leave
+384  Arduntor sends 26 grain to Ranranis
+384  drought in Kelbrin
+384  hunger in Kelbrin: 26 die or leave
+384  Dunholash sends 22 grain to Kelbrin
+384  drought in Isnor
+384  hunger in Isnor: 60 die or leave
+384  Norranwen sends 21 grain to Isnor
+385  drought in Wenor
+385  hunger in Wenor: 26 die or leave
+385  Arduntor sends 17 grain to Wenor
+385  drought in Dunholash
+385  hunger in Dunholash: 15 die or leave
+385  Arduntor sends 20 grain to Dunholash
+385  hunger in Gartorel: 43 die or leave
+385  Norranwen sends 23 grain to Gartorel
+386  hunger in Torgarpel: 51 die or leave
+386  Ulash sends 18 grain to Torgarpel
+386  hunger in Norpelash: 56 die or leave
+386  Norfen sends 16 grain to Norpelash
+386  hunger in Dunor: 66 die or leave
+386  Norranwen sends 16 grain to Dunor
+386  hunger in Fenbel: 25 die or leave
+386  Kelbrin sends 14 grain to Fenbel
+386  hunger in Ranranis: 53 die or leave
+386  Arduntor sends 21 grain to Ranranis
+386  drought in Isnor
+386  hunger in Isnor: 31 die or leave
+386  Norranwen sends 17 grain to Isnor
+387  drought in Fenoris
+387  hunger in Fenoris: 42 die or leave
+387  Dunholash sends 16 grain to Fenoris
+387  hunger in Holpel: 36 die or leave
+387  Arduntor sends 21 grain to Holpel
+387  drought in Dunholash
+387  hunger in Dunholash: 29 die or leave
+387  Kelbrin sends 15 grain to Dunholash
+387  drought in Ranranis
+387  hunger in Ranranis: 35 die or leave
+387  Norranwen sends 16 grain to Ranranis
+387  a flood takes 90 lives in Torashpel and destroys the mill
+387  hunger in Ashor: 31 die or leave
+387  Kelbrin sends 16 grain to Ashor
+387  Torashpel learns the mill from Fenbel
+387  Holpel learns bread from Gartorel
+387  Torashpel learns bread from Corsilven
+388  hunger in Wenor: 40 die or leave
+388  Norfen sends 14 grain to Wenor
+388  hunger in Wentoryr: 93 die or leave
+388  Morkel sends 33 grain to Wentoryr
+388  hunger in Corsilven: 50 die or leave
+388  Holpel sends 18 grain to Corsilven
+388  drought in Norbel
+388  hunger in Norbel: 24 die or leave
+388  Dunholash sends 16 grain to Norbel
+388  hunger in Ranyr: 26 die or leave
+388  Arduntor sends 19 grain to Ranyr
+388  hunger in Lornornor: 54 die or leave
+388  Kelbrin sends 15 grain to Lornornor
+389  hunger in Dunor: 94 die or leave
+389  Isnor sends 20 grain to Dunor
+389  hunger in Fenbel: 47 die or leave
+389  Norranwen sends 13 grain to Fenbel
+389  drought in Dunholash
+389  hunger in Dunholash: 31 die or leave
+389  Holpel sends 22 grain to Dunholash
+389  drought in Ranranis
+389  hunger in Ranranis: 27 die or leave
+389  Arduntor sends 18 grain to Ranranis
+389  hunger in Gartorel: 50 die or leave
+389  Holpel sends 14 grain to Gartorel
+390  hunger in Ulash: 30 die or leave
+390  Dunholash sends 21 grain to Ulash
+391  drought in Dunholash
+391  hunger in Dunholash: 25 die or leave
+391  Holpel sends 27 grain to Dunholash
+391  hunger in Ranyr: 30 die or leave
+391  Isnor sends 22 grain to Ranyr
+391  hunger in Ashor: 42 die or leave
+391  Arduntor sends 20 grain to Ashor
+392  hunger in Torgarpel: 33 die or leave
+392  Kelbrin sends 19 grain to Torgarpel
+392  hunger in Norpelash: 63 die or leave
+392  Holpel sends 18 grain to Norpelash
+392  hunger in Norfen: 66 die or leave
+392  Dunholash sends 24 grain to Norfen
+392  hunger in Norranwen: 107 die or leave
+392  Isnor sends 18 grain to Norranwen
+392  hunger in Ulash: 30 die or leave
+392  Holpel sends 20 grain to Ulash
+392  hunger in Corsilven: 31 die or leave
+392  Dunholash sends 16 grain to Corsilven
+393  hunger in Fenoris: 35 die or leave
+393  Arduntor sends 16 grain to Fenoris
+393  hunger in Wenor: 42 die or leave
+393  Kelbrin sends 14 grain to Wenor
+393  drought in Ulash
+393  hunger in Ulash: 31 die or leave
+393  Dunholash sends 25 grain to Ulash
+393  drought in Gartorel
+393  hunger in Gartorel: 48 die or leave
+393  Holpel sends 20 grain to Gartorel
+393  hunger in Norbel: 43 die or leave
+393  Dunholash sends 17 grain to Norbel
+393  hunger in Lornornor: 29 die or leave
+393  Holpel sends 13 grain to Lornornor
+394  hunger in Wentoryr: 82 die or leave
+394  Morkel sends 15 grain to Wentoryr
+395  drought in Wentoryr
+395  hunger in Wentoryr: 65 die or leave
+395  hunger in Dunor: 64 die or leave
+395  Dunholash sends 26 grain to Dunor
+395  hunger in Fenbel: 44 die or leave
+395  Dunholash sends 17 grain to Fenbel
+395  hunger in Ranyr: 22 die or leave
+395  Dunholash sends 25 grain to Ranyr
+395  hunger in Morkel: 74 die or leave
+396  hunger in Torgarpel: 44 die or leave
+396  Holpel sends 21 grain to Torgarpel
+396  drought in Arduntor
+396  hunger in Arduntor: 37 die or leave
+396  Dunholash sends 17 grain to Arduntor
+396  drought in Ranranis
+396  hunger in Ranranis: 62 die or leave
+396  Dunholash sends 24 grain to Ranranis
+396  hunger in Corsilven: 40 die or leave
+396  Holpel sends 19 grain to Corsilven
+396  drought in Kelbrin
+396  hunger in Kelbrin: 40 die or leave
+396  Dunholash sends 16 grain to Kelbrin
+396  hunger in Torashpel: 37 die or leave
+396  Norranwen sends 14 grain to Torashpel
+396  hunger in Morkel: 85 die or leave
+396  hunger in Ashor: 53 die or leave
+396  Holpel sends 13 grain to Ashor
+396  hunger in Lornornor: 51 die or leave
+396  Dunholash sends 11 grain to Lornornor
+397  hunger in Fenoris: 27 die or leave
+397  Gartorel sends 11 grain to Fenoris
+397  hunger in Wenor: 44 die or leave
+397  drought in Norpelash
+397  hunger in Norpelash: 53 die or leave
+397  a flood takes 45 lives in Dunholash and destroys the mill
+397  Dunholash rediscovers the mill
+397  drought in Norranwen
+397  hunger in Norranwen: 39 die or leave
+397  Dunholash sends 13 grain to Norranwen
+397  hunger in Ulash: 54 die or leave
+397  Holpel sends 12 grain to Ulash
+398  hunger in Norbel: 39 die or leave
+398  Dunholash sends 15 grain to Norbel
+398  hunger in Ranyr: 40 die or leave
+398  Ranranis sends 12 grain to Ranyr
+398  hunger in Isnor: 43 die or leave
+398  Holpel sends 11 grain to Isnor
+399  hunger in Norpelash: 71 die or leave
+399  hunger in Dunor: 76 die or leave
+399  drought in Holpel
+399  hunger in Holpel: 24 die or leave
+399  hunger in Norfen: 41 die or leave
+399  Dunholash sends 15 grain to Norfen
+399  hunger in Torashpel: 45 die or leave
+399  Dunholash sends 10 grain to Torashpel
+400  hunger in Fenoris: 38 die or leave
+400  Dunholash discovers bread
+400  drought in Norranwen
+400  hunger in Norranwen: 99 die or leave
+400  Dunholash sends 11 grain to Norranwen
+400  drought in Ulash
+400  hunger in Ulash: 39 die or leave
+400  hunger in Gartorel: 32 die or leave
+400  hunger in Isnor: 65 die or leave
+401  hunger in Dunor: 92 die or leave
+401  Norpelash sends 10 grain to Dunor
+401  hunger in Fenbel: 39 die or leave
+401  hunger in Kelbrin: 32 die or leave
+401  Dunholash sends 23 grain to Kelbrin
+401  hunger in Gartorel: 29 die or leave
+401  hunger in Ashor: 45 die or leave
+401  Dunholash sends 15 grain to Ashor
+402  hunger in Torgarpel: 58 die or leave
+402  Dunholash sends 10 grain to Torgarpel
+402  hunger in Wenor: 20 die or leave
+402  drought in Dunor
+402  hunger in Dunor: 50 die or leave
+402  Norpelash sends 10 grain to Dunor
+402  hunger in Norfen: 62 die or leave
+402  Dunholash sends 22 grain to Norfen
+402  hunger in Corsilven: 43 die or leave
+402  Norranwen sends 15 grain to Corsilven
+402  hunger in Ranyr: 25 die or leave
+402  Dunholash sends 14 grain to Ranyr
+403  hunger in Fenbel: 30 die or leave
+403  hunger in Ranranis: 54 die or leave
+403  Dunholash sends 24 grain to Ranranis
+403  hunger in Ulash: 41 die or leave
+403  Dunholash sends 16 grain to Ulash
+403  hunger in Norbel: 21 die or leave
+403  Norranwen sends 12 grain to Norbel
+403  hunger in Morkel: 90 die or leave
+403  Wentoryr sends 13 grain to Morkel
+403  hunger in Lornornor: 58 die or leave
+403  Dunholash sends 11 grain to Lornornor
+404  hunger in Fenoris: 22 die or leave
+404  Dunor sends 16 grain to Fenoris
+404  hunger in Wenor: 26 die or leave
+404  Wenor raids Dunor for 16 grain; 27 fall
+404  hunger in Arduntor: 29 die or leave
+404  Dunor sends 19 grain to Arduntor
+404  drought in Corsilven
+404  hunger in Corsilven: 39 die or leave
+404  Dunholash sends 21 grain to Corsilven
+404  drought in Gartorel
+404  hunger in Gartorel: 40 die or leave
+404  hunger in Isnor: 47 die or leave
+404  Dunholash sends 14 grain to Isnor
+405  hunger in Wentoryr: 77 die or leave
+405  drought in Dunor
+405  hunger in Dunor: 45 die or leave
+405  Norfen sends 12 grain to Dunor
+405  hunger in Kelbrin: 31 die or leave
+405  Dunholash sends 23 grain to Kelbrin
+405  hunger in Norbel: 25 die or leave
+405  Dunholash sends 15 grain to Norbel
+405  hunger in Torashpel: 36 die or leave
+405  Dunholash sends 10 grain to Torashpel
+406  drought in Dunor
+406  hunger in Dunor: 73 die or leave
+406  hunger in Holpel: 30 die or leave
+406  Corsilven sends 10 grain to Holpel
+406  drought in Ranranis
+406  hunger in Ranranis: 57 die or leave
+406  Dunholash sends 20 grain to Ranranis
+406  hunger in Ranyr: 39 die or leave
+406  Dunholash sends 13 grain to Ranyr
+406  drought in Morkel
+406  hunger in Morkel: 68 die or leave
+406  hunger in Ashor: 53 die or leave
+407  drought in Fenoris
+407  hunger in Fenoris: 41 die or leave
+407  Corsilven sends 10 grain to Fenoris
+407  hunger in Arduntor: 45 die or leave
+407  Dunor sends 24 grain to Arduntor
+407  drought in Fenbel
+407  hunger in Fenbel: 32 die or leave
+407  a flood takes 171 lives in Norranwen and destroys the mill
+407  hunger in Norranwen: 54 die or leave
+407  Dunholash sends 21 grain to Norranwen
+407  drought in Corsilven
+407  hunger in Corsilven: 31 die or leave
+407  Dunholash sends 14 grain to Corsilven
+408  drought in Torgarpel
+408  hunger in Torgarpel: 57 die or leave
+408  Dunor sends 16 grain to Torgarpel
+408  hunger in Wentoryr: 48 die or leave
+408  hunger in Norpelash: 75 die or leave
+408  Dunor sends 11 grain to Norpelash
+408  hunger in Holpel: 27 die or leave
+408  Dunor sends 31 grain to Holpel
+408  hunger in Kelbrin: 30 die or leave
+408  Dunholash sends 20 grain to Kelbrin
+408  hunger in Lornornor: 39 die or leave
+408  Ranranis sends 15 grain to Lornornor
+409  drought in Norfen
+409  hunger in Norfen: 47 die or leave
+409  Dunor sends 43 grain to Norfen
+409  a flood takes 119 lives in Norranwen
+409  hunger in Ulash: 46 die or leave
+409  hunger in Gartorel: 45 die or leave
+409  Dunor sends 29 grain to Gartorel
+409  hunger in Norbel: 50 die or leave
+409  Dunholash sends 25 grain to Norbel
+409  hunger in Torashpel: 47 die or leave
+409  Dunor sends 19 grain to Torashpel
+410  drought in Holpel
+410  hunger in Holpel: 54 die or leave
+410  Dunor sends 34 grain to Holpel
+410  drought in Norbel
+410  hunger in Norbel: 34 die or leave
+410  Dunholash sends 27 grain to Norbel
+410  hunger in Ranyr: 39 die or leave
+410  Dunor sends 23 grain to Ranyr
+410  hunger in Isnor: 76 die or leave
+410  Dunholash sends 18 grain to Isnor
+411  hunger in Wenor: 22 die or leave
+411  Corsilven sends 19 grain to Wenor
+411  drought in Wentoryr
+411  hunger in Wentoryr: 39 die or leave
+411  Morkel sends 12 grain to Wentoryr
+411  hunger in Ulash: 40 die or leave
+411  Ulash raids Dunor for 53 grain; 23 fall
+411  hunger in Kelbrin: 27 die or leave
+411  Dunholash sends 22 grain to Kelbrin
+411  drought in Ranyr
+411  hunger in Ranyr: 39 die or leave
+411  Dunor sends 18 grain to Ranyr
+411  hunger in Ashor: 21 die or leave
+411  Ulash sends 17 grain to Ashor
+411  Norranwen learns the mill from Dunholash
+412  drought in Wenor
+412  hunger in Wenor: 37 die or leave
+412  Holpel sends 16 grain to Wenor
+412  hunger in Arduntor: 26 die or leave
+412  Dunor sends 32 grain to Arduntor
+412  drought in Ulash
+412  hunger in Ulash: 43 die or leave
+412  Dunholash sends 23 grain to Ulash
+412  hunger in Lornornor: 55 die or leave
+412  Corsilven sends 18 grain to Lornornor
+412  Norranwen learns bread from Ashor
+413  hunger in Norpelash: 63 die or leave
+413  Dunor sends 22 grain to Norpelash
+413  drought in Torashpel
+413  hunger in Torashpel: 32 die or leave
+413  Dunor sends 33 grain to Torashpel
+413  hunger in Morkel: 51 die or leave
+413  Wentoryr sends 10 grain to Morkel
+413  drought in Isnor
+413  hunger in Isnor: 57 die or leave
+413  Norranwen sends 31 grain to Isnor
+414  hunger in Torgarpel: 56 die or leave
+414  Dunholash sends 24 grain to Torgarpel
+414  drought in Wentoryr
+414  hunger in Wentoryr: 33 die or leave
+414  hunger in Kelbrin: 31 die or leave
+414  Norranwen sends 41 grain to Kelbrin
+415  hunger in Fenoris: 38 die or leave
+415  Dunor sends 40 grain to Fenoris
+415  hunger in Fenbel: 43 die or leave
+415  Norranwen sends 27 grain to Fenbel
+415  hunger in Ashor: 27 die or leave
+415  Dunor sends 43 grain to Ashor
+416  drought in Arduntor
+416  hunger in Arduntor: 50 die or leave
+416  Dunor sends 44 grain to Arduntor
+416  hunger in Norfen: 67 die or leave
+416  Norranwen sends 37 grain to Norfen
+416  hunger in Gartorel: 36 die or leave
+416  Norranwen sends 42 grain to Gartorel
+417  drought in Wentoryr
+417  hunger in Wentoryr: 78 die or leave
+417  drought in Dunor
+417  hunger in Dunor: 78 die or leave
+417  Dunholash sends 35 grain to Dunor
+417  hunger in Ranranis: 42 die or leave
+417  Norranwen sends 43 grain to Ranranis
+417  a flood takes 90 lives in Kelbrin and destroys the mill
+417  hunger in Morkel: 83 die or leave
+418  drought in Wenor
+418  hunger in Wenor: 23 die or leave
+418  Norranwen sends 29 grain to Wenor
+418  hunger in Norpelash: 63 die or leave
+418  Ulash sends 29 grain to Norpelash
+418  a flood takes 82 lives in Corsilven and destroys the mill
+418  hunger in Kelbrin: 40 die or leave
+418  Norranwen sends 33 grain to Kelbrin
+418  drought in Gartorel
+418  hunger in Gartorel: 41 die or leave
+418  Gartorel raids Dunholash for 49 grain; 14 fall
+419  hunger in Torgarpel: 38 die or leave
+419  Dunor sends 32 grain to Torgarpel
+419  hunger in Corsilven: 39 die or leave
+419  Norranwen sends 35 grain to Corsilven
+419  a flood takes 60 lives in Kelbrin
+419  hunger in Lornornor: 27 die or leave
+419  Norranwen sends 23 grain to Lornornor
+420  hunger in Fenoris: 36 die or leave
+420  Dunor sends 40 grain to Fenoris
+420  Corsilven rediscovers the mill
+420  Corsilven discovers bread
+420  drought in Ranyr
+420  hunger in Ranyr: 24 die or leave
+420  Dunor sends 45 grain to Ranyr
+421  drought in Fenoris
+421  hunger in Fenoris: 50 die or leave
+421  Dunor sends 30 grain to Fenoris
+421  drought in Norpelash
+421  hunger in Norpelash: 31 die or leave
+421  Norranwen sends 26 grain to Norpelash
+421  hunger in Norfen: 64 die or leave
+421  Dunor sends 37 grain to Norfen
+421  hunger in Ranranis: 31 die or leave
+421  Dunholash sends 28 grain to Ranranis
+421  drought in Ulash
+421  hunger in Ulash: 50 die or leave
+421  Ulash raids Dunor for 37 grain; 25 fall
+421  Kelbrin rediscovers the mill
+421  hunger in Torashpel: 28 die or leave
+421  Norranwen sends 26 grain to Torashpel
+421  hunger in Isnor: 67 die or leave
+421  Dunholash sends 19 grain to Isnor
+421  hunger in Ashor: 36 die or leave
+421  Norranwen sends 17 grain to Ashor
+422  hunger in Wenor: 46 die or leave
+422  Gartorel sends 16 grain to Wenor
+422  drought in Dunor
+422  hunger in Dunor: 60 die or leave
+422  Ranyr sends 14 grain to Dunor
+422  hunger in Arduntor: 40 die or leave
+422  Kelbrin sends 14 grain to Arduntor
+422  hunger in Fenbel: 31 die or leave
+422  Norbel sends 14 grain to Fenbel
+422  hunger in Holpel: 26 die or leave
+422  Corsilven sends 13 grain to Holpel
+422  a flood takes 48 lives in Kelbrin and destroys the mill
+422  hunger in Lornornor: 32 die or leave
+422  Norranwen sends 18 grain to Lornornor
+423  hunger in Torgarpel: 30 die or leave
+423  Dunholash sends 16 grain to Torgarpel
+423  drought in Arduntor
+423  hunger in Arduntor: 33 die or leave
+423  Dunor sends 28 grain to Arduntor
+423  hunger in Holpel: 44 die or leave
+423  Dunor sends 19 grain to Holpel
+423  hunger in Norbel: 54 die or leave
+423  Corsilven sends 19 grain to Norbel
+423  hunger in Ashor: 53 die or leave
+423  Kelbrin sends 19 grain to Ashor
+423  Kelbrin learns the mill from Lornornor
+424  drought in Wenor
+424  hunger in Wenor: 30 die or leave
+424  Norranwen sends 17 grain to Wenor
+424  drought in Dunor
+424  hunger in Dunor: 40 die or leave
+424  Fenoris sends 16 grain to Dunor
+424  drought in Dunholash
+424  hunger in Dunholash: 31 die or leave
+424  Corsilven sends 13 grain to Dunholash
+424  hunger in Ranranis: 48 die or leave
+424  Norranwen sends 15 grain to Ranranis
+424  hunger in Torashpel: 57 die or leave
+424  Kelbrin sends 17 grain to Torashpel
+424  a flood takes 88 lives in Ranyr and destroys the mill
+424  hunger in Ranyr: 29 die or leave
+424  Arduntor sends 11 grain to Ranyr
+424  hunger in Morkel: 60 die or leave
+424  Wentoryr sends 38 grain to Morkel
+424  hunger in Isnor: 48 die or leave
+424  Fenoris sends 11 grain to Isnor
+425  hunger in Fenbel: 46 die or leave
+425  Corsilven sends 12 grain to Fenbel
+425  drought in Ulash
+425  hunger in Ulash: 68 die or leave
+425  hunger in Gartorel: 44 die or leave
+425  Dunor sends 31 grain to Gartorel
+425  drought in Ranyr
+425  hunger in Ranyr: 17 die or leave
+425  Dunor sends 21 grain to Ranyr
+425  Ranyr rediscovers the mill
+425  hunger in Lornornor: 53 die or leave
+425  Kelbrin sends 15 grain to Lornornor
+426  hunger in Torgarpel: 43 die or leave
+426  Dunor sends 14 grain to Torgarpel
+426  hunger in Norpelash: 50 die or leave
+426  Norranwen sends 11 grain to Norpelash
+426  drought in Arduntor
+426  hunger in Arduntor: 29 die or leave
+426  Dunor sends 33 grain to Arduntor
+426  drought in Fenbel
+426  hunger in Fenbel: 38 die or leave
+426  Corsilven sends 11 grain to Fenbel
+426  hunger in Holpel: 34 die or leave
+426  Dunor sends 22 grain to Holpel
+426  hunger in Norfen: 40 die or leave
+426  Dunor sends 15 grain to Norfen
+426  hunger in Ranranis: 24 die or leave
+426  Arduntor sends 11 grain to Ranranis
+426  drought in Gartorel
+426  hunger in Gartorel: 49 die or leave
+426  Kelbrin sends 13 grain to Gartorel
+426  hunger in Norbel: 33 die or leave
+426  Dunholash sends 10 grain to Norbel
+427  hunger in Isnor: 72 die or leave
+427  Dunor sends 33 grain to Isnor
+428  drought in Wentoryr
+428  hunger in Wentoryr: 46 die or leave
+428  hunger in Norpelash: 33 die or leave
+428  Dunor sends 22 grain to Norpelash
+428  drought in Dunholash
+428  hunger in Dunholash: 43 die or leave
+428  Dunor sends 35 grain to Dunholash
+428  drought in Norfen
+428  hunger in Norfen: 42 die or leave
+428  Dunor sends 23 grain to Norfen
+428  hunger in Norranwen: 99 die or leave
+428  Dunor sends 16 grain to Norranwen
+428  hunger in Torashpel: 51 die or leave
+428  Kelbrin sends 12 grain to Torashpel
+428  hunger in Ranyr: 31 die or leave
+428  Arduntor sends 12 grain to Ranyr
+428  Ranyr learns bread from Holpel
+429  hunger in Fenoris: 41 die or leave
+429  Isnor sends 14 grain to Fenoris
+429  hunger in Torgarpel: 60 die or leave
+429  Corsilven sends 12 grain to Torgarpel
+429  hunger in Ranranis: 51 die or leave
+429  Dunor sends 29 grain to Ranranis
+429  drought in Kelbrin
+429  hunger in Kelbrin: 28 die or leave
+429  Dunholash sends 16 grain to Kelbrin
+429  drought in Gartorel
+429  hunger in Gartorel: 36 die or leave
+429  Dunor sends 20 grain to Gartorel
+429  hunger in Norbel: 22 die or leave
+429  Fenbel sends 14 grain to Norbel
+429  drought in Morkel
+429  hunger in Morkel: 90 die or leave
+430  hunger in Wenor: 29 die or leave
+430  Ranyr sends 16 grain to Wenor
+430  hunger in Holpel: 26 die or leave
+430  Dunor sends 30 grain to Holpel
+430  hunger in Ashor: 52 die or leave
+430  Ranyr sends 22 grain to Ashor
+430  hunger in Lornornor: 43 die or leave
+430  Dunholash sends 14 grain to Lornornor
+431  drought in Wenor
+431  a flood takes 75 lives in Wenor and destroys the mill
+431  hunger in Wenor: 24 die or leave
+431  hunger in Wentoryr: 35 die or leave
+431  hunger in Ulash: 33 die or leave
+431  Ulash raids Dunor for 55 grain; 25 fall
+431  a flood takes 81 lives in Torashpel and destroys the mill
+431  Torashpel rediscovers the mill
+431  Wenor learns the mill from Fenoris
+432  drought in Fenoris
+432  hunger in Fenoris: 29 die or leave
+432  Ranyr sends 25 grain to Fenoris
+432  drought in Torgarpel
+432  hunger in Torgarpel: 31 die or leave
+432  Dunor sends 18 grain to Torgarpel
+432  hunger in Wenor: 13 die or leave
+432  Ulash sends 18 grain to Wenor
+432  hunger in Norpelash: 76 die or leave
+432  Gartorel sends 15 grain to Norpelash
+432  drought in Norfen
+432  hunger in Norfen: 49 die or leave
+432  Dunor sends 29 grain to Norfen
+432  drought in Corsilven
+432  hunger in Corsilven: 31 die or leave
+432  Ranranis sends 14 grain to Corsilven
+432  hunger in Norbel: 19 die or leave
+432  Kelbrin sends 16 grain to Norbel
+432  hunger in Torashpel: 27 die or leave
+432  Dunor sends 19 grain to Torashpel
+432  Wenor learns bread from Norranwen
+432  Kelbrin learns bread from Gartorel
+433  drought in Wenor
+433  hunger in Wenor: 26 die or leave
+433  Ranyr sends 27 grain to Wenor
+433  drought in Gartorel
+433  hunger in Gartorel: 20 die or leave
+433  Dunor sends 29 grain to Gartorel
+433  hunger in Morkel: 65 die or leave
+434  hunger in Wentoryr: 34 die or leave
+434  hunger in Arduntor: 31 die or leave
+434  Dunor sends 33 grain to Arduntor
+434  hunger in Holpel: 60 die or leave
+434  Ranyr sends 28 grain to Holpel
+434  hunger in Norranwen: 105 die or leave
+434  Kelbrin sends 25 grain to Norranwen
+434  hunger in Torashpel: 21 die or leave
+434  Kelbrin sends 31 grain to Torashpel
+434  hunger in Lornornor: 39 die or leave
+434  Wenor sends 21 grain to Lornornor
+435  hunger in Isnor: 79 die or leave
+435  Ranyr sends 35 grain to Isnor
+436  hunger in Fenoris: 36 die or leave
+436  Dunor sends 34 grain to Fenoris
+436  a flood takes 85 lives in Arduntor and destroys the mill
+436  hunger in Ulash: 66 die or leave
+436  Wenor sends 39 grain to Ulash
+436  hunger in Norbel: 37 die or leave
+436  Kelbrin sends 47 grain to Norbel
+436  hunger in Ashor: 32 die or leave
+436  Dunor sends 34 grain to Ashor
+436  Arduntor learns the mill from Ranranis
+437  hunger in Arduntor: 17 die or leave
+437  Wenor sends 37 grain to Arduntor
+437  hunger in Fenbel: 38 die or leave
+437  Kelbrin sends 31 grain to Fenbel
+437  hunger in Ranranis: 33 die or leave
+437  Dunor sends 32 grain to Ranranis
+437  hunger in Corsilven: 30 die or leave
+437  Wenor sends 25 grain to Corsilven
+437  a flood takes 49 lives in Kelbrin and destroys the mill
+437  Torashpel learns bread from Fenoris
+438  hunger in Wentoryr: 56 die or leave
+438  hunger in Norpelash: 66 die or leave
+438  Wenor sends 27 grain to Norpelash
+438  hunger in Dunholash: 22 die or leave
+438  Ranyr sends 36 grain to Dunholash
+438  hunger in Norfen: 54 die or leave
+438  Dunor sends 29 grain to Norfen
+438  Kelbrin rediscovers the mill
+438  drought in Isnor
+438  hunger in Isnor: 69 die or leave
+438  Ranyr sends 29 grain to Isnor
+439  drought in Gartorel
+439  hunger in Gartorel: 42 die or leave
+439  Kelbrin sends 33 grain to Gartorel
+439  drought in Norbel
+439  hunger in Norbel: 28 die or leave
+439  hunger in Morkel: 73 die or leave
+440  hunger in Fenoris: 53 die or leave
+440  Wenor sends 29 grain to Fenoris
+440  drought in Norpelash
+440  hunger in Norpelash: 38 die or leave
+440  Wenor sends 29 grain to Norpelash
+440  hunger in Arduntor: 18 die or leave
+440  Dunor sends 29 grain to Arduntor
+440  a flood takes 103 lives in Holpel and destroys the mill
+440  hunger in Holpel: 39 die or leave
+440  Ranyr sends 23 grain to Holpel
+440  Holpel rediscovers the mill
+440  drought in Dunholash
+440  hunger in Dunholash: 44 die or leave
+440  Kelbrin sends 22 grain to Dunholash
+440  a flood takes 169 lives in Norranwen and destroys the mill
+440  drought in Isnor
+440  hunger in Isnor: 57 die or leave
+440  Wenor sends 20 grain to Isnor
+440  hunger in Ashor: 41 die or leave
+440  Torashpel sends 22 grain to Ashor
+441  drought in Fenoris
+441  hunger in Fenoris: 46 die or leave
+441  Dunor sends 19 grain to Fenoris
+441  hunger in Torgarpel: 43 die or leave
+441  Ranyr sends 19 grain to Torgarpel
+441  hunger in Fenbel: 29 die or leave
+441  Wenor sends 22 grain to Fenbel
+441  hunger in Norranwen: 74 die or leave
+441  Kelbrin sends 18 grain to Norranwen
+441  hunger in Ranranis: 62 die or leave
+441  Dunor sends 15 grain to Ranranis
+441  hunger in Corsilven: 43 die or leave
+441  Wenor sends 15 grain to Corsilven
+441  hunger in Norbel: 25 die or leave
+441  Gartorel sends 17 grain to Norbel
+441  a flood takes 66 lives in Torashpel and destroys the mill
+441  hunger in Lornornor: 52 die or leave
+441  Kelbrin sends 15 grain to Lornornor
+441  Norranwen learns the mill from Ranyr
+442  hunger in Arduntor: 22 die or leave
+442  Wenor sends 18 grain to Arduntor
+442  hunger in Holpel: 43 die or leave
+442  Norpelash sends 15 grain to Holpel
+442  Norranwen discovers bread
+442  hunger in Ulash: 74 die or leave
+442  Isnor sends 15 grain to Ulash
+443  hunger in Wentoryr: 43 die or leave
+443  drought in Norfen
+443  hunger in Norfen: 33 die or leave
+443  Wenor sends 20 grain to Norfen
+443  drought in Norranwen
+443  hunger in Norranwen: 36 die or leave
+443  Isnor sends 19 grain to Norranwen
+443  Torashpel rediscovers the mill
+443  Torashpel learns bread from Fenoris
+443  Kelbrin learns bread from Torgarpel
+444  hunger in Wentoryr: 68 die or leave
+444  hunger in Arduntor: 38 die or leave
+444  Wenor sends 20 grain to Arduntor
+444  a flood takes 77 lives in Corsilven and destroys the mill
+444  hunger in Corsilven: 34 die or leave
+444  Norranwen sends 25 grain to Corsilven
+444  Corsilven rediscovers the mill
+444  hunger in Morkel: 82 die or leave
+444  drought in Ashor
+444  hunger in Ashor: 43 die or leave
+444  Kelbrin sends 29 grain to Ashor
+445  hunger in Torgarpel: 29 die or leave
+445  Isnor sends 25 grain to Torgarpel
+445  hunger in Dunor: 57 die or leave
+445  Torashpel sends 24 grain to Dunor
+445  hunger in Fenbel: 34 die or leave
+445  Wenor sends 20 grain to Fenbel
+445  hunger in Holpel: 35 die or leave
+445  Kelbrin sends 20 grain to Holpel
+445  hunger in Dunholash: 28 die or leave
+445  Fenoris sends 17 grain to Dunholash
+445  hunger in Lornornor: 53 die or leave
+445  Norranwen sends 35 grain to Lornornor
+446  drought in Arduntor
+446  hunger in Arduntor: 23 die or leave
+446  Kelbrin sends 27 grain to Arduntor
+446  hunger in Norfen: 59 die or leave
+446  Torashpel sends 26 grain to Norfen
+446  hunger in Ranranis: 43 die or leave
+446  Norranwen sends 40 grain to Ranranis
+447  hunger in Norpelash: 60 die or leave
+447  Norranwen sends 27 grain to Norpelash
+447  drought in Ranranis
+447  hunger in Ranranis: 28 die or leave
+447  Norranwen sends 32 grain to Ranranis
+447  hunger in Ulash: 69 die or leave
+447  Kelbrin sends 31 grain to Ulash
+447  hunger in Corsilven: 19 die or leave
+447  Torashpel sends 27 grain to Corsilven
+448  drought in Wenor
+448  hunger in Wenor: 16 die or leave
+448  Kelbrin sends 33 grain to Wenor
+448  drought in Norpelash
+448  hunger in Norpelash: 28 die or leave
+448  Isnor sends 23 grain to Norpelash
+448  hunger in Dunor: 96 die or leave
+448  Torashpel sends 27 grain to Dunor
+448  hunger in Dunholash: 46 die or leave
+448  Kelbrin sends 22 grain to Dunholash
+448  drought in Norfen
+448  hunger in Norfen: 38 die or leave
+448  Norranwen sends 22 grain to Norfen
+448  hunger in Norbel: 45 die or leave
+448  Norranwen sends 28 grain to Norbel
+448  hunger in Ranyr: 29 die or leave
+448  Kelbrin sends 27 grain to Ranyr
+448  Arduntor learns bread from Ashor
+449  hunger in Torgarpel: 60 die or leave
+449  Torashpel sends 25 grain to Torgarpel
+449  hunger in Fenbel: 45 die or leave
+449  Norranwen sends 18 grain to Fenbel
+449  drought in Ulash
+449  hunger in Ulash: 44 die or leave
+449  Arduntor sends 20 grain to Ulash
+449  hunger in Ashor: 45 die or leave
+449  Kelbrin sends 30 grain to Ashor
+450  hunger in Holpel: 15 die or leave
+450  Arduntor sends 24 grain to Holpel
+451  hunger in Fenoris: 37 die or leave
+451  Norranwen sends 32 grain to Fenoris
+451  drought in Wenor
+451  hunger in Wenor: 37 die or leave
+451  Kelbrin sends 30 grain to Wenor
+451  drought in Norfen
+451  hunger in Norfen: 27 die or leave
+451  Torashpel sends 30 grain to Norfen
+451  hunger in Corsilven: 32 die or leave
+451  Norranwen sends 29 grain to Corsilven
+451  hunger in Gartorel: 37 die or leave
+451  Kelbrin sends 30 grain to Gartorel
+451  hunger in Ranyr: 38 die or leave
+451  Arduntor sends 25 grain to Ranyr
+451  Corsilven learns bread from Norfen
+452  drought in Torgarpel
+452  hunger in Torgarpel: 44 die or leave
+452  Torashpel sends 25 grain to Torgarpel
+452  drought in Fenbel
+452  hunger in Fenbel: 27 die or leave
+452  Kelbrin sends 20 grain to Fenbel
+452  hunger in Isnor: 51 die or leave
+452  Arduntor sends 26 grain to Isnor
+453  a flood takes 66 lives in Holpel and destroys the mill
+453  hunger in Morkel: 84 die or leave
+453  Wentoryr sends 12 grain to Morkel
+453  drought in Lornornor
+453  hunger in Lornornor: 49 die or leave
+453  Kelbrin sends 31 grain to Lornornor
+454  drought in Torgarpel
+454  hunger in Torgarpel: 24 die or leave
+454  Corsilven sends 29 grain to Torgarpel
+454  hunger in Dunor: 48 die or leave
+454  Dunor raids Wenor for 46 grain; 12 fall
+454  drought in Fenbel
+454  hunger in Fenbel: 31 die or leave
+454  Norranwen sends 28 grain to Fenbel
+454  hunger in Gartorel: 24 die or leave
+454  Arduntor sends 33 grain to Gartorel
+454  hunger in Norbel: 51 die or leave
+454  Kelbrin sends 29 grain to Norbel
+454  hunger in Ranyr: 46 die or leave
+454  Torashpel sends 26 grain to Ranyr
+454  hunger in Ashor: 37 die or leave
+454  Arduntor sends 22 grain to Ashor
+455  hunger in Fenoris: 41 die or leave
+455  Corsilven sends 29 grain to Fenoris
+455  drought in Wentoryr
+455  hunger in Wentoryr: 62 die or leave
+455  hunger in Norpelash: 69 die or leave
+455  Wenor sends 22 grain to Norpelash
+455  a flood takes 52 lives in Holpel
+455  drought in Dunholash
+455  hunger in Dunholash: 23 die or leave
+455  Arduntor sends 21 grain to Dunholash
+455  drought in Ranyr
+455  hunger in Ranyr: 28 die or leave
+455  Kelbrin sends 26 grain to Ranyr
+455  hunger in Isnor: 39 die or leave
+455  Norranwen sends 19 grain to Isnor
+455  Holpel learns the mill from Gartorel
+456  a flood takes 134 lives in Wentoryr and destroys the mill
+456  hunger in Wentoryr: 46 die or leave
+456  a flood takes 82 lives in Dunholash and destroys the mill
+456  hunger in Ranranis: 62 die or leave
+456  Corsilven sends 27 grain to Ranranis
+457  drought in Fenoris
+457  hunger in Fenoris: 46 die or leave
+457  Corsilven sends 26 grain to Fenoris
+457  hunger in Wentoryr: 44 die or leave
+457  hunger in Dunor: 88 die or leave
+457  hunger in Dunholash: 16 die or leave
+457  Holpel sends 29 grain to Dunholash
+457  Dunholash rediscovers the mill
+457  drought in Kelbrin
+457  hunger in Kelbrin: 21 die or leave
+457  Wenor sends 25 grain to Kelbrin
+457  hunger in Gartorel: 33 die or leave
+457  Corsilven sends 25 grain to Gartorel
+457  hunger in Isnor: 66 die or leave
+457  Arduntor sends 24 grain to Isnor
+457  hunger in Ashor: 25 die or leave
+457  Torgarpel sends 23 grain to Ashor
+457  hunger in Lornornor: 55 die or leave
+457  Fenbel sends 20 grain to Lornornor
+458  hunger in Wentoryr: 24 die or leave
+458  hunger in Dunor: 52 die or leave
+458  Dunholash discovers bread
+458  hunger in Norranwen: 42 die or leave
+458  Wenor sends 20 grain to Norranwen
+458  drought in Gartorel
+458  hunger in Gartorel: 23 die or leave
+458  Holpel sends 25 grain to Gartorel
+458  drought in Norbel
+458  hunger in Norbel: 32 die or leave
+458  Corsilven sends 22 grain to Norbel
+458  hunger in Morkel: 76 die or leave
+458  drought in Lornornor
+458  hunger in Lornornor: 41 die or leave
+458  Torgarpel sends 18 grain to Lornornor
+458  Holpel learns bread from Fenoris
+459  drought in Dunor
+459  hunger in Dunor: 64 die or leave
+459  Arduntor sends 20 grain to Dunor
+459  hunger in Ulash: 50 die or leave
+459  Holpel sends 35 grain to Ulash
+459  drought in Norbel
+459  hunger in Norbel: 42 die or leave
+459  Holpel sends 23 grain to Norbel
+459  a flood takes 81 lives in Ranyr and destroys the mill
+460  hunger in Norpelash: 53 die or leave
+460  Wenor sends 18 grain to Norpelash
+460  hunger in Norfen: 39 die or leave
+460  Holpel sends 33 grain to Norfen
+460  hunger in Norranwen: 48 die or leave
+460  Kelbrin sends 22 grain to Norranwen
+460  hunger in Ranranis: 58 die or leave
+460  Holpel sends 22 grain to Ranranis
+460  Ranyr rediscovers the mill
+460  hunger in Ashor: 42 die or leave
+460  Kelbrin sends 20 grain to Ashor
+460  Ranyr learns bread from Dunholash
+461  drought in Fenoris
+461  hunger in Fenoris: 43 die or leave
+461  Corsilven sends 25 grain to Fenoris
+461  Wentoryr rediscovers the mill
+462  drought in Fenoris
+462  hunger in Fenoris: 22 die or leave
+462  Holpel sends 32 grain to Fenoris
+462  hunger in Ulash: 42 die or leave
+462  Holpel sends 38 grain to Ulash
+462  hunger in Torashpel: 25 die or leave
+462  Dunor sends 28 grain to Torashpel
+462  drought in Isnor
+462  hunger in Isnor: 54 die or leave
+462  Dunholash sends 26 grain to Isnor
+463  drought in Wentoryr
+463  hunger in Wentoryr: 41 die or leave
+463  hunger in Gartorel: 59 die or leave
+463  Holpel sends 41 grain to Gartorel
+463  drought in Morkel
+463  hunger in Morkel: 80 die or leave
+464  hunger in Norfen: 29 die or leave
+464  Holpel sends 42 grain to Norfen
+464  hunger in Norranwen: 89 die or leave
+464  Corsilven sends 26 grain to Norranwen
+464  drought in Ulash
+464  hunger in Ulash: 64 die or leave
+464  Holpel sends 28 grain to Ulash
+464  drought in Norbel
+464  hunger in Norbel: 17 die or leave
+464  Kelbrin sends 28 grain to Norbel
+465  hunger in Torgarpel: 61 die or leave
+465  Fenoris sends 25 grain to Torgarpel
+465  hunger in Norpelash: 37 die or leave
+465  Dunor sends 23 grain to Norpelash
+465  hunger in Fenbel: 47 die or leave
+465  Ranyr sends 22 grain to Fenbel
+465  hunger in Torashpel: 50 die or leave
+465  Holpel sends 33 grain to Torashpel
+465  hunger in Ashor: 45 die or leave
+465  Holpel sends 22 grain to Ashor
+466  drought in Dunholash
+466  hunger in Dunholash: 35 die or leave
+466  Holpel sends 29 grain to Dunholash
+466  hunger in Ranranis: 34 die or leave
+466  Fenoris sends 20 grain to Ranranis
+466  drought in Isnor
+466  hunger in Isnor: 70 die or leave
+466  Holpel sends 19 grain to Isnor
+467  hunger in Wenor: 38 die or leave
+467  Kelbrin sends 20 grain to Wenor
+467  hunger in Wentoryr: 30 die or leave
+467  hunger in Arduntor: 50 die or leave
+467  Ranyr sends 18 grain to Arduntor
+467  drought in Dunholash
+467  a flood takes 70 lives in Dunholash and destroys the mill
+467  hunger in Dunholash: 23 die or leave
+467  Holpel sends 27 grain to Dunholash
+467  hunger in Norfen: 52 die or leave
+467  Holpel sends 18 grain to Norfen
+467  a flood takes 83 lives in Kelbrin and destroys the mill
+467  drought in Gartorel
+467  hunger in Gartorel: 52 die or leave
+467  Fenoris sends 16 grain to Gartorel
+468  hunger in Norpelash: 72 die or leave
+468  Norranwen sends 14 grain to Norpelash
+468  drought in Dunholash
+468  hunger in Dunholash: 19 die or leave
+468  Holpel sends 24 grain to Dunholash
+468  Dunholash learns the mill from Ashor
+469  hunger in Torgarpel: 64 die or leave
+469  Holpel sends 16 grain to Torgarpel
+469  hunger in Dunor: 85 die or leave
+469  Isnor sends 14 grain to Dunor
+469  hunger in Fenbel: 37 die or leave
+469  Norbel sends 16 grain to Fenbel
+469  hunger in Ranranis: 25 die or leave
+469  Holpel sends 23 grain to Ranranis
+469  hunger in Kelbrin: 19 die or leave
+469  Holpel sends 15 grain to Kelbrin
+469  hunger in Morkel: 69 die or leave
+469  Kelbrin learns the mill from Ranranis
+470  drought in Wenor
+470  hunger in Wenor: 51 die or leave
+470  Gartorel sends 12 grain to Wenor
+470  hunger in Wentoryr: 22 die or leave
+470  Wentoryr discovers bread
+470  hunger in Arduntor: 25 die or leave
+470  Isnor sends 12 grain to Arduntor
+470  hunger in Norfen: 25 die or leave
+470  Holpel sends 22 grain to Norfen
+470  hunger in Norranwen: 58 die or leave
+470  Dunholash sends 13 grain to Norranwen
+470  drought in Corsilven
+470  hunger in Corsilven: 41 die or leave
+470  Holpel sends 14 grain to Corsilven
+470  hunger in Torashpel: 39 die or leave
+470  Fenoris sends 11 grain to Torashpel
+470  drought in Morkel
+470  hunger in Morkel: 37 die or leave
+470  hunger in Ashor: 44 die or leave
+470  hunger in Lornornor: 61 die or leave
+471  drought in Corsilven
+471  hunger in Corsilven: 25 die or leave
+471  Holpel sends 20 grain to Corsilven
+471  hunger in Kelbrin: 26 die or leave
+471  Holpel sends 14 grain to Kelbrin
+471  hunger in Lornornor: 37 die or leave
+471  Dunholash sends 11 grain to Lornornor
+472  drought in Fenoris
+472  hunger in Fenoris: 28 die or leave
+472  Gartorel sends 10 grain to Fenoris
+472  hunger in Dunor: 51 die or leave
+472  drought in Norranwen
+472  hunger in Norranwen: 83 die or leave
+472  hunger in Ranranis: 28 die or leave
+472  Holpel sends 19 grain to Ranranis
+472  hunger in Ulash: 63 die or leave
+472  Holpel sends 12 grain to Ulash
+473  hunger in Arduntor: 35 die or leave
+473  hunger in Fenbel: 42 die or leave
+473  hunger in Norfen: 42 die or leave
+473  Holpel sends 17 grain to Norfen
+473  hunger in Kelbrin: 17 die or leave
+473  Holpel sends 11 grain to Kelbrin
+473  Kelbrin discovers bread
+473  hunger in Norbel: 39 die or leave
+473  hunger in Ranyr: 24 die or leave
+473  drought in Isnor
+473  hunger in Isnor: 62 die or leave
+473  hunger in Ashor: 20 die or leave
+474  hunger in Norpelash: 65 die or leave
+474  hunger in Dunor: 97 die or leave
+474  drought in Arduntor
+474  hunger in Arduntor: 43 die or leave
+474  drought in Ranranis
+474  hunger in Ranranis: 28 die or leave
+474  Holpel sends 16 grain to Ranranis
+474  a flood takes 75 lives in Corsilven and destroys the mill
+474  hunger in Norbel: 23 die or leave
+474  Kelbrin sends 14 grain to Norbel
+474  a flood takes 88 lives in Torashpel and destroys the mill
+474  hunger in Torashpel: 20 die or leave
+474  Norranwen sends 12 grain to Torashpel
+474  hunger in Ranyr: 35 die or leave
+474  Holpel sends 11 grain to Ranyr
+475  hunger in Fenoris: 28 die or leave
+475  hunger in Torgarpel: 40 die or leave
+475  hunger in Ulash: 49 die or leave
+475  Holpel sends 14 grain to Ulash
+475  hunger in Corsilven: 13 die or leave
+475  Norranwen sends 11 grain to Corsilven
+475  hunger in Gartorel: 53 die or leave
+475  Kelbrin sends 19 grain to Gartorel
+475  hunger in Torashpel: 28 die or leave
+475  Kelbrin sends 13 grain to Torashpel
+475  Torashpel rediscovers the mill
+475  Corsilven learns the mill from Norfen
+476  a flood takes 80 lives in Wenor and destroys the mill
+476  hunger in Wenor: 24 die or leave
+476  Dunholash discovers bread
+476  hunger in Corsilven: 21 die or leave
+476  Holpel sends 16 grain to Corsilven
+476  drought in Torashpel
+476  hunger in Torashpel: 28 die or leave
+476  Kelbrin sends 17 grain to Torashpel
+476  drought in Ranyr
+476  hunger in Ranyr: 26 die or leave
+476  Dunor sends 16 grain to Ranyr
+476  hunger in Ashor: 38 die or leave
+476  Kelbrin sends 12 grain to Ashor
+476  Corsilven learns bread from Fenoris
+476  Wenor learns the mill from Arduntor
+477  hunger in Fenoris: 23 die or leave
+477  Dunor sends 10 grain to Fenoris
+477  hunger in Torgarpel: 24 die or leave
+477  Holpel sends 10 grain to Torgarpel
+477  hunger in Wenor: 26 die or leave
+477  hunger in Norpelash: 58 die or leave
+477  hunger in Fenbel: 37 die or leave
+477  hunger in Norfen: 64 die or leave
+477  Dunholash sends 18 grain to Norfen
+477  hunger in Ranranis: 30 die or leave
+477  Dunor sends 13 grain to Ranranis
+477  a flood takes 78 lives in Ranyr and destroys the mill
+477  hunger in Isnor: 35 die or leave
+477  Dunholash sends 12 grain to Isnor
+477  Wenor learns bread from Norpelash
+478  drought in Norranwen
+478  hunger in Norranwen: 85 die or leave
+478  Dunholash sends 17 grain to Norranwen
+478  hunger in Ranyr: 38 die or leave
+478  Kelbrin sends 23 grain to Ranyr
+478  hunger in Morkel: 72 die or leave
+478  Wentoryr sends 129 grain to Morkel
+479  drought in Fenoris
+479  hunger in Fenoris: 30 die or leave
+479  Corsilven sends 22 grain to Fenoris
+479  drought in Torgarpel
+479  hunger in Torgarpel: 34 die or leave
+479  Holpel sends 15 grain to Torgarpel
+479  drought in Gartorel
+479  hunger in Gartorel: 20 die or leave
+479  Corsilven sends 23 grain to Gartorel
+479  hunger in Norbel: 39 die or leave
+479  Kelbrin sends 22 grain to Norbel
+479  drought in Morkel
+479  hunger in Morkel: 70 die or leave
+479  Wentoryr sends 96 grain to Morkel
+479  hunger in Lornornor: 24 die or leave
+479  Dunholash sends 20 grain to Lornornor
+480  drought in Holpel
+480  hunger in Holpel: 25 die or leave
+480  Wenor sends 27 grain to Holpel
+480  Torashpel discovers bread
+481  hunger in Ranranis: 27 die or leave
+481  Dunholash sends 29 grain to Ranranis
+481  hunger in Isnor: 55 die or leave
+481  Wenor sends 26 grain to Isnor
+482  drought in Arduntor
+482  hunger in Arduntor: 27 die or leave
+482  Kelbrin sends 26 grain to Arduntor
+482  drought in Ulash
+482  hunger in Ulash: 73 die or leave
+482  Corsilven sends 29 grain to Ulash
+482  drought in Kelbrin
+482  hunger in Kelbrin: 39 die or leave
+482  Dunholash sends 26 grain to Kelbrin
+482  drought in Gartorel
+482  hunger in Gartorel: 43 die or leave
+482  Corsilven sends 25 grain to Gartorel
+482  hunger in Ranyr: 34 die or leave
+482  Torashpel sends 28 grain to Ranyr
+482  Ranyr rediscovers the mill
+482  hunger in Lornornor: 47 die or leave
+482  Wenor sends 24 grain to Lornornor
+482  Ranyr learns bread from Kelbrin
+483  hunger in Norpelash: 68 die or leave
+483  Wenor sends 22 grain to Norpelash
+483  hunger in Dunor: 59 die or leave
+483  Torashpel sends 19 grain to Dunor
+483  hunger in Fenbel: 49 die or leave
+483  Dunholash sends 18 grain to Fenbel
+483  drought in Kelbrin
+483  hunger in Kelbrin: 35 die or leave
+483  Corsilven sends 22 grain to Kelbrin
+483  hunger in Ashor: 27 die or leave
+483  Torashpel sends 22 grain to Ashor
+484  hunger in Norbel: 43 die or leave
+484  Dunholash sends 23 grain to Norbel
+484  drought in Torashpel
+484  hunger in Torashpel: 21 die or leave
+484  Ranyr sends 22 grain to Torashpel
+484  drought in Morkel
+484  hunger in Morkel: 72 die or leave
+484  Wentoryr sends 97 grain to Morkel
+485  drought in Fenbel
+485  hunger in Fenbel: 31 die or leave
+485  Ranyr sends 26 grain to Fenbel
+485  hunger in Norfen: 33 die or leave
+485  Wenor sends 25 grain to Norfen
+485  a flood takes 105 lives in Ranranis and destroys the mill
+485  hunger in Ranranis: 23 die or leave
+485  Holpel sends 21 grain to Ranranis
+485  Ranranis rediscovers the mill
+485  drought in Gartorel
+485  hunger in Gartorel: 49 die or leave
+485  Kelbrin sends 30 grain to Gartorel
+486  drought in Wentoryr
+486  hunger in Wentoryr: 40 die or leave
+486  Morkel sends 42 grain to Wentoryr
+486  hunger in Dunor: 72 die or leave
+486  Ranyr sends 29 grain to Dunor
+486  hunger in Norranwen: 74 die or leave
+486  Dunholash sends 23 grain to Norranwen
+486  drought in Corsilven
+486  hunger in Corsilven: 40 die or leave
+486  Wenor sends 22 grain to Corsilven
+486  drought in Norbel
+486  hunger in Norbel: 45 die or leave
+486  Kelbrin sends 30 grain to Norbel
+486  drought in Lornornor
+486  hunger in Lornornor: 52 die or leave
+486  Kelbrin sends 20 grain to Lornornor
+487  hunger in Torgarpel: 64 die or leave
+487  Ranyr sends 31 grain to Torgarpel
+487  hunger in Ranranis: 40 die or leave
+487  Torashpel sends 29 grain to Ranranis
+487  hunger in Ulash: 71 die or leave
+487  Ranyr sends 20 grain to Ulash
+487  hunger in Ashor: 51 die or leave
+487  Torashpel sends 29 grain to Ashor
+488  drought in Arduntor
+488  hunger in Arduntor: 51 die or leave
+488  Kelbrin sends 24 grain to Arduntor
+488  drought in Fenbel
+488  hunger in Fenbel: 36 die or leave
+488  Ranyr sends 24 grain to Fenbel
+488  hunger in Norfen: 43 die or leave
+488  Gartorel sends 22 grain to Norfen
+488  hunger in Norranwen: 100 die or leave
+488  Wenor sends 21 grain to Norranwen
+488  drought in Morkel
+488  hunger in Morkel: 53 die or leave
+488  Wentoryr sends 21 grain to Morkel
+488  hunger in Isnor: 65 die or leave
+488  Ranyr sends 25 grain to Isnor
+488  Ranranis learns bread from Arduntor
+489  hunger in Fenoris: 24 die or leave
+489  Torashpel sends 29 grain to Fenoris
+489  hunger in Norpelash: 44 die or leave
+489  Dunholash sends 19 grain to Norpelash
+489  drought in Corsilven
+489  hunger in Corsilven: 30 die or leave
+489  Kelbrin sends 25 grain to Corsilven
+490  drought in Wentoryr
+490  hunger in Wentoryr: 70 die or leave
+490  Morkel sends 17 grain to Wentoryr
+490  drought in Norpelash
+490  hunger in Norpelash: 50 die or leave
+490  Gartorel sends 23 grain to Norpelash
+490  hunger in Dunor: 88 die or leave
+490  Torashpel sends 28 grain to Dunor
+490  drought in Lornornor
+490  hunger in Lornornor: 40 die or leave
+490  Kelbrin sends 33 grain to Lornornor
+491  hunger in Holpel: 63 die or leave
+491  Ranyr sends 35 grain to Holpel
+491  hunger in Norfen: 39 die or leave
+491  Torashpel sends 26 grain to Norfen
+492  hunger in Fenoris: 29 die or leave
+492  Ranyr sends 30 grain to Fenoris
+492  drought in Dunor
+492  hunger in Dunor: 85 die or leave
+492  Ranranis sends 30 grain to Dunor
+492  hunger in Ashor: 53 die or leave
+492  Kelbrin sends 35 grain to Ashor
+493  hunger in Torgarpel: 64 die or leave
+493  Fenbel sends 31 grain to Torgarpel
+493  hunger in Arduntor: 53 die or leave
+493  Torashpel sends 30 grain to Arduntor
+493  drought in Norfen
+493  hunger in Norfen: 43 die or leave
+493  Corsilven sends 31 grain to Norfen
+493  hunger in Ulash: 50 die or leave
+493  Ranranis sends 32 grain to Ulash
+493  hunger in Isnor: 59 die or leave
+493  Ranyr sends 32 grain to Isnor
+493  drought in Lornornor
+493  hunger in Lornornor: 31 die or leave
+493  Kelbrin sends 29 grain to Lornornor
+494  drought in Fenoris
+494  hunger in Fenoris: 47 die or leave
+494  Corsilven sends 27 grain to Fenoris
+494  drought in Fenbel
+494  hunger in Fenbel: 26 die or leave
+494  Torashpel sends 25 grain to Fenbel
+494  drought in Ranranis
+494  hunger in Ranranis: 33 die or leave
+494  Norbel sends 23 grain to Ranranis
+495  hunger in Dunholash: 57 die or leave
+495  Ranyr sends 26 grain to Dunholash
+495  hunger in Norranwen: 48 die or leave
+495  Kelbrin sends 24 grain to Norranwen
+496  a flood takes 83 lives in Arduntor and destroys the mill
+496  drought in Holpel
+496  hunger in Holpel: 45 die or leave
+496  Corsilven sends 27 grain to Holpel
+496  a flood takes 72 lives in Ranranis and destroys the mill
+496  Ranranis rediscovers the mill
+497  hunger in Wenor: 32 die or leave
+497  Torashpel sends 26 grain to Wenor
+497  hunger in Norpelash: 46 die or leave
+497  Dunor sends 22 grain to Norpelash
+497  hunger in Arduntor: 35 die or leave
+497  Ranyr sends 25 grain to Arduntor
+497  hunger in Norranwen: 60 die or leave
+497  Fenbel sends 24 grain to Norranwen
+497  hunger in Ulash: 35 die or leave
+497  Kelbrin sends 23 grain to Ulash
+497  drought in Torashpel
+497  hunger in Torashpel: 19 die or leave
+497  Corsilven sends 26 grain to Torashpel
+498  drought in Wenor
+498  hunger in Wenor: 50 die or leave
+498  Lornornor sends 20 grain to Wenor
+498  Arduntor rediscovers the mill
+498  hunger in Gartorel: 40 die or leave
+498  Fenbel sends 20 grain to Gartorel
+498  hunger in Norbel: 32 die or leave
+498  Corsilven sends 19 grain to Norbel
+498  hunger in Ashor: 41 die or leave
+498  Ranyr sends 20 grain to Ashor
+498  Arduntor learns bread from Norranwen
+499  hunger in Torgarpel: 41 die or leave
+499  Kelbrin sends 18 grain to Torgarpel
+499  hunger in Dunholash: 20 die or leave
+499  Fenbel sends 17 grain to Dunholash
+499  hunger in Norfen: 39 die or leave
+499  Ranranis sends 16 grain to Norfen
+499  drought in Morkel
+499  hunger in Morkel: 65 die or leave
+499  hunger in Isnor: 65 die or leave
+499  Arduntor sends 14 grain to Isnor
+499  drought in Ashor
+499  hunger in Ashor: 50 die or leave
+499  Torashpel sends 14 grain to Ashor

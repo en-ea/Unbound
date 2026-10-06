@@ -163,7 +163,7 @@ func release() -> void:
 
 func _physics_process(delta: float) -> void:
 	age += delta
-	if dragged and is_instance_valid(player) and not _gone:
+	if dragged and is_instance_valid(player) and not _gone and not get_meta("on_shoulders", false):   # studio: carried, no rope (note 230032)
 		# Like a weight on a short rope: it only moves when you pull it taut, so it comes in heaves
 		# as you step, swings round behind you on a turn and follows the way you went.
 		var to: Vector3 = player.global_position - global_position

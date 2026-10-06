@@ -1,0 +1,9 @@
+10-01 14:24:51.082  2725  3122 I ActivityManager: Start proc 6255:com.unboundstudio.unbound.dev/u0a415 for next-top-activity {com.unboundstudio.unbound.dev/com.godot.game.GodotAppLauncher}
+10-01 14:27:32.908  6255  6298 I scudo   : Can't populate more pages for size class 1104.
+10-01 14:28:05.268  6255  6298 I scudo   : Can't populate more pages for size class 4112.
+10-01 14:38:06.510  2725  3122 I ActivityManager: Start proc 11878:com.unboundstudio.unbound.dev/u0a415 for next-top-activity {com.unboundstudio.unbound.dev/com.godot.game.GodotAppLauncher}
+10-01 14:40:49.043 11878 11931 I scudo   : Can't populate more pages for size class 1104.
+10-01 14:41:21.149 11878 11931 I scudo   : Can't populate more pages for size class 4112.
+10-01 14:50:11.856  2725  3122 I ActivityManager: Start proc 15527:com.unboundstudio.unbound.dev/u0a415 for next-top-activity {com.unboundstudio.unbound.dev/com.godot.game.GodotAppLauncher}
+10-01 14:52:53.128 15527 15565 I scudo   : Can't populate more pages for size class 1104.
+10-01 14:53:24.013 15527 15565 I scudo   : Can't populate more pages for size class 4112.

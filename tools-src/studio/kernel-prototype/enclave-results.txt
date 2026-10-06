@@ -1,0 +1,18 @@
+S1b - time-storm enclaves, 2026-09-28T20:45:19.574Z
+A storm at year 500 folds a share of one village into year 500 - gap; we watch 25 years.
+
+gap (yrs) | share | trials | past raids present | present raids past | any fighting | past taught others | enclave ruined | origin ruined | origin smaller than without storm (median)
+       40 |   0.3 |     20 |                 0% |                70% |          70% |                15% |             0% |            0% | 21%
+       40 |   0.6 |     20 |                15% |                15% |          30% |                25% |             0% |            0% | 30%
+      150 |   0.3 |     20 |                 0% |                70% |          70% |                20% |             0% |            0% | 20%
+      150 |   0.6 |     20 |                25% |                15% |          40% |                20% |             0% |            0% | 30%
+      300 |   0.3 |     20 |                 0% |                60% |          60% |                10% |             0% |            0% | 19%
+      300 |   0.6 |     20 |                15% |                10% |          25% |                20% |             0% |            0% | 28%
+
+One storm, told by the chronicle (seed 16838, 150 years back, 60% of the village):
+   yr 500  a time storm folds 333 of Holtorfen's people into year 350; 305 people of that age stand in their place and call themselves Old Holtorfen
+   yr 501  Holuldun sends grain to Holtorfen
+   yr 516  Isulnor sends grain to Holtorfen
+   yr 518  Venkelash sends grain to Old Holtorfen
+   yr 524  Old Holtorfen raids Holtorfen for grain; 18 fall
+   ... year 525: Holtorfen: town of 334, knows fire, farming, pottery, charcoal, copper, the mill, bread, iron, writing, boats, medicine | Old Holtorfen: town of 422, knows fire, farming, pottery, charcoal, copper, the mill, bread, iron, writing, boats, medicine

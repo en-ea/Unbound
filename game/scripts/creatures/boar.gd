@@ -214,6 +214,7 @@ func _physics_process(delta: float) -> void:
 				_enter(State.ALERT)
 		State.DEAD:
 			pass
+	want = preload("res://scripts/studio/creatures/steer_around.gd").steer(self, want, delta, state == State.CHARGE)   # studio: round structures, never in a charge (note 233349)
 	var flat := Vector3(velocity.x, 0, velocity.z)
 	var accel := 20.0 if state == State.CHARGE else 6.0
 	flat = flat.lerp(want, clampf(accel * delta, 0.0, 1.0)) + _push

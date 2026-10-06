@@ -1,0 +1,15 @@
+  bash arg: -p
+  bash arg: com.unboundstudio.unbound.continuation
+  bash arg: -c
+  bash arg: android.intent.category.LAUNCHER
+  bash arg: 1
+args: [-p, com.unboundstudio.unbound.continuation, -c, android.intent.category.LAUNCHER, 1]
+ arg: "-p"
+ arg: "com.unboundstudio.unbound.continuation"
+ arg: "-c"
+ arg: "android.intent.category.LAUNCHER"
+ arg: "1"
+data="com.unboundstudio.unbound.continuation"
+data="android.intent.category.LAUNCHER"
+Events injected: 1
+## Network stats: elapsed time=31ms (0ms mobile, 0ms wifi, 31ms not connected)

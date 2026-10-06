@@ -118,7 +118,7 @@ func _physics_process(delta: float) -> void:
 			_meal_tick -= delta
 			if _meal_tick <= 0.0:
 				_meal_tick = 1.5
-				_meal = _find_meal()
+				_meal = preload("res://scripts/studio/creatures/steer_around.gd").reachable(self, _find_meal())   # studio: a meal it cannot reach is given up within 6 s (note 233349)
 			var eating: bool = is_instance_valid(_meal) and not _meal.dragged and not _meal.is_queued_for_deletion()
 			if dist < SIGHT and absf(player.global_position.y - global_position.y) < 6.0 and player.can_be_targeted() and (_home_distance() < LEASH or eating or duskmaw):
 				_enter(State.ALERT)
@@ -229,6 +229,7 @@ func _physics_process(delta: float) -> void:
 		State.DEAD:
 			pass
 	_poise = maxf(_poise - delta / Balance.FIGHT["poise_decay"], 0.0)
+	want = preload("res://scripts/studio/creatures/steer_around.gd").steer(self, want, delta, state in [State.LUNGE, State.FEINT])   # studio: round structures, never in a strike (note 233349)
 	var flat := Vector3(velocity.x, 0, velocity.z)
 	var accel := 22.0 if state == State.LUNGE else 8.0
 	flat = flat.lerp(want, clampf(accel * delta, 0.0, 1.0)) + _push

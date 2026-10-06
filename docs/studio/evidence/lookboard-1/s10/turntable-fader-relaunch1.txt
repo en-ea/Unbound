@@ -1,0 +1,8 @@
+device: SM-G973F; gl_compatibility; turning 90 deg/s; draws 630, triangles 149k (at the end)
+lap 1 (first sight): 121 frames, median 33.3 ms, 95th 36.5 ms, worst 39.5 ms, over 50 ms: 0
+lap 2 (seen before): 118 frames, median 33.3 ms, 95th 37.4 ms, worst 99.7 ms, over 50 ms: 1
+worst frame per 45-degree sector, lap 1: 39 37 38 36 37 37 39 36
+worst frame per 45-degree sector, lap 2: 38 39 37 37 36 36 35 100
+frames over 50 ms: 100 ms at lap 2, 351 deg, 18.7 s: scripts 19.4, physics 8.8, render cpu 17.1, gpu 0.0, frame setup 0.6 ms; objects 685 (was 686), trees faded 0 (was 0), nodes 2495, video mem 82 MB
+SaveGame.save_game() timed alone, 3 calls: 33.0, 30.6, 20.8 ms
+every frame, median / 95th (ms): scripts 20.6 / 22.5, physics 8.6 / 11.5, render cpu 13.6 / 16.7

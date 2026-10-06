@@ -1,0 +1,21 @@
+09-29 16:17:31.216 30073 30140 I godot   : PASS normal atomic save includes valid village
+09-29 16:17:31.260 30073 30140 I godot   : PASS old save retains economy and awaits fresh village
+09-29 16:17:31.435 30073 30140 I godot   : PASS malformed village falls back to valid atomic backup
+09-29 16:17:31.497 30073 30140 I godot   : PASS truncated normal file falls back to backup
+09-29 16:17:31.550 30073 30140 I godot   : PASS no valid village backup preserves core progress and reports recovery
+09-29 16:17:32.422 30073 30140 I godot   : PASS menu pause freezes authoritative minutes
+09-29 16:17:33.553 30073 30140 I godot   : PASS background freezes authoritative minutes
+09-29 16:17:34.715 30073 30140 I godot   : PASS real action button still gathers a world resource
+09-29 16:17:34.716 30073 30140 I godot   : PASS combat action still starts outside a rescue
+09-29 16:17:34.716 30073 30140 I godot   : PASS downed player cannot act
+09-29 16:17:34.716 30073 30140 I godot   : PASS locked controls cannot act
+09-29 16:17:36.821 30073 30140 I godot   : PASS touch and emulated mouse open merchant once without click-through
+09-29 16:17:36.822 30073 30140 I godot   : PASS hidden action button releases its opening finger
+09-29 16:17:36.831 30073 30140 I godot   : PASS merchant Buy button completes an actual payment
+09-29 16:17:36.831 30073 30140 I godot   : PASS touch opened the actual merchant panel
+09-29 16:17:36.831 30073 30140 I godot   : PASS merchant closes back into play
+09-29 16:17:36.995 30073 30140 I godot   : PASS live bribe single debit, accepts=true
+09-29 16:17:37.192 30073 30140 I godot   : PASS normal reload preserves bribe and wallet
+09-29 16:17:37.338 30073 30140 I godot   : PASS live bribe single debit, accepts=false
+09-29 16:17:37.537 30073 30140 I godot   : PASS normal reload preserves bribe and wallet
+09-29 16:17:37.537 30073 30140 I godot   : CHECKS complete failures=0

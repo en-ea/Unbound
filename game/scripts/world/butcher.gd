@@ -39,6 +39,7 @@ func build(shape: WorldShape) -> void:
 	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	sign.modulate = Color(1.0, 0.9, 0.75)
 	add_child(sign)
+	preload("res://scripts/studio/world/fit_colliders.gd").add(self, "butcher")   # studio: the frame's posts, the block and the coin box are solid (note 233349)
 	set_meta("map_size", Vector2(3, 2))
 	add_to_group("map_building")
 

@@ -5,6 +5,7 @@ The owner doesn't code: they direct and playtest, and Claude builds. Keep replie
 - `docs/DESIGN.md`: what the game is. Read it before design work.
 - `docs/PLAN.md`: milestones, how we work, performance rules. Read it every session.
 - `docs/GAME_PLAN.md`: the decided big shape (lands, regions, classes, rarities, money, companions, build order).
+- `docs/studio/START-HERE.md` (on the `studio` branch): proposals from Hilmi's studio. Read it when asked to look at that branch. Nothing in it is decided until the owner says so, and it is never merged into `main` without the owner's OK.
 
 ## Layout
 - `game/`: the Godot 4.7.2 project (GL Compatibility renderer, needed for web). Export preset "Web" writes to `build/web/`.

@@ -1,0 +1,12 @@
+device: SM-G973F, Android, , 8 cores
+engine: Godot 4.7.2-stable (official), debug build
+seed 1000 pace 1, 10 years: PASS (20 of 20 checkpoints x 6 columns)  [204.5 ms per village-year, 3.408 ms per village-day; 47 people, 97 events, 19 crimes, 1 cases, 32 stagings]
+seed 8919 pace 1, 10 years: PASS (20 of 20 checkpoints x 6 columns)  [349.1 ms per village-year, 5.819 ms per village-day; 47 people, 129 events, 24 crimes, 4 cases, 35 stagings]
+seed 16838 pace 10, 10 years: PASS (20 of 20 checkpoints x 6 columns)  [512.1 ms per village-year, 8.534 ms per village-day; 49 people, 1182 events, 103 crimes, 38 cases, 93 stagings]
+pace 1: 276.8 ms per village-year (all cases at this pace)
+pace 10: 512.1 ms per village-year (all cases at this pace)
+CONFORMANCE: PASS
+live: freed 5 (all 5 alive), shielded 42  [53366 ms]
+LIVE: PASS: 10 villages; live villages deterministic; every freed person lives; the village remembers the stranger
+storms: ancestors 97, lost 99, rite:carried_out 17, rite:rescued 5, rite:seized 22  [113731 ms]
+STORMS: PASS: 20 villages, determinism, no child offerings, recede, anchored exempt

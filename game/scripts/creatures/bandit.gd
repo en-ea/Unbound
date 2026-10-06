@@ -410,6 +410,7 @@ func _physics_process(delta: float) -> void:
 		State.HURT:
 			if _t > 0.35:
 				_enter(State.CIRCLE if alerted else State.SEARCH)
+	want = preload("res://scripts/studio/creatures/steer_around.gd").steer(self, want, delta, state == State.ATTACK)   # studio: round structures, never in a blow's step (note 233349)
 	var flat := Vector3(velocity.x, 0, velocity.z).lerp(want, clampf(10.0 * delta, 0.0, 1.0)) + _push
 	_push = _push.lerp(Vector3.ZERO, clampf(8.0 * delta, 0.0, 1.0))
 	velocity = Vector3(flat.x, velocity.y - GRAVITY * delta if not is_on_floor() else 0.0, flat.z)

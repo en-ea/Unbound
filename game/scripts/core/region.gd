@@ -50,10 +50,12 @@ func _ready() -> void:
 func travel(to: String, arrive_at: Vector2) -> void:
 	if _busy or not NAMES.has(to):
 		return
+	if SaveGame.save_game()!=OK: # studio: park captured memories/load location before locking or disposing bodies
+		return
 	_busy = true
 	Controls.locked = true
 	leaving.emit(to, arrive_at)          # what comes along (a dragged body, the ox cart you ride)
-	SaveGame.save_game()
+	# studio: checked save above owns this acceptance; no second write after the availability flip.
 	var t := create_tween()
 	t.tween_property(_fade, "color:a", 1.0, 0.45)
 	await t.finished

@@ -1,0 +1,4 @@
+game/scripts/studio/village/sim/golden_data.gd c95201caa14da4f82a50a71edb67c1d7adfd1ef4
+docs/studio/tales/wenbrook-1000-years.md b20d83c42fbe5a6ebb72942dea66aa52fdffafb0
+docs/studio/tales/harrowmere-1000-years.md 80317632f9a70d62e656eff1198e909523f9f9a8
+docs/studio/tales/ashcombe-1000-years.md d5e74e8756002cdf009a15589e0d0102d1eae7ef

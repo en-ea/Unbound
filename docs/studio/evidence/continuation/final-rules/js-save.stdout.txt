@@ -1,0 +1,2 @@
+largest save 766 KB (6 years)
+PASS: 10 villages saved and loaded 3 times each end where unbroken runs end; save(load(save)) = save

@@ -222,6 +222,7 @@ func _physics_process(delta: float) -> void:
 			if _t > 0.6:
 				state = State.GRAZE
 				spook(player.global_position)
+	want = preload("res://scripts/studio/creatures/steer_around.gd").steer(self, want, delta, state == State.CHARGE)   # studio: round structures, never in a charge (note 233349)
 	var flat := Vector3(velocity.x, 0, velocity.z)
 	var accel := 14.0 if state in [State.CHARGE, State.FLEE] else 5.0
 	flat = flat.lerp(want, clampf(accel * delta, 0.0, 1.0)) + _push

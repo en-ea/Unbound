@@ -66,6 +66,7 @@ func build(shape: WorldShape) -> void:
 		col.position = Vector3(0, 2, 0)
 		body.add_child(col)
 		house.add_child(body)
+		preload("res://scripts/studio/world/fit_colliders.gd").add(house, String(h["model"]).get_file().get_basename())   # studio: what is drawn round it at a creature's height is solid too (note 233349)
 	_add_merchant(shape)
 	var visit := Node3D.new()                        # inside the residents' houses
 	visit.set_script(preload("res://scripts/world/visit_interior.gd"))

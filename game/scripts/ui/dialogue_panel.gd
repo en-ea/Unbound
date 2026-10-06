@@ -8,6 +8,7 @@ signal closed
 const CHARS_PER_SEC := 46.0
 const PAUSES := {",": 0.14, ".": 0.28, "!": 0.28, "?": 0.28, ":": 0.2, ";": 0.2}
 const PORTRAIT_SIZE := Vector2(300, 340)
+const RenderGate := preload("res://scripts/studio/render_gate.gd")   # studio
 const EDGE := 24.0                   # gap to the screen edges
 
 var npc := ""
@@ -169,7 +170,7 @@ func _build_portrait() -> void:
 	view.transparent_bg = true
 	view.own_world_3d = true
 	view.size = Vector2i(PORTRAIT_SIZE)
-	view.msaa_3d = Viewport.MSAA_2X
+	view.msaa_3d = RenderGate.msaa(Viewport.MSAA_2X)   # studio: no 3D MSAA where it leaks (render_gate.gd)
 	container.add_child(view)
 	var shade := Gradient.new()                            # a soft dark fade at the bottom of the window
 	shade.set_color(0, Color(0, 0, 0, 0))

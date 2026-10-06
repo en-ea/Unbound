@@ -24,6 +24,12 @@ extends Node
 ##   --lab             go straight to the build lab
 ##   --house=hill      own a home (outside, standing wherever --at puts you)
 ##   --inside[=hill]   own a home (lodge, or the house named) and start inside it; --furnish opens the furnish bar
+##   --kernel-bench    (studio branch) world-kernel conformance and timings, saved to user://studio-kernel.txt, then quit
+##   --kernel-thread   (studio branch) the game's frame times with and without the kernel running on a worker thread
+##   --studio=name     (studio branch) run a studio spike on the device (scripts/studio/<name>.gd), then quit
+##   --frame=explore   (studio branch) a camera framing: explore, fight, build (today's), vantage
+##   --fog=60,400      (studio branch) fog begin and end in metres
+##   --turntable[=90]  (studio branch) spin the camera a full turn twice (deg/s), record frame times, quit
 
 @export var day_night: Node
 
@@ -385,6 +391,27 @@ func _ready() -> void:
 			get_tree().create_timer(3.0).timeout.connect(_census)
 		elif arg == "--touchtest":
 			_touch_test = true
+		elif arg == "--kernel-bench":                   # studio branch: the world kernel's conformance and timings, then quit
+			load("res://scripts/studio/kernel/bench.gd").on_device(get_tree())
+		elif arg.begins_with("--studio="):              # studio branch: run a studio spike on the device (e.g. village/decision_bench), then quit
+			load("res://scripts/studio/%s.gd" % arg.trim_prefix("--studio=")).on_device(get_tree())
+		elif arg == "--kernel-thread":                  # studio branch: frame times with the kernel on a worker thread, then quit
+			add_child(load("res://scripts/studio/kernel/thread_probe.gd").new())
+		elif arg.begins_with("--frame="):                 # studio branch: a camera framing (explore, fight, build, vantage)
+			var rig := get_node("../CameraRig")
+			var frame := arg.trim_prefix("--frame=")
+			(func() -> void: load("res://scripts/studio/camera/framings.gd").apply(rig, frame)).call_deferred()
+		elif arg.begins_with("--turntable"):             # studio branch: spin the camera twice, record frame times, quit
+			var probe: Node = load("res://scripts/studio/camera/turntable_probe.gd").new()
+			probe.rig = get_node("../CameraRig")
+			if arg.begins_with("--turntable="):
+				probe.speed = float(arg.trim_prefix("--turntable="))
+			add_child(probe)
+		elif arg.begins_with("--fog="):                   # studio branch: fog begin,end in metres (horizon tests)
+			var v := arg.trim_prefix("--fog=").split(",")
+			(func() -> void:
+				day_night.environment.fog_depth_begin = float(v[0])
+				day_night.environment.fog_depth_end = float(v[1])).call_deferred()
 		elif arg == "--traveltest":                   # (with --memlog) travel meadow <-> forest every 15 s (leaks across region reloads)
 			get_tree().create_timer(15.0).timeout.connect(func() -> void:
 				Region.travel("forest" if Region.current == "meadow" else "meadow", Vector2.INF))

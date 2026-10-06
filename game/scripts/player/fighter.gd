@@ -69,6 +69,8 @@ var _step := 0
 var _since := 99.0
 var _queued := false
 var _heavy := false
+var _studio_intent := {} # studio: fixed prepared target (including air), independent of live nearest_enemy
+var _contact_key := "" # studio: stable action identity from initiation through contact/retry
 var _heavy_wind := 0.0          # length of the heavy wind-up, for the sword's glow
 var _thud: AudioStreamPlayer3D
 var _shock: MeshInstance3D
@@ -138,6 +140,7 @@ func aiming() -> bool:
 
 
 func _physics_process(delta: float) -> void:
+	if Controls.locked or VillageSession.background: return # studio: active-time commitment
 	_since += delta
 	if _busy > 0.0:
 		_busy -= delta
@@ -183,6 +186,7 @@ func _physics_process(delta: float) -> void:
 
 ## The action button near an enemy: one swing of the combo.
 func attack() -> void:
+	_studio_intent={} # studio: native keyboard adapter is a fresh commitment
 	if verb == "Takedown" and _busy <= 0.0 and is_instance_valid(target):
 		_takedown(target)
 		return
@@ -215,6 +219,27 @@ func attack() -> void:
 	_audio.play()
 
 
+# studio: use the existing authored attack, then bind its contact to the prepared actor/target.
+func directed(intent: Dictionary,strong := false) -> void:
+	if _busy>0:
+		return
+	var chosen: Node3D=intent.get("native")
+	var resident := int(intent.get("target",-2))
+	if resident>=0:
+		var res := preload("res://scripts/studio/village/contact.gd").registry(get_tree())
+		chosen=res.bodies.get(resident) if res!=null else null
+	target=chosen if is_instance_valid(chosen) else null
+	verb="Attack"
+	if strong:
+		heavy()
+	else:
+		attack()
+	_studio_intent=intent.duplicate()
+	_contact_key=str(intent.press_id)
+	_swing_target=target
+	var facing: Vector3=intent.get("forward",Vector3.FORWARD)
+	visual.rotation.y=atan2(facing.x,facing.z)
+
 ## From behind an unaware bandit: one quick, quiet blow.
 func _takedown(t: Node3D) -> void:
 	var to := t.global_position - player.global_position
@@ -234,6 +259,8 @@ func _takedown(t: Node3D) -> void:
 
 ## The Heavy button: one big blow. The player has already paid the stamina.
 func heavy() -> void:
+	_studio_intent={} # studio: native keyboard adapter is a fresh commitment
+	_contact_key = "swing:%d" % Time.get_ticks_usec() # studio: interim input binding, generic action key
 	if bow_out():
 		_start_draw(true)
 		return
@@ -271,6 +298,7 @@ func end_recovery() -> void:
 
 ## Stops a swing (a roll cancels it, and a draw).
 func cancel() -> void:
+	_studio_intent={} # studio: cancellation drops prepared intent
 	cancel_draw()
 	_heavy = false
 	visual.charge_tool(0.0)
@@ -300,7 +328,17 @@ func _land_hit() -> void:
 		visual.charge_tool(0.0)
 		_land_heavy()
 		return
-	var t := _swing_target if is_instance_valid(_swing_target) else _nearest_enemy(REACH)
+	# studio: measured ordinary contact shares the accepted fact route with shove/heavy.
+	if not _studio_intent.is_empty() and int(_studio_intent.get("target",-2))>=0:
+		var contact := preload("res://scripts/studio/village/contact.gd") # studio: persistent controller ref, independent of its visible identity
+		var struck := contact.perform(get_tree(),contact.actor_of(player),player,"strike",
+			{"press_id":_contact_key,"damage":int(Gear.hit_damage()[0]),"force":int(_studio_intent.get("force",450))},player.global_position,REACH, # studio: proposal - a prepared flick carries its force; keyboard keeps 450
+			_studio_intent.forward,int(_studio_intent.target))
+		if struck.get("accepted",false):
+			visual.hit_stop(0.04)
+			get_tree().call_group("camera_rig","shake",0.04)
+		return
+	var t := _swing_target if is_instance_valid(_swing_target) else (null if not _studio_intent.is_empty() else _nearest_enemy(REACH)) # studio: a lost prepared target remains a miss
 	if t == null or not is_instance_valid(t) or not t.is_alive():
 		Wolf.open_up()           # a swing at nothing leaves you open
 		return
@@ -369,7 +407,16 @@ func _land_heavy() -> void:
 	if player.take_counter():
 		hit = [hit[0] * 2, true]
 	var damage: int = hit[0]
+	# studio: prepared Heavy measures only its captured target; native keyboard Heavy keeps its authored area.
+	var contact := preload("res://scripts/studio/village/contact.gd")
+	var receipt := contact.perform(get_tree(),contact.actor_of(player),player,"strike",{"press_id":_contact_key,"damage":damage,"force":int(_studio_intent.get("force",850))}, # studio: same general actor door as walking/powers/haul; proposal - a prepared flick carries its force, keyboard keeps 850
+		player.global_position,HEAVY_REACH,_studio_intent.get("forward",facing),int(_studio_intent.get("target",-1)))
+	var contacts: int=receipt.get("contacts",[]).size() if receipt.get("accepted",false) and not receipt.get("duplicate",false) else 0
+	hit_any = contacts > 0 # studio: village contact shares native feedback; villagers never join enemy merely to be hit
+	if contacts > 0: _after_hit(hit[1]) # studio: retain native landed-hit feedback for ordinary contact
 	for e in get_tree().get_nodes_in_group("enemy"):
+		if e.get_meta("crowd_ignore",false): continue # studio: village markers receive one checked contact
+		if not _studio_intent.is_empty() and e!=_studio_intent.get("native"): continue # studio: no replacement target
 		var to: Vector3 = (e as Node3D).global_position - player.global_position
 		to.y = 0.0
 		if not e.is_alive() or to.length() > HEAVY_REACH or (to.length() > 0.8 and to.normalized().dot(facing) < -0.1):

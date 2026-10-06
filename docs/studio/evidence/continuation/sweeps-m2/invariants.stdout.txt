@@ -1,0 +1,2 @@
+20 villages x 1000 years (pace 1): 8.42 ms per village-year; alive 11-54; 176922 events
+PASS: causes and cues, no child victims or throwers, integer state, no stuck cases, population, violence budget, determinism

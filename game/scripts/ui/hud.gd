@@ -19,6 +19,7 @@ const BUTTONS := {
 }
 const HOLD_TO_SPRINT := 0.18     # Roll button: shorter than this is a roll, longer is a sprint
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
+const SafeArea := preload("res://scripts/ui/safe_area.gd")
 ## Title camera: close on the character, who stands to the right of the title.
 const TITLE_VIEW := {"distance": 5.0, "pitch": -7.0, "offset": Vector3(-1.35, 0.25, 0.0)}
 
@@ -30,6 +31,7 @@ const TITLE_VIEW := {"distance": 5.0, "pitch": -7.0, "offset": Vector3(-1.35, 0.
 var _fps_label: Label
 var _joystick: Control
 var _camera_drag: Control
+var _hands: Control # studio: continuous prepared intent surface; preserved legacy controls are unrouted
 var _action: ActionButton
 var _roll: ActionButton
 var _heavy: ActionButton
@@ -63,6 +65,7 @@ var _timer := 0.0
 
 func _ready() -> void:
 	add_to_group("hud")
+	var push := SafeArea.push(get_viewport())   # further in on phones whose notch or camera hole reaches past MARGIN
 	_add_vignette()
 	_joystick = Control.new()
 	_joystick.set_script(preload("res://scripts/ui/joystick.gd"))
@@ -71,12 +74,18 @@ func _ready() -> void:
 	_camera_drag.set_script(preload("res://scripts/ui/camera_drag.gd"))
 	_camera_drag.camera_rig = camera_rig
 	add_child(_camera_drag)
+	_hands=preload("res://scripts/studio/player/hands.gd").new() # studio: created once, also on region arrival
+	_hands.player=player # studio: one continuous input owner for this HUD's lifetime
+	add_child(_hands) # studio: title/menu visibility only suspends this existing adapter
+	if ResourceLoader.exists("res://scripts/studio/player/player_pose.gd"): # studio: Claude's actual visual capability
+		load("res://scripts/studio/player/player_pose.gd").attach(_hands) # studio: one intent-to-pose consumer
 
 	# The fight buttons sit in two rings round Attack (inner: Roll, Heavy, Parry, Sneak; outer: the class's
 	# abilities). Players can move and resize them all (Settings > Move buttons).
 	_action = _button("attack", "", "", BUTTONS["attack"])
 	_action.font_size = 28
 	_action.pressed.connect(player.act)
+	_action.add_to_group("action_button")   # studio: hold on a villager to fight (studio/village/hold_to_fight.gd)
 	player.verb_changed.connect(_action.set_verb)
 	_roll = _button("roll", "Roll", "roll", BUTTONS["roll"])
 	# A tap rolls (on release); holding it sprints instead (see _process).
@@ -125,7 +134,7 @@ func _ready() -> void:
 	_corner = HBoxContainer.new()
 	_corner.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	_corner.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_corner.position = Vector2(-MARGIN.x, MARGIN.y)
+	_corner.position = Vector2(-MARGIN.x - push.x, MARGIN.y + push.y)
 	_corner.add_theme_constant_override("separation", 12)
 	add_child(_corner)
 	_furnish = UIStyle.button(_corner, "Furnish", Vector2(120, 60), 20)
@@ -133,11 +142,12 @@ func _ready() -> void:
 	_furnish.pressed.connect(start_build_mode.bind(true))
 	UIStyle.icon_button(_corner, "menuGrid").pressed.connect(open_bag)
 	UIStyle.icon_button(_corner, "gear").pressed.connect(open_menu)
+	preload("res://scripts/studio/notes/note_button.gd").add_to(_corner)   # studio: the note tool (scripts/studio/notes/)
 
 	_map = Control.new()
 	_map.set_script(preload("res://scripts/ui/minimap.gd"))
 	_map.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	_map.position = Vector2(-MARGIN.x - 150.0, MARGIN.y + 72.0)
+	_map.position = Vector2(-MARGIN.x - push.x - 150.0, MARGIN.y + push.y + 72.0)
 	_map.player = player
 	_map.visual = character
 	add_child(_map)
@@ -150,7 +160,7 @@ func _ready() -> void:
 	player.got_up.connect(_got_up)
 
 	_buffs = HBoxContainer.new()
-	_buffs.position = MARGIN + Vector2(0, 96)
+	_buffs.position = MARGIN + push + Vector2(0, 96)
 	_buffs.add_theme_constant_override("separation", 8)
 	add_child(_buffs)
 	Food.changed.connect(_show_buffs)
@@ -160,13 +170,14 @@ func _ready() -> void:
 	_tracker.set_script(preload("res://scripts/ui/quest_tracker.gd"))
 	_tracker.position = MARGIN + Vector2(0, 140)
 	add_child(_tracker)
+	preload("res://scripts/studio/news/board.gd").add_to(self, _tracker)   # studio: the village's news under the tracker (scripts/studio/news/)
 
 	_feed = Control.new()
 	_feed.set_script(PICKUP_FEED)
 	add_child(_feed)
 
 	_fps_label = Label.new()
-	_fps_label.position = MARGIN
+	_fps_label.position = MARGIN + push
 	_fps_label.add_theme_font_size_override("font_size", 16)
 	_fps_label.modulate = Color(1, 1, 1, 0.7)
 	_fps_label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.6))
@@ -432,6 +443,7 @@ func open_station(props: Dictionary) -> void:
 ## (walking away stops fishing).
 func open_fishing(fisher: Fisher) -> void:
 	close_fishing()
+	_hands.visible = false # studio: merge interim - his Hook button sits where Hands takes the thumb; close_fishing gives it back
 	_action.visible = false
 	_roll.visible = false
 	_show_heavy()
@@ -456,19 +468,20 @@ func close_fishing() -> void:
 ## Down in a cave: no minimap (it shows the land above).
 func set_cave(on: bool) -> void:
 	_indoors = on
-	_map.visible = _action.visible and Settings.show_map and not on
+	_map.visible = _hands.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
 
 
 func set_indoors(on: bool, own_home := true) -> void:
 	_indoors = on
 	_furnish.visible = on and own_home
-	_map.visible = _action.visible and Settings.show_map and not on
+	_map.visible = _hands.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
 
 
 ## Building in your yard, or furnishing your home (`room`): joystick stays, the build bar replaces
 ## the other buttons.
 func start_build_mode(room := false) -> void:
 	_set_play_ui(true)
+	_hands.visible = false # studio: native build controls own this interval; hidden Hands releases held intent
 	_action.visible = false
 	_roll.visible = false
 	_heavy.visible = false
@@ -497,6 +510,8 @@ func show_quest_complete(id: String) -> void:
 
 ## Talking to a villager (world/npc.gd).
 func open_dialogue(npc: String) -> void:
+	if npc.begins_with("resident:") and not load("res://scripts/studio/village/resident_talk.gd").opened(npc):   # studio: the village records the meeting first
+		return   # studio
 	_tracker.set("hidden_for_talk", true)                       # it would sit behind the portrait
 	_tracker.call("refresh")
 	var panel := _modal(preload("res://scripts/ui/dialogue_panel.gd"), {"npc": npc})
@@ -588,8 +603,9 @@ func _title_camera() -> void:
 func _set_play_ui(on: bool) -> void:
 	_joystick.visible = on
 	_camera_drag.visible = on
-	_action.visible = on
-	_roll.visible = on
+	_hands.visible=on and not _bow_out() # studio: one phone control authority; merge interim: his bow keeps his Attack button
+	_action.visible=on and _bow_out() # studio: merge interim - his Attack draws and looses the bow until Body's controls take it
+	_roll.visible=false # studio: Feet owns dodge, stick rim owns sprint
 	if not on:
 		Controls.sprint_button = false
 	_show_heavy()
@@ -599,8 +615,16 @@ func _set_play_ui(on: bool) -> void:
 	_map.visible = on and Settings.show_map and not _indoors
 
 
+## studio: merge interim - the bow is out: his Attack button drives it (Body's controls unit replaces this).
+func _bow_out() -> bool: # studio:
+	return Gear.has_bow and Gear.weapon == "bow" # studio:
+
+
 ## Roll button: sprint while held, its rim shows stamina, it lights up while sprinting.
 func _update_roll_button() -> void:
+	if _hands!=null: # studio: the retired button cannot drive sprint or meter the live input owner
+		Controls.sprint_button=false # studio: stick rim supplies the continuous movement intent
+		return # studio: preserve the dormant implementation below
 	Controls.sprint_button = _roll.visible and _roll.held_for() >= HOLD_TO_SPRINT
 	var sprinting: bool = player.sprinting
 	if sprinting != _roll.lit:
@@ -617,6 +641,13 @@ func _update_roll_button() -> void:
 
 ## The fight buttons are always there while you play (Compact: flicks on Attack instead of Heavy and Parry).
 func _show_heavy() -> void:
+	if _hands!=null: # studio: one intent surface replaces provisional per-behaviour controls
+		_heavy.visible=false
+		_parry.visible=false
+		_sneak.visible=false
+		_action.swipes={}
+		_swap.visible=(_hands.visible or _action.visible) and Gear.has_bow # studio: merge interim - his Swap reaches the bow (clear of Hands)
+		return
 	var compact := Settings.compact_controls
 	_heavy.visible = _action.visible and not compact
 	_parry.visible = _action.visible and not compact
@@ -631,6 +662,8 @@ func _update_swap() -> void:
 	_swap.icon = "bow" if to_bow else "sword"
 	_swap.set_verb("Bow" if to_bow else "Sword")
 	_swap.queue_redraw()
+	if _hands!=null and _corner!=null and is_instance_valid(_joystick) and _joystick.visible and get_node_or_null("FishingUI")==null: # studio: merge interim
+		_set_play_ui(true) # studio: sword gives Hands back, bow gives his Attack button
 
 
 ## Sneaking on or off: the Sneak button lights up while you're crouched.
@@ -644,8 +677,8 @@ func _update_ability_buttons() -> void:
 	var list := Classes.abilities()
 	for i: int in _ability_buttons:
 		var b: ActionButton = _ability_buttons[i]
-		var show: bool = i < list.size() and _action.visible
-		b.visible = show or (ActionButton.editing and _action.visible)
+		var show: bool = _hands==null and i < list.size() and _action.visible # studio: power glyphs aim/release on Hands
+		b.visible = show or (_hands==null and ActionButton.editing and _action.visible) # studio: merge - his Move buttons editor, without Hands
 		if not show:
 			if ActionButton.editing:
 				b.set_verb("Skill %d" % (i + 1))
@@ -705,7 +738,7 @@ func slow_tint(seconds: float) -> void:
 
 func _on_settings_changed() -> void:
 	_fps_label.visible = Settings.show_stats
-	if _map and _action.visible:
+	if _map and _hands.is_visible_in_tree(): # studio: settings follow the live surface, including region arrival
 		_map.visible = Settings.show_map and not _indoors
 
 

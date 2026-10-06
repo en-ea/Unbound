@@ -1,0 +1,1 @@
+PASS lifecycle: chunk-independent live/offscreen continuation 3x8days; shared actor/venue reservations; disappearance cancellation; bounded contact/replay/reload; late free; terminal unlock; routine restore

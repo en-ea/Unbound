@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 572.16 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3050 Laptop GPU
+
+STUDIO device: Swift SFX14-41G; gl_compatibility; Godot 4.7.2-stable (official); VillagerBody (nearest 12 full, rest ~10 Hz without shadows); shadows on, animation on; fps cap none
+STUDIO  0 walking villagers: 701 frames, median 7.1 ms, 95th 35.4 ms, worst 40.7 ms, over 50 ms: 0; draws 390, triangles 110k
+STUDIO 30 walking villagers: 665 frames, median 8.6 ms, 95th 31.6 ms, worst 52.6 ms, over 50 ms: 2; draws 408, triangles 177k
+STUDIO 45 walking villagers: 574 frames, median 9.3 ms, 95th 37.9 ms, worst 42.3 ms, over 50 ms: 0; draws 420, triangles 210k

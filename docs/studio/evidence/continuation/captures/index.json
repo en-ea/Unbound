@@ -1,0 +1,66 @@
+[
+  {
+    "cue": "Tilda · Midwife",
+    "error": 0,
+    "event": -1,
+    "minute": 432,
+    "seed": 1,
+    "shot": "01-ordinary-residents"
+  },
+  {
+    "cue": "Hawise · Accused of theft. Hear witnesses; inspect the doorstep trace; speak to the elder before judgment.",
+    "error": 0,
+    "event": 18,
+    "minute": 44146,
+    "seed": 3,
+    "shot": "02-hearing"
+  },
+  {
+    "cue": "Hawise · Accused of theft. Hear witnesses; inspect the doorstep trace; speak to the elder before judgment.",
+    "error": 0,
+    "event": 18,
+    "minute": 44146,
+    "seed": 3,
+    "shot": "03-evidence-opportunity"
+  },
+  {
+    "cue": "Hawise · Approach the restraint to Free; stand in a throw's path to shield.",
+    "error": 0,
+    "event": 2,
+    "minute": 5149,
+    "seed": 1,
+    "shot": "04-public-act"
+  },
+  {
+    "cue": "Free! I'll hide in the far woods. I won't forget you.",
+    "error": 0,
+    "event": 2,
+    "minute": 5149,
+    "seed": 1,
+    "shot": "05-rescue-accepted"
+  },
+  {
+    "cue": "Hawise · You cut me loose. Thank you.",
+    "error": 0,
+    "event": -1,
+    "minute": 5318,
+    "seed": 1,
+    "shot": "06-saved-resident-refuge"
+  },
+  {
+    "cue": "Osric · A captive at the old stone. Cut the rope before dawn, or offer wood by gesture.",
+    "error": 0,
+    "event": 0,
+    "minute": 1795,
+    "seed": 16838,
+    "shot": "07-forebears-and-rite"
+  },
+  {
+    "cue": "Free! I'll hide in the far woods. I won't forget you.",
+    "error": 0,
+    "event": 0,
+    "minute": 1795,
+    "seed": 16838,
+    "shot": "08-storm-recedes-rescue-kept"
+  }
+]

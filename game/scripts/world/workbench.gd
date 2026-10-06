@@ -23,6 +23,7 @@ func build(shape: WorldShape, at: Vector2) -> void:
 	col.position = Vector3(0, 0.6, -0.3)
 	body.add_child(col)
 	add_child(body)
+	preload("res://scripts/studio/world/fit_colliders.gd").add(self, "workbench")   # studio: the end of the bench is solid too (note 233349)
 
 
 func interact() -> void:

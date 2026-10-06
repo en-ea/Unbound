@@ -1,0 +1,146 @@
+[
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Heavy Screen touched at ((400.3127, 365.5077)) with 0 touch points center=(1162.0, 430.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.915Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Roll Screen touched at ((400.3127, 365.5077)) with 0 touch points center=(995.0, 620.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.916Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Craft Screen touched at ((400.3127, 365.5077)) with 0 touch points center=(1130.0, 570.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.916Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Heavy Left Mouse Button center=(1162.0, 430.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.916Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Roll Left Mouse Button center=(995.0, 620.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.916Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Craft Left Mouse Button center=(1130.0, 570.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.916Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Heavy Screen released at ((400.3127, 365.5077)) with 0 touch points center=(1162.0, 430.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.981Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Roll Screen released at ((400.3127, 365.5077)) with 0 touch points center=(995.0, 620.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.982Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Craft Screen released at ((400.3127, 365.5077)) with 0 touch points center=(1130.0, 570.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.982Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Heavy Left Mouse Button center=(1162.0, 430.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.983Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Roll Left Mouse Button center=(995.0, 620.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.983Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Craft Left Mouse Button center=(1130.0, 570.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:06.983Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Heavy Screen touched at ((1130.884, 570.7928)) with 0 touch points center=(1162.0, 430.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:14.614Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Roll Screen touched at ((1130.884, 570.7928)) with 0 touch points center=(995.0, 620.0) visible=true emulate=true",
+    "timestamp": "2026-09-29T14:43:14.615Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Craft Screen touched at ((1130.884, 570.7928)) with 0 touch points center=(1130.0, 570.0) visible=true emulate=true",
+    "timestamp": "2026-09-29T14:43:14.615Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Heavy Left Mouse Button center=(1162.0, 430.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:14.622Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Roll Left Mouse Button center=(995.0, 620.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:14.623Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Craft Left Mouse Button center=(1130.0, 570.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:14.623Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Heavy Screen released at ((1130.884, 570.7928)) with 0 touch points center=(1162.0, 430.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:14.685Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Roll Screen released at ((1130.884, 570.7928)) with 0 touch points center=(995.0, 620.0) visible=true emulate=true",
+    "timestamp": "2026-09-29T14:43:14.687Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Craft Screen released at ((1130.884, 570.7928)) with 0 touch points center=(1130.0, 570.0) visible=true emulate=true",
+    "timestamp": "2026-09-29T14:43:14.687Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Heavy Left Mouse Button center=(1162.0, 430.0) visible=false emulate=true",
+    "timestamp": "2026-09-29T14:43:14.687Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Roll Left Mouse Button center=(995.0, 620.0) visible=true emulate=true",
+    "timestamp": "2026-09-29T14:43:14.687Z",
+    "url": "http://localhost:8087/index.js"
+  },
+  {
+    "level": "log",
+    "message": "INPUT_DIAG Craft Left Mouse Button center=(1130.0, 570.0) visible=true emulate=true",
+    "timestamp": "2026-09-29T14:43:14.687Z",
+    "url": "http://localhost:8087/index.js"
+  }
+]

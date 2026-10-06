@@ -1,0 +1,3 @@
+# Window 6 boards, cloud edition: 3b808a0 over 7ec6b4b - alertness and interest made visible (attention), and the fear row.
+attention-after --studio=people/animation_board --board=attention --shotframe=999999 --hide=HUD --at=-32,45 --time=0.5 --test-save=animation-board
+fear-after --studio=people/animation_board --board=fear --shotframe=999999 --hide=HUD --at=-32,45 --time=0.5 --test-save=animation-board

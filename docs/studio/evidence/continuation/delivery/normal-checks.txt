@@ -1,0 +1,22 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 3.3.0 NVIDIA 572.16 - Compatibility - Using Device: NVIDIA - NVIDIA GeForce RTX 3050 Laptop GPU
+
+PASS normal atomic save includes valid village
+PASS old save retains economy and awaits fresh village
+PASS malformed village falls back to valid atomic backup
+PASS truncated normal file falls back to backup
+PASS no valid village backup preserves core progress and reports recovery
+PASS menu pause freezes authoritative minutes
+PASS background freezes authoritative minutes
+PASS real action button still gathers a world resource
+PASS combat action still starts outside a rescue
+PASS downed player cannot act
+PASS locked controls cannot act
+PASS ordinary merchant opens from the real action button
+FAIL merchant Buy button completes an actual payment
+PASS merchant closes back into play
+PASS live bribe single debit, accepts=true
+PASS normal reload preserves bribe and wallet
+PASS live bribe single debit, accepts=false
+PASS normal reload preserves bribe and wallet
+CHECKS complete failures=1

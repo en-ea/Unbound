@@ -35,11 +35,14 @@ const SOUNDS := {
 @onready var player: CharacterBody3D = get_parent()
 
 
+var _studio_contacts: Node # studio: measures actual dash segments after native player motion, no creature brain edit
 var delver: Delver               # the Delver's abilities (player/delver.gd)
 var shade: Shade                 # the Shade's (player/shade.gd)
 
 
 func _ready() -> void:
+	_studio_contacts=preload("res://scripts/studio/player/power_contact.gd").new(player) # studio: owned contact runtime
+	add_child(_studio_contacts)
 	delver = Delver.new()
 	delver.name = "Delver"
 	add_child(delver)
@@ -79,7 +82,7 @@ func _process(delta: float) -> void:
 
 
 ## The action: an ability button.
-func use(ability: String) -> void:
+func use(ability: String, aim: Dictionary = {}) -> void: # studio: prepared glyph aim; native keyboard default retained
 	if player.is_down() or Controls.locked or player.is_rolling() or player.hauling.busy():
 		return
 	if delver.under:                      # under the ground only Burrow works: it drags a foe down
@@ -100,11 +103,11 @@ func use(ability: String) -> void:
 		"sinkhole":
 			delver.sinkhole()
 		"flame_dash":
-			_flame_dash()
+			_flame_dash(aim) # studio: same ability, explicit preparation
 		"meteor":
-			_meteor()
+			_meteor(aim) # studio: same ability, explicit preparation
 		"cinderburst":
-			_cinderburst()
+			_cinderburst(aim) # studio: same ability, explicit preparation
 		"shadow_dance":
 			shade.shadow_dance()
 		"mirage":
@@ -113,19 +116,22 @@ func use(ability: String) -> void:
 			shade.switch()
 
 
-func _flame_dash() -> void:
+func _flame_dash(aim: Dictionary = {}) -> void: # studio: optional captured aim
 	var dir := Vector3.ZERO
 	var m := Controls.get_move()
 	if m.length() > 0.2:
 		dir = Vector3(m.x, 0, m.y).normalized()
 	else:
 		dir = Vector3(sin(player.visual.rotation.y), 0, cos(player.visual.rotation.y))
-	var foe: Node3D = _nearest(8.0, dir)                  # an enemy ahead: go straight through it
+	var foe: Node3D = _nearest(8.0, dir) if aim.is_empty() else null # studio: aiming cannot turn into a different target
+	if not aim.is_empty(): dir=aim.get("dir",dir)                  # an enemy ahead: go straight through it
 	if foe:
 		var to := foe.global_position - player.global_position
 		to.y = 0.0
 		dir = to.normalized()
+	var contact_key := str(aim.get("press_id","dash:%d" % Time.get_ticks_usec())) # studio: one dash/sweep identity
 	var start := player.global_position
+	_studio_contacts.begin(contact_key,DASH_TIME+0.02,DASH_WIDTH,400,750) # studio: force separate from accepted heat/injury
 	player.dash(dir, DASH_DISTANCE / DASH_TIME, DASH_TIME)
 	_play("burst", 1.25, -3.0)
 	var trail := FireFX.flames(player, player.global_position + Vector3(0, 0.9, 0), 0.4, 26, 0.5, false, 0.55)
@@ -136,6 +142,7 @@ func _flame_dash() -> void:
 		var end := player.global_position
 		var hit_any := false
 		for e in get_tree().get_nodes_in_group("enemy"):
+			if e.get_meta("crowd_ignore",false): continue # studio: accepted village route once
 			if not e.is_alive():
 				continue
 			var p: Vector3 = (e as Node3D).global_position
@@ -160,16 +167,16 @@ func _flame_dash() -> void:
 			get_tree().call_group("camera_rig", "shake", 0.1))
 
 
-func _meteor() -> void:
-	var foe: Node3D = _nearest(METEOR_REACH, Vector3.ZERO)
+func _meteor(aim: Dictionary = {}) -> void: # studio: optional captured aim
+	var foe: Node3D = _nearest(METEOR_REACH, Vector3.ZERO) if aim.is_empty() else null # studio: ring uses the prepared ground point
 	var facing := Vector3(sin(player.visual.rotation.y), 0, cos(player.visual.rotation.y))
-	var target: Vector3 = foe.global_position if foe else player.global_position + facing * 7.0
+	var target: Vector3 = aim.get("at",foe.global_position if foe else player.global_position+facing*7.0) # studio: no post-release retarget
 	if foe:
 		var to := foe.global_position - player.global_position
 		player.visual.rotation.y = atan2(to.x, to.z)
 	player.visual.play_action("Spell_Simple_Shoot", 1.2)
 	_play("cast", 1.0, -2.0)
-	_drop_star(foe, target, 1.0)
+	_drop_star(foe,target,1.0,str(aim.get("press_id",""))) # studio: cause follows the prepared ring
 	if Classes.has_talent("twin_stars"):          # a second, smaller star on another enemy
 		var second: Node3D = null
 		var best := METEOR_REACH
@@ -185,7 +192,8 @@ func _meteor() -> void:
 
 
 ## One star: a warning ring on the target, then the fall and the blast. `power` scales it (the twin is smaller).
-func _drop_star(foe: Node3D, target: Vector3, power: float) -> void:
+func _drop_star(foe: Node3D, target: Vector3, power: float, press := "") -> void: # studio: preserve caller identity
+	var contact_key := press if press!="" else "star:%d" % Time.get_ticks_usec() # studio: proposal - idempotent area action, no input semantics.
 	var root := player.get_parent()
 	var radius := _meteor_radius() * (0.75 if power < 1.0 else 1.0)
 	# The warning ring on the ground: it tracks the target for most of the wait, then holds still.
@@ -248,14 +256,14 @@ func _drop_star(foe: Node3D, target: Vector3, power: float) -> void:
 			star.queue_free()
 			if is_instance_valid(ring):
 				ring.queue_free()
-			_meteor_lands(at, power)))
+			_meteor_lands(at, power, contact_key))) # studio: proposal - same key follows the actual landing.
 
 
 func _meteor_radius() -> float:
 	return METEOR_RADIUS * (1.33 if Classes.has_talent("greater_star") else 1.0)
 
 
-func _meteor_lands(at: Vector3, power := 1.0) -> void:
+func _meteor_lands(at: Vector3, power := 1.0, contact_key := "") -> void: # studio: proposal - optional area action key.
 	var root := player.get_parent()
 	var radius := _meteor_radius() * (0.75 if power < 1.0 else 1.0)
 	FireFX.blast(root, at, radius)
@@ -264,6 +272,7 @@ func _meteor_lands(at: Vector3, power := 1.0) -> void:
 	get_tree().call_group("camera_rig", "shake", 0.35)
 	var hit := false
 	for e in get_tree().get_nodes_in_group("enemy"):
+		if e.get_meta("crowd_ignore",false):continue # studio: proposal - villager markers use checked fire contact once below.
 		if not e.is_alive():
 			continue
 		var d: float = (e as Node3D).global_position.distance_to(at)
@@ -274,6 +283,7 @@ func _meteor_lands(at: Vector3, power := 1.0) -> void:
 		FloatText.spawn(get_tree(), (e as Node3D).global_position + Vector3(0, 1.6, 0), str(dmg) + "!", Color(1.0, 0.55, 0.2), true)
 		FireFX.ignite(e, 4.0)
 		hit = true
+	preload("res://scripts/studio/village/contact.gd").area(get_tree(),player,at,radius,contact_key if contact_key!="" else "area:%d" % Time.get_ticks_usec()) # studio: proposal - Meteor reaches eligible village bodies through P1/S once.
 	FireFX.burning_ground(root, at, radius * 0.65, 4.0, 1)
 	if hit and power >= 1.0:
 		Engine.time_scale = 0.1
@@ -282,7 +292,7 @@ func _meteor_lands(at: Vector3, power := 1.0) -> void:
 
 ## Cinderburst (our take on the Outriders pyromancer's Overheat): a ring of fire from you. Burning enemies
 ## in it explode one after another (spreading the fire), and each explosion sends a spark back that heals you.
-func _cinderburst() -> void:
+func _cinderburst(aim: Dictionary = {}) -> void: # studio: optional captured aim
 	var root := player.get_parent()
 	var here := player.global_position
 	var radius := BURST_RADIUS * (1.4 if Classes.has_talent("wide_ring") else 1.0)
@@ -292,8 +302,10 @@ func _cinderburst() -> void:
 	FireFX.flames(root, here + Vector3(0, 0.3, 0), radius * 0.8, 70, 0.6, true, 0.7)
 	_play("burst", 0.9, 1.0)
 	get_tree().call_group("camera_rig", "shake", 0.2)
+	preload("res://scripts/studio/village/contact.gd").area(get_tree(),player,here,radius,str(aim.get("press_id","burst:%d" % Time.get_ticks_usec())),650) # studio: Burst direct heat, no human spread route yet
 	var popping: Array[Node3D] = []
 	for e in get_tree().get_nodes_in_group("enemy"):
+		if e.get_meta("crowd_ignore",false): continue # studio: human heat belongs to accepted facts
 		var n := e as Node3D
 		if not e.is_alive() or n.global_position.distance_to(here) > radius:
 			continue

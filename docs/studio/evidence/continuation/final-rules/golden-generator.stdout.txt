@@ -1,0 +1,4 @@
+seed 1000 pace 1: 20 checkpoints, final 600 0cea817a cb74a394 97 64dbc1e4 2
+seed 8919 pace 1: 20 checkpoints, final 600 a9ccb701 0e189ede 129 ea6763cd 2
+seed 16838 pace 10: 20 checkpoints, final 600 b63f5909 ae39310c 1182 bf5bd7b3 2
+wrote game/scripts/studio/village/sim/golden_data.gd

@@ -7,7 +7,9 @@ var joystick := Vector2.ZERO
 ## True while a menu (like the look picker) has the player's attention.
 var locked := false
 ## True while the Roll button is held (roll, then keep holding to sprint).
+var stick_sprint := false # studio: sustained outer-stick intent, independent of preserved Roll adapter
 var sprint_button := false
+var stick_act := {} # studio: proposal - B3 slice 3, the stick's lift asks for a dodge or a crouch; Body's Hands reads it once
 ## The camera's turn (radians, set by the camera): movement is relative to where it looks.
 var cam_yaw := 0.0
 ## True while the Attack button (attack_touch, set by the HUD) or the left mouse button / E (attack_key, set
@@ -21,7 +23,7 @@ func is_attack_held() -> bool:
 
 
 func is_sprint_held() -> bool:
-	return not locked and (sprint_button or Input.is_physical_key_pressed(KEY_SHIFT))
+	return not locked and (stick_sprint or sprint_button or Input.is_physical_key_pressed(KEY_Q) or Input.is_physical_key_pressed(KEY_SHIFT)) # studio: merge - his Shift sprint kept beside the stick-rim sprint
 
 
 ## Returns the wanted movement on the ground plane (x = world x, y = world z), length 0..1.

@@ -50,6 +50,7 @@ var _roll_speed := ROLL_SPEED
 var _roll_time := ROLL_TIME
 var abilities: Abilities
 var hauling: Hauling            # dragging a body or riding the ox cart
+var _studio_guard := false # studio: held guard keeps native blocking, never resets the perfect-parry age
 var fisher: Fisher              # fishing at the water's edge
 var _guard := 0.0               # guard up (the Parry button): the first part of it is a perfect parry
 var _guard_age := 0.0
@@ -65,6 +66,22 @@ func is_rolling() -> bool:
 
 
 ## Heavy attack (the Heavy button in a fight): a slow, big swing that costs stamina.
+# studio: prepared intent invokes native clips/combat; no target substitution or private villager fighter.
+func studio_strike(intent: Dictionary, strong := false) -> void:
+	if Controls.locked or is_down() or _roll>0 or _stun>0 or hauling.busy() or burrowed() or gatherer.is_busy():
+		return
+	if fighter.recovering():
+		fighter.end_recovery()
+	if fighter.is_busy() or (strong and not stamina.use("heavy")):
+		return
+	fighter.directed(intent,strong)
+func studio_hold_guard(on: bool) -> void:
+	if on:
+		guard()
+		_studio_guard=_guard>0.0
+	else:
+		_studio_guard=false
+		_guard=0.0
 func heavy() -> void:
 	if hauling.busy() or burrowed():
 		return
@@ -229,13 +246,15 @@ func _play(stream: AudioStream, db: float) -> void:
 ## The action button: fight if an enemy is in reach, otherwise talk, use or gather, and with nothing
 ## around it's still Attack (a swing at the air, so the button always does something).
 func act() -> void:
-	if _roll > 0.0 or _stun > 0.0:
+	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or Controls.locked:
 		return
+	_station = _nearest_station() if not hauling.riding else null   # studio: validate the same local target at input time
 	if burrowed():
 		abilities.delver.erupt()
 	elif hauling.riding:
 		hauling.get_off()
-	elif is_instance_valid(_station) and (hauling.carrying or fighter.verb == ""):
+	# studio: an urgent village action (Free, Testify, ...) comes before a fight
+	elif is_instance_valid(_station) and (_station.get_meta("village_action", false) or hauling.carrying or fighter.verb == ""):
 		_station.interact()
 	elif hauling.carrying:
 		hauling.drop()
@@ -293,14 +312,15 @@ func _nearest_station() -> Node3D:
 	var best_d := INF
 	for n: Node3D in get_tree().get_nodes_in_group("interactable"):
 		var d := Vector2(n.global_position.x - global_position.x, n.global_position.z - global_position.z).length()
-		if n.verb != "" and d < n.reach and d < best_d and absf(n.global_position.y - global_position.y) < 3.0:
-			best_d = d
+		var score := d - (10.0 if n.get_meta("village_action", false) else 0.0)   # studio: urgent village actions win
+		if n.verb != "" and d < n.reach and score < best_d and absf(n.global_position.y - global_position.y) < 3.0:
+			best_d = score
 			best = n
 	return best
 
 
 ## Dodge roll: a quick roll in the stick direction (or forward). Charges miss you mid-roll.
-func roll() -> void:
+func roll(intent_direction := Vector3.ZERO) -> void: # studio: Feet flick supplies its own direction; keyboard keeps its native default
 	if hauling.busy() or burrowed():
 		return
 	if _roll > 0.0 or _roll_rest > 0.0 or _stun > 0.0 or gatherer.is_busy() or Controls.locked:
@@ -311,7 +331,9 @@ func roll() -> void:
 	_guard = 0.0
 	_roll_age = 0.0
 	var m := Controls.get_move()
-	if m.length() > 0.1:
+	if intent_direction.length_squared()>0.001: # studio: explicit Feet intent wins over walking direction
+		_roll_dir=intent_direction.normalized()
+	elif m.length() > 0.1:
 		_roll_dir = Vector3(m.x, 0, m.y).normalized()
 	else:
 		_roll_dir = Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
@@ -466,6 +488,14 @@ func take_damage(amount: int) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# studio: physical commitments use active seconds; a menu/background cannot finish a strike or step.
+	if Controls.locked or VillageSession.background:
+		velocity=Vector3.ZERO
+		return
+	if _studio_guard and not stamina.winded and not is_down() and _stun<=0:
+		_guard=maxf(_guard,delta+0.12)
+	elif _studio_guard:
+		_studio_guard=false
 	_since_hit += delta
 	_roll_rest = maxf(_roll_rest - delta, 0.0)
 	_roll_age += delta
@@ -496,6 +526,9 @@ func _physics_process(delta: float) -> void:
 		return
 	_station = _nearest_station() if not hauling.riding else null
 	var new_verb: String = fighter.verb if not hauling.busy() else ""
+	# studio: urgent village actions remain explicitly selectable near the target.
+	if is_instance_valid(_station) and _station.get_meta("village_action", false):
+		new_verb = _station.verb
 	if burrowed():
 		new_verb = "Erupt"
 	if new_verb == "":
@@ -540,13 +573,22 @@ func _physics_process(delta: float) -> void:
 		var run := Balance.SPRINT_SPEED if sprinting else RUN_SPEED
 		run *= 1.0 + Armor.bonus_total("fleet") / 100.0
 		target_speed = run * (Balance.SWIFT_SPEED if Food.has("swift") else 1.0) if strength >= RUN_THRESHOLD else WALK_SPEED * remap(strength, 0.1, RUN_THRESHOLD, 0.6, 1.0)
+		# studio: continuous phone walk/run ramp; native keyboard speeds remain available.
+		if Controls.joystick!=Vector2.ZERO:
+			var blend := smoothstep(0.5,1.0,strength)
+			target_speed=lerpf(WALK_SPEED*clampf(strength/0.5,0,1),run,blend)
+			target_speed*=Balance.SWIFT_SPEED if Food.has("swift") else 1.0
+		if has_meta("studio_people_load"):
+			target_speed=minf(target_speed,2.2) # studio: accepted human load cap; no Carcass API or second mover
 		if sneaking:
 			target_speed = minf(target_speed, Balance.STEALTH["sneak_speed"] * (1.33 if Classes.has_talent("soft_steps") else 1.0))
 		if burrowed():                        # under the ground: fast, a mound of earth over you
 			target_speed = abilities.delver.burrow_speed() * minf(strength / RUN_THRESHOLD, 1.0)
 		if hauling.carrying:                  # heave, step, heave: you surge as each foot plants
 			var heave := sin(PI * visual.step_phase())
+			var free_speed := target_speed   # studio: his pace before the drag's cap, for haul.gd's
 			target_speed = minf(target_speed, Balance.HUNT["drag_speed"]) * (0.35 + 1.3 * heave * heave)
+			target_speed = preload("res://scripts/studio/player/haul.gd").pace(self, target_speed, heave, free_speed)   # studio: carried 3.6 m/s, dragged 2.6 (note 230032)
 	# Controls already turned the stick into ground directions (relative to the camera).
 	var dir := Vector3(move.x, 0.0, move.y).normalized()
 	var flat := Vector3(velocity.x, 0.0, velocity.z).lerp(dir * target_speed, clampf(ACCEL * delta, 0.0, 1.0))
@@ -558,6 +600,7 @@ func _physics_process(delta: float) -> void:
 
 	var speed := Vector2(velocity.x, velocity.z).length()
 	if hauling.carrying:                      # facing the body, stepping backwards, pulling it along
+		if preload("res://scripts/studio/player/haul.gd").walk(self, dir, strength, speed, delta, TURN_SPEED): return   # studio: facing the way he goes (note 230032)
 		if is_instance_valid(hauling.carrying):
 			var to: Vector3 = hauling.carrying.global_position - global_position
 			visual.rotation.y = lerp_angle(visual.rotation.y, atan2(to.x, to.z), clampf(TURN_SPEED * 0.5 * delta, 0.0, 1.0))

@@ -1,0 +1,7 @@
+device: SM-G973F; gl_compatibility; Godot 4.7.2-stable (official)
+ 0 walking villagers: 240 frames, median 33.3 ms, 95th 37.6 ms, worst 42.7 ms, over 50 ms: 0; draws 286, triangles 88k
+10 walking villagers: 235 frames, median 33.4 ms, 95th 36.7 ms, worst 168.3 ms, over 50 ms: 3; draws 732, triangles 127k
+20 walking villagers: 240 frames, median 33.2 ms, 95th 36.5 ms, worst 39.8 ms, over 50 ms: 0; draws 1090, triangles 157k
+30 walking villagers: 198 frames, median 39.7 ms, 95th 44.9 ms, worst 54.0 ms, over 50 ms: 1; draws 1395, triangles 195k
+45 walking villagers: 120 frames, median 66.2 ms, 95th 72.6 ms, worst 92.8 ms, over 50 ms: 120; draws 2082, triangles 260k
+60 walking villagers: 82 frames, median 98.6 ms, 95th 107.4 ms, worst 109.4 ms, over 50 ms: 82; draws 2840, triangles 330k

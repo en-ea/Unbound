@@ -1,0 +1,66 @@
+S1 - world as a function. Node v24.16.0, 2026-09-28T20:44:49.372Z
+
+1. Generate 500 years of history (12 founding villages, 3 peoples)
+   median 30.9 ms per 500-year history (max 38.8 ms) over 20 seeds
+   settlements by year 500: median 29; events logged: median 4586
+   same seed twice -> 40572043 / 40572043 (identical)
+
+2. Checkpoints every 25 years: 20 snapshots, 162 KB as JSON in total
+
+3. Time-storm view of Brinnorcor
+   today (year 500): Brinnorcor: ruin since year 26
+   inside a storm, year 11: Brinnorcor: hut of 17, knows fire  [0.8 ms]
+   the future, year 600 (whole world simulated forward): 29 settlements  [7.3 ms]
+
+4. Change the past: warn one village of the flood that hit it
+   trials: 20 keyed, 20 stream; re-simulation from the nearest checkpoint: median 22.0 ms
+   resume-from-checkpoint equals a full re-run from year 0: yes, every trial
+   settlements that differ at all by year 500:      keyed median 86% | shared stream median 92%
+   settlements a player would notice differ (stage, knowledge, ruin, >10% people): keyed median 21% | shared stream median 61%
+   (noticeable, per trial - keyed: 2 3 4 6 13 10 6 9 9 5 10 3 15 10 13 5 12 3 2 5 | stream: 21 25 26 13 14 25 15 18 23 23 23 25 15 16 10 26 20 14 21 13)
+
+5. Catch-up after 30 days offline at one world-year per day: 1.3 ms
+
+6. Two players' logs merged in different arrival orders: ce101870 / ce101870 (identical); without them: 40572043
+   what travels between phones: 330 bytes of JSON
+
+7. Chronicle of Wenor (seed 1000)
+   as it happened:
+     yr   0  Wenor is founded by the Mainlanders
+     yr  14  Wenor learns charcoal from Torgarpel
+     yr  19  a flood takes 12 lives in Wenor
+     yr  47  Wenor discovers pottery
+     yr  62  Wenor learns writing from Torgarpel
+     yr  71  a flood takes 20 lives in Wenor
+     yr  73  Wenor learns copper from Dunholash
+     yr  77  Wenor learns farming from Norranwen
+     yr  90  Wenor discovers boats
+     yr  90  Wenor learns medicine from Gartorel
+     yr  92  Wenor discovers iron
+     yr 103  Wenor learns the mill from Norranwen
+     yr 107  a flood takes 36 lives in Wenor and destroys the mill
+     yr 107  Wenor learns the mill from Norranwen
+     ... today: Wenor: town of 272, knows fire, farming, pottery, charcoal, copper, the mill, bread, iron, writing, boats, medicine
+   after a player warned them before year 107:
+     yr   0  Wenor is founded by the Mainlanders
+     yr  14  Wenor learns charcoal from Torgarpel
+     yr  19  a flood takes 12 lives in Wenor
+     yr  47  Wenor discovers pottery
+     yr  62  Wenor learns writing from Torgarpel
+     yr  71  a flood takes 20 lives in Wenor
+     yr  73  Wenor learns copper from Dunholash
+     yr  77  Wenor learns farming from Norranwen
+     yr  90  Wenor discovers boats
+     yr  90  Wenor learns medicine from Gartorel
+     yr  92  Wenor discovers iron
+     yr 103  Wenor learns the mill from Norranwen
+     yr 106  a stranger from another age warns Wenor of the flood; they raise dykes
+     yr 107  the river rises at Wenor, but the dykes hold
+     ... today: Wenor: town of 276, knows fire, farming, pottery, charcoal, copper, the mill, bread, iron, writing, boats, medicine
+
+8. Hinge search: prevent each flood in turn, rank by how much today changes
+   seed 1000: 108 floods tried in 930.7 ms; villages changed today - median 3, best 8 ("a flood takes 80 lives in Dunholash and destroys the mill", year 349)
+   seed 8919: 114 floods tried in 1060.1 ms; villages changed today - median 3, best 17 ("a flood takes 18 lives in Lormor", year 57)
+   seed 16838: 100 floods tried in 827.3 ms; villages changed today - median 5, best 10 ("a flood takes 14 lives in Ashhol and destroys the mill", year 75)
+   seed 24757: 91 floods tried in 788.0 ms; villages changed today - median 4, best 11 ("a flood takes 19 lives in Dunyr and destroys the mill", year 65)
+   seed 32676: 129 floods tried in 2007.1 ms; villages changed today - median 8, best 23 ("a flood takes 24 lives in Holran and destroys the mill", year 91)

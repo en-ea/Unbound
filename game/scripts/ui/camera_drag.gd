@@ -37,7 +37,14 @@ func _input(event: InputEvent) -> void:
 
 
 func _can_turn() -> bool:
-	return visible and not Controls.locked
+	return is_visible_in_tree() and not Controls.locked and not VillageSession.background # studio: camera shares actual input availability
+
+
+func _process(_dt: float) -> void: # studio: background/lock releases an existing camera finger before resume
+	if not _can_turn():
+		_finger=-1
+		if camera_rig:
+			camera_rig.held=false
 
 
 ## True over any visible button of the HUD (Attack, Roll, Heavy, the menu buttons...).

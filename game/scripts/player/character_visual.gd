@@ -383,6 +383,7 @@ func tint_tool(tool_name: String, color: Color) -> void:
 func apply_hero_look() -> void:
 	if _merged:
 		return
+	CharacterMerge.after_look(self) # studio: proposal (graphics S2); his merged visuals return above
 	if is_player_look:
 		scale = Vector3(hero_look.build, hero_look.height, hero_look.build)
 	if body_model != "":                    # a ready-made body: every part shows, only the materials need setting
