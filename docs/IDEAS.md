@@ -70,3 +70,10 @@ achievements with rewards); a dog companion (sniffs chests and ore, helps fight)
 ability); world events (travelling merchant, storm nights, harvest festival). Also from before: a main quest line
 across the three regions ending at a guardian boss; elite beasts and better loot; things to find (ruins, lore
 stones, % explored); village growth projects; dangerous nights. Done: bounty boards; elk taming and riding.
+
+## Village events with their own place (owner, 6 Oct)
+- Big village events (weddings, funerals, festivals, trials) get **their own set-up area** when they need one: a wedding arch, benches and a feast table, put up for the day and taken down after.
+- **Sensible, calibrated timing:** announced ahead (a villager mentions it, a notice), on at a set time of day, not too often.
+- **Over time it's people you know:** the wedding can be someone you've helped, rented to or fought beside, so it means something.
+- **You choose how to take part:** go and enjoy it (sit, eat, dance, give a gift), or ruin it (start a fight, set it on fire, blow the place up), and the village remembers either way.
+- Builds on Hilmi's goings-on (`studio/village/sim/goings_on.gd`), which already gathers people in the square for weddings, funerals, market and trials, but shows nothing yet.
