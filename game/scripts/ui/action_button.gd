@@ -30,7 +30,8 @@ var meter_color := Color(0.62, 0.9, 0.38)
 var sweep := false               # show the meter as a cooldown: a dark wedge and the seconds left
 var seconds := 0                 # with sweep: the whole seconds still to wait
 var lit := false                 # glows while its hold action is on (sprinting)
-var lit_fill := Color(0.2, 0.3, 0.16, 0.75)     # its colour then (abilities: the class's colour)
+var lit_fill := Color(0.2, 0.3, 0.16, 0.75)     # its colour then
+var accent := Color(0.8, 0.82, 0.9)  # its own colour: the ring and the glow inside (abilities: the class's)
 var dim := false                 # can't be used right now
 var _held := -1
 var _held_for := 0.0
@@ -44,6 +45,8 @@ const SWIPE := 36.0              # pixels a finger must travel for a flick
 const DIRS := {"up": Vector2(0, -1), "down": Vector2(0, 1), "left": Vector2(-1, 0), "right": Vector2(1, 0)}
 const CREAM := Color(1, 0.97, 0.9)
 const GOLD := Color(1.0, 0.82, 0.42)
+const AbilityIcons := preload("res://scripts/ui/ability_icons.gd")
+static var _soft: GradientTexture2D  # the soft round light behind glows, gloss and shadows
 
 
 func is_held() -> bool:
@@ -196,58 +199,64 @@ func set_meter(value: float) -> void:
 func _draw() -> void:
 	var c := center() + Vector2(sin(_shake * 40.0) * 6.0 * _shake, 0)
 	var active := (verb != "" or icon != "") and not dim
-	var r := radius * (1.0 - 0.08 * _pulse)
-	var big := home_radius >= 60.0          # the main action button gets the gold ring
-	var alpha := 1.0 if active else 0.45
 	var pressed := _held != -1 and not editing
-	# Soft shadow: a few faint discs, offset down.
-	for k in 4:
-		draw_circle(c + Vector2(0, 3.0 + k * 1.5), r + 2.0 + k * 2.0, Color(0, 0, 0, 0.07 * alpha), true, -1.0, true)
-	# Body: a dark glass disc, lighter towards the top (stacked discs make the gradient).
-	var base := lit_fill if lit else Color(0.09, 0.11, 0.17)
-	var layers := 10
-	for k in layers:
-		var t := float(k) / layers
-		var col := base.lerp(base.lightened(0.28), t)
-		col.a = (0.82 if active else 0.5) if not lit else lit_fill.a + 0.1
-		draw_circle(c - Vector2(0, r * 0.22 * t), r * (1.0 - 0.55 * t), col, true, -1.0, true)
-	if pressed:
-		draw_circle(c, r, Color(1, 1, 1, 0.12), true, -1.0, true)
-	# Glass highlight across the top.
-	draw_arc(c, r * 0.8, PI * 1.18, PI * 1.82, 24, Color(1, 1, 1, 0.16 * alpha), r * 0.1, true)
-	# Rims: a dark outer line, then a bright (gold on the big one) inner ring.
-	draw_arc(c, r + 1.5, 0.0, TAU, 72, Color(0, 0, 0, 0.45 * alpha), 2.0, true)
-	var rim := Color(GOLD, 0.95 * alpha) if big else Color(1, 1, 1, 0.55 * alpha)
-	if lit and sweep:
-		rim = meter_color.lightened(0.35)
-	draw_arc(c, r - 1.5, 0.0, TAU, 72, rim, 3.0 if big else 2.0, true)
-	if big:
-		draw_arc(c, r - 6.0, 0.0, TAU, 72, Color(GOLD, 0.18 * alpha), 1.5, true)
+	var r := radius * (1.0 - 0.08 * _pulse - (0.04 if pressed else 0.0))
+	var big := home_radius >= 60.0          # the main action button gets the gold bezel
+	var alpha := 1.0 if active else 0.55
+	var hue := accent if not dim else accent.lerp(Color(0.5, 0.5, 0.55), 0.6)
 	var cooling := sweep and meter < 1.0
-	if cooling:               # cooldown: a dark wedge over what's still to wait
+	# Shadow underneath, and a soft glow in its colour while it's ready (abilities) or lit.
+	_blob(c + Vector2(0, r * 0.1), Vector2.ONE * r * 1.32, Color(0, 0, 0, 0.42 * alpha))
+	if (sweep and not cooling and active) or (lit and not sweep):
+		var beat := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.004)
+		_blob(c, Vector2.ONE * r * (1.45 + 0.08 * beat), Color(hue, 0.3 + 0.2 * beat))
+	# Body: dark glass with a glow of its colour in the middle, deeper at the edge.
+	var body := Color(0.05, 0.06, 0.09, 0.9 if active else 0.7)
+	if lit and not sweep:
+		body = Color(lit_fill.darkened(0.2), 0.92)
+	draw_circle(c, r, body, true, -1.0, true)
+	_blob(c + Vector2(0, r * 0.12), Vector2.ONE * r * 0.98, Color(hue.darkened(0.15), (0.5 if active else 0.22) + (0.25 if pressed else 0.0)))
+	_blob(c + Vector2(0, -r * 0.05), Vector2.ONE * r * 0.55, Color(hue.lightened(0.3), 0.18 if active else 0.05))
+	# Gloss: a soft light across the top half.
+	_blob(c + Vector2(0, -r * 0.5), Vector2(r * 0.7, r * 0.36), Color(1, 1, 1, 0.16 if active else 0.06))
+	# The ring: a metal band lit from the top left (gold and thick on the main button).
+	draw_arc(c, r + (4.5 if big else 2.5), 0.0, TAU, 72, Color(0, 0, 0, 0.55 * alpha), 2.0, true)
+	if big:
+		_metal_ring(c, r, 6.0, Color(1.0, 0.93, 0.66, alpha), Color(0.5, 0.31, 0.1, alpha))
+		draw_arc(c, r - 3.5, 0.0, TAU, 72, Color(0.15, 0.08, 0.02, 0.6 * alpha), 1.5, true)
+	else:
+		_metal_ring(c, r, 3.5, Color(hue.lightened(0.55), 0.95 * alpha), Color(hue.darkened(0.55), 0.9 * alpha))
+	draw_arc(c, r + (2.4 if big else 1.4), PI * 1.08, PI * 1.62, 20, Color(1, 1, 1, 0.45 * alpha), 1.2, true)
+	if cooling:               # cooldown: a dark wedge over what's still to wait, the ring refilling in colour
 		var pts := PackedVector2Array([c])
 		var steps := maxi(int(48 * (1.0 - meter)), 2)
 		for k in steps + 1:
 			var a := -PI * 0.5 + TAU * meter + TAU * (1.0 - meter) * k / steps
-			pts.append(c + Vector2(cos(a), sin(a)) * (r - 2.0))
-		draw_colored_polygon(pts, Color(0.02, 0.03, 0.06, 0.55))
-		draw_arc(c, r, -PI * 0.5, -PI * 0.5 + TAU * maxf(meter, 0.01), maxi(int(64 * meter), 2), meter_color, 4.0, true)
-	elif meter < 1.0:         # stamina: the rim empties anticlockwise from the top
-		draw_arc(c, r, 0.0, TAU, 64, Color(0.05, 0.06, 0.1, 0.8), 5.0, true)
+			pts.append(c + Vector2(cos(a), sin(a)) * (r - 1.5))
+		draw_colored_polygon(pts, Color(0.01, 0.02, 0.04, 0.62))
 		if meter > 0.0:
-			draw_arc(c, r, -PI * 0.5, -PI * 0.5 + TAU * meter, maxi(int(64 * meter), 2), meter_color, 5.0, true)
+			draw_arc(c, r, -PI * 0.5, -PI * 0.5 + TAU * meter, maxi(int(64 * meter), 2), accent.lightened(0.2), 4.0, true)
+	elif meter < 1.0:         # stamina: the rim empties anticlockwise from the top
+		draw_arc(c, r + 1.0, 0.0, TAU, 64, Color(0.02, 0.03, 0.05, 0.85), 6.0, true)
+		if meter > 0.0:
+			draw_arc(c, r + 1.0, -PI * 0.5, -PI * 0.5 + TAU * meter, maxi(int(64 * meter), 2), meter_color, 5.0, true)
 	if _ready_ring > 0.0:
 		var t := 1.0 - _ready_ring
-		draw_arc(c, r * (1.0 + 0.45 * t), 0.0, TAU, 48, Color(meter_color.lightened(0.4), _ready_ring), 4.0 * _ready_ring + 1.0, true)
+		_blob(c, Vector2.ONE * r * (1.2 + 0.5 * t), Color(accent.lightened(0.3), 0.5 * _ready_ring))
+		draw_arc(c, r * (1.0 + 0.45 * t), 0.0, TAU, 48, Color(accent.lightened(0.5), _ready_ring), 4.0 * _ready_ring + 1.0, true)
 	var font := get_theme_default_font()
-	var ink := Color(CREAM, 1.0 if active else 0.4)
+	var ink := Color(CREAM, 1.0 if active else 0.45)
 	if cooling and seconds > 0:
-		_text(font, c + Vector2(0, r * 0.12), str(seconds), int(r * 0.62), Color(1, 1, 1, 0.95))
-		_text(font, c + Vector2(0, r * 0.52), verb, int(maxf(r * 0.24, 11.0)), Color(CREAM, 0.55))
+		_glyph(c + Vector2(0, -r * 0.08), r * 0.4, Color(CREAM, 0.22))
+		_text(font, c + Vector2(0, r * 0.2), str(seconds), int(r * 0.66), Color(1, 1, 1, 0.97))
 	elif icon != "":
-		_icon(c + Vector2(0, -r * 0.12), r * 0.42, ink)
-		if verb != "":
-			_text(font, c + Vector2(0, r * 0.58), verb, int(maxf(r * 0.26, 11.0)), Color(CREAM, 0.85 if active else 0.35))
+		var label := verb != "" and not sweep    # abilities show just their symbol (the name is in the class screen)
+		var at := c + Vector2(0, -r * 0.12 if label else 0.0)
+		var s := r * (0.42 if label else 0.56)
+		_glyph(at + Vector2(0, maxf(r * 0.05, 2.0)), s, Color(0, 0, 0, 0.5 * ink.a))   # drop shadow
+		_glyph(at, s, ink)
+		if label:
+			_text(font, c + Vector2(0, r * 0.62), verb, int(maxf(r * 0.25, 11.0)), Color(CREAM, 0.88 if active else 0.4))
 	else:
 		var size := int(font_size * radius / maxf(home_radius, 1.0))
 		var up := size * 0.3 if sub != "" else 0.0
@@ -256,7 +265,43 @@ func _draw() -> void:
 			_text(font, c + Vector2(0, size * 0.35 + size * 0.45), sub, int(size * 0.6), Color(CREAM, 0.6 if active else 0.3))
 	_draw_flicks(c, r, font)
 	if editing:
-		draw_arc(c, r + 7.0, 0.0, TAU, 48, Color(GOLD, 0.9), 2.0, true)
+		draw_arc(c, r + 8.0, 0.0, TAU, 48, Color(GOLD, 0.9), 2.0, true)
+
+
+## A soft round light (or shadow): full in the middle, fading out to `radii`.
+func _blob(at: Vector2, radii: Vector2, col: Color) -> void:
+	if _soft == null:
+		var g := Gradient.new()
+		g.offsets = PackedFloat32Array([0.0, 0.35, 0.7, 1.0])
+		g.colors = PackedColorArray([Color(1, 1, 1, 1), Color(1, 1, 1, 0.78), Color(1, 1, 1, 0.3), Color(1, 1, 1, 0)])
+		_soft = GradientTexture2D.new()
+		_soft.gradient = g
+		_soft.width = 128
+		_soft.height = 128
+		_soft.fill = GradientTexture2D.FILL_RADIAL
+		_soft.fill_from = Vector2(0.5, 0.5)
+		_soft.fill_to = Vector2(0.5, 0.0)
+	draw_texture_rect(_soft, Rect2(at - radii, radii * 2.0), false, col)
+
+
+## A ring shaded like metal: bright where the light falls (top left), dark underneath.
+func _metal_ring(c: Vector2, r: float, width: float, light: Color, dark: Color) -> void:
+	var pts := PackedVector2Array()
+	var cols := PackedColorArray()
+	var sun := Vector2(-0.45, -0.9).normalized()
+	for k in 73:
+		var a := TAU * k / 72.0
+		var d := Vector2(cos(a), sin(a))
+		pts.append(c + d * r)
+		var t := 0.5 + 0.5 * d.dot(sun)
+		cols.append(dark.lerp(light, t * t))
+	draw_polyline_colors(pts, cols, width, true)
+
+
+## Its symbol: an ability's (by id) or one of the drawn ones below.
+func _glyph(at: Vector2, s: float, col: Color) -> void:
+	if not AbilityIcons.draw(self, icon, at, s, col, Color(0.05, 0.06, 0.09, col.a)):
+		_icon(at, s, col)
 
 
 ## The flicks: small marks at the rim, and while held their names pop out, the one you point at in gold.

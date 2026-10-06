@@ -17,6 +17,9 @@ const BUTTONS := {
 	"swap": [Vector2(70, 368), 30.0],
 	"ability1": [Vector2(380, 212), 44.0], "ability2": [Vector2(318, 318), 44.0], "ability3": [Vector2(212, 380), 44.0],
 }
+## Each button's own colour (its ring and inner glow); the abilities take the class's colour.
+const ACCENTS := {"attack": Color(1.0, 0.8, 0.42), "roll": Color(0.5, 0.85, 0.42), "heavy": Color(1.0, 0.5, 0.24),
+	"parry": Color(0.42, 0.68, 1.0), "sneak": Color(0.62, 0.48, 1.0), "swap": Color(0.78, 0.8, 0.86)}
 const HOLD_TO_SPRINT := 0.18     # Roll button: shorter than this is a roll, longer is a sprint
 const MARGIN := Vector2(64, 24)   # clear of the iPhone's rounded corners and Dynamic Island
 const SafeArea := preload("res://scripts/ui/safe_area.gd")
@@ -242,6 +245,7 @@ func _button(id: String, verb: String, icon: String, spot: Array) -> ActionButto
 	b.icon = icon
 	b.home_margin = spot[0]
 	b.home_radius = spot[1]
+	b.accent = ACCENTS.get(id, Color(0.8, 0.82, 0.9))
 	b.font_size = 20
 	add_child(b)
 	b.set_verb(verb)
@@ -724,6 +728,8 @@ func _update_ability_buttons() -> void:
 			b.set_meta("id", id)
 			b.set_meta("label", label)
 			b.set_verb(label)
+			b.icon = "" if dragging else id     # under the ground: the word (Drag) instead
+			b.accent = Classes.color()
 			b.meter_color = Classes.color()
 			b.lit_fill = Color(Classes.color().darkened(0.55), 0.8)
 		var left := 0.0 if dragging and label == "Drag" else Classes.cooldown_left(id)

@@ -302,6 +302,8 @@ func _ready() -> void:
 			add_child(lt)
 		elif arg == "--carttest":                     # meteor a villager, carry the body to the ox cart
 			add_child(preload("res://scripts/dev/cart_carry_test.gd").new())
+		elif arg.begins_with("--class="):            # start as a class: --class=pyromancer|delver|shade
+			Classes.choose.call_deferred(arg.trim_prefix("--class="))
 		elif arg == "--classpanel":                  # open the class screen as the shrine would
 			get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").open_class_panel(true))
 		elif arg == "--sealtest":                     # with --region=forest: Varek drops Morrow's seal
