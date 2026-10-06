@@ -100,7 +100,8 @@ func build(shape: WorldShape) -> void:
 			if is_instance_valid(label):
 				label.text = "For sale" if Lettings.level(i) == 0 else Lettings.HOUSES[i]["name"])
 	for id: String in Npcs.NPCS:
-		if Npcs.NPCS[id].get("region", "meadow") != "meadow":
+		# 6 Oct (owner): Hilmi's villagers live in the houses; Enea's residents (Tomas, Elsa, Nell, Bram) step out
+		if Npcs.NPCS[id].get("region", "meadow") != "meadow" or Npcs.NPCS[id].has("resident"):
 			continue
 		var npc := Node3D.new()
 		npc.set_script(preload("res://scripts/world/npc.gd"))

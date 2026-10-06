@@ -37,6 +37,7 @@ func setup(id: String, shape: WorldShape, fixed := Vector3.INF) -> void:
 	_shape = shape
 	_def = Npcs.get_def(id)
 	add_to_group("interactable")
+	add_to_group("npc_body")          # the player's blows reach them (struck)
 	var at: Vector2 = _def["at"]
 	_home = at
 	_route = _def.get("route", [])
@@ -101,6 +102,24 @@ func setup(id: String, shape: WorldShape, fixed := Vector3.INF) -> void:
 
 func interact() -> void:
 	get_tree().call_group("hud", "open_dialogue", _id)
+
+
+## Hit by the player (fighter.gd): they reel from it and round on you. Enea's story people can't be hurt
+## (their stories need them), but they feel it and say so. (6 Oct, owner: no one in the world is untouchable.)
+const STRUCK_LINES := ["Hey! What's wrong with you?", "Ow! Keep your hands to yourself!", "Have you lost your mind?",
+	"Do that again and see what happens.", "Watch it!"]
+const STRUCK_HEAVY := ["Argh! Are you mad?!", "That HURT! Get away from me!"]
+
+
+func struck(from: Vector3, heavy: bool) -> void:
+	var to := from - global_position
+	_visual.rotation.y = atan2(to.x, to.z)
+	_visual.play_action("Hit_Knockback" if heavy else "Hit_Chest", 1.1)
+	var tween := create_tween()
+	var push := -Vector3(to.x, 0, to.z).normalized() * (0.7 if heavy else 0.25)
+	tween.tween_property(self, "global_position", global_position + push, 0.18).set_ease(Tween.EASE_OUT)
+	_bubble.text = (STRUCK_HEAVY if heavy else STRUCK_LINES).pick_random()
+	_greeted = true
 
 
 func _label(size: int, height: float) -> Label3D:

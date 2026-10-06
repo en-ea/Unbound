@@ -7,6 +7,7 @@ extends Control
 signal closed
 signal build_home
 
+const HomeFolk := preload("res://scripts/world/home_folk.gd")
 const INVENTORY := preload("res://scripts/ui/inventory_panel.gd")
 const CRAFTING := preload("res://scripts/ui/crafting_panel.gd")
 const DONE_SOUND := preload("res://assets/sounds/rare.wav")
@@ -205,15 +206,15 @@ func _letting_offers() -> void:
 	var i := letting
 	var lv := Lettings.level(i)
 	if lv == 0:
-		_note.text = "For sale. Buy it and a tenant moves in, paying %d coins every day (do it up for more). Rent waits for you here or at your mailbox." % Lettings.rent(i, 1)
+		var living := HomeFolk.family_of(i)
+		_note.text = ("For sale. The %s family live here: buy it and they pay you %d coins every day (do it up for more). Rent waits for you here or at your mailbox." % [living, Lettings.rent(i, 1)]) if living != "" else 			"For sale. Buy it and it earns %d coins every day (do it up for more). Rent waits for you here or at your mailbox." % Lettings.rent(i, 1)
 		_offer("", "Buy the " + Lettings.HOUSES[i]["name"], "Rent: %d a day" % Lettings.rent(i, 1), {}, Lettings.price(i), "Buy",
 			Lettings.buy.bind(i))
 		return
-	var tenant: Dictionary = Npcs.get_def(Lettings.TENANTS[i])
-	var ask: Array = Lettings.asks.get(i, [])
-	_note.text = "Yours, let out (%s) to %s, who is %s. Rent: %d coins a day (a happier tenant pays more); all your lettings: %d a day.%s" % [
-		Lettings.LEVELS[lv].to_lower(), tenant["name"], Lettings.mood_word(i), Lettings.rent(i), Lettings.daily(),
-		(" %s would like %d %s: bring it and talk to them inside." % [tenant["name"], ask[1], Items.name_of(ask[0])]) if not ask.is_empty() else ""]
+	var family := HomeFolk.family_of(i)
+	var tenant := ("the %s family" % family) if family != "" else "your tenants"
+	_note.text = "Yours, let out (%s) to %s, who are %s. Rent: %d coins a day (happier tenants pay more); all your lettings: %d a day." % [
+		Lettings.LEVELS[lv].to_lower(), tenant, Lettings.mood_word(i), Lettings.rent(i), Lettings.daily()]
 	_rent_offers()
 	if Lettings.waiting + Home.mail_coins == 0:
 		_offer("", "Rent", "Nothing waiting yet. Tenants pay each new day (or when you sleep through the night).", {}, 0, "Collect",

@@ -151,6 +151,8 @@ func _ready() -> void:
 			elif bits.size() > 1:
 				props["_tab"] = int(bits[1])            # --open=trade:1 opens the Sell tab
 			get_node("../HUD").open_station.call_deferred(props)
+		elif arg.begins_with("--homeverb="):              # with --visit: everyone home is sleeping / eating / at_home
+			preload("res://scripts/world/home_folk.gd").dev_verb = arg.trim_prefix("--homeverb=")
 		elif arg.begins_with("--visit="):                 # go into a village house: --visit=2 (with --time=0.95 they're home); 5 the mill, 3 4 6 lettings
 			var house := int(arg.trim_prefix("--visit="))
 			get_tree().create_timer(1.0).timeout.connect(func() -> void:

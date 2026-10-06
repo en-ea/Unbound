@@ -28,7 +28,7 @@ const LETTING := [
 	[["bookshelf", -4.59, 1.4, PI / 2.0], ["potted_tree", -2.4, 2.4, 0.0], ["bench_seat", 2.3, 2.9, 0.0],
 		["rug_long", -2.5, -1.2, 0.0], ["counter", 0.2, -3.5, 0.0]],
 ]
-const SPOTS := [Vector3(1.6, 0.0, 1.2), Vector3(-1.0, 0.0, 1.4)]     # where the people inside stand
+const HomeFolk := preload("res://scripts/world/home_folk.gd")
 
 var _house := -1
 var _feel := "lodge"
@@ -73,6 +73,8 @@ func _furnishing() -> Array:
 	if Lettings.HOUSES.has(_house):
 		list = []
 		var lv := Lettings.level(_house)
+		if lv == 0 and HomeFolk.family_of(_house) != "":
+			lv = 2              # a family lives here: their own things (Cosy) until you buy it and do it up
 		for k in range(1 if lv > 0 else 0, lv + 1):
 			list.append_array(LETTING[k])
 	return list.map(func(p: Array) -> Dictionary: return {"id": p[0], "x": p[1], "z": p[2], "turn": p[3]})
@@ -86,33 +88,19 @@ func _go_in() -> void:
 	super()
 	_saving_was = SaveGame.paused
 	SaveGame.paused = true
-	var spot := 0
-	for id: String in Residents.ids():
-		if Residents.def(id)["house"] != _house or Residents.activity(id) != "home" or spot >= SPOTS.size():
-			continue
-		var npc := Node3D.new()
-		npc.set_script(preload("res://scripts/world/npc.gd"))
-		add_child(npc)
-		npc.setup(id, null, origin + SPOTS[spot])
-		_people.append(npc)
-		spot += 1
-	if Lettings.HOUSES.has(_house):
-		var lv := Lettings.level(_house)
-		if lv == 0:
-			get_tree().call_group("hud", "hint", "Empty, and for sale (the sign by the door).")
-		else:
-			var tenant: String = Lettings.TENANTS[_house]
-			var npc := Node3D.new()
-			npc.set_script(preload("res://scripts/world/npc.gd"))
-			add_child(npc)
-			npc.setup(tenant, null, origin + SPOTS[0])
-			_people.append(npc)
-			get_tree().call_group("hud", "hint", "%s is at home (%s)%s." % [Npcs.get_def(tenant)["name"], Lettings.mood_word(_house),
-				", and wants something" if Lettings.asks.has(_house) else ""])
-	elif _house == 5:
-		get_tree().call_group("hud", "hint", "Bram's mill. The stones rumble overhead.")
-	elif _people.is_empty():
-		get_tree().call_group("hud", "hint", "Nobody's home.")
+	# Hilmi's villagers live in the houses now (6 Oct: Enea's residents and tenants left the village): whoever is
+	# home is inside, asleep, at the table or about the room (world/home_folk.gd).
+	var folk := HomeFolk.inside(get_tree(), _house)
+
+	_people.append_array(HomeFolk.place(self, origin, _furnishing(), folk))
+	var family := HomeFolk.family_of(_house)
+	var owner := ("The %s family's home" % family) if family != "" else ("The mill" if _house == 5 else "An empty house")
+	if Lettings.HOUSES.has(_house) and Lettings.level(_house) > 0:
+		owner += ", let from you (%s)" % Lettings.mood_word(_house)
+	var asleep := folk.filter(func(f: Dictionary) -> bool: return f.verb == "sleeping").size()
+	var line := "Nobody's home." if folk.is_empty() else ("Everyone's asleep." if asleep == folk.size() else
+		("%d at home" % folk.size()) + (", %d asleep." % asleep if asleep > 0 else "."))
+	get_tree().call_group("hud", "hint", "%s. %s" % [owner, line])
 
 
 func _back_outside() -> void:

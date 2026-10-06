@@ -16,6 +16,9 @@ const HOUSES := {3: {"name": "Hill House", "feel": "hill"}, 4: {"name": "Green L
 	6: {"name": "Loaf Cottage", "feel": "lantern"}}
 const LEVELS := ["For sale", "Plain", "Cosy", "Fine"]
 const TENANTS := {3: "tenant_odo", 4: "tenant_mira", 6: "tenant_fen"}
+## 6 Oct (owner): Hilmi's villagers live in the houses now and Enea's tenants have left; the family in a house you
+## buy pays the rent. Asks came from the old tenants (talked to inside): off until the families can ask.
+const ASKING := false
 ## What tenants ask for: [item, how many].
 const ASKS := [["wood", 8], ["stone", 6], ["apple", 4], ["flower", 5], ["roast_meat", 2], ["hide", 2], ["resin", 2],
 	["stew", 1], ["pinewood", 4], ["bluegill", 2]]
@@ -158,7 +161,7 @@ func new_day() -> void:
 			mood[i] = maxi(mood.get(i, 70) - l["mood_wait"], 0)
 		else:
 			mood[i] = mini(mood.get(i, 70) + l["mood_day"], 100)
-			if randf() < l["ask_chance"]:
+			if ASKING and randf() < l["ask_chance"]:
 				asks[i] = ASKS.pick_random()
 	changed.emit()
 
@@ -192,7 +195,8 @@ func load_data(data: Variant) -> void:
 			for key: String in wants:
 				var a: Variant = wants[key]
 				if a is Array and a.size() == 2 and Items.DEFS.has(str(a[0])):
-					asks[int(key)] = [str(a[0]), int(a[1])]
+					if ASKING:
+						asks[int(key)] = [str(a[0]), int(a[1])]
 		var list: Variant = data.get("owned", {})
 		if list is Dictionary:
 			for key: String in list:

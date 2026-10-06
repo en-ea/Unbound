@@ -239,6 +239,23 @@ func _ring(camera: Camera3D,at: Vector3,radius: float,color: Color) -> void:
 			return
 		points.append(camera.unproject_position(point))
 	draw_polyline(points,color,2*unit(),true)
+## merge-fix (owner, 6 Oct: the two rings on the ground looked odd): who the act will reach, as one small arrow
+## floating over their head, pointing down at them, gently bobbing; gold to use or talk, orange to strike.
+func _marker(camera: Camera3D,body: Node3D,color: Color) -> void:
+	var head := body.global_position+Vector3(0,2.2*body.scale.y+0.08*sin(Time.get_ticks_msec()*0.006),0)
+	if camera.is_position_behind(head):
+		return
+	var tip := camera.unproject_position(head)
+	var u := unit()
+	var w := 11.0*u
+	var h := 13.0*u
+	var arrow := PackedVector2Array([tip,tip+Vector2(-w,-h),tip+Vector2(0,-h*0.6),tip+Vector2(w,-h)])
+	Look.blob(self,tip+Vector2(0,-h*0.5),Vector2.ONE*w*2.2,Color(color,0.35))
+	var outline := arrow.duplicate()
+	outline.append(arrow[0])
+	draw_polyline(outline,Color(0.05,0.03,0.02,0.85),4*u,true)
+	draw_colored_polygon(arrow,color)
+	draw_polyline(PackedVector2Array([tip+Vector2(-w,-h),tip+Vector2(0,-h*0.6)]),Color(1,1,1,0.55),1.2*u,true)
 func _live_end(finger: int) -> void:
 	if _live.has(finger):
 		driver.live(str(_live[finger]),false)
@@ -291,8 +308,7 @@ func _draw() -> void:
 	var ringed := ring_target()
 	var view_camera := get_viewport().get_camera_3d()
 	if ringed!=null and view_camera!=null: # Slice 5: on the ground under the person the act will reach.
-		_ring(view_camera,ringed.global_position,0.6,Color(0.05,0.04,0.03,0.7))
-		_ring(view_camera,ringed.global_position,0.55,Color(1,0.62,0.42) if pointers.values().any(func(g) -> bool: return g.intent in ["strike","heavy","shove"]) else INK)
+		_marker(view_camera,ringed,Color(1,0.5,0.3) if pointers.values().any(func(g) -> bool: return g.intent in ["strike","heavy","shove"]) else Color(1.0,0.82,0.42))
 	var preview := ""
 	var tint := Color(1,0.94,0.8)
 	for gesture in pointers.values():

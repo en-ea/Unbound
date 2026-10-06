@@ -339,6 +339,8 @@ func _land_hit() -> void:
 			get_tree().call_group("camera_rig","shake",0.04)
 		return
 	var t := _swing_target if is_instance_valid(_swing_target) else (null if not _studio_intent.is_empty() else _nearest_enemy(REACH)) # studio: a lost prepared target remains a miss
+	if (t == null or not is_instance_valid(t)) and _strike_people(false):
+		return
 	if t == null or not is_instance_valid(t) or not t.is_alive():
 		Wolf.open_up()           # a swing at nothing leaves you open
 		return
@@ -401,6 +403,7 @@ func _after_hit(crit: bool) -> void:
 ## A heavy blow lands: every enemy close in front is hit hard and knocked back; the ground
 ## shakes (shockwave, dust, a deep thud) and the whole world freezes for a split second.
 func _land_heavy() -> void:
+	_strike_people(true)
 	var facing := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
 	var hit_any := false
 	var hit := Gear.hit_damage(Balance.HEAVY_DAMAGE)
@@ -459,6 +462,22 @@ func _claws() -> bool:
 ## The closest living enemy within `reach` metres, or null (the camera and the lock marker use it).
 func nearest_enemy(reach: float) -> Node3D:
 	return _nearest_enemy(reach)
+
+
+## Enea's own people (world/npc.gd: the story's and the forest's) in front of the swing feel it (npc.struck).
+func _strike_people(heavy: bool) -> bool:
+	var facing := Vector3(sin(visual.rotation.y), 0, cos(visual.rotation.y))
+	var any := false
+	for n: Node3D in get_tree().get_nodes_in_group("npc_body"):
+		var to := n.global_position - player.global_position
+		to.y = 0.0
+		if n.is_visible_in_tree() and to.length() < REACH + 0.6 and (to.length() < 0.6 or facing.dot(to.normalized()) > 0.3):
+			n.struck(player.global_position, heavy)
+			any = true
+	if any:
+		visual.hit_stop(0.05)
+		get_tree().call_group("camera_rig", "shake", 0.05)
+	return any
 
 
 func _nearest_enemy(reach: float) -> Node3D:
