@@ -19,12 +19,15 @@ var age := 0.0
 var scale := 1.0
 var speed := 0.0 # Speed when DODGE_REACH was first crossed; 0 if never.
 var _trail: Array[Vector3] = []
+var _t0 := 0 # merge-fix: the touch's start, real clock (usec). Ages and speeds use real time, not game frames: the phone
+             # sends touches faster than the 30 fps game runs, so frame time read a walk as a flick.
 func begin(pointer: int, at: Vector2, viewport: Vector2) -> void:
 	finger=pointer
 	origin=at
 	far=Vector2.ZERO
 	travel=0.0
 	age=0.0
+	_t0=Time.get_ticks_usec()
 	speed=0.0
 	scale=clampf(minf(viewport.x,viewport.y)/720.0,0.65,2.0)
 	_trail=[Vector3.ZERO]
@@ -32,6 +35,7 @@ func drag(pointer: int, at: Vector2) -> void:
 	if pointer!=finger:
 		return
 	var offset := at-origin
+	age=_now()
 	_trail.append(Vector3(age,offset.x,offset.y))
 	var reach := offset.length()/scale
 	if reach>travel:
@@ -39,19 +43,22 @@ func drag(pointer: int, at: Vector2) -> void:
 		far=offset
 	if speed==0.0 and reach>=DODGE_REACH:
 		speed=_speed()
-func tick(dt: float) -> void:
+func tick(_dt: float) -> void:
 	if finger>=0:
-		age+=maxf(0,dt)
+		age=_now()
 ## On lift: {"verb":"dodge","offset":far}, {"verb":"crouch"}, or {} (it was walking, turning or nothing).
 func release(pointer: int) -> Dictionary:
 	if pointer!=finger:
 		return {}
 	finger=-1
+	age=_now()
 	if age<=TAP_LIFE and travel<TAP_TRAVEL:
 		return {"verb":"crouch"}
 	if age<=DODGE_LIFE and speed>=FLICK:
 		return {"verb":"dodge","offset":far}
 	return {}
+func _now() -> float:
+	return (Time.get_ticks_usec()-_t0)/1000000.0
 func cancel() -> void:
 	finger=-1
 ## gesture.gd's arming speed: segments ending in the last WINDOW; a gap over 1/30 s counts as a rest.
