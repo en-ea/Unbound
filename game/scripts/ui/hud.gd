@@ -353,10 +353,11 @@ func _process(delta: float) -> void:
 	_worst_shown = _worst
 	_worst = 0.0
 	_timer = 0.0
-	_fps_label.text = "%d fps · worst %d ms\n%d draws · %dk tris" % [
+	_fps_label.text = "%d fps · worst %d ms\n%d draws · %dk tris\nbuild %s" % [
 		Engine.get_frames_per_second(), roundi(_worst_shown * 1000.0),
 		Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
-		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000]
+		Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000,
+		preload("res://scripts/core/build_stamp.gd").STAMP]
 
 
 ## Paints the minimap once the world is built (main calls this).
