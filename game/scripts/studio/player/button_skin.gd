@@ -9,6 +9,8 @@ const SIZE := 1024
 const CREAM := Color(1, 0.97, 0.9) # his ActionButton.CREAM and GOLD
 const GOLD := Color(1.0, 0.82, 0.42)
 const PAD := 2
+const DRAWN := ["sword", "heavy", "shield", "roll", "bow", "sneak"] # the symbols _icon_shapes paints
+const SOFT := 64 # the soft round light's cell: 64 px from its centre to its edge
 static var off := false # dev A/B only (hud_draws --hud-native): his own drawing
 static var _image: Image
 static var _texture: ImageTexture
@@ -19,65 +21,85 @@ static var _y := 0
 static var _row := 0
 
 
-## His _draw, with the discs, rim and symbol from the shared texture. Returns false (his own drawing runs) if no cell fits.
+## His _draw (merge-fix's look: each button in its own colour, a metal ring, glass and gloss), with every soft light,
+## disc and ring from the shared texture, tinted. Returns false (his own drawing runs) if a cell doesn't fit.
+## merge-fix: the look matched to action_button.gd's _draw again (this skin had kept the older plain look).
 static func draw(b: Control, editing: bool) -> bool:
 	if off:
 		return false
 	var c: Vector2 = b.center() + Vector2(sin(b._shake * 40.0) * 6.0 * b._shake, 0)
 	var active: bool = (b.verb != "" or b.icon != "") and not b.dim
-	var r: float = b.radius * (1.0 - 0.08 * b._pulse)
-	var fill := Color(0.07, 0.09, 0.14, 0.6 if active else 0.32)
-	if b.lit:
-		fill = b.lit_fill
+	var pressed: bool = b._held != -1 and not editing
+	var r: float = b.radius * (1.0 - 0.08 * b._pulse - (0.04 if pressed else 0.0))
+	var big: bool = b.home_radius >= 60.0 # the main action button gets the gold bezel
+	var alpha := 1.0 if active else 0.55
+	var accent: Color = b.accent
+	var hue: Color = accent if not b.dim else accent.lerp(Color(0.5, 0.5, 0.55), 0.6)
+	var cooling: bool = b.sweep and b.meter < 1.0
 	var base := roundi(b.radius)
+	var band := 6.0 if big else 3.5
+	var soft := _cell("soft", SOFT, _paint_soft)
 	var disc := _cell("disc:%d" % base, base, _paint_disc.bind(float(base)))
-	var rim_cell := _cell("rim:%d" % base, base, _paint_ring.bind(float(base), 3.0))
-	if disc.size == Vector2.ZERO or rim_cell.size == Vector2.ZERO:
-		return false
+	var metal := _cell("ring:%d:%.1f" % [base, band], ceili(base + band), _paint_ring.bind(float(base), band))
+	var shine := _cell("shine:%d:%.1f" % [base, band], ceili(base + band), _paint_shine.bind(float(base), band))
+	var trim := _cell("trim:%d:%s" % [base, big], base + 7, _paint_trim.bind(float(base), big))
+	for cell: Rect2 in [soft, disc, metal, shine, trim]:
+		if cell.size == Vector2.ZERO:
+			return false
 	var tex := texture()
 	var k := r / float(base)
 	var at := func(centre: Vector2, cell: Rect2, scale: float) -> Rect2:
 		return Rect2(centre - cell.size * 0.5 * scale, cell.size * scale)
-	b.draw_texture_rect_region(tex, at.call(c + Vector2(0, 4), disc, k), disc, Color(0, 0, 0, 0.22))
-	b.draw_texture_rect_region(tex, at.call(c, disc, k), disc, fill)
-	if active:
-		b.draw_texture_rect_region(tex, at.call(c, disc, k * 0.86), disc, Color(1, 1, 1, 0.04))
-	if b._held != -1 and not editing:
-		b.draw_texture_rect_region(tex, at.call(c, disc, k), disc, Color(1, 1, 1, 0.1))
-	var rim := Color(1, 0.95, 0.8, 0.85 if active else 0.25)
-	if b.lit and b.sweep:
-		rim = b.meter_color.lightened(0.35)
-	b.draw_texture_rect_region(tex, at.call(c, rim_cell, k), rim_cell, rim)
-	var cooling: bool = b.sweep and b.meter < 1.0
-	if cooling: # his cooldown wedge and its arc (polygons, only while cooling)
+	var blob := func(centre: Vector2, radii: Vector2, col: Color) -> void: # Look.blob, from the shared texture
+		b.draw_texture_rect_region(tex, Rect2(centre - radii, radii * 2.0), soft.grow(-2.0), col)
+	# Shadow underneath, and a soft glow in its colour while it's ready (abilities) or lit.
+	blob.call(c + Vector2(0, r * 0.1), Vector2.ONE * r * 1.32, Color(0, 0, 0, 0.42 * alpha))
+	if (b.sweep and not cooling and active) or (b.lit and not b.sweep):
+		var beat := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.004)
+		blob.call(c, Vector2.ONE * r * (1.45 + 0.08 * beat), Color(hue, 0.3 + 0.2 * beat))
+	# Body: dark glass with a glow of its colour in the middle, deeper at the edge.
+	var body := Color(0.05, 0.06, 0.09, 0.9 if active else 0.7)
+	if b.lit and not b.sweep:
+		body = Color(b.lit_fill.darkened(0.2), 0.92)
+	b.draw_texture_rect_region(tex, at.call(c, disc, k), disc, body)
+	blob.call(c + Vector2(0, r * 0.12), Vector2.ONE * r * 0.98, Color(hue.darkened(0.15), (0.5 if active else 0.22) + (0.25 if pressed else 0.0)))
+	blob.call(c + Vector2(0, -r * 0.05), Vector2.ONE * r * 0.55, Color(hue.lightened(0.3), 0.18 if active else 0.05))
+	blob.call(c + Vector2(0, -r * 0.5), Vector2(r * 0.7, r * 0.36), Color(1, 1, 1, 0.16 if active else 0.06)) # gloss
+	# The ring: a metal band lit from the top left (gold and thick on the main button): its dark colour all round,
+	# then its light one where the light falls (Look.metal_ring's blend), then the dark edges and the glint.
+	var light := Color(1.0, 0.93, 0.66, alpha) if big else Color(hue.lightened(0.55), 0.95 * alpha)
+	var dark := Color(0.5, 0.31, 0.1, alpha) if big else Color(hue.darkened(0.55), 0.9 * alpha)
+	b.draw_texture_rect_region(tex, at.call(c, metal, k), metal, dark)
+	b.draw_texture_rect_region(tex, at.call(c, shine, k), shine, light)
+	b.draw_texture_rect_region(tex, at.call(c, trim, k), trim, Color(1, 1, 1, alpha))
+	if cooling: # cooldown: a dark wedge over what's still to wait, the ring refilling in colour (polygons, only while cooling)
 		var pts := PackedVector2Array([c])
 		var steps := maxi(int(48 * (1.0 - b.meter)), 2)
 		for i in steps + 1:
 			var a: float = -PI * 0.5 + TAU * b.meter + TAU * (1.0 - b.meter) * i / steps
-			pts.append(c + Vector2(cos(a), sin(a)) * (r - 2.0))
-		b.draw_colored_polygon(pts, Color(0.02, 0.03, 0.06, 0.55))
-		b.draw_arc(c, r, -PI * 0.5, -PI * 0.5 + TAU * maxf(b.meter, 0.01), maxi(int(64 * b.meter), 2), b.meter_color, 4.0, true)
-	elif b.meter < 1.0: # his meter rim
-		b.draw_arc(c, r, 0.0, TAU, 64, Color(0.05, 0.06, 0.1, 0.8), 5.0, true)
+			pts.append(c + Vector2(cos(a), sin(a)) * (r - 1.5))
+		b.draw_colored_polygon(pts, Color(0.01, 0.02, 0.04, 0.62))
 		if b.meter > 0.0:
-			b.draw_arc(c, r, -PI * 0.5, -PI * 0.5 + TAU * b.meter, maxi(int(64 * b.meter), 2), b.meter_color, 5.0, true)
+			b.draw_arc(c, r, -PI * 0.5, -PI * 0.5 + TAU * b.meter, maxi(int(64 * b.meter), 2), accent.lightened(0.2), 4.0, true)
+	elif b.meter < 1.0: # stamina: the rim empties anticlockwise from the top
+		b.draw_arc(c, r + 1.0, 0.0, TAU, 64, Color(0.02, 0.03, 0.05, 0.85), 6.0, true)
+		if b.meter > 0.0:
+			b.draw_arc(c, r + 1.0, -PI * 0.5, -PI * 0.5 + TAU * b.meter, maxi(int(64 * b.meter), 2), b.meter_color, 5.0, true)
 	if b._ready_ring > 0.0:
 		var t: float = 1.0 - b._ready_ring
-		b.draw_arc(c, r * (1.0 + 0.45 * t), 0.0, TAU, 48, Color(b.meter_color.lightened(0.4), b._ready_ring), 4.0 * b._ready_ring + 1.0, true)
+		blob.call(c, Vector2.ONE * r * (1.2 + 0.5 * t), Color(accent.lightened(0.3), 0.5 * b._ready_ring))
+		b.draw_arc(c, r * (1.0 + 0.45 * t), 0.0, TAU, 48, Color(accent.lightened(0.5), b._ready_ring), 4.0 * b._ready_ring + 1.0, true)
 	var font: Font = b.get_theme_default_font()
-	var ink := Color(CREAM, 1.0 if active else 0.4)
+	var ink := Color(CREAM, 1.0 if active else 0.45)
 	if cooling and b.seconds > 0:
-		b._text(font, c + Vector2(0, r * 0.12), str(b.seconds), int(r * 0.62), Color(1, 1, 1, 0.95))
-		b._text(font, c + Vector2(0, r * 0.52), b.verb, int(maxf(r * 0.24, 11.0)), Color(CREAM, 0.55))
+		_glyph(b, c + Vector2(0, -r * 0.08), base * 0.4, k, Color(CREAM, 0.22), false)
+		b._text(font, c + Vector2(0, r * 0.2), str(b.seconds), int(r * 0.66), Color(1, 1, 1, 0.97))
 	elif b.icon != "":
-		var s: float = b.radius * 0.42
-		var glyph := _cell("icon:%s:%d" % [b.icon, roundi(s * 4.0)], ceili(s * 1.4) + 2, _paint_icon.bind(str(b.icon), s))
-		if glyph.size != Vector2.ZERO:
-			b.draw_texture_rect_region(tex, at.call(c + Vector2(0, -r * 0.12), glyph, k), glyph, Color(1, 1, 1, ink.a))
-		else:
-			b._icon(c + Vector2(0, -r * 0.12), r * 0.42, ink)
-		if b.verb != "":
-			b._text(font, c + Vector2(0, r * 0.58), b.verb, int(maxf(r * 0.26, 11.0)), Color(CREAM, 0.85 if active else 0.35))
+		var label: bool = b.verb != "" and not b.sweep # abilities show just their symbol (the name is in the class screen)
+		var glyph_at := c + Vector2(0, -r * 0.12 if label else 0.0)
+		_glyph(b, glyph_at, base * (0.42 if label else 0.56), k, ink, true)
+		if label:
+			b._text(font, c + Vector2(0, r * 0.62), b.verb, int(maxf(r * 0.25, 11.0)), Color(CREAM, 0.88 if active else 0.4))
 	else:
 		var size := int(b.font_size * b.radius / maxf(b.home_radius, 1.0))
 		var up := size * 0.3 if b.sub != "" else 0.0
@@ -86,8 +108,29 @@ static func draw(b: Control, editing: bool) -> bool:
 			b._text(font, c + Vector2(0, size * 0.35 + size * 0.45), b.sub, int(size * 0.6), Color(CREAM, 0.6 if active else 0.3))
 	b._draw_flicks(c, r, font)
 	if editing:
-		b.draw_arc(c, r + 7.0, 0.0, TAU, 48, Color(GOLD, 0.9), 2.0, true)
+		b.draw_arc(c, r + 8.0, 0.0, TAU, 48, Color(GOLD, 0.9), 2.0, true)
 	return true
+
+
+## His symbol at `at` (`s` at the button's own size, scaled by `k`), with a drop shadow when `shadow`: the drawn ones
+## from the shared texture; a class power's from ability_icons.gd (drawn as shapes); else his own _icon.
+static func _glyph(b: Control, at: Vector2, s: float, k: float, ink: Color, shadow: bool) -> void:
+	var drop := Vector2(0, maxf(roundi(b.radius) * k * 0.05, 2.0)) # (the button's r * 0.05)
+	if b.icon in DRAWN:
+		var cell := _cell("icon:%s:%d" % [b.icon, roundi(s * 4.0)], ceili(s * 1.4) + 2, _paint_icon.bind(str(b.icon), s))
+		if cell.size != Vector2.ZERO:
+			var tex := texture()
+			var rect := Rect2(at - cell.size * 0.5 * k, cell.size * k)
+			if shadow:
+				b.draw_texture_rect_region(tex, Rect2(rect.position + drop, rect.size), cell, Color(0, 0, 0, 0.5 * ink.a))
+			b.draw_texture_rect_region(tex, rect, cell, Color(1, 1, 1, ink.a))
+			return
+	var icons := preload("res://scripts/ui/ability_icons.gd")
+	var cut := Color(0.05, 0.06, 0.09, ink.a)
+	if shadow:
+		icons.draw(b, b.icon, at + drop, s * k, Color(0, 0, 0, 0.5 * ink.a), cut)
+	if not icons.draw(b, b.icon, at, s * k, ink, cut):
+		b._icon(at, s * k, ink)
 
 
 static func texture() -> Texture2D:
@@ -149,6 +192,54 @@ static func _paint_ring(image: Image, rect: Rect2i, r: float, w: float) -> void:
 		for x in rect.size.x:
 			var d := (Vector2(rect.position.x + x, rect.position.y + y) + Vector2(0.5, 0.5)).distance_to(o)
 			_put(image, rect.position.x + x, rect.position.y + y, Color.WHITE, w * 0.5 - absf(d - r) + 0.5)
+
+
+## A soft round light (Look.blob's gradient): full in the middle, fading out to the edge of radius `SOFT`.
+static func _paint_soft(image: Image, rect: Rect2i) -> void:
+	var o := Vector2(rect.position) + Vector2(rect.size) * 0.5
+	var stops := [[0.0, 1.0], [0.35, 0.78], [0.7, 0.3], [1.0, 0.0]]
+	for y in rect.size.y:
+		for x in rect.size.x:
+			var t := (Vector2(rect.position.x + x, rect.position.y + y) + Vector2(0.5, 0.5)).distance_to(o) / SOFT
+			var a := 0.0
+			for i in 3:
+				if t <= stops[i + 1][0]:
+					a = lerpf(stops[i][1], stops[i + 1][1], (t - stops[i][0]) / (stops[i + 1][0] - stops[i][0]))
+					break
+			image.set_pixel(rect.position.x + x, rect.position.y + y, Color(1, 1, 1, a))
+
+
+## The metal ring's light: white where the light falls (from the top left), fading out underneath (Look.metal_ring's
+## blend, t squared), so the light colour drawn over the dark one makes the same shaded band.
+static func _paint_shine(image: Image, rect: Rect2i, r: float, w: float) -> void:
+	var o := Vector2(rect.position) + Vector2(rect.size) * 0.5
+	var sun := Vector2(-0.45, -0.9).normalized()
+	for y in rect.size.y:
+		for x in rect.size.x:
+			var p := Vector2(rect.position.x + x, rect.position.y + y) + Vector2(0.5, 0.5) - o
+			var t := 0.5 + 0.5 * p.normalized().dot(sun)
+			_put(image, rect.position.x + x, rect.position.y + y, Color(1, 1, 1, t * t), w * 0.5 - absf(p.length() - r) + 0.5)
+
+
+## The ring's fixed trim, in its own colours: the dark line outside it, the dark line inside the gold bezel (`big`),
+## and the white glint at its top left.
+static func _paint_trim(image: Image, rect: Rect2i, r: float, big: bool) -> void:
+	var o := Vector2(rect.position) + Vector2(rect.size) * 0.5
+	var edge := r + (4.5 if big else 2.5)
+	var glint := r + (2.4 if big else 1.4)
+	var from := PI * 1.08
+	var to := PI * 1.62
+	var ends := [Vector2.from_angle(from) * glint, Vector2.from_angle(to) * glint]
+	for y in rect.size.y:
+		for x in rect.size.x:
+			var p := Vector2(rect.position.x + x, rect.position.y + y) + Vector2(0.5, 0.5) - o
+			var d := p.length()
+			_put(image, rect.position.x + x, rect.position.y + y, Color(0, 0, 0, 0.55), 1.0 - absf(d - edge) + 0.5)
+			if big:
+				_put(image, rect.position.x + x, rect.position.y + y, Color(0.15, 0.08, 0.02, 0.6), 0.75 - absf(d - (r - 3.5)) + 0.5)
+			var a := fposmod(p.angle(), TAU)
+			var off := absf(d - glint) if a >= from and a <= to else minf(p.distance_to(ends[0]), p.distance_to(ends[1]))
+			_put(image, rect.position.x + x, rect.position.y + y, Color(1, 1, 1, 0.45), 0.6 - off + 0.5)
 
 
 ## His symbols (ActionButton._icon), the same shapes and colours, painted in cream at full strength (the draw's

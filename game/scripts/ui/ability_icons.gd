@@ -78,6 +78,48 @@ static func draw(ci: CanvasItem, id: String, c: Vector2, s: float, col: Color, c
 			_arrow_head(ci, c, r, PI * 0.92, 1.0, s, col)
 			ci.draw_circle(c + Vector2(-s * 0.18, 0), s * 0.15, col, true, -1.0, true)
 			ci.draw_circle(c + Vector2(s * 0.18, 0), s * 0.15, Color(col, col.a * 0.45), true, -1.0, true)
+		"drown":                               # a sphere of water, half full, bubbles rising
+			ci.draw_arc(c, s * 0.86, 0.0, TAU, 40, col, s * 0.14, true)
+			var water := PackedVector2Array()
+			for k in 17:                       # the surface, a gentle wave from left to right
+				var t := k / 16.0
+				water.append(c + Vector2(lerpf(-s * 0.66, s * 0.66, t), s * 0.08 - sin(t * TAU) * s * 0.1))
+			for k in range(1, 16):             # then round the bottom of the sphere, back to the left
+				var a := PI * k / 16.0
+				water.append(c + Vector2(cos(a), sin(a)) * s * 0.66 + Vector2(0, s * 0.08 * (1.0 - sin(a))))
+			ci.draw_colored_polygon(water, col)
+			ci.draw_arc(c + Vector2(-s * 0.2, -s * 0.36), s * 0.13, 0.0, TAU, 16, col, s * 0.08, true)
+			ci.draw_circle(c + Vector2(s * 0.18, -s * 0.52), s * 0.08, col, true, -1.0, true)
+		"tempest":                             # a storm cloud, a bolt of lightning and rain
+			var cloud := c + Vector2(0, -s * 0.3)
+			ci.draw_circle(cloud + Vector2(-s * 0.42, s * 0.08), s * 0.34, col, true, -1.0, true)
+			ci.draw_circle(cloud + Vector2(s * 0.02, -s * 0.12), s * 0.44, col, true, -1.0, true)
+			ci.draw_circle(cloud + Vector2(s * 0.46, s * 0.1), s * 0.32, col, true, -1.0, true)
+			ci.draw_colored_polygon(PackedVector2Array([cloud + Vector2(-s * 0.42, s * 0.1), cloud + Vector2(s * 0.46, s * 0.1),
+				cloud + Vector2(s * 0.46, s * 0.42), cloud + Vector2(-s * 0.42, s * 0.42)]), col)
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(s * 0.12, s * 0.02), c + Vector2(-s * 0.2, s * 0.5),
+				c + Vector2(s * 0.02, s * 0.5), c + Vector2(-s * 0.14, s * 1.0), c + Vector2(s * 0.34, s * 0.38),
+				c + Vector2(s * 0.12, s * 0.38), c + Vector2(s * 0.3, s * 0.02)]), cut)   # the bolt cut into the cloud's foot
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(s * 0.14, s * 0.12), c + Vector2(-s * 0.14, s * 0.56),
+				c + Vector2(s * 0.04, s * 0.56), c + Vector2(-s * 0.1, s * 0.95), c + Vector2(s * 0.28, s * 0.42),
+				c + Vector2(s * 0.1, s * 0.42), c + Vector2(s * 0.26, s * 0.12)]), col)
+			for x: float in [-0.55, 0.62]:
+				ci.draw_line(c + Vector2(s * x, s * 0.32), c + Vector2(s * (x - 0.14), s * 0.72), col, s * 0.1, true)
+		"rime_wave":                           # a snowflake riding a wave of frost
+			var flake := c + Vector2(0, -s * 0.32)
+			for k in 3:
+				var dir := Vector2.from_angle(PI * k / 3.0 + PI * 0.5) * s * 0.6
+				ci.draw_line(flake - dir, flake + dir, col, s * 0.12, true)
+				for end: Vector2 in [dir, -dir]:   # a little V at each tip
+					var tip := flake + end * 0.62
+					var side := end.orthogonal().normalized() * s * 0.18
+					ci.draw_line(tip + end.normalized() * s * 0.18 + side, tip, col, s * 0.08, true)
+					ci.draw_line(tip + end.normalized() * s * 0.18 - side, tip, col, s * 0.08, true)
+			var wave := PackedVector2Array()
+			for k in 25:
+				var t := k / 24.0
+				wave.append(c + Vector2(lerpf(-s * 1.05, s * 1.05, t), s * 0.68 - sin(t * TAU * 1.5) * s * 0.14))
+			ci.draw_polyline(wave, col, s * 0.16, true)
 		_:
 			return false
 	return true
