@@ -12,11 +12,13 @@ const View := preload("res://scripts/studio/village/sim/view.gd")
 const Rules := preload("res://scripts/studio/village/sim/village.gd")
 const Houses := preload("res://scripts/world/village.gd")
 const UseSpot := preload("res://scripts/world/use_spot.gd")
+const Ported := preload("res://scripts/studio/village/sim/ported.gd") # studio: port
 
 const CHILD_SCALE := 0.68
 ## Free places to stand about the room (room metres, x and z), and to lie when the beds are full.
 const STANDS := [Vector2(1.6, 1.2), Vector2(-1.0, 1.4), Vector2(-2.6, 0.4), Vector2(2.6, -0.6), Vector2(-0.4, 2.4), Vector2(0.9, -1.9)]
 const FLOOR_BEDS := [Vector2(-3.6, -2.8), Vector2(-1.6, -3.0), Vector2(1.4, 3.0), Vector2(-3.6, 2.8)]
+const FLOOR_LAP := 1.0      # metres along x for each further lap of FLOOR_BEDS (a bedroll is 0.9 wide) # studio: port
 const SEATS := ["chair", "stool", "armchair", "bench_seat"]
 static var dev_verb := ""     # dev (--homeverb=sleeping): everyone at home does this, for checking the room
 
@@ -34,7 +36,9 @@ static func family_of(index: int) -> String:
 	if v == null or home == "":
 		return ""
 	for h in v.households:
-		if h.home == home and not h.members.is_empty():
+		if h.members.is_empty() or Ported.keeps_house(v, int(h.members[0])): # studio: port - his seven's own households ("of cottage") are not the house's family
+			continue # studio: port
+		if h.home == home:
 			return str(v.lineages[h.lineage].name) if h.lineage >= 0 else ""
 	return ""
 
@@ -49,12 +53,23 @@ static func inside(tree: SceneTree, index: int) -> Array:
 	for p in v.people:
 		if not p.alive or not p.present or p.locked or p.authored != "":
 			continue
+		var his := _his_id(v, int(p.id)) # studio: port - one of his residents is at home only when his day says so (the port walks his body otherwise)
+		if his != "" and not (Residents.ids().has(his) and Residents.activity(his) == "home"): # studio: port
+			continue # studio: port
 		var act: Dictionary = View.activity(v, p.id)
 		if act.place != home or act.moving:
 			continue
 		# (by day the village may have them out in the yard: home is home, and they come in when you do)
 		out.append({"id": int(p.id), "verb": dev_verb if dev_verb != "" else str(act.verb)})
 	return out
+
+
+## His id for one of his seven in the village ("" for anyone else). # studio: port
+static func _his_id(v, pid: int) -> String: # studio: port
+	for entry: Dictionary in v.runtime.get("ported", []): # studio: port
+		if int(entry.person) == pid: # studio: port
+			return str(entry.id) # studio: port
+	return "" # studio: port
 
 
 ## Puts a body for each person in `people` into the room at `origin`, among `furniture` ([{id, x, z, turn}]).
@@ -78,6 +93,7 @@ static func place(room: Node3D, origin: Vector3, furniture: Array, people: Array
 		var age: int = Rules.age_of(v, v.people[id])
 		var size := CHILD_SCALE if age < 14 else 1.0
 		body.scale = Vector3.ONE * size
+		Body.dress_his(body, v, id) # studio: port - one of his seven wears his own look indoors too (parts and their sizes), as outside
 		var at := Vector2.ZERO
 		var face := 0.0
 		var lift := 0.0
@@ -90,7 +106,7 @@ static func place(room: Node3D, origin: Vector3, furniture: Array, people: Array
 					at = Vector2(bed.x, bed.z) + Vector2(0, length * 0.5).rotated(-face)
 					lift = 0.5
 				else:
-					at = FLOOR_BEDS[floor_bed % FLOOR_BEDS.size()]
+					at = FLOOR_BEDS[floor_bed % FLOOR_BEDS.size()] + Vector2(FLOOR_LAP * (floor_bed / FLOOR_BEDS.size()), 0) # studio: port - more sleepers than floor places: the next lap a bedroll's width over, never on another
 					floor_bed += 1
 					lift = 0.08
 					made.append(_bedroll(room, origin + Vector3(at.x, 0.03, at.y - length * 0.5)))

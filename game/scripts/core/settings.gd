@@ -23,7 +23,7 @@ var sword_in_hand := false      # keep the sword drawn (otherwise it rides on yo
 var button_spots := {}          # button id -> its centre from the bottom-right corner, where the player moved it
 var button_scale := 1.0         # all touch buttons bigger or smaller
 var thumb_controls := false     # merge-fix: Hilmi's one-thumb controls (tap use, flick strike, push shove) instead of the buttons
-var slide_buttons := false      # slide a thumb from one fight button onto another to press it (no lifting)
+var slide_buttons := true       # slide a thumb from one fight button onto another to press it (no lifting) # studio: C1 - on by default (his setting still switches it off)
 
 
 func _ready() -> void:
@@ -80,11 +80,6 @@ func set_music_on(value: bool) -> void:
 	_save_and_apply()
 
 
-func set_thumb_controls(value: bool) -> void:
-	thumb_controls = value
-	_save_and_apply()
-
-
 func set_compact_controls(value: bool) -> void:
 	compact_controls = value
 	_save_and_apply()
@@ -103,6 +98,11 @@ func button_spot(id: String, fallback: Vector2) -> Vector2:
 func set_button_layout(spots: Dictionary, scale: float) -> void:
 	button_spots = spots
 	button_scale = scale
+	_save_and_apply()
+
+
+func set_thumb_controls(value: bool) -> void:
+	thumb_controls = value
 	_save_and_apply()
 
 
@@ -143,10 +143,10 @@ func _save_and_apply() -> void:
 	cfg.set_value("studio", "living_village", living_village)
 	cfg.set_value("ui", "tracker_small", tracker_small)
 	cfg.set_value("controls", "compact", compact_controls)
-	cfg.set_value("controls", "thumb_controls", thumb_controls)
 	cfg.set_value("controls", "sword_in_hand", sword_in_hand)
 	cfg.set_value("controls", "button_spots", button_spots)
 	cfg.set_value("controls", "button_scale", button_scale)
 	cfg.set_value("controls", "slide_buttons", slide_buttons)
+	cfg.set_value("controls", "thumb_controls", thumb_controls)
 	SafeFile.save_config(cfg, PATH) # studio: merge - his three control values, saved crash-safe
 	apply()

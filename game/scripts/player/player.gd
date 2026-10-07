@@ -15,6 +15,12 @@ signal verb_changed(verb: String)       # what the action button does right now
 signal health_changed(health: int, max_health: int)
 signal knocked_out
 signal got_up
+signal studio_refused(what: String) # studio: C1 unit 4 - a roll or guard asked for while still recovering (his button shakes)
+const Recovery := preload("res://scripts/studio/player/recovery.gd") # studio:
+var _studio_chain := 0 # studio: rolls in a row, each started within 2 s of the last landing (the third waits longer)
+var _studio_landed := -INF # studio: when the last roll landed (s, active play time)
+var _studio_time := 0.0 # studio: active play seconds (menus and the background do not count)
+var studio_roll_rest_total := 0.45 # studio: the rest the Roll rim counts down
 
 const MAX_HEALTH := Balance.HEARTS
 const REGEN_DELAY := Balance.REGEN_DELAY
@@ -98,6 +104,9 @@ func heavy() -> void:
 func guard() -> void:
 	if hauling.busy() or burrowed():
 		return
+	if fighter.studio_committed() and not Controls.locked: # studio: the heavy swing and its recovery hold the guard shut
+		studio_refused.emit("guard") # studio:
+		return # studio:
 	if _roll > 0.0 or _stun > 0.0 or _down > 0.0 or _guard_rest > 0.0 or Controls.locked:
 		return
 	if not stamina.use("guard"):
@@ -186,12 +195,14 @@ func receive_attack(attacker: Node3D, damage: int, push: Vector3) -> String:
 		_play(BLOCK_SOUND, -2.0)
 		stamina._spend(Balance.STAMINA["block"])
 		FloatText.spawn(get_tree(), global_position + Vector3(0, 2.0, 0), "Blocked", Color(0.8, 0.85, 0.95))
-		if not stamina.winded:
+		if not Recovery.breaks_guard(push): # studio: C1 unit 4 - guard break by hit strength (was: winded)
 			_knock = push * 0.35
 			_stun = 0.2
 			return "block"
 		get_tree().call_group("hud", "hint", "Guard broken!")      # out of stamina: the blow gets through
 		_guard = 0.0
+		_stun = Balance.RECOVERY["break_stun"] # studio: a strong blow staggers him through the guard ...
+		damage = Recovery.broken_damage(damage) # studio: ... and lands at half
 	if hauling.carrying:
 		hauling.drop()                          # knocked loose: it's on the ground now
 	if hauling.riding:
@@ -333,10 +344,14 @@ func _people_context() -> Dictionary:
 func roll(intent_direction := Vector3.ZERO) -> void: # studio: Feet flick supplies its own direction; keyboard keeps its native default
 	if hauling.busy() or burrowed():
 		return
+	if (_roll_rest > 0.0 or fighter.studio_committed()) and _roll <= 0.0 and not Controls.locked: # studio: still recovering
+		studio_refused.emit("roll") # studio:
+		return # studio:
 	if _roll > 0.0 or _roll_rest > 0.0 or _stun > 0.0 or gatherer.is_busy() or Controls.locked:
 		return
 	if not stamina.use("roll"):
 		return
+	_studio_chain = Recovery.chain_after(_studio_chain, _studio_landed, _studio_time) # studio: for the chain rule
 	fighter.cancel()        # a roll cuts a swing short
 	_guard = 0.0
 	_roll_age = 0.0
@@ -355,6 +370,7 @@ func roll(intent_direction := Vector3.ZERO) -> void: # studio: Feet flick suppli
 		visual.play_action("Sword_Dash", visual.animation_length("Sword_Dash") / (ROLL_TIME + 0.2))
 		abilities.shade.shadow_roll(ROLL_TIME)
 		return
+	if Classes.current == "tidecaller": abilities.tidecaller.tide_roll(ROLL_TIME) # studio: water class (Tidebound puddle; his roll still plays)
 	visual.play_action("Roll", visual.animation_length("Roll") / ROLL_TIME)
 	$Sounds.play_roll()
 	$Effects.burst(true)
@@ -502,6 +518,7 @@ func _physics_process(delta: float) -> void:
 	if Controls.locked or VillageSession.background:
 		velocity=Vector3.ZERO
 		return
+	_studio_time += delta # studio: C1 unit 4 - the roll chain's clock
 	if _studio_guard and not stamina.winded and not is_down() and _stun<=0:
 		_guard=maxf(_guard,delta+0.12)
 	elif _studio_guard:
@@ -634,7 +651,9 @@ func _special_move(delta: float) -> void:
 	if _roll > 0.0:
 		_roll -= delta
 		if _roll <= 0.0:
-			_roll_rest = ROLL_COOLDOWN
+			_roll_rest = Recovery.roll_rest(_studio_chain, Food.has("rested")) # studio: C1 unit 4 (was ROLL_COOLDOWN)
+			_studio_landed = _studio_time # studio:
+			studio_roll_rest_total = _roll_rest # studio:
 			$Effects.burst(false)             # a puff where you land
 		var m := Controls.get_move()
 		if m.length() > 0.3:                   # a little steering, not a full turn

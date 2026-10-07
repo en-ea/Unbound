@@ -180,8 +180,10 @@ static func _behind(enemy: Node, from: Node3D) -> bool:
 
 # --- Mirage ----------------------------------------------------------------------------------------
 
-func mirage() -> void:
+func mirage(aim: Dictionary = {}) -> void: # studio: C1 - optional aimed facing from the arc
 	var count := 2 if Classes.has_talent("twin_mirage") else 1
+	if aim.has("dir") and (aim.dir as Vector3).length() > 0.1: # studio: the double faces the aimed way
+		player.visual.rotation.y = atan2((aim.dir as Vector3).x, (aim.dir as Vector3).z) # studio:
 	var face := _facing(player.visual)
 	var side := face.cross(Vector3.UP)
 	var secs := DOUBLE_SECS * (1.5 if Classes.has_talent("lingering") else 1.0)

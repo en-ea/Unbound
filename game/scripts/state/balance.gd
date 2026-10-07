@@ -16,6 +16,9 @@ const REGEN_DELAY := 12.0         # seconds without a hit before hearts start co
 const REGEN_EVERY := 9.0          # then one heart this often
 ## Stamina: sprinting (hold Roll), rolling and heavy attacks use it; it refills after a short pause.
 ## Run it empty and you are winded: no sprint, roll or heavy until it is back to `winded_until`.
+## studio: C1 unit 4 - stamina retired (Stamina.STUDIO_RETIRED); these recoveries do its limiting (studio/player/recovery.gd)
+const RECOVERY := {"heavy": 0.4, "roll": 0.45, "roll_burst": 3, "roll_window": 2.0, "roll_wait": 1.0, # studio:
+	"guard_break": 700, "break_stun": 0.6, "break_take": 0.5, "loose_after": 3.0, "feed_cut": 0.5, "rested": 0.85} # studio:
 const STAMINA := {"max": 100.0, "regen": 34.0, "delay": 0.6, "sprint": 20.0, "roll": 26.0, "heavy": 34.0,
 	"guard": 10.0, "block": 24.0, "winded_until": 35.0}
 ## Companions (world/companion.gd), per level 1..5: fire bolt damage, seconds between bolts; how far from

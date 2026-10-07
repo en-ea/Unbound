@@ -14,6 +14,7 @@ const Village := preload("res://scripts/studio/village/sim/village.gd")
 const Justice := preload("res://scripts/studio/village/sim/justice.gd")
 const Director := preload("res://scripts/studio/village/sim/director.gd")
 const WorldActions := preload("res://scripts/studio/village/sim/world_actions.gd")
+const Ported := preload("res://scripts/studio/village/sim/ported.gd")   # held(): his named characters are never a culprit
 
 const TRACE_ORIGIN := 1000000  # origins at or above this are traces (feathers, bones), not people
 const MAX_BELIEFS := 8
@@ -29,7 +30,7 @@ static func inhibition(V: S.Village, p: S.Person, act: String) -> int:
 static func crimes_today(V: S.Village) -> void:
 	var dk := R.key(R.key(V.base, Village.P_CRIME), V.day)
 	for p in V.people:
-		if not p.alive or not p.present or p.locked or Village.age_of(V, p) < 14 or p.authored != "":
+		if not p.alive or not p.present or p.locked or Village.age_of(V, p) < 14 or Ported.held(V, p):
 			continue
 		var k := R.key(dk, p.id)
 		try_theft(V, p, k)
@@ -627,7 +628,7 @@ static func suspect(V: S.Village, pid: int, c: S.Crime) -> void:
 	var who := -1
 	var best := 30
 	for q in V.people:
-		if not q.alive or not q.present or q.id == pid or Village.is_kin(V, pid, q.id) or Village.age_of(V, q) < 14 or q.authored != "":
+		if not q.alive or not q.present or q.id == pid or Village.is_kin(V, pid, q.id) or Village.age_of(V, q) < 14 or Ported.held(V, q):
 			continue
 		var s := -Village.opinion(V, pid, q.id) + q.offences * 40 + (25 if q.outsider else 0) + (40 if q.marks.get("branded", 0) else 0) + R.idiv(q.hunger, 25)
 		if q.cleared_day >= 0 and V.day - q.cleared_day < 3 * Village.YEAR:
@@ -835,7 +836,7 @@ static func tell(V: S.Village, a: int, b: int, k: int) -> void:
 		for i in rk.size():
 			var o := rk[i]
 			var v := rv[i]
-			if v < worst and V.people[o].alive and V.people[o].present and o != a and o != b and V.people[o].authored == "":
+			if v < worst and V.people[o].alive and V.people[o].present and o != a and o != b and not Ported.held(V, V.people[o]):
 				worst = v; enemy = o
 		if enemy >= 0:
 			culprit = enemy; origin = b; via = 3
@@ -906,7 +907,7 @@ static func check_cases(V: S.Village) -> void:
 					for bf in V.people[acc].beliefs:
 						if bf.crime == c.id and bf.culprit == cul and bf.event >= 0:
 							pick_ev.append(bf.event)
-		if pick_acc < 0 or not V.people[pick_cul].alive or not V.people[pick_cul].present:
+		if pick_acc < 0 or not V.people[pick_cul].alive or not V.people[pick_cul].present or Ported.held(V, V.people[pick_cul]):
 			continue
 		c.case_open = true
 		V.stats["cases"] += 1

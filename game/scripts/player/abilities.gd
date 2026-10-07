@@ -38,6 +38,7 @@ const SOUNDS := {
 var _studio_contacts: Node # studio: measures actual dash segments after native player motion, no creature brain edit
 var delver: Delver               # the Delver's abilities (player/delver.gd)
 var shade: Shade                 # the Shade's (player/shade.gd)
+var tidecaller: Tidecaller # studio: water class (player/tidecaller.gd)
 
 
 func _ready() -> void:
@@ -49,6 +50,7 @@ func _ready() -> void:
 	shade = Shade.new()
 	shade.name = "Shade"
 	add_child(shade)
+	tidecaller = Tidecaller.new(); tidecaller.name = "Tidecaller"; add_child(tidecaller) # studio: water class
 
 
 ## Class passives on a sword blow: the Shade's Unseen (player/shade.gd), the Pyromancer's Kindled.
@@ -56,6 +58,7 @@ func _ready() -> void:
 static func passive_strike(enemy: Node, hit: Array, from: Node3D) -> Array:
 	if Classes.current == "pyromancer" and enemy.get_node_or_null("Burning") != null:
 		return [maxi(hit[0] + 1, roundi(hit[0] * 1.33)), hit[1]]
+	if Classes.current == "tidecaller": return Tidecaller.strike(enemy, hit, from) # studio: water class (Tidebound, frozen x3)
 	return Shade.strike(enemy, hit, from)
 
 
@@ -99,9 +102,9 @@ func use(ability: String, aim: Dictionary = {}) -> void: # studio: prepared glyp
 		"burrow":
 			delver.burrow()
 		"fault_line":
-			delver.fault_line()
+			delver.fault_line(aim) # studio: C1 - the arc's drag aims it (a tap: his own aim)
 		"sinkhole":
-			delver.sinkhole()
+			delver.sinkhole(aim) # studio: C1 - the arc's drag places it (a tap: his own aim)
 		"flame_dash":
 			_flame_dash(aim) # studio: same ability, explicit preparation
 		"meteor":
@@ -111,9 +114,11 @@ func use(ability: String, aim: Dictionary = {}) -> void: # studio: prepared glyp
 		"shadow_dance":
 			shade.shadow_dance()
 		"mirage":
-			shade.mirage()
+			shade.mirage(aim) # studio: C1 - the arc's drag turns the double (a tap: his own facing)
 		"switch":
 			shade.switch()
+		"drown", "tempest", "rime_wave": # studio: water class
+			tidecaller.cast(ability, aim) # studio: water class
 
 
 func _flame_dash(aim: Dictionary = {}) -> void: # studio: optional captured aim
@@ -373,8 +378,8 @@ func _spark_home(from: Vector3) -> void:
 	t.tween_callback(func() -> void:
 		spark.queue_free()
 		player.heal(POP_HEAL)
-		if Classes.has_talent("feed_the_flames"):
-			player.stamina.refill()
+		if Classes.has_talent("feed_the_flames"): # studio: C1 unit 4 - each spark takes Balance.RECOVERY.feed_cut off Flame Dash's cooldown (was: a stamina refill)
+			Classes.start_cooldown("flame_dash", maxf(0.0, Classes.cooldown_left("flame_dash") * Classes.cooldown_of("flame_dash") - Balance.RECOVERY["feed_cut"])) # studio:
 		player.get_node("Effects").glow_burst(Color(1.0, 0.7, 0.3), 16))
 
 

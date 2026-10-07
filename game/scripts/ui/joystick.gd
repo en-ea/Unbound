@@ -82,6 +82,8 @@ func _draw() -> void:
 	if _finger == -1:
 		# A faint hint of where to put your thumb.
 		var hint := Vector2(220.0, get_viewport().get_visible_rect().size.y - 190.0)
+		if Settings.button_spots.has("stick"): # studio: C1 - the stick's rest spot is a movable item of the button editor
+			hint = get_viewport().get_visible_rect().size - Vector2(Settings.button_spots["stick"]) # studio:
 		draw_arc(hint, RADIUS * 0.8, 0.0, TAU, 64, Color(1, 1, 1, 0.12), 3.0, true)
 		draw_circle(hint, 20.0, Color(1, 1, 1, 0.1), true, -1.0, true)
 		return

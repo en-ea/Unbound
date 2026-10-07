@@ -245,9 +245,9 @@ func _measure(main: Node, t: String, f: String) -> Dictionary:
 		d["main"] = int(main_only["visible"]) + int(main_only["shadow"])
 		d["casts"] = int(d["visible"]) + int(d["shadow"]) - int(d["main"])
 	# In turn: shadows off first, then each category hidden on top of the ones before, in the table's order. The steps
-	# sum exactly to the 3D draws less what no category owns (the remainder, with everything hidden). Alone (above) is
-	# what each costs by itself; the two differ only where the renderer's work is not additive (the interaction,
-	# reported, never hidden).
+	# sum exactly to the 3D draws less what no category owns (the remainder, with everything hidden). Alone is what each
+	# costs by itself, checked as its main pass (shadows off) plus the shadow pass once, as its own term: the two differ
+	# only where the main passes are not additive (the interaction, reported, never hidden).
 	var hidden: Array = []
 	var prev := unshadowed
 	entry["in_turn"] = {}
@@ -266,18 +266,25 @@ func _measure(main: Node, t: String, f: String) -> Dictionary:
 	entry["remainder"] = prev
 	# Checked on the 3D passes (visible + shadow): the HUD's canvas draws change with its own text (the FPS label runs
 	# while the world is paused), so the canvas is reported beside the breakdown, not inside it.
-	var alone := 0
+	# The shadow pass is its own term. A shadow map is not additive by the renderer's design: a category's shadow
+	# casts measured alone (the drop when it is hidden with the shadows on) overlap the others' (on 5-6 Oct the casts
+	# summed 3-4 more than the whole shadow pass at a sunlit view, every time, while the main passes summed exactly). So
+	# the casts are reported per category, and their sum beside the shadow pass, but never summed into the check.
+	var alone := int(entry["shadows"])
+	var casts := 0
 	var in_turn := int(entry["shadows"])
 	for cat in CATEGORIES:
-		alone += int(entry["categories"][cat]["visible"]) + int(entry["categories"][cat]["shadow"])
+		alone += int(entry["categories"][cat]["main"])
+		casts += int(entry["categories"][cat]["casts"])
 		in_turn += int(entry["in_turn"][cat])
 	entry["sum_of_drops"] = alone
+	entry["casts_sum"] = casts
 	entry["in_turn_sum"] = in_turn
 	entry["base_3d"] = _d3(base)
 	entry["remainder_3d"] = _d3(prev)
 	entry["interaction"] = alone + int(entry["remainder_3d"]) - int(entry["base_3d"])
-	# The gate: the in-turn steps and the remainder sum to the measured draws, and the categories alone stay within
-	# 1 % (at least 2 draws) of them.
+	# The gate: the in-turn steps and the remainder sum to the measured draws, and the categories' main passes alone,
+	# with the shadow pass, stay within 1 % (at least 2 draws) of them.
 	entry["sums"] = in_turn + int(entry["remainder_3d"]) == int(entry["base_3d"]) \
 		and absi(int(entry["interaction"])) <= maxi(2, int(entry["base_3d"]) / 100)
 	if not entry["sums"]:
@@ -473,9 +480,12 @@ func _write() -> void:
 			lines.append("  %-22s %7d %6d %6d %6d %8d %7d %6d" % [cat, e["in_turn"][cat], int(d["visible"]) + int(d["shadow"]),
 				d["main"], d["casts"], d["objects"], int(d["primitives"]) / 1000, d["nodes"]])
 		lines.append("  %-22s %7d   (3D drawn by no category)" % ["remainder", e["remainder_3d"]])
-		lines.append("  3D measured %d: in turn (shadows first) %d + remainder %d; alone %d + remainder %d (interaction %d): %s" % [e["base_3d"],
+		lines.append("  3D measured %d: in turn (shadows first) %d + remainder %d; alone (main passes + the shadow pass) %d + remainder %d (interaction %d): %s" % [e["base_3d"],
 			e["in_turn_sum"], e["remainder_3d"], e["sum_of_drops"], e["remainder_3d"], e["interaction"],
 			"SUMS" if e["sums"] else "DOES NOT SUM"])
+		if e.has("casts_sum"):
+			lines.append("  shadow casts by category %d, the shadow pass %d (a shadow map is not additive: reported, not summed)" % [
+				e["casts_sum"], e["shadows"]])
 		lines.append("  %-22s %6s   (the HUD and every 2D control)" % ["canvas", str(b.get("canvas", "-"))])
 		lines.append("  %-22s %6d   (item icons and other sub-viewports)" % ["other viewports",
 			int(b["total"]) - int(b["visible"]) - int(b["shadow"]) - int(b.get("canvas", 0))])

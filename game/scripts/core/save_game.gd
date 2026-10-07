@@ -147,7 +147,7 @@ func _state(with_regions: bool) -> Dictionary: # studio:
 		"bounties": Bounties.to_data(), "residents": Residents.to_data(), "lettings": Lettings.to_data(), # studio: merge - his six saved kinds
 		"waystones": Waystones.to_data(), "companions": Companions.to_data(), "fishing": FishData.to_data(), # studio:
 		"player": {"pos": [p.x, p.y, p.z], "facing": _player.visual.rotation.y, "indoors": _indoors()}, # studio:
-		"time_of_day": _day_night.time_of_day} # studio:
+		"clock": WorldClock.to_data()} # studio: merge - the one world clock, saved once (its time of day is derived)
 	if with_regions: # studio:
 		_region_now() # studio:
 		data["regions"] = _regions # studio:
@@ -221,16 +221,17 @@ func load_game() -> void:
 	Money.load_data(data.get("coins", 0))
 	Projects.load_data(data.get("projects", []))
 	Home.load_data(data.get("home", {}))
+	Residents.load_data(data.get("residents", {})) # studio: merge - before the village: Mind's port reads his liking and lettings when his seven join
+	Lettings.load_data(data.get("lettings", {})) # studio: merge - (moved up from below)
 	VillageSession.load_data(data.get("village", {}))
-	VillageSession.initial_minute = int(float(data.get("time_of_day", 0.3)) * 1440.0)
+	WorldClock.load_data(data) # studio: merge - "clock", or a save from before it: its time of day on day 0
+	VillageSession.initial_minute = WorldClock.minute % 1440 # studio:
 	if data.get("village_recovery", false):
 		VillageSession.recovery_notice = "Village record damaged; your belongings were restored."
 	Quests.load_data(data.get("quests", {}))
 	Classes.load_data(data.get("classes", {}))
 	Hunting.load_data(data.get("hunting", {}))
 	Bounties.load_data(data.get("bounties", {}))
-	Residents.load_data(data.get("residents", {}))
-	Lettings.load_data(data.get("lettings", {}))
 	Waystones.load_data(data.get("waystones", []))
 	Companions.load_data(data.get("companions", {}))
 	FishData.load_data(data.get("fishing", {}))
@@ -249,7 +250,7 @@ func load_game() -> void:
 	elif pos.size() == 3 and pos[1] > -100.0:
 		_player.global_position = Vector3(pos[0], pos[1] + 0.1, pos[2])
 		_player.visual.rotation.y = pl.get("facing", 0.0)
-	_day_night.time_of_day = data.get("time_of_day", _day_night.time_of_day)
+	_day_night.time_of_day = WorldClock.time_of_day() # studio: merge - the sky shows the one world clock
 	if VillageSession.village != null: # studio: the loaded village starts this session's journal chain (one full save at load)
 		_full_save() # studio:
 
@@ -307,6 +308,7 @@ func start_over() -> void:
 	_enabled = false        # don't save the old world on the way out
 	_regions = {}
 	VillageSession.reset()
+	WorldClock.reset() # studio: merge - a new world starts at its first morning
 	Region.current = "meadow"
 	Inventory.load_data({})
 	Gear.load_data({})

@@ -133,6 +133,8 @@ func _ready() -> void:
 						panel._refresh())
 		elif arg.begins_with("--time="):
 			day_night.time_of_day = float(arg.trim_prefix("--time="))
+			if WorldClock != null: # studio: merge - the one world clock owns time (day_night.gd reads it each frame): move it there
+				WorldClock.advance_to_time(float(arg.trim_prefix("--time="))) # studio:
 		elif arg.begins_with("--walk="):
 			var v := arg.trim_prefix("--walk=").split(",")
 			Controls.joystick = Vector2(float(v[0]), float(v[1]))
@@ -367,6 +369,7 @@ func _ready() -> void:
 			get_tree().create_timer(2.0).timeout.connect(func() -> void: get_node("../Player").abilities.shade.mirage())
 		elif arg == "--shadetest":                    # with --lab: Mirage, Shadow Dance, shadow roll, Switch
 			add_child(preload("res://scripts/dev/shade_test.gd").new())
+		elif arg == "--tidecaller": Classes.choose.call_deferred("tidecaller") # studio: water class (be a Tidecaller)
 		elif arg == "--delver":                       # be a Delver
 			Classes.choose.call_deferred("delver")
 		elif arg == "--delvertest":                   # every Delver ability on a pack in the meadow, screenshots to %TEMP%

@@ -11,6 +11,8 @@ extends Node
 
 signal changed
 
+const PortAdapter := preload("res://scripts/studio/people/port_adapter.gd") # studio: port - the mood rent reads goes through rent.gd when the village ports his tenants
+
 ## Village house index -> its name and the feel of its room.
 const HOUSES := {3: {"name": "Hill House", "feel": "hill"}, 4: {"name": "Green Lodge", "feel": "swoop"},
 	6: {"name": "Loaf Cottage", "feel": "lantern"}}
@@ -45,7 +47,9 @@ func rent(i: int, at := -1) -> int:
 		return 0
 	var base: int = Balance.LETTINGS["rent"][i][lv - 1]
 	var span: Vector2 = Balance.LETTINGS["mood_rent"]
-	return roundi(base * lerpf(span.x, span.y, mood.get(i, 70) / 100.0)) if at < 0 else base
+	if at < 0 and not PortAdapter.tenant_pays(i): # studio: port - a dead tenant pays no rent
+		return 0 # studio: port
+	return roundi(base * lerpf(span.x, span.y, PortAdapter.tenant_mood(i, mood.get(i, 70)) / 100.0)) if at < 0 else base # studio: port - mood through rent.gd (his mood[i] stays the contentment his drift writes)
 
 
 ## The house a tenant lives in (-1 if they aren't one).
@@ -58,7 +62,7 @@ func house_of(npc: String) -> int:
 
 ## How the tenant feels, in a word.
 func mood_word(i: int) -> String:
-	var m: int = mood.get(i, 70)
+	var m: int = PortAdapter.tenant_mood(i, mood.get(i, 70)) # studio: port - the same mood rent reads
 	return "delighted" if m >= 85 else ("happy" if m >= 65 else ("so-so" if m >= 40 else "unhappy"))
 
 
@@ -144,7 +148,7 @@ func collect() -> int:
 func _process(delta: float) -> void:
 	if owned.is_empty():
 		return
-	_day_secs += delta
+	_day_secs += WorldClock.step # studio: merge - world seconds (the one world clock)
 	if _day_secs >= Bounties.DAY_SECS:
 		new_day()
 
@@ -154,6 +158,9 @@ func new_day() -> void:
 	_day_secs = 0.0
 	if owned.is_empty():
 		return
+	for i: int in owned: # studio: port - a tenant miserable for days moves out (no rent while away), and comes back later
+		if PortAdapter.tenant_day(i, mood.get(i, 70)) == "back": # studio: port
+			mood[i] = Balance.LETTINGS["mood_start"] # studio: port - his buy rule's start, as when a tenant moves in
 	waiting = mini(waiting + daily(), daily() * Balance.LETTINGS["days"])
 	var l: Dictionary = Balance.LETTINGS
 	for i: int in owned:                    # an ask left waiting sours them; otherwise they settle in, and may ask

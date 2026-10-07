@@ -69,6 +69,7 @@ var _step := 0
 var _since := 99.0
 var _queued := false
 var _heavy := false
+var _studio_commit := 0.0 # studio: C1 unit 4 - the heavy swing and its recovery (no roll, no guard), seconds left
 var _studio_intent := {} # studio: fixed prepared target (including air), independent of live nearest_enemy
 var _contact_key := "" # studio: stable action identity from initiation through contact/retry
 var _heavy_wind := 0.0          # length of the heavy wind-up, for the sword's glow
@@ -141,6 +142,7 @@ func aiming() -> bool:
 
 func _physics_process(delta: float) -> void:
 	if Controls.locked or VillageSession.background: return # studio: active-time commitment
+	_studio_commit = maxf(0.0, _studio_commit - delta) # studio: C1 unit 4 - the heavy swing's commitment runs down
 	_since += delta
 	if _busy > 0.0:
 		_busy -= delta
@@ -182,6 +184,11 @@ func _physics_process(delta: float) -> void:
 	if new_verb != verb:
 		verb = new_verb
 		target_changed.emit(verb)
+
+
+## studio: C1 unit 4 - the heavy swing still holds him (its swing and recovery): no roll, no guard.
+func studio_committed() -> bool: # studio:
+	return _studio_commit > 0.0 # studio:
 
 
 ## The action button near an enemy: one swing of the combo.
@@ -275,6 +282,7 @@ func heavy() -> void:
 	_busy = h["busy"] / speed
 	_impact = h["impact"] / speed
 	_heavy_wind = _impact
+	_studio_commit = preload("res://scripts/studio/player/recovery.gd").heavy_commit(_busy, Food.has("rested")) # studio: C1 unit 4
 	_heavy = true
 	_queued = false
 	_swing_target = target
@@ -645,6 +653,8 @@ func _bow_tick(delta: float) -> void:
 			player.stamina._spend(Balance.BOW["hold"] * delta)
 			if _draw - _full_at > SHAKE_AFTER:
 				_pose.draw = 1.0 + sin(_draw * 40.0) * 0.04
+			if _draw - _full_at > Balance.RECOVERY["loose_after"]: # studio: C1 unit 4 - held too long, it looses by itself (was: winded)
+				_let_go = true # studio:
 			if player.stamina.winded:
 				_let_go = true
 		var t := target if is_instance_valid(target) else null

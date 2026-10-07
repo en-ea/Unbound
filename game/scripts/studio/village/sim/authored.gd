@@ -20,7 +20,7 @@ const Village := preload("res://scripts/studio/village/sim/village.gd")
 const PEOPLE := {
 	"wren": ["Wren", -2.6, 18.0, 0, 52, "grower"],
 	"morrow": ["Morrow", -1.5, 25.5, 0, 44, "wanderer"],
-	"brakk": ["Brakk", -10.8, 7.2, 0, 60, "smith"],      # (moved clear of the smithy site: npcs.gd's studio line)
+	"brakk": ["Brakk", -15.5, 12.5, 0, 60, "smith"],     # (his own spot since 8b5fbef: his layout wins, merge-enea)
 	"seeker": ["Moss-Cap", 11.5, -3.0, 1, 30, "seeker"],
 }
 
@@ -91,6 +91,12 @@ static func is_authored(p: S.Person) -> bool:
 static func drift(npcs: Dictionary) -> PackedStringArray:
 	var out := PackedStringArray()
 	for id: String in npcs:
+		if preload("res://scripts/studio/village/sim/ported.gd").is_ported(id):
+			continue                     # his residents and tenants: ordinary people of the village (ported.gd)
+		var region := str(npcs[id].get("region", "meadow"))
+		if region != "meadow" and not PEOPLE.has(id):
+			out.append("%s is in another region (%s): stays Enea's" % [id, region])
+			continue
 		if not PEOPLE.has(id):
 			out.append("%s is new in Npcs (not yet a resident)" % id)
 			continue

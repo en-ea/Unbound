@@ -101,6 +101,9 @@ func is_alive() -> bool:
 
 
 func _physics_process(delta: float) -> void:
+	delta = preload("res://scripts/studio/creatures/far_beat.gd").owed(self, player, delta, state == State.WANDER)   # studio: Body 5 tuning (6 Oct) - calm and far from the player: thinks a few times a second with the time owed, gliding between
+	if delta <= 0.0:   # studio: (same)
+		return   # studio: (same)
 	_t += delta
 	var to_player := player.global_position - global_position
 	to_player.y = 0.0

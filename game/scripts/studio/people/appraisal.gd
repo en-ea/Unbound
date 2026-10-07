@@ -2,6 +2,7 @@ extends RefCounted
 ## S2 one appraisal over observable features and this observer's beliefs/traits/history.
 ## No body/offer decision. Pain is experienced harm; witnessed suffering builds distress/fear.
 ## Inferred attribution remains qualified and never becomes eyewitness or a confirmed assault.
+const MASS := 2   # a summary standing for at least this many others harmed reads as mass harm
 static func evaluate(me: Dictionary, a: Dictionary, gain := 1000) -> Dictionary:
 	var f: Dictionary=a.get("features",{})
 	var victim := str(a.get("target","unknown"))==str(me.key)
@@ -43,6 +44,15 @@ static func evaluate(me: Dictionary, a: Dictionary, gain := 1000) -> Dictionary:
 	if identified:
 		if assistance>0:delta.stance={"wary":-assistance/4,"trust":assistance/3,"resentment":-assistance/2,"obligation":assistance/2}
 		elif aggression:delta.stance={"wary":(100+threat/5)*confidence/1000,"trust":-100*confidence/1000,"resentment":(120+harm/5+history/3)*confidence/1000,"obligation":0}
+		# A killing seen or felt (act "finish", or a hold to drown) is not a harder blow: the killer is feared and hated
+		# as nothing else.
+		var seen_act: Dictionary=act.get("evidence",a.get("evidence",{}))
+		# Nor is "many fell there": a crowd's summary account (people_bridge saturation, evidence.many) stands for the
+		# many harmed at once, and reads as the gravest harm too, not as one more blow.
+		var mass: bool=bool(seen_act.get("many",false)) and int(seen_act.get("count",0))>=MASS
+		if aggression and (mass or str(seen_act.get("act",""))=="finish" or (str(seen_act.get("act",""))=="hold" and bool(seen_act.get("drown",false)))):
+			delta.stance={"wary":700*confidence/1000,"trust":-500*confidence/1000,"resentment":(700+history/3)*confidence/1000,"obligation":0}
+			delta.pulse.fear=maxi(int(delta.pulse.fear),900)   # horror: the fear lands at once, not in a blow's measure
 	elif not claim.is_empty():
 		delta.stance={"wary":int(claim.confidence)/3,"trust":0,"resentment":0,"obligation":0}
 	var name := "received help" if assistance>0 else "was hurt" if victim and harm>0 else "witnessed suffering" if harm>0 else "noticed danger" if threat>0 else "noticed something"

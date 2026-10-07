@@ -40,9 +40,17 @@ const GIVE_UP_S := 4.5       # seconds with no PROGRESS_M gained on a goal befor
 const PROGRESS_M := 1.0
 const GIVEN_UP_S := 30.0     # seconds a dropped goal is left alone
 const META := "steer_around"
+const Prof := preload("res://scripts/studio/people/prof.gd")
 
 
 static func steer(body: CharacterBody3D, want: Vector3, delta: float, committed := false) -> Vector3:
+	var t := Prof.now()
+	var out := _steer(body, want, delta, committed)
+	Prof.add("animals.steer_around", t)
+	return out
+
+
+static func _steer(body: CharacterBody3D, want: Vector3, delta: float, committed := false) -> Vector3:
 	var m := _memory(body)
 	m.clock = float(m.clock) + delta
 	var flat := Vector3(want.x, 0.0, want.z)

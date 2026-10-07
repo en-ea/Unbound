@@ -436,6 +436,10 @@ static func _copy(value: Variant) -> Variant:
 					out[k] = _copy(map[k])
 				return out
 			return map.duplicate(true)
+	# A packed array held in a Variant is shared, not copied, so the image would alias it: an append in place (a
+	# lineage's past names at a death) then changed the image too, and neither compare saw it (merge-enea, 6 Oct).
+	if typeof(value) >= TYPE_PACKED_BYTE_ARRAY and typeof(value) <= TYPE_PACKED_VECTOR4_ARRAY:
+		return value.duplicate()
 	return value
 
 

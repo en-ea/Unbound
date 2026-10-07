@@ -88,8 +88,13 @@ func run() -> void:
 	# The cast's fresh minds, traits and plans above are fixture writes outside acceptance too (on a reused save they
 	# replace remembered minds): the next frame writes a full save from live, as after a load.
 	VillageImage.stale = true
-	var centre:=Vector2(0,20)
-	var positions:=[centre,centre+Vector2(3,1),centre+Vector2(-4,2),centre+Vector2(5,5),centre+Vector2(-24,0)]
+	# merge-enea (6 Oct): his layout wins, and his villagers and campfire now stand on the green at (0, 20). The cast
+	# is arranged on the first centre where every spot is standable, none of his villagers is within 2.5 m, and the
+	# witnesses, the victim and the player see each other (so the timid witness sees the blow, as the fixture means).
+	var offsets:=[Vector2.ZERO,Vector2(3,1),Vector2(-4,2),Vector2(5,5),Vector2(-24,0)]
+	var centre:=pick_centre(offsets)
+	print("ENCOUNTER centre=",centre)
+	var positions:=offsets.map(func(o:Vector2)->Vector2:return centre+o)
 	for i in cast.size():
 		var id:=cast[i]
 		var pos:Vector2=positions[i]
@@ -209,6 +214,8 @@ func run() -> void:
 			print("HELPCHAIN actor=",id," tick=",People.tick(vv)," at=",res._movers[id].pos," owner=",res.owners.owner(id)," move=",res._movers[id].can_move()," plan=",person.mind.plan.get("offer","")," phase=",person.mind.plan.get("phase",-1)," steps=",person.mind.plan.get("steps",[]).size()," pending=",person.mind.pending.map(func(a: Dictionary)->Array:return [a.due,a.kind])," known=",person.mind.known.keys().size())
 		print("HELPCHAIN bridge reports=",res.people_bridge.reports.keys()," uses=",res.people_bridge.uses.keys()," notices=",res.people_bridge.notices.size()," witnesses=",res.people_bridge.witnesses.size()," report_key_saved=",vv.people_facts.has(report_key)," log_tail=",res.people_bridge.log.slice(-8))
 	check(traveled,"witness physically leaves to fetch help")
+	if reported and not (report_memory.get("facets",{}).get("act",{}).get("via","")=="told" and report_memory.identity.learned=="told"):
+		print("HELPCHAIN report_memory identity=",report_memory.get("identity",{})," act=",report_memory.get("facets",{}).get("act",{})," helper_at=",res._movers[helper].pos," victim_at=",res._movers[victim].pos)
 	check(reported and report_memory.get("facets",{}).get("act",{}).get("via","")=="told" and report_memory.identity.learned=="told","helper receives saved told account at real proximity")
 	check(VillageSession.village.people[helper].mind.plan.get("offer","")=="intervene","helper independently chooses to help")
 	if mode=="sequence":
@@ -337,6 +344,29 @@ func shot(label := "",finish := true) -> void:
 	if finish:get_tree().quit(0 if error==OK else 1)
 
 ## Permanent C4 arrival proof: existing layout water, native Burst and actual chosen travel/use.
+## The first open centre for the cast (see run): standable spots, his villagers clear, plain sight among the near cast.
+func pick_centre(offsets: Array) -> Vector2:
+	var npcs:=get_tree().current_scene.find_children("*","Node3D",true,false).filter(func(n:Node)->bool:return n.get_script()==preload("res://scripts/world/npc.gd"))
+	var space:PhysicsDirectSpaceState3D=(get_tree().current_scene as Node3D).get_world_3d().direct_space_state
+	var shape:=WorldShape.new()
+	for c:Vector2 in [Vector2(0,20),Vector2(0,30),Vector2(-2,34),Vector2(6,32),Vector2(-4,12),Vector2(0,10),Vector2(20,20),Vector2(-20,30)]:
+		var ok:=true
+		var spots:Array=offsets.map(func(o:Vector2)->Vector2:return c+o)
+		spots.append(c+Vector2(0,-1.8)) # where the player stands
+		for p:Vector2 in spots:
+			if not res._world.standable.call(p):ok=false
+			for n:Node3D in npcs:
+				if Vector2(n.global_position.x,n.global_position.z).distance_to(p)<2.5:ok=false
+		for i in [0,1,2,3]:
+			for j in [0,1,2,3,5]:
+				if i!=j and ok:
+					var a:Vector2=spots[i];var b:Vector2=spots[j]
+					var q:=PhysicsRayQueryParameters3D.create(Vector3(a.x,shape.height_at(a.x,a.y)+1.5,a.y),Vector3(b.x,shape.height_at(b.x,b.y)+1.5,b.y))
+					if not space.intersect_ray(q).is_empty():ok=false
+		if ok:return c
+	return Vector2(0,20)
+
+
 ## Only cast positions are arranged; no injected plan, arrival, extinguish or guessed 'water' destination.
 func water_route(victim: int) -> void:
 	var water := Water.resolve(res,res._movers[victim].pos,victim)

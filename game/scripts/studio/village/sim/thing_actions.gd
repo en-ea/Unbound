@@ -252,6 +252,24 @@ static func reaches(v: S.Village, fires: Array, carriers: Array) -> bool:
 
 
 ## Rain on every thing standing out of doors: soaks them (and puts out fires).
+## Rain under a cloud (the Tidecaller's Tempest, 6 Oct): every burning thing within radius metres of centre [x, z] is
+## put out by rain, one checked act each (rain() below). Only burning facts are read, so it costs the fires, not the
+## village's things.
+static func rain_at(v: S.Village, roots: Dictionary, centre: Array, radius: float, deed: String) -> Array:
+	var carriers := []
+	var r2 := radius * radius
+	for id: Variant in v.thing_facts:
+		if not (v.thing_facts[id] as Dictionary).has("burning"):
+			continue
+		var at := at_of(str(id))
+		var dx := float(at[0]) - float(centre[0])
+		var dz := float(at[1]) - float(centre[1])
+		if dx * dx + dz * dz <= r2:
+			carriers.append(str(id))
+	carriers.sort()
+	return rain(v, roots, carriers, deed)
+
+
 static func rain(v: S.Village, roots: Dictionary, carriers: Array, deed: String) -> Array:
 	var out := []
 	for id: String in carriers:

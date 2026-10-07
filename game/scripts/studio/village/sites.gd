@@ -15,8 +15,8 @@ static var DOORS := _doors()
 ## Each home's pen (the sim's pen_<home>): beside the house, on the side away from his letting sign.
 static var PENS := _pens()
 ## Public places. "focus" is what a crowd faces; rings of slots are laid out around it. The studio's own places
-## (the pillory, gallows, stake, shrine, well, field, the road out) keep their spots unless one of his buildings
-## now stands there: then it moves straight out of the building to clear ground (CLEAR metres from its walls).
+## (the pillory, gallows, stake, shrine, well, field, the road out) keep their spots unless one of his buildings or
+## things now stands there: then it moves straight out of it to clear ground (CLEAR metres from its edge).
 ## The mill and the merchant follow his windmill and his merchant.
 const OWN_PLACES := {
 	"square": {"at": Vector2(1.5, 18.0), "focus": Vector2(1.5, 18.0)},       # the open ground by the merchant
@@ -63,15 +63,34 @@ static func _pens() -> Dictionary:
 	return out
 
 
-## A point inside (or within CLEAR of) one of his buildings, moved straight out to clear ground.
-static func clear_of_buildings(p: Vector2) -> Vector2:
+## His things a place must keep clear of in the meadow: [at, half-width] - his buildings, his bounty board, his
+## waystone and the green's campfire (state/bounties.gd BOARDS, state/waystones.gd STONES, world/village.gd GREEN).
+static func _his_things() -> Array:
+	var out := []
 	for h: Dictionary in Houses.HOUSES:
-		var at: Vector2 = h["at"]
-		var reach: float = maxf(h["size"].x, h["size"].z) * 0.5 + CLEAR
-		var d := p.distance_to(at)
-		if d < reach:
-			var away := (p - at).normalized() if d > 0.01 else (Houses.GREEN - at).normalized()
-			p = at + away * reach
+		out.append([h["at"], maxf(h["size"].x, h["size"].z) * 0.5])
+	out.append([preload("res://scripts/state/bounties.gd").BOARDS["meadow"], 1.0])
+	out.append([preload("res://scripts/state/waystones.gd").STONES["meadow"]["at"], 1.0])
+	out.append([Houses.GREEN, 1.2])
+	return out
+
+
+## A point inside (or within CLEAR of) one of his buildings or things, moved straight out to clear ground; a few
+## passes, so moving out of one never leaves it inside another.
+static func clear_of_buildings(p: Vector2) -> Vector2:
+	var things := _his_things()
+	for _pass in 4:
+		var moved := false
+		for t: Array in things:
+			var at: Vector2 = t[0]
+			var reach: float = float(t[1]) + CLEAR
+			var d := p.distance_to(at)
+			if d < reach - 0.001:
+				var away := (p - at).normalized() if d > 0.01 else (Houses.GREEN - at).normalized()
+				p = at + away * reach
+				moved = true
+		if not moved:
+			break
 	return p
 
 
@@ -102,6 +121,17 @@ const CLUSTER_RADIUS := 0.85 # metres from a circle's middle to its people
 const CLUSTER_GAP := 1.8     # metres between neighbouring circles' people
 const CLUSTER_RING := 3.4    # metres from the place to the first row of circles
 const CLUSTER_RING_STEP := 3.3
+
+
+## Where one of his residents stands for each part of the day (Mind's port, the desk's unit 3 of 6 Oct): his own
+## "resident" entry (state/npcs.gd: work, lunch, evening; home is his door_of the house), each moved clear of his
+## buildings and things as the studio's places are. {"home", "work", "lunch", "evening"} -> (x, z).
+static func anchors(resident: Dictionary) -> Dictionary:
+	var out := {"home": Houses.door_of(int(resident.get("house", 0)))}
+	for part: String in ["work", "lunch", "evening"]:
+		var at: Variant = resident.get(part)
+		out[part] = clear_of_buildings(at) if at is Vector2 else out.home
+	return out
 
 
 ## The ground position (x, z) of a site id: a home, a door or a public place.

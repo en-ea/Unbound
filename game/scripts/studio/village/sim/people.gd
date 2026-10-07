@@ -220,10 +220,28 @@ static func hints(m: S.Mind, now := -1, tuning: Dictionary = {}) -> Dictionary:
 static func expression(v: S.Village, actor: String) -> Dictionary:
 	var m := existing_mind(v,actor)
 	if m==null:return {}
-	var me := profile(v,actor,{})
-	var out := hints(m,tick(v),me.tuning)
+	var out := hints(m,tick(v),expression_tuning(v,actor,m))
 	if tick(v)>int(m.attention.get("until",0)):out.attention={}
 	return out
+## The tuning profile(v,actor,{}) resolves, without what a temperament never reads for it (smoothness, desk 6 Oct:
+## expression ran the whole profile - stance view, affect projection, distraction - for every near body every third
+## frame). Temperaments read courage, temper, alert, safety, concern and hits: with no account, concern is 0 and hits
+## are those on "unknown" (hits do not decay, so the stance itself is read).
+static func expression_tuning(v: S.Village, actor: String, m: S.Mind) -> Dictionary:
+	var id := resident(v,actor)
+	var me := {"key":actor,"courage":50,"temper":50,"alert":50,"law":50,"concern":0,"helper":"","safety":500,
+		"modifiers":m.modifiers,"hits":int(m.stances.get("unknown",{}).get("hits",0)),"prior_stances":{}}
+	if id>=0:
+		var p := v.people[id]
+		me.courage=int(p.traits[C.BOLD]);me.temper=int(p.traits[C.TEMPER]);me.alert=int(p.traits[C.ALERT]);me.law=int(p.values[C.V_LAW])
+		me.safety=clampi(700-int(p.hurt)*5-int(v.fear)/3,0,1000)
+	# Tunings are data of these inputs alone (temperaments and modifiers are stateless): resolved once per input set.
+	var memo_key := "%s|%d|%d|%d|%d|%d|%d|%s" % [m.temperament,me.courage,me.temper,me.alert,me.law,me.safety,me.hits,str(me.modifiers)]
+	if not _tuning_memo.has(memo_key):
+		if _tuning_memo.size()>=512:_tuning_memo.clear()
+		_tuning_memo[memo_key]=Temperament.resolve(me,m.temperament)
+	return _tuning_memo[memo_key]
+static var _tuning_memo := {}
 static func learn(v: S.Village, incoming: Dictionary, chooser: RefCounted = null, choose := true, temperament_folders: Array = ["res://scripts/studio/people/temperaments/"], modifier_folders: Array = ["res://scripts/studio/people/modifiers/"]) -> bool:
 	var a := Perception.normalized(incoming)
 	var m := mind(v,str(a.observer))
@@ -421,6 +439,10 @@ static func replace_stance(m: S.Mind, receipt: Dictionary, a: Dictionary, delta:
 		row[name]=base+applied
 	if bool(delta.aggression) and not bool(receipt.counted):
 		row.hits=int(row.hits)+1;receipt.counted=true;row.last_deed=str(a.deed)
+	# A ported resident's gift tally (ported.gd), beside hits: only the one handed it, once per accepted gift deed.
+	var worth := int(a.get("evidence",{}).get("worth",0)) if str(a.get("via",""))=="felt" and str(a.get("evidence",{}).get("act",""))=="gift" else 0
+	if worth>0 and not receipt.has("gifted"):
+		row.gifts=int(row.get("gifts",0))+worth;receipt.gifted=worth
 	row.feeling=clampi(int(row.trust)+int(row.obligation)/4-int(row.resentment)-int(row.wary)/2,-1000,1000)
 static func ongoing(plan: Dictionary, now: int) -> bool:
 	return not plan.is_empty() and int(plan.get("until",0))>now and int(plan.get("phase",0))<Array(plan.get("steps",[])).size()

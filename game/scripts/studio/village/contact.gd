@@ -254,7 +254,7 @@ func walking(tree: SceneTree,actor: String,source: Node3D,before: Vector3,after:
 	var res := registry(tree)
 	if res==null:
 		return
-	if how=="walk":
+	if how!="push":
 		_push_shoved.erase(actor) # (the held push has ended: the next is a new push)
 	var present := {}
 	for contact: Dictionary in measure(tree,source,before,radius,Vector3.ZERO,-1,after):

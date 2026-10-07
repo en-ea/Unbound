@@ -42,7 +42,7 @@ func attach(scene: Node) -> void:
 		return
 	if village == null:
 		village = Runtime.Village.create_village(Save.new_seed(OS.get_cmdline_user_args()), {"pace": 10, "focus": true, "live": true})
-		Runtime.attach(village, initial_minute)
+		Runtime.attach(village, WorldClock.minute % 1440) # merge-enea: a new village joins at the world clock's time of day
 		for arg in OS.get_cmdline_user_args():
 			if arg.begins_with("--village-day="):    # a probe from another weekday (plan LIVELY-VILLAGE 2.1)
 				Runtime.advance(village, int(arg.trim_prefix("--village-day=")) * 1440 + initial_minute)
@@ -114,12 +114,15 @@ func _probe(path: String, node_name: String) -> void:
 func _process(delta: float) -> void:
 	if not active or village == null or background or Controls.locked or SaveGame.paused:
 		return
+	# merge-enea: the world clock (studio/world/world_clock.gd) owns time; the village catches up to it, and a
+	# village a probe moved ahead pulls the clock with it. One day is still twelve real minutes.
 	var r := village.runtime
-	r.fraction += delta * 2.0 # One day = twelve real minutes.
-	var minutes := int(r.fraction)
-	if minutes > 0:
-		r.fraction -= minutes
-		Runtime.advance(village, int(r.now) + minutes)
+	var target: int = WorldClock.village_minute(str(r.village), int(r.now))
+	if int(r.now) > target:
+		WorldClock.not_behind(int(r.now) - (target - WorldClock.minute), float(r.fraction))
+	elif int(r.now) < target:
+		Runtime.advance(village, target)
+	r.fraction = WorldClock.fraction
 
 ## `--village-soon`: the village is advanced to its first public act of these kinds (`--village-soon=pillory,stocks`:
 ## those only), for a probe or a look at one (plan LIVELY-VILLAGE: a pillory's end, watched). [] when not asked.

@@ -87,7 +87,8 @@ func _ready() -> void:
 	# abilities). Players can move and resize them all (Settings > Move buttons).
 	_action = _button("attack", "", "", BUTTONS["attack"])
 	_action.font_size = 28
-	_action.pressed.connect(player.act)
+	_action.pressed.connect(func() -> void: _hands.press_button("attack")) # studio: C1 - Hands routes his Attack (the bow keeps player.act)
+	_action.released.connect(func() -> void: _hands.release_button("attack")) # studio: C1
 	_action.add_to_group("action_button")   # studio: hold on a villager to fight (studio/village/hold_to_fight.gd)
 	player.verb_changed.connect(_action.set_verb)
 	_roll = _button("roll", "Roll", "roll", BUTTONS["roll"])
@@ -96,19 +97,22 @@ func _ready() -> void:
 		if _roll.held_for() < HOLD_TO_SPRINT:
 			player.roll())
 	_heavy = _button("heavy", "Heavy", "heavy", BUTTONS["heavy"])
-	_heavy.pressed.connect(player.heavy)
+	_heavy.pressed.connect(func() -> void: _hands.press_button("heavy")) # studio: C1 - a swing on a foe, the checked shove on a villager (the bow keeps player.heavy)
+	_heavy.released.connect(func() -> void: _hands.release_button("heavy")) # studio: C1
 	# Compact hides Heavy and Parry for flicks on Attack.
 	_parry = _button("parry", "Parry", "shield", BUTTONS["parry"])
-	_parry.pressed.connect(player.guard)
+	_parry.pressed.connect(func() -> void: _hands.press_button("parry")) # studio: C1 - his guard; held, it stays up
+	_parry.released.connect(func() -> void: _hands.release_button("parry")) # studio: C1
 	_sneak = _button("sneak", "Sneak", "sneak", BUTTONS["sneak"])
 	_sneak.pressed.connect(player.sneak)
 	_swap = _button("swap", "Bow", "bow", BUTTONS["swap"])          # sword <-> bow (shows the one you'd switch to)
 	_swap.pressed.connect(Gear.swap_weapon)
 	Gear.changed.connect(_update_swap)
+	_hands.buttons={"attack":_action,"roll":_roll,"heavy":_heavy,"parry":_parry,"sneak":_sneak,"swap":_swap} # studio: C1 - his buttons are the frame; Hands reads and routes them
 	_update_swap()
 	_action.swiped.connect(func(dir: String) -> void:
 		if dir == "up":
-			player.heavy()
+			_hands.compact_heavy() # studio: C1 - his Compact flick up is the Heavy tap
 		elif dir == "left":
 			player.guard())
 	Settings.changed.connect(_show_heavy)
@@ -125,6 +129,8 @@ func _ready() -> void:
 				player.abilities.use(list[b.get_meta("slot")]))
 		_ability_buttons[i] = b
 	Classes.changed.connect(_update_ability_buttons)
+	player.studio_refused.connect(func(what: String) -> void: # studio: C1 unit 4 - asked while recovering: his shake
+		({"guard": _parry}.get(what, _roll) as Control).refuse()) # studio:
 	player.stamina.refused.connect(func(cost: String) -> void:
 		({"heavy": _heavy, "guard": _parry}.get(cost, _roll) as Control).refuse())
 	_slow_tint = ColorRect.new()
@@ -277,13 +283,37 @@ func edit_buttons() -> void:
 	ActionButton.editing = true
 	var editor := Control.new()
 	editor.set_script(preload("res://scripts/ui/button_editor.gd"))
-	editor.buttons = _buttons()
-	editor.defaults = BUTTONS
+	var items := _studio_edit_items() # studio: C1 - the arc row and the stick's rest spot move too
+	var all := _buttons() # studio:
+	all.append_array(items) # studio:
+	editor.buttons = all # studio:
+	editor.defaults = BUTTONS.merged(_studio_item_defaults()) # studio:
 	add_child(editor)
 	editor.closed.connect(func() -> void:
 		ActionButton.editing = false
 		Controls.locked = false
+		_hands.buttons.erase("arcs") # studio:
+		for item in items: # studio:
+			item.queue_free() # studio:
 		_set_play_ui(true))
+
+
+## studio: C1 - his editor's two more items, as stand-in discs while it is open: "arcs" (the power row, centred on its
+## spot; default his Attack's) and "stick" (the stick's rest spot; default where his hint has always been).
+func _studio_item_defaults() -> Dictionary: # studio:
+	var view := get_viewport().get_visible_rect().size # studio:
+	return {"arcs": [BUTTONS["attack"][0], 60.0], "stick": [Vector2(view.x - 220.0, 190.0), 64.0]} # studio:
+
+
+func _studio_edit_items() -> Array[ActionButton]: # studio:
+	var out: Array[ActionButton] = [] # studio:
+	var defaults := _studio_item_defaults() # studio:
+	for id: String in ["arcs", "stick"]: # studio:
+		var b := _button(id, "Powers" if id == "arcs" else "Stick", "", defaults[id]) # studio:
+		b.font_size = 18 # studio:
+		out.append(b) # studio:
+	_hands.buttons["arcs"] = out[0] # studio: Hands draws the arcs round it while it moves
+	return out # studio:
 
 
 ## The story's opening (story/intro.gd).
@@ -310,8 +340,6 @@ func _show_buffs() -> void:
 
 func _process(delta: float) -> void:
 	Controls.attack_touch = _action.visible and _action.is_held() and _action.swipes.is_empty()
-	if _hands != null and not _thumb() and _joystick.is_visible_in_tree() and not VillageSession.background:
-		_hands.driver.step(delta)   # merge-fix: with the buttons, walking into people and carried loads still touch them
 	_update_roll_button()
 	_update_ability_buttons()
 	_buff_tick -= delta
@@ -474,13 +502,13 @@ func close_fishing() -> void:
 ## Down in a cave: no minimap (it shows the land above).
 func set_cave(on: bool) -> void:
 	_indoors = on
-	_map.visible = _joystick.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
+	_map.visible = _hands.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
 
 
 func set_indoors(on: bool, own_home := true) -> void:
 	_indoors = on
 	_furnish.visible = on and own_home
-	_map.visible = _joystick.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
+	_map.visible = _hands.is_visible_in_tree() and Settings.show_map and not on # studio: actual play surface
 
 
 ## Building in your yard, or furnishing your home (`room`): joystick stays, the build bar replaces
@@ -609,9 +637,9 @@ func _title_camera() -> void:
 func _set_play_ui(on: bool) -> void:
 	_joystick.visible = on
 	_camera_drag.visible = on
-	_hands.visible=on and _thumb() and not _bow_out() # studio: one phone control authority; merge interim: his bow keeps his Attack button
-	_action.visible=on and (not _thumb() or _bow_out()) # studio: merge interim - his Attack draws and looses the bow until Body's controls take it
-	_roll.visible=on and not _thumb() # studio: Feet owns dodge, stick rim owns sprint (merge-fix: the buttons when Settings says so)
+	_hands.visible=on # studio: C1 - Hands keeps the powers' arcs, the target ring and the hints, with the bow out too
+	_action.visible=on and (not _thumb() or _bow_out()) # studio: C1 - his Attack carries the act (Hands routes it; the bow keeps his own); merge-fix: his thumb area instead when Settings says so
+	_roll.visible=on and not _thumb() # studio: C1 - his Roll, a tap only (the stick rim sprints, a stick flick also dodges)
 	if not on:
 		Controls.sprint_button = false
 	_show_heavy()
@@ -621,31 +649,7 @@ func _set_play_ui(on: bool) -> void:
 	_map.visible = on and Settings.show_map and not _indoors
 
 
-## merge-fix: with the buttons, what the action button can do to people that the thumb area does: put out a
-## burning person, lift someone down (or dead), put them down. {} when nothing (or in thumb mode).
-func people_context() -> Dictionary:
-	if _hands == null or _thumb() or VillageSession.village == null:
-		return {}
-	var d = _hands.driver
-	var facts: Dictionary = d.facts()
-	if facts.has("extinguish"):
-		return {"how": "use", "context": facts.extinguish, "verb": "Put out"}
-	var g: Dictionary = d.grip()
-	if str(g.kind) == "person":
-		return {"how": "grip", "context": g, "verb": "Lift"}
-	if str(g.kind) == "person_down":
-		return {"how": "grip", "context": g, "verb": "Put down"}
-	return {}
-
-
-func people_act(c: Dictionary) -> void:
-	var d = _hands.driver
-	var intent: Dictionary = d.capture("hand")
-	intent.context = c.context
-	d.commit(str(c.how), intent)
-
-
-## merge-fix: Hilmi's thumb area, or Enea's buttons (Settings: Controls).
+## merge-fix: Hilmi's thumb area, or his buttons (Settings: Controls). studio: C1's buttons stay the default.
 func _thumb() -> bool:
 	return _hands != null and Settings.thumb_controls
 
@@ -657,8 +661,10 @@ func _bow_out() -> bool: # studio:
 
 ## Roll button: sprint while held, its rim shows stamina, it lights up while sprinting.
 func _update_roll_button() -> void:
-	if _thumb(): # studio: the retired button cannot drive sprint or meter the live input owner
+	if _hands!=null: # studio: the retired button cannot drive sprint or meter the live input owner
 		Controls.sprint_button=false # studio: stick rim supplies the continuous movement intent
+		_roll.meter_color=Color(0.62, 0.9, 0.38) # studio: C1 unit 4 - the Roll rim shows the roll's recovery (stamina retired)
+		_roll.set_meter(1.0-clampf(player._roll_rest/maxf(player.studio_roll_rest_total,0.01),0.0,1.0)) # studio:
 		return # studio: preserve the dormant implementation below
 	Controls.sprint_button = _roll.visible and _roll.held_for() >= HOLD_TO_SPRINT
 	var sprinting: bool = player.sprinting
@@ -676,12 +682,12 @@ func _update_roll_button() -> void:
 
 ## The fight buttons are always there while you play (Compact: flicks on Attack instead of Heavy and Parry).
 func _show_heavy() -> void:
-	if _thumb(): # studio: one intent surface replaces provisional per-behaviour controls
+	if _thumb(): # merge-fix: his thumb area (Settings: thumb_controls) - the act is its stroke, not these buttons
 		_heavy.visible=false
 		_parry.visible=false
 		_sneak.visible=false
 		_action.swipes={}
-		_swap.visible=(_hands.visible or _action.visible) and Gear.has_bow # studio: merge interim - his Swap reaches the bow (clear of Hands)
+		_swap.visible=(_hands.visible or _action.visible) and Gear.has_bow
 		return
 	var compact := Settings.compact_controls
 	_heavy.visible = _action.visible and not compact
@@ -712,8 +718,8 @@ func _update_ability_buttons() -> void:
 	var list := Classes.abilities()
 	for i: int in _ability_buttons:
 		var b: ActionButton = _ability_buttons[i]
-		var show: bool = not _thumb() and i < list.size() and _action.visible # studio: power glyphs aim/release on Hands
-		b.visible = show or (not _thumb() and ActionButton.editing and _action.visible) # studio: merge - his Move buttons editor, without Hands
+		var show: bool = _hands==null and i < list.size() and _action.visible # studio: power glyphs aim/release on Hands
+		b.visible = show or (_hands==null and ActionButton.editing and _action.visible) # studio: merge - his Move buttons editor, without Hands
 		if not show:
 			if ActionButton.editing:
 				b.set_verb("Skill %d" % (i + 1))
@@ -755,6 +761,7 @@ func _on_class_chosen(id: String) -> void:
 	if id == "shade":
 		ShadowFX.burst(player.get_parent(), player.global_position, 4.0)
 		ShadowFX.puff(player.get_parent(), player.global_position + Vector3(0, 1.0, 0), 1.6)
+	elif id == "tidecaller": WaterFX.splash(player.get_parent(), player.global_position, 3.5) # studio: water class
 	elif id == "delver":
 		EarthFX.dirt(player.get_parent(), player.global_position, 1.0, 40, 7.0)
 		for k in 6:
@@ -775,10 +782,10 @@ func slow_tint(seconds: float) -> void:
 
 func _on_settings_changed() -> void:
 	_fps_label.visible = Settings.show_stats
-	if _map and _joystick.is_visible_in_tree(): # studio: settings follow the live surface, including region arrival
+	if _map and _hands.is_visible_in_tree(): # studio: settings follow the live surface, including region arrival
 		_map.visible = Settings.show_map and not _indoors
-	if _joystick.is_visible_in_tree() and get_node_or_null("FishingUI") == null and _hands.visible != (_thumb() and not _bow_out()):
-		_set_play_ui(true)   # merge-fix: Controls switched in Settings
+	if _hands != null and _joystick.is_visible_in_tree() and get_node_or_null("FishingUI") == null and _roll.visible == _thumb():
+		_set_play_ui(true)   # merge-fix: Controls switched in Settings (his Roll shows with the buttons only)
 
 
 func _add_vignette() -> void:

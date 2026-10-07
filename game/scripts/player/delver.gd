@@ -158,11 +158,13 @@ func drag_under() -> void:
 
 # --- Fault Line -------------------------------------------------------------------------------
 
-func fault_line() -> void:
+func fault_line(aim: Dictionary = {}) -> void: # studio: C1 - optional aimed direction from the arc
 	var facing := Vector3(sin(player.visual.rotation.y), 0, cos(player.visual.rotation.y))
 	var m := Controls.get_move()
 	if m.length() > 0.3:
 		facing = Vector3(m.x, 0, m.y).normalized()
+	if aim.has("dir") and (aim.dir as Vector3).length() > 0.1: # studio: the aimed way wins over stick and facing
+		facing = (aim.dir as Vector3).normalized() # studio: (his snap to a foe ahead within 12 m still follows)
 	var foe: Node3D = _nearest(12.0, facing)
 	if foe:
 		var to := foe.global_position - player.global_position
@@ -210,9 +212,9 @@ func _run_fault(start: Vector3, dir: Vector3, power: float) -> void:
 
 # --- Sinkhole ---------------------------------------------------------------------------------
 
-func sinkhole() -> void:
+func sinkhole(aim: Dictionary = {}) -> void: # studio: C1 - optional aimed point from the arc
 	var facing := Vector3(sin(player.visual.rotation.y), 0, cos(player.visual.rotation.y))
-	var foe: Node3D = _nearest(PIT_REACH)
+	var foe: Node3D = _nearest(PIT_REACH) if not aim.has("at") else null # studio: an aimed pit opens where it was aimed
 	var centre: Vector3 = player.global_position + facing * 6.0
 	if foe:
 		var group := _enemies_near(foe.global_position, 4.0)   # the middle of the bunch round it
@@ -222,6 +224,11 @@ func sinkhole() -> void:
 		centre /= group.size()
 		var to := centre - player.global_position
 		player.visual.rotation.y = atan2(to.x, to.z)
+	if aim.has("at"): # studio: within his reach, at the aimed point
+		var off: Vector3 = (aim.at as Vector3) - player.global_position # studio:
+		off.y = 0.0 # studio:
+		centre = player.global_position + off.limit_length(PIT_REACH) # studio:
+		player.visual.rotation.y = atan2(off.x, off.z) # studio:
 	centre = _ground(centre, player.global_position)
 	player.visual.play_action("Sword_Attack", 1.3)
 	var radius := PIT_RADIUS * (1.33 if Classes.has_talent("wide_pit") else 1.0)

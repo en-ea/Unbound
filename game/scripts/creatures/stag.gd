@@ -138,6 +138,9 @@ func take_burn(damage: int) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	delta = preload("res://scripts/studio/creatures/far_beat.gd").owed(self, player, delta, state in [State.GRAZE, State.WALK] and _calming <= 0.0)   # studio: Body 5 tuning (6 Oct) - calm and far from the player: thinks a few times a second with the time owed, gliding between
+	if delta <= 0.0:   # studio: (same)
+		return   # studio: (same)
 	_t += delta
 	if _calming > 0.0:
 		_calm(delta)

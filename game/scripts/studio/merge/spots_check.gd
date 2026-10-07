@@ -21,6 +21,10 @@ static func report() -> PackedStringArray:
 			var at: Vector2 = h["at"]
 			if p.distance_to(at) < minf(half.x, half.z):
 				inside.append("%s %s in %s" % [name, str(p), String(h["model"]).get_file()])
+		if name.begins_with("place ") and name != "place merchant" and name != "place mill":
+			for t: Array in Sites._his_things():
+				if p.distance_to(t[0]) < float(t[1]) + Sites.CLEAR - 0.01:
+					inside.append("%s %s by his thing at %s" % [name, str(p), str(t[0])])
 	out.append("SPOTS homes=%s" % str(Sites.HOMES))
 	out.append("SPOTS doors=%s" % str(Sites.DOORS))
 	out.append("SPOTS pens=%s" % str(Sites.PENS))

@@ -68,8 +68,8 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if village_clock and VillageSession.village != null:
-		time_of_day = fposmod(float(VillageSession.village.runtime.now) + float(VillageSession.village.runtime.fraction), 1440.0) / 1440.0
+	if WorldClock != null: # studio: merge - the one world clock (studio/world/world_clock.gd) owns time
+		time_of_day = WorldClock.time_of_day() # studio:
 	else:
 		time_of_day = fposmod(time_of_day + delta / (cycle_minutes * 60.0), 1.0)
 	_timer -= delta
@@ -92,15 +92,15 @@ func set_indoors(on: bool) -> void:
 
 ## Sets the clock (test menu: Make it night / day).
 func set_time(t: float) -> void:
+	WorldClock.advance_to_time(t) # studio: merge - forward on the one world clock (beds, the test menu)
 	time_of_day = fposmod(t, 1.0)
 	_apply()
 
 
 ## Jumps the clock forward (dev button).
 func skip(fraction: float) -> void:
-	if village_clock and VillageSession.village != null:
-		VillageSession.Runtime.advance(VillageSession.village, int(VillageSession.village.runtime.now) + int(fraction * 1440))
-	time_of_day = fposmod(time_of_day + fraction, 1.0)
+	WorldClock.advance(fraction * 1440.0) # studio: merge - the village catches up to the one world clock
+	time_of_day = WorldClock.time_of_day() # studio:
 	_apply()
 
 

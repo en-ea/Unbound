@@ -19,6 +19,7 @@ extends Node
 ##              scene, a rescue) > TALK 1 (words overheard from a conversation)
 ##
 ##   one voice a group    a new line or murmur in a group ends the one before: a conversation never talks over itself
+##   said once at a time  the same words are never up twice at once (a second speaker's copy goes unsaid)
 ##   taking turns         in a situation (role's situation), a line from another speaker that does not outrank the one
 ##                        up waits its turn (up to TURN_WAIT; the crowd's does not wait); the same words just said there
 ##                        are not said again; the one struck outranks whoever steps in, who outranks the crowd
@@ -58,6 +59,7 @@ const INK := Color(1.0, 0.97, 0.88)
 const PAD := 0.3              # of a line: the backing's margin round the words
 const BACK := "SpeechBacking"
 const OCCUPIED := "speech_occupied"
+const CULL_MARGIN := 16384.0  # metres: a bubble is never culled apart from its backing (see _bubble)
 const HUD_SHARE := 0.25       # a HUD control this share of the screen or more is a layer, not a panel in use
 const CLEAR := 6.0            # px a bubble keeps from space in use
 const MOVE_MOST := 0.4        # of the screen's width: further than this, a bubble stays put rather than wander off
@@ -155,6 +157,9 @@ func say(body: Node3D, text: String, priority: int, group := 0, voice := "", sec
 			line.group = int(r.get("situation", line.group))
 			situated = true
 	line.situated = situated
+	for other: Line in _shown:
+		if other.text == text and other.body != body:
+			return situated                     # the same words are never up twice at once: the second goes unsaid
 	if situated:
 		# (A situated line is always taken - shown, waiting its turn, or left unsaid - so the act that says it goes on:
 		# people/steps/say.gd waits for true.)
@@ -367,6 +372,9 @@ func _bubble(line: Line) -> Label3D:
 	label.modulate = Color(INK, 0.0)
 	label.outline_modulate = Color(0.08, 0.06, 0.1, 0.0)
 	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	# A fixed-size label's own bounds are tiny in the world, so the view culled the words near the screen's edge while
+	# their (larger) backing still drew: an empty dark bar (C1 boards). Never cull either; there are two bubbles at most.
+	label.extra_cull_margin = CULL_MARGIN
 	var cam := camera if is_instance_valid(camera) else get_viewport().get_camera_3d()
 	var fov := deg_to_rad(cam.fov if cam != null else 60.0)
 	var screen := get_viewport().get_visible_rect().size
@@ -400,6 +408,7 @@ func _backing(label: Label3D) -> Sprite3D:
 	back.no_depth_test = true
 	back.shaded = false
 	back.render_priority = 1                                   # under the outline (2) and the words (3)
+	back.extra_cull_margin = CULL_MARGIN
 	back.pixel_size = label.pixel_size
 	back.modulate = Color(BACKING, 0.0)
 	# merge-fix (owner, 6 Oct: "a bit nicer"): a rounded box with a faint gold edge and a tail down to the speaker,

@@ -1040,6 +1040,39 @@ func hand_attachment() -> BoneAttachment3D:
 	return _hand
 
 
+## One of Enea's seven (his residents and tenants, joined to the village by Mind's port, sim/ported.gd) wears his own
+## look: his npcs.gd entry, the parts and colour indices as he drew them, read as his Npcs.make_visual reads them. His
+## look always wins. His build (his scale) is an adult's: a child keeps the village's age scale, since his seven age now
+## and a fixed child's scale would stop Nell growing (the desk, 6 Oct 06:31). Anyone else keeps the look they were
+## given. For residents.gd ensure(), before the body is added (the mesh is made once, in _ready). True when dressed.
+static func dress_his(body: Node3D, v, pid: int) -> bool:
+	var id := his_id(v, pid)
+	if id == "" or not Npcs.NPCS.has(id):
+		return false
+	var def: Dictionary = Npcs.NPCS[id]
+	var made: Dictionary = def.get("look", {"parts": {}, "colors": {}})
+	var look := CharacterLook.new()
+	for slot: String in made["parts"]:
+		look.parts[slot] = made["parts"][slot]
+	for slot: String in made["colors"]:
+		look.colors[slot] = made["colors"][slot]
+	body.set("hero_look", look)
+	var rules: GDScript = load("res://scripts/studio/village/sim/village.gd")
+	if int(rules.call("age_of", v, v.people[pid])) >= 14:
+		body.scale = def.get("scale", Vector3.ONE)
+	return true
+
+
+## His id (npcs.gd) of a village person who is one of his seven (runtime.ported), or "".
+static func his_id(v, pid: int) -> String:
+	if v == null or v.runtime.is_empty():
+		return ""
+	for entry: Dictionary in v.runtime.get("ported", []):
+		if int(entry.person) == pid:
+			return str(entry.id)
+	return ""
+
+
 ## Shows the look's parts in its colours: picks (or builds) the merged mesh for this look.
 func apply_hero_look() -> void:
 	if is_player_look:

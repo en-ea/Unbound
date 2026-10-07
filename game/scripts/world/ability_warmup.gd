@@ -74,6 +74,7 @@ func warm(at: Vector3) -> void:
 	_keep(holder)
 	holder.global_position = p
 	EarthFX.shards(holder)
+	for n in WaterFX.warm(self, p + Vector3(0, 0, 1.5)): _keep(n) # studio: water class (sphere/ice shader, cloud, rain, frost, bolt)
 
 
 func unwarm() -> void:

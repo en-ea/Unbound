@@ -96,12 +96,14 @@ func build(shape: WorldShape) -> void:
 		sign.reach = 1.8
 		var label := SignLabel.make("For sale" if Lettings.level(i) == 0 else Lettings.HOUSES[i]["name"])
 		sign.add_child(label)
-		Lettings.changed.connect(func() -> void:
+		var refresh := func() -> void:
 			if is_instance_valid(label):
-				label.text = "For sale" if Lettings.level(i) == 0 else Lettings.HOUSES[i]["name"])
+				label.text = "For sale" if Lettings.level(i) == 0 else Lettings.HOUSES[i]["name"]
+		Lettings.changed.connect(refresh)
+		label.tree_exiting.connect(func() -> void: Lettings.changed.disconnect(refresh)) # studio: merge - connected for the label's lifetime (after a region change the freed label's lambda printed "Lambda capture ... was freed")
 	for id: String in Npcs.NPCS:
 		# 6 Oct (owner): Hilmi's villagers live in the houses; Enea's residents (Tomas, Elsa, Nell, Bram) step out
-		if Npcs.NPCS[id].get("region", "meadow") != "meadow" or Npcs.NPCS[id].has("resident"):
+		if Npcs.NPCS[id].get("region", "meadow") != "meadow" or (Npcs.NPCS[id].has("resident") and not preload("res://scripts/studio/village/sim/ported.gd").enabled()): # studio: port - with the port on his residents are the village's (people/port_routine.gd walks them through his node); off, his line
 			continue
 		var npc := Node3D.new()
 		npc.set_script(preload("res://scripts/world/npc.gd"))

@@ -205,7 +205,7 @@ func take_out(item: String, amount: int) -> bool:
 func _process(delta: float) -> void:
 	if not is_grand():
 		return
-	_day_secs += delta
+	_day_secs += WorldClock.step # studio: merge - world seconds (the one world clock)
 	if _day_secs >= Bounties.DAY_SECS:
 		new_day()
 

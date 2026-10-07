@@ -7,6 +7,8 @@ extends Node
 
 signal changed
 
+const PortAdapter := preload("res://scripts/studio/people/port_adapter.gd") # studio: port - his residents read through the people system when the village ports them
+
 const PER_HOUR := 30.0                  # real seconds of an in-game hour (a 12-minute day)
 const GOODS_CAP := 12
 const FRIEND_GIFT_AT := [4, 10]         # liking at which they give you something back
@@ -88,7 +90,7 @@ func _process(delta: float) -> void:
 	for id: String in goods:
 		if activity(id) != "work":
 			continue
-		_work_secs[id] = _work_secs.get(id, 0.0) + delta
+		_work_secs[id] = _work_secs.get(id, 0.0) + WorldClock.step # studio: merge - world seconds (the one world clock)
 		if _work_secs[id] >= PER_HOUR:
 			_work_secs[id] = 0.0
 			var make: String = (def(id)["makes"] as Array).pick_random()
@@ -101,7 +103,7 @@ func _process(delta: float) -> void:
 
 
 func price(id: String, item: String) -> int:
-	var off := 1.0 - 0.05 * mini(int(liking.get(id, 0)), 6)
+	var off := 1.0 - 0.05 * mini(PortAdapter.liking(id, int(liking.get(id, 0))), 6) # studio: port - liking from the resident's stance toward you when ported (else his own number)
 	return maxi(1, roundi(Balance.VALUES.get(item, 2) * 3.0 * off))
 
 
@@ -119,13 +121,17 @@ func buy(id: String, item: String) -> bool:
 
 ## The action: give them something. Returns what they say back (and maybe a present).
 func give(id: String, item: String) -> String:
-	if not Inventory.remove(item, 1):
+	var routed := PortAdapter.routes(id) # studio: port - a ported resident's gift is one checked act through the people system (the item leaves only when it is written)
+	if routed and not PortAdapter.give(id, item, item in def(id)["likes"]): # studio: port
+		return "" # studio: port
+	if not routed and not Inventory.remove(item, 1): # studio: port - his removal, unrouted for a ported resident (the act takes the item)
 		return ""
 	var loved: bool = item in def(id)["likes"]
-	liking[id] = int(liking.get(id, 0)) + (2 if loved else 1)
+	if not routed: # studio: port - his increment, unrouted for a ported resident: his liking field is frozen and liking is read from the stance
+		liking[id] = int(liking.get(id, 0)) + (2 if loved else 1) # studio: port (his line, under the guard above)
 	var says: String = def(id)["loved"] if loved else def(id)["thanks"]
 	var g: int = _gifted[id]
-	if g < FRIEND_GIFT_AT.size() and liking[id] >= FRIEND_GIFT_AT[g]:
+	if g < FRIEND_GIFT_AT.size() and PortAdapter.liking(id, int(liking[id])) >= FRIEND_GIFT_AT[g]: # studio: port - liking through the adapter
 		_gifted[id] = g + 1
 		var present: String = def(id)["present"][g]
 		Inventory.add(present)
@@ -140,8 +146,9 @@ func talk(id: String) -> Dictionary:
 	var lines: Dictionary = def(id)["lines"]
 	var act := activity(id)
 	var text: String = (lines.get(act, lines["work"]) as Array).pick_random()
-	if int(liking.get(id, 0)) >= 4:
+	if PortAdapter.liking(id, int(liking.get(id, 0))) >= 4: # studio: port - liking through the adapter
 		text = (def(id)["friendly"] as Array).pick_random() + " " + text
+	text = PortAdapter.remembered(id, text) # studio: port - a ported resident first says what they remember of you (hit, shoved, freed...)
 	return _screen(text, [
 		{"label": "Your goods?", "do": func() -> Dictionary: return _goods_screen(id, def(id)["goods_line"])},
 		{"label": "A gift", "do": func() -> Dictionary: return _gift_screen(id)},

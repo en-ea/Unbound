@@ -6,20 +6,51 @@ extends RefCounted
 ##     erupt            burrowed: come up                       } urgent: a tap always does these first,
 ##     extinguish       a burning person in reach: put it out   } before any pick-up, talk or station
 ##     get_off          riding: get off                         }
-##     takedown         a downed foe the fighter would finish   }
+##     (takedown        C1 unit 2: no longer a tap; holding Heavy is the severe act - hands.gd, physical_input.severe)
 ##     village_station  a village action spot (free the pilloried)
 ##     station          a station or someone to talk to
 ##     lower            carrying a carcass: set it down
 ##     gather           something to gather
+##     fight            a foe in reach (C1: his Attack's light swing; with nothing at all the swing goes at the air)
 ##   gripping            grip()'s context: a load to lower, a downed person to lift, a carcass to lift, or "empty"
 ##
 ##   tap order   urgent > picking up or setting down > village action > talk and stations > gathering > Use
 ##   flick/push  strike and shove are the stroke's, never the tap's; while carrying, a flick does not strike
 ##               (Enea's haul: "no fighting"), a push still shoves
 const Gesture := preload("res://scripts/studio/player/gesture.gd") # merge-fix: the hint follows how strokes pick acts
-const URGENT := ["erupt", "extinguish", "get_off", "takedown"]
-const USE_ORDER := ["erupt", "extinguish", "get_off", "takedown", "village_station", "station", "lower", "gather"]
+const URGENT := ["erupt", "extinguish", "get_off"]
+const USE_ORDER := ["erupt", "extinguish", "get_off", "village_station", "station", "lower", "gather", "fight"]
 const EMPTY := {"kind": "empty", "verb": "Use"}
+## C1 (desk, 6 Oct): of the things in reach - stations, people to talk to, something to gather, a foe - the tap takes
+## the one he faces: the nearest inside the facing cone (or within TOUCHING, whatever way he faces); with none ahead,
+## the nearest. On a near tie (NEAR_TIE metres) a person outranks a fixed station. Gathering stays the background act
+## (talk and stations came before it, as in his act()): a tree or bush is chosen only when nothing else is there to
+## choose. The urgent slots above stay first.
+const CONE := 0.5 # cos 60 deg either side of facing
+const TOUCHING := 0.6
+const NEAR_TIE := 0.5
+
+
+## rows: [{"slot", "context", "at": Vector2 from him to it, "person": bool}]; forward: his facing (x, z). Returns the
+## chosen row, or {} when there are none.
+static func pick(rows: Array, forward: Vector2) -> Dictionary:
+	var ahead := rows.filter(func(r: Dictionary) -> bool:
+		var to: Vector2 = r.at
+		return to.length() <= TOUCHING or to.normalized().dot(forward.normalized()) >= CONE)
+	var pool: Array = ahead if not ahead.is_empty() else rows
+	if pool.any(func(r: Dictionary) -> bool: return str(r.slot) != "gather"):
+		pool = pool.filter(func(r: Dictionary) -> bool: return str(r.slot) != "gather")
+	var best := {}
+	for r: Dictionary in pool:
+		if best.is_empty() or (r.at as Vector2).length() < (best.at as Vector2).length():
+			best = r
+	if best.is_empty() or bool(best.get("person", false)):
+		return best
+	for r: Dictionary in pool:
+		if bool(r.get("person", false)) and (r.at as Vector2).length() - (best.at as Vector2).length() <= NEAR_TIE:
+			if not bool(best.get("person", false)) or (r.at as Vector2).length() < (best.at as Vector2).length():
+				best = r
+	return best
 
 
 ## What a tap on the old Hand disc (and the act area, when it grips nothing) does: the first slot present in order.
@@ -54,6 +85,6 @@ static func strikes_while(load: String) -> bool:
 
 ## The hint's words for the stroke, honest about the load: "<tap verb> / flick strike / push shove".
 static func hint(tap_verb: String, load: String) -> String:
-	if not Gesture.by_direction: # merge-fix: the flick's direction picks the act
+	if not (Gesture.by_direction and Settings.thumb_controls): # merge-fix: his thumb area, by direction (C1's buttons: as before)
 		return tap_verb + (" / flick strike / push shove" if strikes_while(load) else " / push shove")
 	return "Tap: " + tap_verb # the directions are marked round the thumb area itself

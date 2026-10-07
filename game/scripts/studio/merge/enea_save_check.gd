@@ -4,14 +4,19 @@ extends Node
 ## The runner copies his file to the test save first; this compares what the game loaded with his file, section by
 ## section (his six saved kinds and his belongings, numbers as JSON gives them), then saves through the studio path
 ## (a full save that starts the journal chain, the village added) and reads the file back: every section of his is
-## still there, unchanged, and the village is valid. Prints PASS/FAIL lines and "ENEA SAVE complete failures=N".
+## still there, unchanged, and the village is valid. With --port-residents=on (Mind's port) one more check: his seven
+## joined from his saved liking and lettings. Prints PASS/FAIL lines and "ENEA SAVE complete failures=N".
 const Codec := preload("res://scripts/studio/village/sim/save.gd")
+const Ported := preload("res://scripts/studio/village/sim/ported.gd")
+const PortStance := preload("res://scripts/studio/people/port_stance.gd")
 const SECTIONS := ["bounties", "residents", "lettings", "waystones", "companions", "fishing", "inventory", "gear", "armor",
 	"skills", "coins", "projects", "home", "quests", "classes", "hunting"]
 var failed := 0
 
 
 static func on_device(tree: SceneTree) -> void:
+	if tree.root.has_node("EneaSaveCheck"): # a region change reloads the scene and calls this again
+		return
 	if DisplayServer.get_name() == "headless":
 		tree.root.get_node("ItemIcons").set_process(false)
 	var probe: Node = load("res://scripts/studio/merge/enea_save_check.gd").new()
@@ -114,6 +119,18 @@ func run() -> void:
 	check(differ.is_empty(), "every section of his loaded unchanged: his six kinds and his belongings (differ: %s)" % str(differ))
 	check(Companions.level("cinder") >= 1 and Bounties.taken.size() == 1 and Waystones.is_found("meadow") and not Lettings.owned.is_empty(),
 		"his state is live: Cinder with you, a bounty taken, the meadow waystone woken, a house let")
+	if Ported.enabled():                         # with Mind's port on: his seven join from his saved liking and lettings
+		var v = VillageSession.village
+		var joined: bool = Ported.PEOPLE.keys().all(func(id: String) -> bool: return Ported.person_of(v, id) >= 0)
+		var liking_same: bool = (his.residents.get("liking", {}) as Dictionary).keys().all(
+			func(id: String) -> bool: return PortStance.liking(v, id) == int(his.residents.liking[id]))
+		# Enea's merge-fix (Hilmi agreed): with the port on his three tenants have left (gated absent), and the village
+		# family living in a house he let is its tenants (PortStance.family).
+		var gone: bool = PortStance.TENANTS.keys().all(func(id: String) -> bool: return not PortStance.person(v, id).present)
+		var owned: Dictionary = his.lettings.get("owned", {})
+		var families := owned.keys().map(func(k: Variant) -> int: return PortStance.family(v, int(k)).size())
+		check(joined and liking_same and gone and families.all(func(n: int) -> bool: return n > 0),
+			"with the port on, his seven join: liking as he saved it; his tenants have left, and each let house's tenants are its village family (sizes %s)" % str(families))
 	var error: int = SaveGame.save_game()
 	await frames(5)
 	var path: String = SaveGame.get("_path")

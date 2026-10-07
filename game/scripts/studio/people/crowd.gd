@@ -19,6 +19,7 @@ extends Node
 ##                     indoors ones: their wait counts down; they step out once the doorstep is clear
 
 const Steer := preload("res://scripts/studio/people/steer.gd")
+const Prof := preload("res://scripts/studio/people/prof.gd")
 const Mover := preload("res://scripts/studio/people/mover.gd")
 const Persona := preload("res://scripts/studio/people/persona.gd")
 const Nearby := preload("res://scripts/studio/people/nearby.gd")
@@ -110,6 +111,7 @@ func _process(delta: float) -> void:
 		ag.avoid[i] = mv.avoid
 		near.append(mv)
 		metadata.append({"key": mv.actor_key if mv.actor_key != "" else "body:%d" % mv.body.get_instance_id(), "mover": mv, "body": mv.body, "velocity":mv.vel,"radius":float(mv.m.radius),"fixed":not mv.can_move()})
+	var tq := Prof.add("crowd.wants", t0)
 	var seen := {}
 	if others.is_valid():
 		for pair: Array in others.call():
@@ -140,7 +142,9 @@ func _process(delta: float) -> void:
 		ag.add(Vector2(actual.x,actual.z), 0.0, 0.0, 0.0, 0.0, 0.0, Steer.SPACE)
 		metadata.append({"key": mv.actor_key if mv.actor_key != "" else "body:%d" % mv.body.get_instance_id(), "mover": mv, "body": mv.body, "sensing_only": true,
 			"velocity":Vector2.ZERO,"radius":float(mv.m.radius),"fixed":true})
+	tq = Prof.add("crowd.others", tq)
 	nearby.snapshot(ag.pos, metadata)
+	tq = Prof.add("crowd.snapshot", tq)
 	# S5 preferred room is asymmetric and measured by Residents. Bind actual bodies to this same grid,
 	# omitting duplicate sensing-only rows. This only changes avoidance, never a mover's path/owner.
 	var physical := {}
@@ -153,10 +157,12 @@ func _process(delta: float) -> void:
 		for instance: int in mv.regard:
 			if physical.has(instance) and int(physical[instance])!=i:
 				ag.regard[i][physical[instance]]=clampf(float(mv.regard[instance]),0.6,4.0)
+	tq = Prof.add("crowd.regard", tq)
 	_steps += 1
 	ag.steps = _steps
 	var every := maxi(1, roundi(1.0 / (dt * JUDGE_HZ)))
 	undone = Steer.step(ag, dt, [], every, blocks, nearby.cells)
+	tq = Prof.add("crowd.steer", tq)
 	var before := ag.pos.duplicate()             # (what the walls do is told apart from what people do)
 	if not blocks.is_empty():
 		Steer._out_of(ag, blocks)
@@ -168,6 +174,7 @@ func _process(delta: float) -> void:
 		if not blocks.is_empty():
 			Steer._out_of(ag, blocks)
 	_doors(inside, ag, eye, dt)
+	tq = Prof.add("crowd.walls_doors", tq)
 	for i in near.size():
 		var mv: Mover = near[i]
 		if not mv.can_move():
@@ -188,6 +195,7 @@ func _process(delta: float) -> void:
 		mv.avoid = ag.avoid[i]
 		mv.threat = ag.threat[i]
 		mv.settle(dt)
+	tq = Prof.add("crowd.settle", tq)
 	# Publish actual current geometry through the SAME P4 grid after integration.
 	for i in metadata.size():
 		var node: Node3D=metadata[i].get("body")
@@ -195,6 +203,7 @@ func _process(delta: float) -> void:
 			var actual := node.global_position
 			ag.pos[i]=Vector2(actual.x,actual.z)
 	nearby.snapshot(ag.pos,metadata)
+	Prof.add("crowd.snapshot2", tq)
 	cost_usec = Time.get_ticks_usec() - t0
 
 

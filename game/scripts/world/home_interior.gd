@@ -325,7 +325,7 @@ func _rest() -> void:
 	var t: float = day_night.time_of_day
 	var dark := t > 0.76 or t < 0.24
 	Region.fade_through(func() -> void:
-		day_night.time_of_day = 0.27 if dark else fposmod(t + 0.08, 1.0)
+		day_night.set_time(0.27 if dark else fposmod(t + 0.08, 1.0)) # studio: merge - sleep moves the one world clock (village, rent, bounties follow)
 		day_night.set_indoors(true)
 		player.heal_full()
 		var secs: float = Balance.REST["grand_secs" if Home.is_grand() else "secs"]

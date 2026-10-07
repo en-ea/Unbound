@@ -224,7 +224,7 @@ func _aim_rod() -> void:
 func _land_bobber() -> void:
 	_bobber.visible = true
 	var from := _tip()
-	var t := create_tween()
+	var t := _bobber.create_tween()  # studio: merge - the cast tween dies with the bobber (Stop during the 0.45 s cast errored every frame)
 	t.tween_method(func(k: float) -> void:
 		_bobber.global_position = from.lerp(_target, k) + Vector3(0, sin(k * PI) * 1.4, 0), 0.0, 1.0, 0.45)
 	t.tween_callback(func() -> void:

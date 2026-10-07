@@ -13,6 +13,7 @@ const Happenings := preload("res://scripts/studio/village/sim/happenings.gd")
 const Pressures := preload("res://scripts/studio/village/sim/pressures.gd")
 const TownMeeting := preload("res://scripts/studio/village/sim/town_meeting.gd")
 const WorldActions := preload("res://scripts/studio/village/sim/world_actions.gd")
+const Ported := preload("res://scripts/studio/village/sim/ported.gd")
 const Authored := preload("res://scripts/studio/village/sim/authored.gd")
 const Aftermath := preload("res://scripts/studio/village/sim/aftermath.gd")
 const RETRIES := 3   # a cancelled hearing or sentence is put back this many times before its case goes cold
@@ -34,6 +35,7 @@ static func attach(v: S.Village, minute: int = 432) -> void:
 		"day_open": false, "incidents": [], "player": {"present": false, "x": 0, "z": 0}, "quiet_since": v.day * 1440,
 		"acquaintance": {}}
 	Authored.join(v)   # Enea's own characters are residents of the live village
+	Ported.join(v)     # his residents and tenants as ordinary people (Mind's port; off until its switch is on)
 	advance(v, v.day * 1440 + minute)
 
 static func terminal(e: Dictionary) -> bool:
@@ -212,6 +214,7 @@ static func _migrate(v: S.Village) -> void:
 		r.acquaintance = {}
 	if not r.has("authored"):
 		Authored.join(v)
+	Ported.join(v)   # (adds any of his seven still missing, while the port's switch is on)
 	Happenings.runtime_ready(v)   # (plan VILLAGE-LIFE-AND-NEWS: happenings, the per-pair caps, the stances)
 	Pressures.runtime_ready(v)    # (the pressures' levels)
 	TownMeeting.runtime_ready(v)  # (the last meeting, the night watch)

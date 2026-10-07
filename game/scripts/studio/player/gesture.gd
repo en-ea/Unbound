@@ -4,6 +4,9 @@ extends RefCounted
 ## Role "act" (B3 slice 1): one thumb area, the motion picks the act. Still tap = use, still hold = guard,
 ## a fast flick = strike, a slow push = shove. Decided once, when the stroke arms.
 ## Slice 2: a flick's speed is its force (300 lazy .. 1000 sharp); from HEAVY_FORCE it is the heavy blow.
+## C1 (6 Oct): role "attack" is his Attack button carrying the act's motions, without the still hold (his Parry holds
+## the guard now). Role "heavy" is his Heavy button: the act is decided at the press (Hands sets intent to "heavy" or
+## "shove" from the captured target), and a release delivers it.
 const TRAVEL := 28.0
 const RETURN := 14.0
 const HOLD := 0.28
@@ -43,7 +46,7 @@ func begin(pointer: int, mode: String, at: Vector2, viewport: Vector2, captured:
 	target=captured.duplicate()
 	speed=0.0
 	_trail=[Vector3.ZERO]
-	intent="use" if mode in ["hand","act"] else "dodge" if mode=="feet" else mode
+	intent="use" if mode in ["hand","act","attack"] else "dodge" if mode=="feet" else mode
 func drag(pointer: int, at: Vector2, relative: Vector2) -> bool:
 	if pointer!=finger or relative.length()>200.0*scale:
 		return false
@@ -53,12 +56,12 @@ func drag(pointer: int, at: Vector2, relative: Vector2) -> bool:
 		return true
 	if armed and offset.length()<RETURN*scale:
 		cancelled=true
-	elif offset.length()>=TRAVEL*scale and intent not in ["guard","crouch"]:
+	elif offset.length()>=TRAVEL*scale and intent not in ["guard","crouch"] and role!="heavy":
 		if not armed:
 			prepared_age=age
-			if role=="act":
+			if role in ["act","attack"]:
 				speed=arming_speed()
-				if by_direction:
+				if by_direction and role=="act": # studio: Body 5 - his thumb area only; C1's Attack keeps the speed rule
 					intent=direction_intent(offset)
 				else:
 					intent="shove" if speed<FLICK else "heavy" if flick_force()>=HEAVY_FORCE else "strike"
@@ -113,9 +116,11 @@ func release(pointer: int) -> String:
 		return "cancel"
 	if role=="feet" and not armed:
 		return "crouch" if intent=="crouch" else "cancel"
-	if role in ["hand","act"] and intent=="use" and offset.length()>RETURN*scale:
+	if role in ["hand","act","attack"] and intent=="use" and offset.length()>RETURN*scale:
 		return "cancel"
-	if role not in ["hand","feet","act"] and not armed:
+	if role.begins_with("power:") and not armed: # C1 unit 3: a still tap on a power's arc fires it at his own auto target
+		return "tap" if offset.length()<=RETURN*scale else "cancel"
+	if role not in ["hand","feet","act","attack","heavy"] and not armed:
 		return "cancel"
 	return intent
 func cancel() -> void:

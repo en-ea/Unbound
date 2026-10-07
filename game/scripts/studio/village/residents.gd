@@ -33,8 +33,10 @@ extends Node3D
 ## get on (people/encounters.gd) and played on their bodies (people/situation.gd). Then back to their day: late, they
 ## hurry.
 const Body := preload("res://scripts/studio/village/villager_body.gd")
+const Prof := preload("res://scripts/studio/people/prof.gd")
 const Rules := preload("res://scripts/studio/village/sim/village.gd")
 const Justice := preload("res://scripts/studio/village/sim/justice.gd")
+const NPC_SCRIPT := preload("res://scripts/world/npc.gd")
 const Sites := preload("res://scripts/studio/village/sites.gd")
 const Stage := preload("res://scripts/studio/village/stage.gd")
 const Runtime := preload("res://scripts/studio/village/sim/runtime.gd")
@@ -62,6 +64,7 @@ const HappeningKinds := preload("res://scripts/studio/people/happening_kinds.gd"
 const Stimuli := preload("res://scripts/studio/people/stimuli.gd")
 const VillageReactions := preload("res://scripts/studio/village/village_reactions.gd")
 const WorldActions := preload("res://scripts/studio/village/sim/world_actions.gd")
+const VillageImage := preload("res://scripts/studio/village/sim/image.gd")
 const Happenings := preload("res://scripts/studio/village/sim/happenings.gd")
 const PlayerActs := preload("res://scripts/studio/village/player_acts.gd")
 const BodyElements := preload("res://scripts/studio/people/body_elements.gd")
@@ -71,6 +74,10 @@ const BodyContact := preload("res://scripts/studio/village/contact.gd")
 const Perception := preload("res://scripts/studio/people/perception.gd")
 var _element_ticks := {}
 var _element_visible := {}
+var _sight := -1.0                 # villager sight (m), read once from people_bridge
+var _look_node := {}               # id -> weakref of whom they watch (regard chose them on the beat)
+var _element_dt := {}              # id -> seconds its elements are owed (stepped on the beat)
+var _element_facts := {}           # id -> hash of the body facts its elements were last reconciled with
 var _expression_hints := {}
 var _expression_look := {} # Current measured gaze only; no saved tracking positions.
 var _carry_nodes := {} # Physical metadata cleanup, never saved carry authority; weak actual carrier refs.
@@ -89,8 +96,13 @@ const MEET_NEAR := 30.0         # metres from the player: people meet each other
 const MEET_EVERY := 0.25        # seconds between looks for people meeting
 const SIGHT_NEAR := 12.0        # metres: what a resident standing about may turn to look at
 const TALK_EVERY := 1.0         # seconds between looks at who is talking with whom
-const LOOK_NEAR := 11.0         # metres from the player: heads turn to what they look at (people/look.gd, pose.gd)
+const LOOK_NEAR := 11.0 * 0.8   # metres from the player: heads turn to what they look at (people/look.gd, pose.gd); and
+                                # how far regard looks round a body (shorter sight, Hilmi 6 Oct: 11 m x the people's 0.8)
 const LOOK_EVERY := 0.1         # seconds between the look director's choices
+const SENSE_EVERY := 0.1        # seconds: a near body on screen re-senses (regard) and re-expresses (elements) at 10 Hz,
+                                # staggered; it moves and animates every frame (Hilmi 6 Oct: think less often, spread out)
+const SENSE_FAR := 0.5          # seconds: the same for a body off screen or beyond SENSE_NEAR
+const SENSE_NEAR := 20.0        # metres from the player
 const EVENT_NEAR := 14.0        # metres: a blow this near draws the eyes
 const WAVE_LIKES := 30          # someone who thinks this well of the player waves as they pass (once a while)
 const WAVE_AGAIN := 90.0        # seconds
@@ -165,6 +177,9 @@ var _tag: React.Tag
 var _lent := {}                 # id -> true: a stage walks this borrowed body through its mover (lend_mover)
 var society: Society            # who meets whom, who talks with whom (people/society.gd)
 var _meet_left := 0.0
+var _sense_period := {}         # id -> the period its "sense" work is registered with in Think (village/think.gd)
+var _beat := {}                 # id -> true: Think ran its sense beat since the last frame (its elements reconcile)
+var _bound_at := {}             # id -> _age when its regard was last bound (Mind's hints or the beat)
 var _life := 0.0                # seconds of village life (the clock running)
 var meetings: Array = []        # [seconds, name, a, b]: every meeting begun (society.log; motion_watch.gd reads it)
 var _world := {}                # what a situation asks of the village: the way round the walls, standable ground
@@ -208,7 +223,7 @@ func _ready() -> void:
 	add_child(speech)
 	React.speech = speech
 	speech.role = _speech_role
-	_world = {"route": func(a: Vector2, b: Vector2) -> PackedVector2Array: return _router._route(a, b), "standable": _standable,
+	_world = {"route": func(a: Vector2, b: Vector2) -> PackedVector2Array: return _router._route(a, b), "standable": _standable, "passable": _passable,
 		"good": _good_spot, "open": _open_ahead}
 	society = Society.new(_society_director())
 	meetings = society.log
@@ -292,15 +307,26 @@ func _process(delta: float) -> void:
 		_player.collision_mask |= Body.PEOPLE_LAYER   # the player bumps into people (Enea's own code resets the mask
 		                                               # when getting off the cart; riding, it is 0 and stays so)
 	var clock := float(now) + float(v.runtime.fraction)
+	var cam := get_viewport().get_camera_3d()
 	for id: int in bodies:
 		var body: Body = bodies[id]
 		var mover: Mover = _movers[id]
 		var p = v.people[id]
 		var near2 := player_at.distance_squared_to(body.position)   # the registry and any stage sit at the origin
+		var tb := Prof.now()
 		body.set_solid(near2 < SOLID_NEAR * SOLID_NEAR and body.is_visible_in_tree())
-		_physical(id, adelta)
+		tb = Prof.add("res.solid", tb)
+		var period := SENSE_EVERY if near2 < SENSE_NEAR * SENSE_NEAR and (cam == null or not body.visible
+			or cam.is_position_in_frustum(body.global_position + Vector3(0.0, 1.0, 0.0))) else SENSE_FAR
+		if _sense_period.get(id, -1.0) != period:      # (re-registered as it crosses a range: its slot is kept)
+			_sense_period[id] = period
+			Think.every(_think_owner(id), "sense", period, _sense_beat.bind(id))
+		_physical(id, adelta, _beat.has(id), period == SENSE_EVERY)
+		_beat.erase(id)
+		tb = Prof.add("res.physical", tb)
 		if not frozen:
-			_bind_expression(id)
+			_follow_look(id)
+		Prof.add("res.bind_expression", tb)
 		var by := owners.owner(id)
 		if by == "carry":
 			mover.active = false
@@ -456,6 +482,7 @@ func _part(part: String, since: int) -> int:
 	c[1] += 1
 	c[2] = maxi(c[2], now - since)
 	cost_parts[part] = c
+	Prof.add("res." + part, since)
 	return now
 
 
@@ -644,6 +671,24 @@ func _standable(p: Vector2) -> bool:
 	return get_world_3d().direct_space_state.intersect_shape(_room, 1).is_empty()
 
 
+## Whether someone can pass through p on the way somewhere: as _standable, except that one of Enea's villagers
+## standing there (world/npc.gd's body) is a person to step round, not a wall (merge-enea: his villagers now stand on
+## the green, across the people's straight routes).
+func _passable(p: Vector2) -> bool:
+	for r: Rect2 in _router._blocks:
+		if r.grow(maxf(Spots.ROOM - Stage.BODY_RADIUS, 0.0)).has_point(p):
+			return false
+	if _room == null:
+		_standable(p)
+	_room.transform = Transform3D(Basis(), Vector3(p.x, ground(p) + 1.0, p.y))
+	for hit: Dictionary in get_world_3d().direct_space_state.intersect_shape(_room, 6):
+		var owner_node: Node = (hit.collider as Node).get_parent() if hit.collider is Node else null
+		if owner_node != null and owner_node.get_script() == NPC_SCRIPT:
+			continue
+		return false
+	return true
+
+
 ## Nothing solid between two points (what is looked at may be a building itself: its own walls do not count).
 func _sees(a: Vector2, b: Vector2) -> bool:
 	for r: Rect2 in _router._blocks:
@@ -758,13 +803,24 @@ func _offer_talk(id: int, body: Body, p, near2: float, controls_locked: bool) ->
 	var spot: Talk.Spot = _spots.get(id)
 	if spot == null:
 		return
-	var want: bool = near2 < TALK_NEAR * TALK_NEAR and not controls_locked and body.visible and p.alive
+	# A ported one of his (sim/ported.gd) is talked to through his npc.gd node: no second "Talk" at the same place.
+	var want: bool = near2 < TALK_NEAR * TALK_NEAR and not controls_locked and body.visible and p.alive and not _ported_person(id)
 	if want != spot.offered:
 		spot.offered = want
 		if want:
 			spot.add_to_group("interactable")
 		else:
 			spot.remove_from_group("interactable")
+
+## Whether this resident is one of his ported people (their talk is his npc.gd node's).
+func _ported_person(id: int) -> bool:
+	var v = VillageSession.village
+	if v == null or v.runtime.is_empty():
+		return false
+	for entry: Dictionary in v.runtime.get("ported", []):
+		if int(entry.get("person", -1)) == id:
+			return true
+	return false
 
 ## The name over whoever the action button would talk to (the player's own choice of station), else nothing.
 func _name_tag(v, delta: float) -> void:
@@ -939,6 +995,7 @@ func ensure(person: Dictionary) -> Body:
 	var body := Body.new()
 	var resident = VillageSession.village.people[id]
 	body.hero_look = Talk.look_of(VillageSession.village, id)
+	Body.dress_his(body, VillageSession.village, id) # studio Animation: one of Enea's seven wears his own look and build (npcs.gd)
 	body.is_player_look = false
 	add_child(body)
 	var trip := Runtime.routine(VillageSession.village, id)
@@ -996,6 +1053,8 @@ func lend_mover(id: int) -> Mover:
 	return mover
 
 func release(id: int, body: Body) -> void:
+	Think.forget(_think_owner(id))
+	_sense_period.erase(id)
 	var lent := _lent.has(id)
 	_lent.erase(id)
 	if not is_instance_valid(body):
@@ -1610,6 +1669,7 @@ func _head_of(id: int) -> Vector3:
 
 ## B6 receipt feedback after checked publication. No injury or second action here.
 func play_contact(id: int, receipt: Dictionary) -> void:
+	Think.now(_think_owner(id), "sense", "contact")     # struck, shoved: they sense it at once
 	if not bodies.has(id) or receipt.get("duplicate",false):
 		return
 	var body: Body=bodies[id]
@@ -1642,7 +1702,7 @@ func _body_fact(id: int, fact: Dictionary) -> Dictionary:
 func element_port(id: int) -> Dictionary:
 	var v=VillageSession.village
 	return {"body":bodies[id],"mover":_movers[id],"source":_movers[id].actor_key,
-		"visible":bodies[id].is_visible_in_tree(),"hints":_expression_hints.get(id,PeopleBody.hints(v.people[id].mind)),
+		"visible":bodies[id].is_visible_in_tree(),"hints":_expression_hints[id] if _expression_hints.has(id) else PeopleBody.hints(v.people[id].mind),
 		"current":func(fact: Dictionary) -> Dictionary: return _body_fact(id,fact),
 		"live":func(fact: Dictionary) -> bool: return not _body_fact(id,fact).is_empty(),
 		"emit":func(kind: String, fields: Dictionary) -> void:
@@ -1661,6 +1721,7 @@ func element_port(id: int) -> Dictionary:
 ## regard/attention identities match current visible P4 bodies through Bridge.appearance.
 ## keep_m is preferred centre distance, not a flight goal. Named attention never follows stale saved at.
 func express_body(id: int, hints: Dictionary) -> void:
+	var tx := Prof.now()
 	_expression_hints[id]=hints.duplicate(true)
 	if not bodies.has(id):
 		return
@@ -1668,15 +1729,16 @@ func express_body(id: int, hints: Dictionary) -> void:
 	_bind_expression(id)
 	if body.has_method("express"):
 		body.call("express",hints)
+	Prof.add("bridge.express_body", tx)
 
 ## S5 physical consumer. Uses the existing apparent identity fold, recognition policy and ONE nearby grid.
 ## No belief is written here; hidden/unfamiliar/departed bodies yield no match. Masks remain appearances.
 func _regard(id: int, hints: Dictionary) -> Dictionary:
-	var out := {"space":{},"look":Vector3.INF}
+	var out := {"space":{},"look":Vector3.INF,"node":null}
 	if not bodies.has(id) or people_bridge==null or _crowd==null:
 		return out
 	var body: Body=bodies[id]
-	if not body.is_visible_in_tree() or (is_instance_valid(_player) and body.global_position.distance_to(_player.global_position)>14.0):
+	if not body.is_visible_in_tree() or (is_instance_valid(_player) and body.global_position.distance_to(_player.global_position)>_sight_m()):
 		return out
 	var attention: Dictionary=hints.get("attention",{})
 	var identity := str(attention.get("identity","unknown"))
@@ -1694,20 +1756,27 @@ func _regard(id: int, hints: Dictionary) -> Dictionary:
 	var origin := body.global_position
 	var seen := {}
 	for row: Dictionary in _crowd.nearby.query(Vector2(origin.x,origin.z),LOOK_NEAR):
-		var other: Node3D=row.get("body")
-		if not is_instance_valid(other) or other==body or seen.has(other.get_instance_id()) or not other.is_visible_in_tree():
+		var found: Variant=row.get("body")
+		if not is_instance_valid(found):   # studio: Foundations, merge-enea - a body freed this frame (a slain foe) may still be in the crowd's index: assigning it to a typed var errored
+			continue
+		var other: Node3D=found
+		if other==body or seen.has(other.get_instance_id()) or not other.is_visible_in_tree():
 			continue
 		seen[other.get_instance_id()]=true
 		var current := other.global_position
 		var direction := current-origin
 		direction.y=0
-		if direction.length()>LOOK_NEAR or (direction.length()>3.0 and body.global_basis.z.dot(direction.normalized())<float(Balance.STEALTH.fov)) or not BodyContact.clear(body,origin,current):
+		if direction.length()>LOOK_NEAR or (direction.length()>3.0 and body.global_basis.z.dot(direction.normalized())<float(Balance.STEALTH.fov)):
 			continue
 		var actor := str(row.key)
 		var named: bool=PeopleBody.resident(v,actor)>=0 or actor=="player:local" or actor==observer or observer in Array(other.get_meta("people_recognized_by",[]))
 		var shown: Dictionary=Perception.recognized(people_bridge.appearance(actor),"seen",named)
 		var key := str(shown.get("key","unknown"))
 		if key in ["","unknown"]:
+			continue
+		if key!=identity and not rows.any(func(item: Dictionary) -> bool: return str(item.get("identity","unknown"))==key):
+			continue   # nothing asked about them: no sight line worked out (the ray is the dear part)
+		if not BodyContact.clear(body,origin,current):
 			continue
 		var own_watch := float(attention.get("watch",0)) if identity==key else 0.0
 		for item: Dictionary in rows:
@@ -1716,28 +1785,81 @@ func _regard(id: int, hints: Dictionary) -> Dictionary:
 				own_watch=maxf(own_watch,clampf(float(item.get("watch",0)),0,1))
 		if own_watch>watch:
 			out.look=current+Vector3(0,1.4,0)
+			out.node=other
 			watch=own_watch
 	return out
+
+## Think's "sense" work for one body (village/think.gd, staggered, within the frame's think budget; at once on an
+## event: Think.now): whom they regard is worked out again, unless Mind's hints just did (express_body), and their
+## elements are reconciled in this frame's _physical.
+func _sense_beat(_elapsed: float, id: int) -> void:
+	if not bodies.has(id):
+		Think.forget(_think_owner(id))
+		_sense_period.erase(id)
+		return
+	_beat[id] = true
+	if Controls.locked or VillageSession.background:
+		return
+	if people_bridge != null and people_bridge.has_method("expression_for"):
+		# Mind's hints on Body's beat (the bridge's own every-3-frames loop retired): every beat rebinds, so a hint that
+		# changes outside an event (attention decaying) never outlives itself by more than one beat. Events still bind
+		# at once through express_body.
+		express_body(id, people_bridge.call("expression_for", id))
+	elif _age - float(_bound_at.get(id, -INF)) >= float(_sense_period.get(id, SENSE_EVERY)) * 0.8:
+		_bind_expression(id)
+
+
+static func _think_owner(id: int) -> String:
+	return "resident:%d" % id
+
+## Between sense beats, a head watching someone follows where they are now (who to watch is chosen on the beat).
+func _follow_look(id: int) -> void:
+	if not _look_node.has(id):
+		return
+	var node: Node3D=_look_node[id].get_ref()
+	if not is_instance_valid(node) or _expression_look.get(id,Vector3.INF)==Vector3.INF:
+		_look_node.erase(id)
+		return
+	var at := node.global_position+Vector3(0,1.4,0)
+	_expression_look[id]=at
+	bodies[id].look_at_point(at)
+
+## A villager's sight in metres (people_bridge.villager_sight_m: 12 by day): regard attends only within it.
+func _sight_m() -> float:
+	if _sight < 0.0 and people_bridge != null and people_bridge.has_method("villager_sight_m"):
+		_sight = float(people_bridge.call("villager_sight_m"))
+	return _sight if _sight >= 0.0 else 12.0
 
 func _bind_expression(id: int) -> void:
 	if not _movers.has(id):
 		return
+	_bound_at[id]=_age
 	var v=VillageSession.village
 	var hints: Dictionary=_expression_hints.get(id,{}) if v!=null and v.people[id].alive else {}
+	var tr := Prof.now()
 	var sensed := _regard(id,hints)
+	Prof.add("res.bind.regard", tr)
 	_movers[id].regard=sensed.space
 	var prior: Vector3=_expression_look.get(id,Vector3.INF)
 	_expression_look[id]=sensed.look
+	if sensed.node!=null:
+		_look_node[id]=weakref(sensed.node)   # (followed every frame between beats: _follow_look)
+	else:
+		_look_node.erase(id)
 	if sensed.look!=Vector3.INF or prior!=Vector3.INF:
 		bodies[id].look_at_point(sensed.look)
 
-func _physical(id: int, dt: float) -> void:
+## Every frame: what holds the body (restraint, carrying), and its elements' steps while it is `seen` (near and on screen;
+## else on the beat too, unless an element is moving it). On its sense beat, or at once when its facts change or it is
+## shown again: the elements reconciled with its facts and Mind's hints, and its expression.
+func _physical(id: int, dt: float, beat := true, seen := true) -> void:
 	if not _elements.has(id):
 		return
 	var v=VillageSession.village
 	var p=v.people[id]
 	var mover: Mover=_movers[id]
 	var body: Body=bodies[id]
+	var th := Prof.now()
 	# Restore semantic location first; a live carrier then anchors from its actual position.
 	if not _element_ticks.has(id) and (p.body_facts.has("down") or p.body_facts.has("dead") or p.body_facts.has("carried")):
 		var fact: Dictionary=p.body_facts.get("location",p.body_facts.get("dead",p.body_facts.get("down",{})))
@@ -1780,23 +1902,57 @@ func _physical(id: int, dt: float) -> void:
 				_carry_nodes.erase(id)
 			if people_bridge!=null:
 				for row: Dictionary in _crowd.nearby.rows:
-					var carrier: Node3D=row.get("body")
-					if is_instance_valid(carrier) and int(carrier.get_meta("studio_people_load",-1))==id:
+					var found: Variant=row.get("body")   # studio: Foundations, merge-enea - a freed body is skipped before its typed use
+					if not is_instance_valid(found):continue
+					var carrier: Node3D=found
+					if int(carrier.get_meta("studio_people_load",-1))==id:
 						carrier.remove_meta("studio_people_load")
 		mover.constraints.erase("carried")
+	th = Prof.add("res.phys.hold", th)
 	var tick := PeopleBody.tick(v)
 	var hydrate: bool=not _element_ticks.has(id) or absi(tick-int(_element_ticks.get(id,tick)))>1000 or (_element_visible.get(id,false)==false and body.is_visible_in_tree())
 	_element_ticks[id]=tick
 	_element_visible[id]=body.is_visible_in_tree()
 	var runner = _elements[id]
+	var facts_now: int = p.body_facts.hash()
+	th = Prof.add("res.phys.hash", th)
+	var owed: float = _element_dt.get(id, 0.0) + dt   # elements' time since their last step
+	if not beat and not hydrate and int(_element_facts.get(id, 0)) == facts_now:
+		if not seen and not _moving_element(runner):
+			_element_dt[id] = owed       # far or off screen: the elements step on the beat with the time owed
+			return
+		runner.update(owed)              # seen (a flail, a run for water), or a blow or a fall moving it: every frame
+		_element_dt[id] = 0.0
+		th = Prof.add("res.phys.off_update", th)
+		if body.has_method("apply_elements"):
+			body.call("apply_elements",runner.layers)
+		Prof.add("res.phys.off_apply", th)
+		return
+	_element_facts[id]=facts_now
+	dt = owed
+	_element_dt[id] = 0.0
+	var tp := Prof.now()
 	var port := element_port(id)
+	tp = Prof.add("res.phys.port", tp)
 	runner.reconcile(port,p.body_facts,tick,hydrate)
+	tp = Prof.add("res.phys.reconcile", tp)
 	runner.express(port,port.hints)
+	tp = Prof.add("res.phys.runner_express", tp)
 	runner.update(dt)
+	tp = Prof.add("res.phys.runner_update", tp)
 	if body.has_method("apply_elements"):
 		body.call("apply_elements",runner.layers)
+	tp = Prof.add("res.phys.apply_elements", tp)
 	if body.has_method("express"):
 		body.call("express",port.hints)
+	Prof.add("res.phys.body_express", tp)
+
+## Whether an element is moving the body now (a blow; falling or getting up): stepped every frame, not on the beat.
+static func _moving_element(runner) -> bool:
+	if runner.playing.has("impact"):
+		return true
+	var down: Dictionary = runner.playing.get("down", {})
+	return not down.is_empty() and str(down.state.get("phase", "")) != "lie"
 
 ## ---- measures (motion_watch.gd) -------------------------------------------------------------------------------
 
@@ -1877,13 +2033,16 @@ func _others() -> Array:
 					seen[n] = true
 					_world_others.append([n, 1.2 if group == "ox_cart" else 0.5])
 		for npc in _npcs:
-			if is_instance_valid(npc) and npc.is_visible_in_tree():
+			if is_instance_valid(npc) and npc.is_visible_in_tree() and not npc.has_meta("crowd_ignore"): # (Mind's port marks his node of a ported one)
 				_world_others.append([npc, 0.4])
 	out.append_array(_world_others)
 	return out
 
 
 func _exit_tree() -> void:
+	for id: int in _sense_period:
+		Think.forget(_think_owner(id))
+	_sense_period.clear()
 	for id: int in _carry_nodes:
 		var carrier: Node3D=_carry_nodes[id].get_ref()
 		if is_instance_valid(carrier) and int(carrier.get_meta("studio_people_load",-1))==id:
@@ -1893,6 +2052,9 @@ func _exit_tree() -> void:
 	for runner: RefCounted in _elements.values():runner.stop()
 	_elements.clear()
 	_element_ticks.clear()
+	_element_facts.clear()
+	_element_dt.clear()
+	_look_node.clear()
 	_element_visible.clear()
 	_expression_hints.clear()
 	_expression_look.clear()
@@ -2096,7 +2258,13 @@ func _instead(name: String, a: int, b: int, _k: int) -> String:
 	var req := {"action_id": "argue:%d:%d:%d" % [a, b, int(v.runtime.now)], "player_id": "player:local",
 		"village_id": v.runtime.village, "logical_time": v.runtime.now, "verb": "argue", "target": a,
 		"parameters": {"other": b, "at": [int(round(middle.x * 10.0)), int(round(middle.y * 10.0))], "near": near}}
-	var result := WorldActions.act(v, req, {"distance_dm": 0})
+	# One checked batch (merge-enea, 6 Oct): the quarrel writes the runtime, the chronicle and both people, so it goes
+	# through the people's checked door like any act, never straight onto the live village.
+	if people_bridge == null or not people_bridge.available():
+		return "keep_clear"
+	var result: Dictionary = people_bridge.accept(func(candidate) -> Dictionary:
+		VillageImage.touch_person(-1) # the rules' quarrel may change anyone
+		return WorldActions.act(candidate, req, {"distance_dm": 0}))
 	if result.get("accepted", false):
 		return ""                            # the runner takes them (next frame, _happenings)
 	return "keep_clear"

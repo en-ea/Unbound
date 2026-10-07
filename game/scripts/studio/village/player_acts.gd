@@ -11,6 +11,7 @@ const Runtime := preload("res://scripts/studio/village/sim/runtime.gd")
 const People := preload("res://scripts/studio/village/sim/people.gd")
 const PeopleActions := preload("res://scripts/studio/village/sim/people_actions.gd")
 const VillageImage := preload("res://scripts/studio/village/sim/image.gd")
+const Ported := preload("res://scripts/studio/village/sim/ported.gd")
 static func request(_player: Node3D,registry: Node,verb: String,target: int,parameters: Dictionary = {}) -> Dictionary:
 	return perform("player:local",registry,verb,target,parameters)
 static func perform(actor: String,registry: Node,verb: String,target: Variant,parameters: Dictionary = {},geometry: Dictionary = {}) -> Dictionary:
@@ -44,6 +45,15 @@ static func perform(actor: String,registry: Node,verb: String,target: Variant,pa
 			VillageImage.touch_key("people_facts",key)
 			candidate.people_facts[key]={"actor":actor,"target":People.key(candidate,id),"verb":verb,"tick":People.tick(candidate),"receipt":result.duplicate(true)}
 		return result)
+## His resident panel's gift (Mind's port, the desk's unit 2 of 6 Oct): one checked "give" act on his resident (his id:
+## tomas, elsa, nell, bram, tenant_odo, tenant_mira, tenant_fen), through the bridge and acceptance - one batch, one
+## journal line, the item taken from his Inventory only when it is written, witnesses and the resident learning it as
+## any gift. press_id: the panel's tap, so a repeated tap is the same act. -> the checked receipt.
+static func gift(registry: Node,his_id: String,item: String,press_id: String) -> Dictionary:
+	var id := Ported.person_of(VillageSession.village,his_id)
+	if id<0:
+		return {"accepted":false,"reason":"not a resident of the village"}
+	return perform("player:local",registry,"give",id,{"item":item,"count":1,"press_id":press_id})
 ## Scope: urgent authored Free/Testify; Runtime remains their decision authority. Body connects live._act.
 ## measured_context {authorized,distance_dm,witnesses?,coins?,wood?}; preserves in-talk eligibility.
 static func event_action(bridge: Node,event_id: int,verb: String,parameters: Dictionary,context: Dictionary) -> Dictionary:

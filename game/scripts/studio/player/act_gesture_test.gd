@@ -13,9 +13,9 @@ const FRAME := 1.0/60.0
 static func check(ok: bool,words: String) -> String:
 	return ("PASS " if ok else "FAIL ")+words
 ## path: [[seconds to wait, dx, dy], ...] in viewport px (each row ticks, then moves by dx,dy unless both are 0).
-static func play(path: Array,viewport := Vector2(1560,720)) -> RefCounted:
+static func play(path: Array,viewport := Vector2(1560,720),role := "act") -> RefCounted:
 	var g := Gesture.new()
-	g.begin(4,"act",Vector2(1300,500),viewport,{"target":-2,"press_id":"table"})
+	g.begin(4,role,Vector2(1300,500),viewport,{"target":-2,"press_id":"table"})
 	var at := Vector2(1300,500)
 	for row: Array in path:
 		g.tick(float(row[0]))
@@ -42,6 +42,28 @@ static func steady(frames: int,dx: float,dy: float) -> Array:
 		rows.append([FRAME,dx,dy])
 	return rows
 static func report() -> PackedStringArray:
+	var directed: bool = Gesture.by_direction
+	Gesture.by_direction = false # (the thumb area by speed: its table below; by direction: direction_report)
+	var out_speed := _speed_report()
+	Gesture.by_direction = directed
+	out_speed.append_array(direction_report())
+	return out_speed
+## merge-fix: his thumb area by direction (Settings: thumb_controls) - up strikes, right heavy, left parries, down
+## shoves; C1's Attack button keeps the speed rule whatever the setting.
+static func direction_report() -> PackedStringArray:
+	var out := PackedStringArray()
+	var directed: bool = Gesture.by_direction
+	Gesture.by_direction = true
+	out.append(check(play(steady(3,0,-15)).intent=="strike","by direction: a flick up strikes"))
+	var g: RefCounted=play(steady(3,15,0))
+	out.append(check(g.intent=="heavy" and g.force()==1000,"by direction: a flick right is the heavy blow (%d)" % g.force()))
+	out.append(check(play(steady(3,-15,0)).intent=="guard","by direction: a flick left parries"))
+	out.append(check(play(steady(10,0,4)).intent=="shove","by direction: down shoves"))
+	g=play(steady(3,15,0),Vector2(1560,720),"attack")
+	out.append(check(g.intent!="heavy" or g.flick_force()>=Gesture.HEAVY_FORCE,"by direction never reaches C1's Attack: a flick right on Attack is its speed's act (%s)" % g.intent))
+	Gesture.by_direction = directed
+	return out
+static func _speed_report() -> PackedStringArray:
 	var out := PackedStringArray()
 	var g := play([[0.1,0,0]])
 	out.append(check(g.release(4)=="use","still tap uses what is in front"))
@@ -81,6 +103,8 @@ static func report() -> PackedStringArray:
 	out.append(check(g.release(4)=="guard","a guard already held does not turn into a strike"))
 	g=play([])
 	out.append(check(not g.drag(5,Vector2(1360,500),Vector2(60,0)),"another finger cannot move this stroke"))
+	out.append_array(button_report())
+	out.append_array(recovery_report())
 	out.append_array(stick_report())
 	out.append_array(tap_report())
 	out.append_array(brush_report())
@@ -88,6 +112,47 @@ static func report() -> PackedStringArray:
 	var heavy := Feel.buzz(1000)
 	out.append(check(light.x<heavy.x and light.y<heavy.y and heavy.x<=90 and light.x>=25,"feel: a light blow buzzes shorter and softer than a heavy one (%s / %s)" % [str(light),str(heavy)]))
 	out.append(check(Feel.buzz(-50)==Feel.buzz(0) and Feel.buzz(5000)==heavy,"feel: force outside 0..1000 is clamped"))
+	return out
+## C1: his Attack button carries the act's motions, but its still hold is no guard (his Parry holds it); his Heavy
+## delivers what its press decided.
+static func button_report() -> PackedStringArray:
+	var out := PackedStringArray()
+	var a := func(path: Array) -> RefCounted: return play(path,Vector2(1560,720),"attack")
+	out.append(check(a.call([[0.1,0,0]]).release(4)=="use","Attack: a tap uses what is in front"))
+	var g: RefCounted=a.call([[0.6,0,0]])
+	out.append(check(g.intent=="use" and g.release(4)=="use","Attack: a still hold is still the tap (no guard: his Parry holds the guard)"))
+	g=a.call(steady(3,0,-15))
+	out.append(check(g.intent=="strike" and g.flick_force()>300 and g.flick_force()<500,"Attack: a flick strikes, its force from its speed (%d)" % g.flick_force()))
+	g=a.call([[0.02,60,0]])
+	out.append(check(g.release(4)=="heavy" and g.flick_force()==1000,"Attack: a sharp flick is the heavy blow"))
+	g=a.call(steady(10,4,0))
+	out.append(check(g.release(4)=="shove","Attack: a slow push is the held push (the crowd), as on the thumb area"))
+	var h := Gesture.new()
+	h.begin(4,"heavy",Vector2(1300,500),Vector2(1560,720),{"target":3,"press_id":"table"})
+	h.intent="shove"
+	h.tick(0.1)
+	h.drag(4,Vector2(1360,500),Vector2(60,0))
+	out.append(check(not h.armed and h.release(4)=="shove","Heavy: the press decides (a villager: the checked shove); a drag does not change it"))
+	h=Gesture.new()
+	h.begin(4,"heavy",Vector2(1300,500),Vector2(1560,720),{"target":-2,"press_id":"table"})
+	out.append(check(h.release(4)=="heavy","Heavy: on a foe or the air it is the heavy swing"))
+	return out
+## C1 unit 4: stamina retired, recovery limits (studio/player/recovery.gd, Balance.RECOVERY; design section 3).
+static func recovery_report() -> PackedStringArray:
+	var out := PackedStringArray()
+	const R := preload("res://scripts/studio/player/recovery.gd")
+	var c1 := R.chain_after(0, -INF, 10.0)
+	var c2 := R.chain_after(c1, 10.7 + 0.45, 11.2)
+	var c3 := R.chain_after(c2, 11.9 + 0.45, 12.4)
+	out.append(check(c1 == 1 and absf(R.roll_rest(c1, false) - 0.45) < 0.001, "recovery: one roll rests 0.45 s"))
+	out.append(check(c2 == 2 and absf(R.roll_rest(c2, false) - 0.45) < 0.001, "recovery: a second roll straight after still rests 0.45 s"))
+	out.append(check(c3 == 3 and absf(R.roll_rest(c3, false) - 1.0) < 0.001, "recovery: a third roll in a row (each within 2 s of the last landing) waits 1 s"))
+	out.append(check(R.chain_after(2, 10.0, 12.5) == 1, "recovery: a roll 2.5 s after the last landing starts a new chain"))
+	out.append(check(absf(R.roll_rest(1, true) - 0.45 * 0.85) < 0.001 and absf(R.heavy_commit(1.0, true) - (1.0 + 0.4 * 0.85)) < 0.001, "recovery: Well Rested makes the roll and heavy recoveries x0.85"))
+	out.append(check(absf(R.heavy_commit(1.0, false) - 1.4) < 0.001, "recovery: the heavy swing commits him for its swing and 0.4 s"))
+	out.append(check(not R.breaks_guard(Vector3(4.5, 0, 0)) and not R.breaks_guard(Vector3(5, 0, 0)) and not R.breaks_guard(Vector3(0, 0, 3)) and R.breaks_guard(Vector3(7, 0, 0)) and R.breaks_guard(Vector3(0, 0, -9)),
+		"recovery: a guard holds a bandit's blow (450), a wolf's (500) and an arrow; a lunge (700) or a charge (900) breaks it"))
+	out.append(check(R.broken_damage(3) == 2 and R.broken_damage(1) == 1, "recovery: a blow through a broken guard lands at half, at least 1"))
 	return out
 static func stick_report() -> PackedStringArray:
 	var out := PackedStringArray()
@@ -97,7 +162,8 @@ static func stick_report() -> PackedStringArray:
 	out.append(check(a.get("verb","")=="dodge" and a.offset.x>70,"stick: a quick flick right (1500 px/s) dodges right"))
 	a=stick(steady(3,0,-25))
 	out.append(check(a.get("verb","")=="dodge" and a.offset.y<-70,"stick: a quick flick up dodges away from the camera"))
-	out.append(check(stick([[1.0/30,25,0],[1.0/30,25,0],[1.0/30,25,0]]).get("verb","")=="dodge","stick: the same flick at 30 fps (750 px/s) dodges"))
+	out.append(check(stick([[1.0/30,30,0],[1.0/30,30,0],[1.0/30,30,0]]).get("verb","")=="dodge","stick: a flick at 30 fps (900 px/s) dodges (Enea's retune, 6 Oct: the flick line is 800)"))
+	out.append(check(stick([[1.0/30,25,0],[1.0/30,25,0],[1.0/30,25,0]]).is_empty(),"stick: 750 px/s at 30 fps is no longer a dodge (a short walk read as a flick and rolled)"))
 	out.append(check(stick(steady(9,6,0)).is_empty(),"stick: a slow short walk lifted at once (360 px/s) is not a dodge"))
 	out.append(check(stick([[0.3,0,0]]).is_empty(),"stick: a still rest longer than a tap does nothing"))
 	out.append(check(stick(steady(3,25,0)+[[0.4,0,0]]).is_empty(),"stick: a fast start held on is a run, not a dodge"))
@@ -110,7 +176,7 @@ static func stick_report() -> PackedStringArray:
 	g.drag(5,Vector2(300,540))
 	out.append(check(g.release(4).get("verb","")=="crouch","stick: another finger cannot move this stroke"))
 	return out
-## What one tap does where several acts are in reach: urgent (put out, emerge, get off, takedown) first, then picking
+## What one tap does where several acts are in reach: urgent (put out, emerge, get off) first, then picking
 ## up or setting down, then a village action, then talk and stations, then gathering.
 static func tap_report() -> PackedStringArray:
 	var out := PackedStringArray()
@@ -126,8 +192,8 @@ static func tap_report() -> PackedStringArray:
 		[{"extinguish":burning,"village_station":free},none,"use","Put out","a burning one beside the pillory: put out before Free"],
 		[{"erupt":{"kind":"erupt","verb":"Emerge"},"station":talk},lift,"use","Emerge","burrowed: the tap comes up, whatever is near"],
 		[{"get_off":{"kind":"get_off","verb":"Get off"},"station":talk},none,"use","Get off","riding past someone to talk to: the tap gets off"],
-		[{"takedown":{"kind":"takedown","verb":"Takedown"},"station":talk},none,"use","Takedown","a downed foe beside a talk spot: the tap finishes"],
-		[{"takedown":{"kind":"takedown","verb":"Takedown"}},lift,"use","Takedown","a downed foe beside a downed villager: takedown first"],
+		[{"takedown":{"kind":"takedown","verb":"Takedown"},"station":talk},none,"use","Talk","C1 unit 2: a takedown in reach is no tap (holding Heavy is): beside a talk spot the tap talks"],
+		[{"takedown":{"kind":"takedown","verb":"Takedown"}},lift,"grip","Lift","C1 unit 2: a takedown beside a downed villager: the tap lifts (the takedown is held Heavy)"],
 		[{"village_station":free},lift,"grip","Lift","the pillory beside a downed one: the tap lifts"],
 		[{"station":talk},lift,"grip","Lift","someone to talk to beside a downed one: the tap lifts"],
 		[{"station":talk,"lower":lower},lower,"grip","Lower","carrying, beside someone to talk to: the tap sets the load down"],
@@ -142,6 +208,30 @@ static func tap_report() -> PackedStringArray:
 	out.append(check(TapRule.strikes_while("") and not TapRule.strikes_while("carcass") and not TapRule.strikes_while("person"),"carrying a carcass or a person, a flick does not strike; empty-handed it does"))
 	out.append(check(TapRule.hint("Lower","carcass")=="Lower / push shove" and TapRule.hint("Use","")=="Use / flick strike / push shove","the hint offers only what the stroke can do with the load"))
 	out.append(check(play(steady(3,0,-15)).release(4)=="strike" and play([[0.1,0,0]]).release(4)=="use","the stroke, not what is in reach, chooses strike or tap: a flick beside a burning one still strikes"))
+	out.append_array(pick_report())
+	return out
+## C1 (desk, 6 Oct): of what is in reach, the tap takes the one he faces (TapRule.pick). He faces +y.
+static func pick_report() -> PackedStringArray:
+	var out := PackedStringArray()
+	var row := func(slot: String,verb: String,at: Vector2,person := false) -> Dictionary:
+		return {"slot":slot,"context":{"kind":slot,"verb":verb},"at":at,"person":person}
+	var forward := Vector2(0,1)
+	var person: Dictionary=row.call("station","Talk",Vector2(1.2,0.3),true)
+	var board: Dictionary=row.call("station","Bounties",Vector2(0,1.1))
+	out.append(check(str(TapRule.pick([person,board],forward).context.verb)=="Bounties","pick: facing his board with someone beside: the board"))
+	out.append(check(str(TapRule.pick([person,board],Vector2(1,0.2)).context.verb)=="Talk","pick: facing the person with the board beside: talk"))
+	var near_board: Dictionary=row.call("station","Bounties",Vector2(0.2,1.0))
+	var near_person: Dictionary=row.call("station","Talk",Vector2(-0.3,1.3),true)
+	out.append(check(str(TapRule.pick([near_board,near_person],forward).context.verb)=="Talk","pick: both ahead, a near tie (0.3 m): the person outranks the station"))
+	var far_person: Dictionary=row.call("station","Talk",Vector2(0,2.2),true)
+	out.append(check(str(TapRule.pick([near_board,far_person],forward).context.verb)=="Bounties","pick: both ahead, the station clearly nearer: the station"))
+	var bush: Dictionary=row.call("gather","Pick",Vector2(0,0.5))
+	out.append(check(str(TapRule.pick([bush,board],forward).context.verb)=="Bounties","pick: a bush nearer than the board he faces: the board (gathering is the background act)"))
+	out.append(check(str(TapRule.pick([bush],forward).context.verb)=="Pick","pick: only a bush: gather it"))
+	var foe: Dictionary=row.call("fight","Attack",Vector2(0,1.6))
+	out.append(check(str(TapRule.pick([foe,row.call("station","Cook",Vector2(0,-1.0))],forward).context.verb)=="Attack","pick: a foe ahead and a fire behind: the foe"))
+	out.append(check(str(TapRule.pick([row.call("station","Cook",Vector2(-1.5,-0.5))],forward).context.verb)=="Cook","pick: nothing ahead: the nearest in reach"))
+	out.append(check(TapRule.pick([],forward).is_empty(),"pick: nothing in reach: nothing"))
 	return out
 ## Walking contact (people/contacts/brush.gd): a touch, a stumble, a barge, a held push.
 static func brush_report() -> PackedStringArray:
@@ -159,4 +249,6 @@ static func brush_report() -> PackedStringArray:
 	var pressed: Dictionary=touch.call(0.0,"push",0.7)
 	out.append(check(float(pressed.get("stumble",0))==0.4,"brush: pressed against someone with the push held, they give ground (0.4 m)"))
 	out.append(check(not touch.call(0.0,"walk",0.7).has("stumble"),"brush: standing against someone without pushing moves nobody"))
+	var shoved_about: Dictionary=touch.call(1.0,"still",1.5)
+	out.append(check(not shoved_about.has("verb") and not shoved_about.has("stumble") and int(shoved_about.cue_force)>0,"brush: stood still, pushed about by someone walking into him (1.0 m/s, 1.5 s): only felt, no shove (desk 6 Oct)"))
 	return out

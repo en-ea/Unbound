@@ -14,7 +14,9 @@ func steps(me: Dictionary, a: Dictionary) -> Array:
 	elif a.kind=="fire" and a.via!="heard":
 		line="That is an ambitious way to ask for warmth."
 	elif a.via == "heard":
-		line = "Someone is arguing with their fists."
+		# What was heard, in its own words: only blows are a scuffle.
+		line = {"scream": "That scream... something terrible has happened.", "splash": "What was that splashing?",
+			"crack": "Was that ice cracking? In this weather?", "thunder": "Thunder. That was close."}.get(str(a.evidence.get("act", "")), "Someone is arguing with their fists.")
 	elif int(me.get("distraction",0)) > 0:
 		line = "What happened? I was counting the dead flies."
 	return [{"op":"face","target":a.target},{"op":"say","text":line},{"op":"wait","seconds":2.0}]

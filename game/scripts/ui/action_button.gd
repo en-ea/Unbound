@@ -33,6 +33,10 @@ var lit := false                 # glows while its hold action is on (sprinting)
 var lit_fill := Color(0.2, 0.3, 0.16, 0.75)     # its colour then
 var accent := Color(0.8, 0.82, 0.9)  # its own colour: the ring and the glow inside (abilities: the class's)
 var dim := false                 # can't be used right now
+var studio_keep := false # studio: C1 - Hands: this finger armed an act here (a flick, a held draw or Heavy): it never slides away
+var _studio_last := Vector2.INF # studio: C1 - the finger's last sampled point (a slide is sampled every STUDIO_STEP px)
+const STUDIO_STEP := 8.0 # studio:
+const STUDIO_HYSTERESIS := 1.15 # studio: past this many radii from its own centre before it hands over (was 1.1)
 var _held := -1
 var _held_for := 0.0
 var _pulse := 0.0
@@ -74,7 +78,9 @@ func _ready() -> void:
 ## Slide mode (Settings): a thumb held on one button slides onto another and presses it, no lifting.
 ## The button it left lets go quietly (a roll or a tap doesn't fire on the way out).
 func _slide(pos: Vector2) -> bool:
-	if not Settings.slide_buttons or pos.distance_to(center()) < radius * 1.1:
+	if studio_keep: # studio: an armed finger never hands over
+		return false # studio:
+	if not Settings.slide_buttons or pos.distance_to(center()) < radius * STUDIO_HYSTERESIS: # studio: hysteresis 1.15
 		return false
 	for b in _all:
 		if b != self and b.is_visible_in_tree() and b._held == -1 and pos.distance_to(b.center()) < b.radius:
@@ -86,7 +92,22 @@ func _slide(pos: Vector2) -> bool:
 	return false
 
 
+## studio: C1 - the drag from the last sampled point to `pos`, tried every STUDIO_STEP px, so a fast slide that crosses a
+## button between two events is still caught.
+func _studio_slide(pos: Vector2) -> bool: # studio:
+	var from := _studio_last if _studio_last != Vector2.INF else pos # studio:
+	var steps := maxi(1, ceili(from.distance_to(pos) / STUDIO_STEP)) # studio:
+	for k in range(1, steps + 1): # studio:
+		if _slide(from.lerp(pos, float(k) / steps)): # studio:
+			_studio_last = Vector2.INF # studio:
+			return true # studio:
+	_studio_last = pos # studio:
+	return false # studio:
+
+
 func _take(finger: int, pos: Vector2) -> void:
+	_studio_last = pos # studio:
+	studio_keep = false # studio:
 	_held = finger
 	_held_for = 0.0
 	_start = pos
@@ -142,7 +163,7 @@ func _input(event: InputEvent) -> void:
 		return # studio:
 	if editing:
 		return
-	if event is InputEventScreenDrag and visible and event.index == _held and _slide(event.position):
+	if event is InputEventScreenDrag and visible and event.index == _held and _studio_slide(event.position): # studio: sampled every 8 px
 		return
 	if event is InputEventScreenDrag and visible and event.index == _held and not swipes.is_empty() and not _swiped:
 		_finger = event.position
@@ -171,6 +192,8 @@ func _input(event: InputEvent) -> void:
 		_start = touch.position
 		_finger = touch.position
 		_swiped = false
+		_studio_last = touch.position # studio:
+		studio_keep = false # studio:
 		if swipes.is_empty():
 			_pulse = 1.0
 			pressed.emit()
@@ -197,6 +220,8 @@ func set_meter(value: float) -> void:
 
 
 func _draw() -> void:
+	if preload("res://scripts/studio/player/button_skin.gd").draw(self, editing): # studio: C1 - the same look in about two draw calls (shapes from one shared texture, then the words); his drawing below stays as the fallback
+		return # studio:
 	var c := center() + Vector2(sin(_shake * 40.0) * 6.0 * _shake, 0)
 	var active := (verb != "" or icon != "") and not dim
 	var pressed := _held != -1 and not editing

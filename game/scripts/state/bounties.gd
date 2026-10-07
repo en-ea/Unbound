@@ -54,7 +54,7 @@ var _day_secs := 0.0
 func _process(delta: float) -> void:
 	if get_tree().paused:
 		return
-	_day_secs += delta
+	_day_secs += WorldClock.step # studio: merge - world seconds (the one world clock; stands still in menus, moves when you sleep)
 	if _day_secs >= DAY_SECS:
 		_day_secs = 0.0
 		offers.clear()                    # a new day: every board gets fresh jobs

@@ -17,6 +17,7 @@ const Justice := preload("res://scripts/studio/village/sim/justice.gd")
 const Director := preload("res://scripts/studio/village/sim/director.gd")
 const Storm := preload("res://scripts/studio/village/sim/storm.gd")
 const Authored := preload("res://scripts/studio/village/sim/authored.gd")
+const Ported := preload("res://scripts/studio/village/sim/ported.gd")   # held(): his named characters stay out of the life-course drivers
 
 const YEAR := 60  # days in a village year: four seasons of 15
 const DAY := 1440  # minutes
@@ -279,12 +280,12 @@ static func elect_authorities(V: S.Village) -> void:
 	var elder := -1
 	var priest := -1
 	for p in V.people:
-		if not p.alive or not p.present or p.era != V.age or age_of(V, p) < 30 or p.authored != "":
+		if not p.alive or not p.present or p.era != V.age or age_of(V, p) < 30 or Ported.held(V, p):
 			continue
 		if elder < 0 or p.born < V.people[elder].born or (p.born == V.people[elder].born and p.id < elder):
 			elder = p.id
 	for p in V.people:
-		if not p.alive or not p.present or p.id == elder or p.era != V.age or age_of(V, p) < 20 or p.authored != "":
+		if not p.alive or not p.present or p.id == elder or p.era != V.age or age_of(V, p) < 20 or Ported.held(V, p):
 			continue
 		if priest < 0 or p.traits[C.PIETY] > V.people[priest].traits[C.PIETY]:
 			priest = p.id
@@ -566,7 +567,7 @@ static func food(V: S.Village) -> void:
 static func life(V: S.Village) -> void:
 	var death_day := R.key(R.key(V.base, P_DEATH), V.day)
 	for p in V.people:
-		if not p.alive or not p.present or p.authored != "":
+		if not p.alive or not p.present or Ported.held(V, p):
 			continue
 		var a := age_of(V, p)
 		var k := R.key(death_day, p.id)
@@ -604,7 +605,8 @@ static func life(V: S.Village) -> void:
 			V.stats["births"] += 1
 
 
-static func die(V: S.Village, id: int, cause: String, causes: PackedInt32Array, cue: String) -> int:
+## data: more of the death's own record (a killing by hand names its actor and verb: people_actions finish).
+static func die(V: S.Village, id: int, cause: String, causes: PackedInt32Array, cue: String, data: Dictionary = {}) -> int:
 	var p := V.people[id]
 	if not p.alive:
 		return -1
@@ -618,7 +620,9 @@ static func die(V: S.Village, id: int, cause: String, causes: PackedInt32Array, 
 	var violent := not (cause == "age" or cause == "hunger")
 	if violent:
 		V.stats["violentDeaths"] += 1
-	var ev := E.log_event(V, "violent_death" if violent else "death", id, -1, {"cause": cause}, causes, cue)
+	var record := {"cause": cause}
+	record.merge(data)
+	var ev := E.log_event(V, "violent_death" if violent else "death", id, -1, record, causes, cue)
 	# grief: kin and friends take it hard; a funeral tomorrow is the damper (Dwarf Fortress's lesson)
 	for q in V.people:
 		if not q.alive or q.id == id:
@@ -637,7 +641,7 @@ static func die(V: S.Village, id: int, cause: String, causes: PackedInt32Array, 
 static func marriages(V: S.Village) -> void:
 	var single: Array[S.Person] = []
 	for p in V.people:
-		if p.alive and p.present and p.spouse < 0 and age_of(V, p) >= 18 and age_of(V, p) <= 45 and p.era == V.age and p.authored == "":
+		if p.alive and p.present and p.spouse < 0 and age_of(V, p) >= 18 and age_of(V, p) <= 45 and p.era == V.age and not Ported.held(V, p):
 			single.append(p)
 	for m in single:
 		if m.sex != 0 or m.spouse >= 0:
@@ -645,8 +649,8 @@ static func marriages(V: S.Village) -> void:
 		var best := -1
 		var best_score := -20
 		for w in single:
-			if w.sex != 1 or w.spouse >= 0 or is_kin(V, m.id, w.id):
-				continue
+			if w.sex != 1 or w.spouse >= 0 or is_kin(V, m.id, w.id) or (Ported.keeps_house(V, m.id) and Ported.keeps_house(V, w.id)):
+				continue    # (two of Enea's seven: each keeps the house his world gives them, so not each other)
 			var s := opinion(V, m.id, w.id) + opinion(V, w.id, m.id) + R.pick(R.key(R.key(V.base, P_MARRY), m.id * 997 + w.id + V.day), 60)
 			if s > best_score:
 				best_score = s; best = w.id
@@ -654,15 +658,18 @@ static func marriages(V: S.Village) -> void:
 			continue
 		var w := V.people[best]
 		m.spouse = best; w.spouse = m.id
-		# the bride joins the groom's household (patrilocal, as the villages of the age did)
-		var old := V.households[w.household]
+		# the bride joins the groom's household (patrilocal, as the villages of the age did); one of Enea's seven
+		# keeps the house his world gives them, so the spouse comes to them instead (ported.gd)
+		var moving := m if Ported.keeps_house(V, best) else w
+		var staying := w if Ported.keeps_house(V, best) else m
+		var old := V.households[moving.household]
 		var kept := PackedInt32Array()
 		for x in old.members:
-			if x != best:
+			if x != moving.id:
 				kept.append(x)
 		old.members = kept
-		w.household = m.household; w.lineage = m.lineage
-		V.households[m.household].members.append(best)
+		moving.household = staying.household; moving.lineage = staying.lineage
+		V.households[staying.household].members.append(moving.id)
 		set_opinion(V, m.id, best, 70); set_opinion(V, best, m.id, 70)
 		# the one who wanted her too: a rival's grudge against the groom, remembered (and sometimes repaid)
 		var rival := -1

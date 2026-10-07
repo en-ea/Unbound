@@ -74,8 +74,10 @@ static func state_now(viewport: Viewport) -> Dictionary:
 			seen[npc] = true
 			out.others.append(_other(npc, "npc:" + str(npc.get("_id")), str(npc.get("_id")), at, camera, viewport))
 	for pair: Array in registry.get("_world_others"):  # and the rest of his people and animals (a trader, a boar)
+		if not is_instance_valid(pair[0]):          # freed inside the crowd's 0.5 s look (a wolf's body, a cleared foe): casting it errored
+			continue
 		var node := pair[0] as Node3D
-		if is_instance_valid(node) and not seen.has(node) and node.global_position.distance_to(at) <= NEAR:
+		if not seen.has(node) and node.global_position.distance_to(at) <= NEAR:
 			seen[node] = true
 			var kind: String = (node.get_script() as Script).resource_path.get_file().get_basename() if node.get_script() != null else node.get_class()
 			out.others.append(_other(node, "other:%s:%d" % [kind, node.get_instance_id()], "%s (%s)" % [node.name, kind], at, camera, viewport))

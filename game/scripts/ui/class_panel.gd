@@ -121,6 +121,7 @@ func _draw_emblem(c: Control, sealed: bool, tint: Color, id: String) -> void:
 		c.draw_arc(center + Vector2(0, -8), 12, PI, TAU, 16, Color(tint, 0.8), 4.0, true)
 		c.draw_rect(Rect2(center + Vector2(-16, -6), Vector2(32, 26)), Color(tint, 0.8))
 		return
+	if id == "tidecaller": WaterFX.emblem(c, center, tint, _time); return # studio: water class (a drop over a wave)
 	if id == "delver":
 		var pulse := 0.75 + sin(_time * 3.0) * 0.25
 		c.draw_polyline(PackedVector2Array([center + Vector2(-30, 24), center + Vector2(-12, 18), center + Vector2(-4, 26),

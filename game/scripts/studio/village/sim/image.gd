@@ -44,7 +44,7 @@ static var twin_f := {} # field -> hash as written (cheap pass)
 static var twin_k := {} # dictionary field -> {key -> hash} as written; list field -> [hash of each item] (cheap pass)
 static var twin_p := [] # i -> hash of the person's values as written (cheap pass)
 static var twin_m := [] # i -> [pending array by identity (Mind replaces it whenever flush touches it), known size, appraised size, episodes size, last_tick,
-	# generation, pending size, hash of the plan]
+	# generation, pending size, hash of the plan, hash of the modifiers]
 static var _now := 0 # the active tick of the village being compared
 static var disk_n := 0 # people on disk
 static var places := 0 # place names on disk
@@ -253,7 +253,8 @@ static func _mind_marks(i: int, m, accounts := true) -> void:
 	if accounts:
 		known[i] = m.known.duplicate(false)
 	attention[i] = m.attention
-	twin_m[i] = [m.pending, m.known.size(), m.appraised.size(), m.episodes.size(), m.last_tick, m.generation, m.pending.size(), hash(m.plan)]
+	twin_m[i] = [m.pending, m.known.size(), m.appraised.size(), m.episodes.size(), m.last_tick, m.generation, m.pending.size(), hash(m.plan),
+		hash(m.modifiers)] # modifiers: their owners write them outside People.learn (merge-enea, 6 Oct: a modifier alone was missed)
 
 
 # ---------- what a batch names ----------
@@ -423,7 +424,7 @@ static func _mind_diff(i: int, m, exact: bool, facts: Variant = null, receipts: 
 	# A mind that wrote a receipt learned (Mind records every learn's own receipt), whatever its sizes and tick say:
 	# two learns in one frame keep last_tick and can keep every size.
 	var wrote: bool = receipts is Dictionary and not receipts.is_empty()
-	if not exact and not wrote and is_same(m.attention, attention[i]) and is_same(m.pending, twin[0]) and m.known.size() == twin[1] and m.appraised.size() == twin[2] and m.episodes.size() == twin[3] and m.last_tick == twin[4] and m.generation == twin[5] and m.pending.size() == twin[6] and hash(m.plan) == twin[7]:
+	if not exact and not wrote and is_same(m.attention, attention[i]) and is_same(m.pending, twin[0]) and m.known.size() == twin[1] and m.appraised.size() == twin[2] and m.episodes.size() == twin[3] and m.last_tick == twin[4] and m.generation == twin[5] and m.pending.size() == twin[6] and hash(m.plan) == twin[7] and hash(m.modifiers) == twin[8]:
 		return {}
 	var image: Dictionary = minds[i]
 	var sums: Dictionary = hashes[i]
@@ -581,9 +582,12 @@ static func changes(v, exact := false, scope: Variant = null) -> Dictionary:
 			if d != null:
 				out.f[row[0]] = d
 	var rt: Variant = out.f.get("runtime")
-	var rules_moved: bool = out.f.has("pending") or (rt != null and not (rt is Dictionary and rt.has("set") and rt.set.keys().all(func(k: Variant) -> bool: return k == "fraction" or k == "news")))
-	if not exact and not out.f.has("stagings") and rules_moved and _kept(v) != kept:
-		out.f["stagings"] = true # which stagings are written follows the runtime and the pending acts
+	# Which stagings are written follows the runtime, the pending acts and the clock (an event's staging is kept until
+	# its end), and the clock moves outside acceptance (WorldClock, his bed, the sky's set_time): so every batch, named
+	# or not, checks the kept set and the list's length, not only one that moved the rules (merge-enea 6 Oct: the
+	# intermittent "field stagings" guard line after a clock jump in Mind's port probe).
+	if not exact and not out.f.has("stagings") and fields.has("stagings") and (_kept(v) != kept or v.stagings.size() != (fields.stagings as Array).size()):
+		out.f["stagings"] = true
 	var n: int = v.people.size()
 	for i in n:
 		if i >= persons.size():

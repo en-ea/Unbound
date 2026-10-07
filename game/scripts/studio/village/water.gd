@@ -19,11 +19,12 @@ static func _candidate(registry: Node,name: String,from: Vector2,id: int) -> Dic
 		return {}
 	var prior := from
 	var length := 0.0
+	var passable: Callable=registry._world.get("passable",registry._world.standable) # his villagers on the way are stepped round
 	for point: Vector2 in route:
 		var leg := prior.distance_to(point)
 		var samples := maxi(1,ceili(leg/0.35))
 		for sample: int in range(1,samples+1):
-			if not registry._world.standable.call(prior.lerp(point,float(sample)/samples)):
+			if not passable.call(prior.lerp(point,float(sample)/samples)):
 				return {}
 		length+=leg
 		prior=point
@@ -41,7 +42,12 @@ static func resolve(registry: Node,from: Vector2,id := -1) -> Dictionary:
 static func point(registry: Node,key: String,from: Vector2,id := -1) -> Vector2:
 	var row := _candidate(registry,key.trim_prefix("water:"),from,id)
 	return Vector2(float(row.at[0]),float(row.at[1])) if not row.is_empty() else Vector2.INF
+## A caster's own water (the Tidecaller's: affordance "tide:<press_id>") reaches what Contact measured for that press,
+## up to Contact's 12 m bound (TIDE_REACH); it needs no place. Then wet goes the well's route: one checked contact.
+const TIDE_REACH := 12.0
 static func contact(registry: Node,actor: Vector2,subject: Vector2,key: String) -> bool:
+	if key.begins_with("tide:") and key.length()>5 and actor!=Vector2.INF and subject!=Vector2.INF:
+		return actor.distance_to(subject)<=TIDE_REACH
 	if not key.begins_with("water:") or actor==Vector2.INF or subject==Vector2.INF:
 		return false
 	var place := key.trim_prefix("water:")

@@ -34,6 +34,7 @@ Quests="*res://scripts/state/quests.gd"
 Classes="*res://scripts/state/classes.gd"
 Region="*res://scripts/core/region.gd"
 VillageSession="*res://scripts/studio/village/session.gd"
+WorldClock="*res://scripts/studio/world/world_clock.gd"
 Hunting="*res://scripts/state/hunting.gd"
 Bounties="*res://scripts/state/bounties.gd"
 Residents="*res://scripts/state/residents.gd"
@@ -63,3 +64,7 @@ lights_and_shadows/directional_shadow/size=2048
 lights_and_shadows/directional_shadow/soft_shadow_filter_quality=1
 anti_aliasing/quality/msaa_3d=1
 scaling_3d/scale=0.8
+
+[studio]
+
+people/port_enea_residents=true

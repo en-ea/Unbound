@@ -3,6 +3,8 @@ extends Node3D
 ## short line above their head, and shows a marker: "!" if they have a quest for you, "?" if one is
 ## ready to hand in. It is an "interactable", so the action button says "Talk" when you are in reach.
 
+const PortRoutine := preload("res://scripts/studio/people/port_routine.gd") # studio: port
+
 var verb := "Talk"
 var reach := 2.6
 
@@ -158,7 +160,9 @@ func _process(delta: float) -> void:
 	elif to.length() > 6.0:
 		_greeted = false
 	if _still:
-		pass
+		PortRoutine.still(self, _id) # studio: port - a dead or away ported resident or tenant is not at home: no figure, no talk
+	elif _def.has("resident") and PortRoutine.follow(self, _id): # studio: port - a ported resident's village body walks his day (people/port_routine.gd); his round is unrouted for them
+		pass # studio: port
 	elif _def.has("resident"):
 		_live(delta, busy)
 	elif _def.has("route"):

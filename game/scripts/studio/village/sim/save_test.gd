@@ -229,7 +229,8 @@ static func report() -> PackedStringArray:
 			entry.z = 110
 	var moved_back := Save.from_data(_disk(Save.to_data(moved)))
 	var spot: int = moved_back.place_ids.get("spot_brakk", -1) if moved_back != null else -1
-	check.call(spot >= 0 and moved_back.place_x[spot] == -108 and moved_back.place_z[spot] == 72 and moved_back.dist2 == moved.dist2,
+	var now_at: Array = preload("res://scripts/studio/village/sim/authored.gd").PEOPLE["brakk"] # where the table has him now
+	check.call(spot >= 0 and moved_back.place_x[spot] == int(round(float(now_at[1]) * 10.0)) and moved_back.place_z[spot] == int(round(float(now_at[2]) * 10.0)) and moved_back.dist2 == moved.dist2,
 		"a save from before Brakk's stand moved loads with his spot where he stands now")
 	var fails := 0
 	for line in out:

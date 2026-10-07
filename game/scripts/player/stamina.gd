@@ -6,6 +6,7 @@ extends Node
 signal changed(value: float, max_value: float, winded: bool)
 signal refused(cost: String)     # tried to roll or heavy-attack without enough
 
+const STUDIO_RETIRED := true # studio: C1 unit 4 - unrouted, not deleted: nothing spends or waits on it (recovery limits instead)
 var value: float = Balance.STAMINA["max"]
 var winded := false
 var _pause := 0.0
@@ -17,11 +18,13 @@ func max_value() -> float:
 
 ## True if there is enough for `cost` (any amount left is enough, so the last roll still works).
 func can(cost: String) -> bool:
+	if STUDIO_RETIRED: return true # studio:
 	return not winded and value > (1.0 if cost == "sprint" else 0.0)
 
 
 ## The action: pay for a roll or a heavy attack. False (and nothing paid) when winded.
 func use(cost: String) -> bool:
+	if STUDIO_RETIRED: return true # studio:
 	if not can(cost):
 		refused.emit(cost)
 		return false
@@ -31,6 +34,7 @@ func use(cost: String) -> bool:
 
 ## Sprinting drains it a little each frame.
 func drain(delta: float) -> void:
+	if STUDIO_RETIRED: return # studio:
 	_spend(Balance.STAMINA["sprint"] * delta)
 
 
@@ -41,6 +45,7 @@ func refill() -> void:
 
 
 func _spend(amount: float) -> void:
+	if STUDIO_RETIRED: return # studio:
 	value = maxf(value - amount, 0.0)
 	_pause = Balance.STAMINA["delay"]
 	if value <= 0.0:

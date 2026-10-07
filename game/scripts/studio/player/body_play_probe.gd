@@ -1,6 +1,6 @@
 extends Node
 ## B6/P1 normal HUD/physical proof. Uses actual scene, pointers, measured contact, checked rules and Claude bodies.
-## --studio=village/live --body-play=flow|inactive|labels|feet|contact|actor|sequence --test-save=<fresh-name> [--shot=<png> --shotframe=999999]
+## --studio=village/live --body-play=flow|inactive|labels|feet|contact|actor|sequence|talk|crowd|things|buttons --test-save=<fresh-name> [--shot=<png> --shotframe=999999]
 ## Cast positioning/traits are fixtures; expressions, consequences, choices and locomotion remain their owners'.
 const People := preload("res://scripts/studio/village/sim/people.gd")
 const Rules := preload("res://scripts/studio/village/sim/village.gd")
@@ -91,6 +91,10 @@ func run() -> void:
 		await talk()
 	elif mode=="crowd":
 		await crowd()
+	elif mode=="buttons":
+		await preload("res://scripts/studio/player/buttons_play.gd").run(self)
+	elif mode=="still":
+		await still()
 	elif mode=="things":
 		await preload("res://scripts/studio/player/things_play.gd").run(self)
 	else:
@@ -119,10 +123,11 @@ func flow() -> void:
 	await frames(2)
 	check(hud._camera_drag._finger==41 and hud._hands.pointers.is_empty(),"camera-origin finger stays camera across the hand surface")
 	touch(41,hand_at,false)
-	touch(42,hand_at,true)
+	var guard_at: Vector2=hud._hands.surfaces().get("parry",hand_at) # C1: his Parry holds the guard
+	touch(42,guard_at,true)
 	await active(0.4)
 	print("BODY GUARD viewport=",get_viewport().get_visible_rect().size," at=",hand_at," pointers=",hud._hands.pointers.keys()," preview=",hud._hands.preview()," held=",hud._hands._live," camera=",hud._camera_drag._finger," locked=",Controls.locked," background=",VillageSession.background," guard=",player._guard," rest=",player._guard_rest," stamina=",player.stamina.value," down=",player._down," stun=",player._stun)
-	check(player._studio_guard and hud._hands.pointers.has(42),"still Hand holds actual guard without a fight mode")
+	check(player._studio_guard and (hud._hands.pointers.has(42) or hud._hands._live.has(42)),"still Hand holds actual guard without a fight mode")
 	hud.open_bag()
 	await frames(2)
 	check(not player._studio_guard and hud._hands.pointers.is_empty() and not hud._hands.visible,"modal hiding cancels the held intent")
@@ -147,7 +152,8 @@ func flow() -> void:
 	hud=get_tree().get_first_node_in_group("hud")
 	check(one_hands() and hud._hands.is_visible_in_tree(),"meadow return preserves one input and actual pose owner")
 func inactive() -> void:
-	var hand_at: Vector2=hud._hands.centres().hand
+	var hand_at: Vector2=hud._hands.surfaces().get("act",hud._hands.centres().hand)
+	var guard_at: Vector2=hud._hands.surfaces().get("parry",hud._hands.centres().hand) # C1: his Parry holds the guard
 	var move_at := Vector2(200,get_viewport().get_visible_rect().size.y-180)
 	var camera_at := Vector2(get_viewport().get_visible_rect().size.x*0.7,90)
 	hud._hands.intent_changed.connect(func(intent: Dictionary) -> void:
@@ -159,7 +165,7 @@ func inactive() -> void:
 	VillageSession.background=true
 	touch(61,to,false) # No inactive process frame has run yet.
 	check(releases==0 and hud._hands.pointers.is_empty() and VillageSession.village.people_facts.size()==roots_before,"background queued release cancels before commitment")
-	touch(62,hand_at,true)
+	touch(62,guard_at,true)
 	touch(63,move_at,true)
 	drag(63,move_at,move_at+Vector2(0,75))
 	touch(64,camera_at,true)
@@ -167,7 +173,7 @@ func inactive() -> void:
 	await frames(3)
 	check(hud._hands.pointers.is_empty() and hud._joystick._finger==-1 and hud._camera_drag._finger==-1 and Controls.joystick==Vector2.ZERO and not Controls.stick_sprint,"background fresh pointers cannot acquire hand movement or camera")
 	VillageSession.background=false
-	touch(65,hand_at,true)
+	touch(65,guard_at,true)
 	touch(66,move_at,true)
 	drag(66,move_at,move_at+Vector2(0,75))
 	touch(67,camera_at,true)
@@ -178,10 +184,10 @@ func inactive() -> void:
 	check(held_ok and not player._studio_guard and hud._hands.pointers.is_empty() and hud._joystick._finger==-1 and hud._camera_drag._finger==-1 and not hud._camera_drag.camera_rig.held and not Controls.stick_sprint,"background clears actual guard sprint and camera holds")
 	VillageSession.background=false
 	await active(1.4) # Native guard cooldown remains native; background does not consume it.
-	touch(68,hand_at,true)
+	touch(68,guard_at,true)
 	await active(0.4)
-	var resumed: bool=player._studio_guard and hud._hands.pointers.has(68)
-	touch(68,hand_at,false)
+	var resumed: bool=player._studio_guard and (hud._hands.pointers.has(68) or hud._hands._live.has(68))
+	touch(68,guard_at,false)
 	check(resumed and not player._studio_guard and releases==1,"resume accepts fresh guard without replaying released strike")
 func position_player(at: Vector3) -> void:
 	player.global_position=at
@@ -190,9 +196,10 @@ func position_player(at: Vector3) -> void:
 	player.fighter.target=null
 ## kind: hand (flick strike), shove (slow push), grip (pick up / set down). In the act scheme they are motions in
 ## the one thumb area: a one-frame flick, a push of 6 px a frame, a still tap; with --controls=discs, disc strokes.
+## C1: the thumb area is his Attack button (a flick, a still tap), and the shove is his Heavy's tap on the villager.
 func stroke(kind: String,heavy := false,target := -1) -> Dictionary:
 	var act: bool=hud._hands.scheme=="act"
-	var at: Vector2=hud._hands.surfaces()["act" if act else kind]
+	var at: Vector2=hud._hands.surfaces()[("heavy" if kind=="shove" else "act") if act else kind]
 	var offset: Vector2=Vector2(0,58)*hud._hands.unit()
 	if target>=0:
 		var direction: Vector3=res.bodies[target].global_position-player.global_position
@@ -210,12 +217,8 @@ func stroke(kind: String,heavy := false,target := -1) -> Dictionary:
 			from=next
 			await get_tree().process_frame
 	elif act and kind=="shove":
-		var from := at
-		for i in 10:
-			var next: Vector2=at+offset*float(i+1)/10.0
-			drag(51,from,next)
-			from=next
-			await get_tree().process_frame
+		to=at
+		await frames(2) # His Heavy's tap: the villager it shoves is captured at the press.
 	else:
 		drag(51,at,to)
 	await active(0.55 if heavy else 0.07)
@@ -270,21 +273,31 @@ func talk() -> void:
 	if npc!=null:
 		subject=-1
 		_frame_on=npc
-		position_player(npc.global_position+Vector3(0,0,-9))
-		await active(1.2)
-		var far_quiet: bool=not speech.saying(npc)
-		await capture("talk-01-far")
-		position_player(npc.global_position+Vector3(0,0,-2.5))
-		await active(1.2)
+		# studio: Foundations, desk grant 6 Oct - a village alarm (a wolf) outranks his greeting and can crowd it out, which is
+		# correct play: let it pass and come again (stepping back past 6 m lets him greet anew), up to four approaches.
+		var far_quiet := true
+		var greeted := false
+		for _approach in 4:
+			for _wait in 24:
+				if speech._shown.is_empty() and speech._waiting.is_empty():break
+				await active(0.25)
+			position_player(npc.global_position+Vector3(0,0,-9))
+			await active(1.2)
+			far_quiet=far_quiet and not speech.saying(npc)
+			if _approach==0:await capture("talk-01-far")
+			position_player(npc.global_position+Vector3(0,0,-2.5))
+			await active(1.2)
+			greeted=speech.saying(npc)
+			if greeted:break
 		await capture("talk-02-he-comes-near")
-		check(far_quiet and speech.saying(npc),"Enea's %s says nothing to him 9 m off and greets him as he comes near (through speech.gd)" % str(npc.get("_id")))
+		check(far_quiet and greeted,"Enea's %s says nothing to him 9 m off and greets him as he comes near (through speech.gd)" % str(npc.get("_id")))
 		_frame_on=null
 	# 2. A conversation: from close by, its words reach him.
 	var sit=null
 	var waited := 0.0 # (game seconds: a software render runs at a few frames a second)
 	while sit==null and waited<90.0:
 		for s in res.society.situations:
-			if s.phase=="beats" and s.bodies.size()>=2:
+			if s.phase=="beats" and s.bodies.size()>=2 and s.shape() in ["circle","pair","crouch","beside"]: # (the shapes whose talk is voiced: residents._voices)
 				sit=s
 				break
 		if sit==null:
@@ -310,17 +323,23 @@ func talk() -> void:
 	for hid in res.runs:
 		arguing[int(res.runs[hid].record.get("a",-1))]=true
 		arguing[int(res.runs[hid].record.get("b",-1))]=true
+	var second := -1 # (someone else, for the person-beside-the-board case at the end)
 	for p in v.people:
 		if not arguing.has(p.id) and p.alive and p.present and p.authored=="" and not p.locked and res.bodies.has(p.id) and res.bodies[p.id].is_visible_in_tree() and Rules.age_of(v,p)>=18 and (sit==null or not sit.who.has(p.id)) and res._movers[p.id].can_move():
-			who=p.id
-			break
+			if who<0:
+				who=p.id
+			elif second<0:
+				second=p.id
+				break
 	check(who>=0,"someone to go up to")
 	if who<0:
 		return
 	subject=who
 	res.owners.claim(who,"body_fixture",2)
-	var room := _clear_spot(who,6.0,[10.0,14.0,18.0,22.0,26.0]) # Room round them, near the square (out at 50 m a wild
-	# creature knocked the player down mid-proof): in a crowd the stroke's aim (nearest ahead) may pick another.
+	# C1 (desk, 6 Oct): an open centre clear of his things - standable, his villagers 2.5 m away, nothing of his in reach
+	# of where he stands, plain sight - as Foundations did for the encounter. (Near the square: out at 50 m a wild
+	# creature knocked the player down mid-proof; in a crowd the stroke's aim, nearest ahead, may pick another.)
+	var room := _talk_centre(who)
 	if room!=Vector2.INF:
 		res._movers[who].place(room,PI)
 		res._movers[who].hold(room,room+Vector2(0,-1))
@@ -356,6 +375,7 @@ func talk() -> void:
 		answered=speech.saying(res.bodies[who])
 	await capture("talk-05-shove-answered")
 	check(shoved.get("accepted",false) and answered,"a shove is answered by the one shoved, aloud in the world (%.2f s)" % t2)
+	await beside_board(second)
 	if shot_path!="" and DisplayServer.get_name()!="headless":
 		await RenderingServer.frame_post_draw
 		check(get_viewport().get_texture().get_image().save_png(shot_path)==OK,"final talk image")
@@ -523,6 +543,58 @@ func _shove_targets(actor: String,except: Array=[]) -> Dictionary:
 			out[str(root.get("target",""))]=true
 	return out
 ## Checked shoves this actor has had accepted so far (roots in people_facts).
+## Standing still beside someone is no act (desk, 6 Oct: 3 blows landed on Tomas from bumping alone, with the player
+## stood 1.2 m off as port_gift_check stands him). Walking contact is presentation only unless he himself moves into
+## them. Two people: one held where they stand, one left to their own plan (placed only, as port_gift_check does), the
+## player set down 1.2 m from each and left still for 6 s. Zero acts by him, no hits on their stance of him.
+func still() -> void:
+	var live := get_tree().current_scene.get_node("VillageLive")
+	res=live.registry
+	while not res.all_built():await get_tree().process_frame
+	var v=VillageSession.village
+	var actor := Contact.actor_of(player)
+	var picked: Array[int] = []
+	var ported := preload("res://scripts/studio/village/sim/ported.gd")
+	var tomas: int=ported.person_of(v,"tomas")
+	if tomas>=0 and res.bodies.has(tomas):
+		picked.append(tomas)
+	for p in v.people:
+		if picked.size()>=2:break
+		if not picked.has(p.id) and p.alive and p.present and not p.locked and res.bodies.has(p.id) and res.bodies[p.id].is_visible_in_tree() and Rules.age_of(v,p)>=18 and res._movers[p.id].can_move():
+			picked.append(p.id)
+	check(picked.size()==2,"two people to stand beside (%s)" % str(picked))
+	for i in picked.size():
+		var id: int=picked[i]
+		var held := i==1
+		var body: Node3D=res.bodies[id]
+		if held:
+			res.owners.claim(id,"body_fixture",2)
+			var at := Vector2(body.global_position.x,body.global_position.z)
+			res._movers[id].place(at,PI)
+			res._movers[id].hold(at,at+Vector2(0,-1))
+		else:
+			res._movers[id].place(Vector2(body.global_position.x,body.global_position.z),PI)
+		await frames(2)
+		var facts_before: Array=v.people_facts.keys()
+		var hits_before := int(v.people[id].mind.stances.get("player:local",{}).get("hits",0))
+		player.global_position=body.global_position+Vector3(0,0.1,-1.2)
+		player.velocity=Vector3.ZERO
+		var closest := INF
+		var t := 0.0
+		while t<6.0:
+			await active(0.25)
+			t+=0.25
+			closest=minf(closest,Vector2(player.global_position.x-body.global_position.x,player.global_position.z-body.global_position.z).length())
+		var acts := []
+		for key: String in v.people_facts:
+			var root=v.people_facts[key]
+			if not facts_before.has(key) and root is Dictionary and str(root.get("actor",""))==actor:
+				acts.append(str(root.get("verb","")))
+		var hits := int(v.people[id].mind.stances.get("player:local",{}).get("hits",0))-hits_before
+		print("BODY STILL id=",id," held=",held," closest=%.2f" % closest," acts=",acts," hits=",hits," pairs=",hud._hands.driver.touch.pairs.size())
+		check(acts.is_empty() and hits==0,"standing still 1.2 m from %s (%s, closest %.2f m) for 6 s is no act: %d acts %s, %d hits" % [str(View.describe(v,id).get("name",id)),"held" if held else "on their own plan",closest,acts.size(),str(acts),hits])
+		player.global_position=body.global_position+Vector3(12,0.1,0)
+		await active(1.0)
 func _shoves_by(actor: String) -> int:
 	var n := 0
 	for key: String in VillageSession.village.people_facts:
@@ -586,6 +658,87 @@ func hand_travel(id: int,seconds: float) -> float:
 		path+=now.distance_to(last)
 		last=now
 	return path
+## C1: where the talk proof stands (talk part 3): the first centre round the square where the person's spot and his,
+## 1.4 m short of it, are standable, none of Enea's villagers is within 2.5 m, no one else within 4 m, nothing of his
+## (a station, a sign, a board) is in reach of his spot, and they see each other.
+func _talk_centre(me: int) -> Vector2:
+	var npcs := get_tree().current_scene.find_children("*","Node3D",true,false).filter(func(n: Node) -> bool: return n.get_script()==preload("res://scripts/world/npc.gd"))
+	var space: PhysicsDirectSpaceState3D=(get_tree().current_scene as Node3D).get_world_3d().direct_space_state
+	var shape := WorldShape.new()
+	for radius: float in [6.0,10.0,14.0,18.0,22.0,26.0]:
+		for k in 24:
+			var c := Vector2(0,20)+Vector2.from_angle(TAU*k/24.0)*radius
+			var stand := c+Vector2(0,-1.4)
+			var ok: bool=res._world.standable.call(c) and res._world.standable.call(stand)
+			for n: Node3D in npcs:
+				var at := Vector2(n.global_position.x,n.global_position.z)
+				ok=ok and at.distance_to(c)>=2.5 and at.distance_to(stand)>=2.5
+			for id: int in res._movers:
+				ok=ok and (id==me or res._movers[id].pos.distance_to(c)>=4.0)
+			for n in get_tree().get_nodes_in_group("interactable"):
+				if ok and n is Node3D and not (n.get("resident")!=null and int(n.get("resident"))==me):
+					var at := Vector2((n as Node3D).global_position.x,(n as Node3D).global_position.z)
+					var reach: float=float(n.get("reach")) if n.get("reach")!=null else 2.0
+					ok=at.distance_to(stand)>reach+0.6
+			if ok:
+				var q := PhysicsRayQueryParameters3D.create(Vector3(stand.x,shape.height_at(stand.x,stand.y)+1.5,stand.y),Vector3(c.x,shape.height_at(c.x,c.y)+1.5,c.y))
+				ok=space.intersect_ray(q).is_empty()
+			if ok:
+				print("BODY TALK centre=",c)
+				return c
+	return Vector2.INF
+## C1 (desk, 6 Oct): a person and his bounty board both in reach. The tap takes the one he faces: facing the person it
+## talks, facing the board it opens the board (TapRule's facing cone), and a real tap on his Attack does that.
+func beside_board(id: int) -> void:
+	var board: Node3D=null
+	for n in get_tree().get_nodes_in_group("interactable"):
+		if n is Node3D and str(n.get("verb"))=="Bounties":
+			board=n
+	check(board!=null and id>=0,"his bounty board and someone to stand beside it")
+	if board==null or id<0:
+		return
+	res.owners.claim(id,"body_fixture",2)
+	var b := Vector2(board.global_position.x,board.global_position.z)
+	var stand := Vector2.INF
+	var other := Vector2.INF
+	for k in 16: # him 1.1 m from the board, the person 1.2 m beside him, across the line to the board
+		var d := Vector2.from_angle(TAU*k/16.0)
+		var s2: Vector2=b+d*1.1
+		var o: Vector2=s2+d.orthogonal()*1.2
+		if res._world.standable.call(s2) and res._world.standable.call(o):
+			stand=s2
+			other=o
+			break
+	check(stand!=Vector2.INF,"standable ground beside his board for him and the person")
+	if stand==Vector2.INF:
+		return
+	res._movers[id].place(other,PI)
+	res._movers[id].hold(other,stand)
+	position_player(Vector3(stand.x,WorldShape.new().height_at(stand.x,stand.y)+0.05,stand.y))
+	await frames(4)
+	var face := func(at: Vector2) -> void: player.visual.rotation.y=atan2(at.x-stand.x,at.y-stand.y)
+	face.call(Vector2(res.bodies[id].global_position.x,res.bodies[id].global_position.z))
+	await frames(2)
+	var to_person: Dictionary=hud._hands.driver.tap_context()
+	face.call(b)
+	await frames(2)
+	var to_board: Dictionary=hud._hands.driver.tap_context()
+	var at: Vector2=hud._hands.surfaces().act
+	touch(56,at,true)
+	await frames(2)
+	touch(56,at,false)
+	await frames(6)
+	var opened: Control=null
+	for n in hud.get_children():
+		if n is Control and n.get_script()!=null and str((n.get_script() as Script).resource_path).ends_with("ui/bounty_panel.gd"):
+			opened=n
+	print("BODY TALK board person=",to_person.get("slot",""),"/",to_person.context.get("verb","")," board=",to_board.get("slot",""),"/",to_board.context.get("verb","")," gap=",stand.distance_to(other))
+	check(str(to_person.context.get("verb",""))=="Talk" and str(to_board.context.get("verb",""))=="Bounties" and opened!=null,
+		"with someone and his bounty board both in reach the tap takes the one he faces: Talk facing them, Bounties facing the board, and his Attack opens it (%s / %s)" % [str(to_person.context.get("verb","")),str(to_board.context.get("verb",""))])
+	if opened!=null:
+		opened.closed.emit()
+		opened.queue_free()
+		await frames(6)
 ## A standable point at least `clear` metres from every other resident and the player, on rings round the square.
 func _clear_spot(me: int,clear: float,radii: Array=[50.0,60.0,70.0,85.0],lane := 0.0) -> Vector2:
 	for radius: float in radii:
@@ -715,6 +868,7 @@ func sequence() -> void:
 	v.people[cast[1]].traits[Rules.C.BOLD]=85
 	v.people[cast[2]].traits[Rules.C.BOLD]=15
 	v.people[cast[3]].mind.modifiers.append({"id":"distracted","delay_ms":2400})
+	preload("res://scripts/studio/village/sim/image.gd").drifted(cast[3]) # a fixture write outside acceptance: the next batch takes it in (as encounter_probe)
 	var victim := cast[0]
 	await frames(4) # mover.place is consumed by Crowd; reading the body earlier gives its old world position.
 	check(res._movers[victim].pos.distance_to(centre)<0.6 and Vector2(res.bodies[victim].global_position.x,res.bodies[victim].global_position.z).distance_to(centre)<0.6 and res.owners.held(victim,"body_fixture"),"generic claimed owner retains arranged actual body through day update")
@@ -841,7 +995,8 @@ func sequence() -> void:
 	await frames(2)
 	var fire_tap: Dictionary=hud._hands.driver.tap_context()
 	check(str(fire_tap.slot)=="extinguish" and str(fire_tap.context.get("verb",""))=="Put out","beside the burning one the tap is Put out, before any pick-up, talk or station (%s)" % str(fire_tap.slot))
-	var at: Vector2=hud._hands.centres().hand
+	var at: Vector2=hud._hands.surfaces().get("act",hud._hands.centres().hand) # C1: his Attack button
+	print("BODY FIRE before tap pointers=",hud._hands.pointers.keys()," attack_held=",hud._action._held," visible=",hud._action.is_visible_in_tree()," locked=",Controls.locked," at=",at," centre=",hud._action.center())
 	touch(52,at,true)
 	# The rule: the tap puts out the burning person it targets (the nearest, captured at the press). Who that is can be
 	# someone other than `rescued`: they run on for water, and a burning bystander may be nearer by then.
@@ -917,7 +1072,7 @@ func feet() -> void:
 	await active(0.6)
 	var base := Vector2(220,view.y-190)
 	var u: float=hud._hands.unit() # Stick strokes are thumb motions in unit px, as the classifier reads them.
-	var flick: Array=[Vector2(25,0)*u,Vector2(25,0)*u,Vector2(25,0)*u]
+	var flick: Array=[Vector2(32,0)*u,Vector2(32,0)*u,Vector2(32,0)*u] # (960 px/s at 30 fps: over Enea's retuned flick line, 800)
 	await capture("feet-01-idle")
 	if hud._hands.scheme=="discs":
 		check(hud._hands.surfaces().has("feet"),"discs keep the Feet disc")
@@ -944,7 +1099,7 @@ func feet() -> void:
 		await frames(1)
 		waited+=1
 	var expected: Vector3=hud._hands.driver.direction(Vector2(1,0),Controls.cam_yaw)
-	check(player.is_rolling() and player._roll_dir.dot(expected)>0.9 and player.stamina.value<stamina_before,"a quick stick flick right dodges right, camera-relative (dir %s)" % str(player._roll_dir))
+	check(player.is_rolling() and player._roll_dir.dot(expected)>0.9 and player.stamina.value==stamina_before,"a quick stick flick right dodges right, camera-relative, spending nothing (C1 unit 4: stamina retired) (dir %s)" % str(player._roll_dir))
 	await frames(4)
 	await capture("feet-03-dodge")
 	await active(1.2)
@@ -993,11 +1148,21 @@ func stick_path(finger: int,base: Vector2,steps: Array) -> void:
 	touch(finger,knob,false)
 ## Slice 4 geometry: the thumb area and every arc (with its cooldown edge) inside the screen, the arcs in order
 ## with gaps, a fresh touch on each arc's middle picks that power, and the hint's widest common pill above them all.
+## C1: the arcs ring his Attack button; none of them may cover one of his buttons.
 func arcs_clear(hands: Control,u: float,view: Vector2) -> bool:
-	var area: Vector2=hands.surfaces().act
-	var outer: float=(hands.ACT_RADIUS+hands.ARC_GAP+hands.ARC_BAND+5.5)*u
-	var ok: bool=area.x-hands.ACT_RADIUS*u>=0 and area.y+hands.ACT_RADIUS*u<=view.y and area.x+hands.ACT_RADIUS*u<=view.x
+	var area: Vector2=hands.arc_centre()
+	var outer: float=hands.arc_outer()+5.5*u
+	var ok := true
 	var arc: Dictionary=hands.arcs()
+	for id: String in hands.buttons:
+		var b: Control=hands.buttons[id]
+		if b.is_visible_in_tree() and id!="attack":
+			for k in 16:
+				var edge: Vector2=b.center()+Vector2.from_angle(TAU*k/16.0)*b.radius
+				if hands.role_at(edge)!="":
+					print("BODY LABELS arc over his ",id," at ",edge)
+					ok=false
+					break
 	var last := -INF
 	for role: String in arc:
 		for angle: float in [arc[role].x,arc[role].y]:

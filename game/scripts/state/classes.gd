@@ -3,6 +3,7 @@ extends Node
 ## (`awaken()`), then you pick a class (`choose()`). The Pyromancer and the Delver are open; the other two
 ## are sealed until later in the story. Each class has abilities with cooldowns (`use()`); the player's
 ## abilities.gd does what they do. Any class can use any weapon. Saved with the game.
+## studio: the Tidecaller (water) takes the fourth, sealed slot and is open from the start (player/tidecaller.gd).
 
 signal changed
 signal awakened_now
@@ -22,7 +23,11 @@ const CLASSES := {
 		"blurb": "Born of the Long Night, when the sun failed and people learned to walk in their own shadows. Dance through them as shadow, leave a double to take the blows, then trade places with it.",
 		"trait": "Unseen: hits from behind land half again as hard, you move quieter, and your roll is a slip through shadow.",
 		"abilities": ["shadow_dance", "mirage", "switch"]},
-	"sealed_3": {"sealed": true},
+	"tidecaller": {"name": "Tidecaller", "color": Color(0.14, 0.56, 0.84), "take": "Take the tide", # studio: water class fills the sealed slot (was "sealed_3": {"sealed": true})
+		"answer": "The spring rises to meet you", # studio: water class
+		"blurb": "The spring under the stones remembers every flood. Drown them in the air, call the storm down on them, then freeze what the water touched.", # studio: water class
+		"trait": "Tidebound: your blows land harder on anything wet, your water puts out any fire it touches, and your roll leaves a puddle that soaks whoever steps in it.", # studio: water class (desk 6 Oct: the player cannot burn, so no line about fire on you)
+		"abilities": ["drown", "tempest", "rime_wave"]}, # studio: water class (player/tidecaller.gd)
 }
 ## Numbers for each ability (the damage is in hits of your sword's power, see abilities.gd).
 const ABILITIES := {
@@ -44,6 +49,12 @@ const ABILITIES := {
 		"desc": "Trade places with your double, shadow bursting where you both stood. With no double out, you burst and vanish: enemies lose you for a moment."},
 	"cinderburst": {"name": "Cinderburst", "short": "Burst", "cooldown": 14.0,
 		"desc": "A ring of fire bursts out around you and sets everyone in it alight. Anyone who was already burning explodes, spreading the fire, and each explosion sends a spark of life back to you. Set them burning first, then pop them."},
+	"drown": {"name": "Drown", "short": "Drown", "cooldown": 10.0, # studio: water class
+		"desc": "A sphere of water swallows the marked enemy and lifts it into the air. It thrashes and chokes for five seconds, then the water slams it into the ground and splashes everyone near."}, # studio: water class
+	"tempest": {"name": "Tempest", "short": "Storm", "cooldown": 16.0, # studio: water class
+		"desc": "Storm clouds gather round you. The rain stings everyone under it and puts out fires, and lightning strikes your enemies hard, the wet ones first."}, # studio: water class
+	"rime_wave": {"name": "Rime Wave", "short": "Rime", "cooldown": 9.0, # studio: water class
+		"desc": "A wave of frost rolls out in front of you. Anyone wet in the last 15 seconds freezes solid, and your next weapon hit on them lands three times as hard. The dry are only chilled."}, # studio: water class
 }
 
 ## Talents: each class has branches of three, learned in order with talent points (one from the shrine,
@@ -67,6 +78,12 @@ const TALENT_TREES := {
 		{"name": "Switch", "talents": ["wide_burst", "rebound", "nightfall"]},
 		{"name": "Unseen", "talents": ["soft_steps", "knife_work", "shroud"]},
 	],
+	"tidecaller": [ # studio: water class
+		{"name": "Drown", "talents": ["long_hold", "riptide", "drowned"]}, # studio: water class
+		{"name": "Tempest", "talents": ["downpour", "conductive", "eye_of_storm"]}, # studio: water class
+		{"name": "Rime Wave", "talents": ["ring_of_rime", "brittle", "deep_freeze"]}, # studio: water class
+		{"name": "Tidebound", "talents": ["spring", "flood", "still_water"]}, # studio: water class
+	], # studio: water class
 }
 const TALENTS := {
 	"deep_step": {"name": "Long Dance", "desc": "Shadow Dance reaches half again as far and makes one more cut."},
@@ -88,7 +105,7 @@ const TALENTS := {
 	"falling_sky": {"name": "Falling Sky", "desc": "Meteor is ready again 25% sooner."},
 	"twin_stars": {"name": "Twin Stars", "desc": "A second, smaller star falls on another enemy."},
 	"wide_ring": {"name": "Wide Ring", "desc": "Cinderburst's ring reaches much further."},
-	"feed_the_flames": {"name": "Feed the Flames", "desc": "Each spark of life also refills your stamina, and up to five come back."},
+	"feed_the_flames": {"name": "Feed the Flames", "desc": "Each spark of life also takes half a second off Flame Dash, and up to five come back."}, # studio: C1 - stamina retired
 	"chain_reaction": {"name": "Chain Reaction", "desc": "Enemies set alight by an explosion explode too, in a second, smaller wave."},
 	"slow_burn": {"name": "Slow Burn", "desc": "Everything you set on fire burns half again as long."},
 	"white_heat": {"name": "White Heat", "desc": "Your fire burns twice as hard."},
@@ -105,6 +122,18 @@ const TALENTS := {
 	"sharp_claws": {"name": "Sharp Claws", "desc": "Every third claw swipe cracks what it hits."},
 	"rend": {"name": "Rend", "desc": "Cracked foes take twice the extra damage from you."},
 	"ore_heart": {"name": "Ore Heart", "desc": "Each foe the earth swallows gives you two hearts back, and Burrow is ready again at once."},
+	"long_hold": {"name": "Undertow", "desc": "Drown holds them seven seconds instead of five."}, # studio: water class
+	"riptide": {"name": "Riptide", "desc": "Drown's slam throws them further and splashes wider."}, # studio: water class
+	"drowned": {"name": "Drowned", "desc": "Whoever is held the whole time can drown."}, # studio: water class
+	"downpour": {"name": "Downpour", "desc": "Tempest's cloud spreads a third wider."}, # studio: water class
+	"conductive": {"name": "Conductive", "desc": "Lightning hits the wet half again as hard."}, # studio: water class
+	"eye_of_storm": {"name": "Eye of the Storm", "desc": "The cloud follows you."}, # studio: water class
+	"ring_of_rime": {"name": "Ring of Rime", "desc": "Rime Wave rolls out all round you, not just ahead."}, # studio: water class
+	"brittle": {"name": "Brittle", "desc": "The frozen also take three times as much from your abilities."}, # studio: water class
+	"deep_freeze": {"name": "Deep Freeze", "desc": "The frozen stay frozen twice as long."}, # studio: water class
+	"spring": {"name": "Spring", "desc": "Standing in your rain slowly heals you."}, # studio: water class
+	"flood": {"name": "Flood", "desc": "Your roll's puddle is twice as wide and lasts longer."}, # studio: water class
+	"still_water": {"name": "Still Water", "desc": "Everything you wet stays wet for 20 seconds instead of 15."}, # studio: water class
 }
 ## What a talent does to an ability's cooldown.
 const COOLDOWN_TALENTS := {"flame_dash": ["second_wind", 0.7], "meteor": ["falling_sky", 0.75],

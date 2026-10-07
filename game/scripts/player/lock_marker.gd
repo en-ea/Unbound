@@ -45,7 +45,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	var locked: Node3D = fighter.target
+	var locked: Node3D = fighter.target if is_instance_valid(fighter.target) else null # studio: a targeted foe freed before the fighter's next step (despawn, region change)
 	var e: Node3D = locked if locked else fighter.nearest_enemy(SEEN_RANGE)
 	visible = e != null
 	if e == null:
