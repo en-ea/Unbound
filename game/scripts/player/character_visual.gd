@@ -9,6 +9,8 @@ const RIG := DIR + "UAL1_Standard.glb"
 ## Universal Animation Library 2 (Quaternius, CC0): tree chopping, harvesting, sword and shield moves.
 const EXTRA_ANIMS := DIR + "UAL2_Standard.glb"
 const HERO := "res://assets/characters/hero.glb"
+## The second style (tools-src/blender/make_carved.py): chunky, big-headed, whittled and painted. Same parts.
+const CARVED := "res://assets/characters/carved.glb"
 const SOLID_SHADER := preload("res://shaders/foliage_solid.gdshader")
 
 const IDLE := "Idle"        # Godot drops the "_Loop" suffix on import
@@ -69,6 +71,8 @@ var _action_left := 0.0      # seconds left of a one-shot action (swing, pick-up
 var _tools := {}             # name -> Node3D in the hand
 var _tool_metal := {}        # name -> the material of its head, tinted by tier
 var _parts: Array[MeshInstance3D] = []
+var _attached := ""          # the hero model the parts came from (hero_look.style picks it)
+var _choices := {}           # "slot:choice" -> true for each choice the attached model has
 var _slot_materials := {}    # colour slot -> ShaderMaterial shared by the hero's meshes
 var _flash := 0.0
 var _lean: SkeletonModifier3D          # straightens the torso while running (lean_fix.gd)
@@ -394,7 +398,11 @@ func apply_hero_look() -> void:
 				if src:
 					mi.set_surface_override_material(s, _slot_material(src))
 		return
+	if _hero_path() != _attached:           # the look's style changed (the character screen): swap the body
+		_swap_hero()
 	var p := _worn_parts()
+	for slot: String in p:
+		p[slot] = _shown_choice(slot, String(p[slot]))
 	var covered: bool = p["head"] in COVERING
 	for mi in _parts:
 		var n := String(mi.name)
@@ -556,8 +564,21 @@ func _slot_material(src: Material) -> ShaderMaterial:
 	return mat
 
 
+## The model this character's parts come from: its ready-made body, or the hero in the look's style.
+func hero_model() -> String:
+	if _attached != "":
+		return _attached
+	return body_model if body_model != "" else _hero_path()
+
+
+func _hero_path() -> String:
+	return CARVED if hero_look.style == "carved" else HERO
+
+
 func _attach_hero() -> void:
-	var scene := (load(body_model if body_model != "" else HERO) as PackedScene).instantiate()
+	_attached = body_model if body_model != "" else _hero_path()
+	_choices.clear()
+	var scene := (load(_attached) as PackedScene).instantiate()
 	for mi: MeshInstance3D in scene.find_children("*", "MeshInstance3D", true, false):
 		mi.owner = null
 		mi.get_parent().remove_child(mi)
@@ -565,7 +586,31 @@ func _attach_hero() -> void:
 		mi.skeleton = NodePath("..")
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 		_parts.append(mi)
+		var bits := String(mi.name).split("_")      # H_<slot>_<choice>...: which choices this model has
+		if bits.size() >= 3:
+			_choices[bits[1] + ":" + bits[2]] = true
+		elif bits.size() == 2:
+			_choices[bits[1] + ":" + String(CharacterLook.PARTS.get(bits[1], [""])[0])] = true   # H_ears: the round ears
 	scene.free()
+
+
+## Another style picked: the old body's parts go, the new style's come in (same skeleton, same animations).
+func _swap_hero() -> void:
+	for mi in _parts:
+		if is_instance_valid(mi):
+			mi.free()
+	_parts.clear()
+	_attach_hero()
+
+
+## What a slot shows: the choice, or the nearest the model has (the carved style lacks a few).
+func _shown_choice(slot: String, choice: String) -> String:
+	if choice == "none" or _choices.has(slot + ":" + choice) or not CharacterLook.PARTS.has(slot):
+		return choice
+	var instead: String = CharacterLook.CARVED_FALLBACK.get(slot, {}).get(choice, "")
+	if instead != "" and _choices.has(slot + ":" + instead):
+		return instead
+	return CharacterLook.PARTS[slot][0]
 
 
 ## Puts a model in the right hand (an NPC's prop: shears). `grip` turns it, `offset` moves it from the wrist.

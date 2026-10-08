@@ -124,6 +124,10 @@ func _refresh() -> void:
 			_changed(), "outfit", CharacterLook.OUTFIT_BLURBS.get(look.outfit, ""))
 		_hint("Pick one, then change any part below or in Gear.")
 	if _tab == "body":
+		_row("Style", CharacterLook.STYLES, look.style, func(st: String) -> void:
+			look.style = st
+			_flash_slot = "style"
+			_changed(), "style", CharacterLook.STYLE_BLURBS.get(look.style, ""))
 		_slider_row("Height", look.height, CharacterLook.HEIGHT_RANGE, func(v: float) -> void:
 			look.height = v
 			_visual.apply_hero_look())
