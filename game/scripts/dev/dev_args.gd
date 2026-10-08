@@ -18,6 +18,7 @@ extends Node
 ##   --hide=Scatter,HUD    hide parts of the scene (cost checks); --noshadow turns sun shadows off
 ##   --lineup[=N]      stand 7 outfit presets (from the Nth) in a row in front of the camera
 ##   --outfit=Mage     wear a ready-made outfit
+##   --style=carved    the player (and a --lineup) in the carved character style
 ##   --title           keep the title screen (otherwise any dev argument skips it)
 ##   --touchtest       fake a finger drag on the left half, print the result, quit
 ##   --craft / --bag   open the workbench / Bag screen with a few items to show
@@ -46,6 +47,7 @@ var _tell_test := false
 var _lock_mock := false
 var _lineup_from := 0
 var _lineup_marks := false
+var _lineup_style := ""         # --style=carved
 var _gather_offset := Vector3(0, 0.3, -1.3)
 
 
@@ -391,7 +393,12 @@ func _ready() -> void:
 			var pv: CharacterVisual = get_node("../Player/Visual")
 			pv.hero_look.set_outfit(arg.trim_prefix("--outfit="))
 			pv.apply_hero_look.call_deferred()
-		elif arg.begins_with("--lineup"):                # --lineup, or --lineup=7 to start at the 8th outfit
+		elif arg.begins_with("--style="):               # --style=carved: the player (and a --lineup) in that character style
+			_lineup_style = arg.trim_prefix("--style=")
+			var pv: CharacterVisual = get_node("../Player/Visual")
+			pv.hero_look.style = _lineup_style
+			pv.apply_hero_look.call_deferred()
+		elif arg.begins_with("--lineup"):               # --lineup, or --lineup=7 to start at the 8th outfit
 			if arg == "--lineup=marks":                    # one character per marking, faces close
 				_lineup_marks = true
 			elif arg.begins_with("--lineup="):
@@ -786,6 +793,8 @@ func _build_lineup() -> void:
 		var v := CharacterVisual.new()
 		v.hero_look = CharacterLook.new()
 		v.hero_look.set_outfit(names[i])
+		if _lineup_style != "":
+			v.hero_look.style = _lineup_style
 		v.hero_look.parts["eyes"] = ["calm", "happy", "fierce", "bright", "sleepy"][i % 5]
 		if _lineup_marks:
 			v.hero_look.parts["marks"] = marks[i]

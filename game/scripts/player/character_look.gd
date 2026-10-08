@@ -37,6 +37,15 @@ const CHOICE_NAMES := {"armor": "Armour", "jerkin": "Jerkin", "straw": "Straw ha
 	"chin": "Chin stripes", "noseband": "Nose band", "plates": "Steel plates", "pads": "Leather pads", "long": "Long",
 	"strap": "Satchel", "none": "None", "kitsune": "Kitsune", "oni": "Oni", "hollow": "Hollow",
 	"raven": "Raven", "aurum": "Sun mask", "wayfarer": "Wayfarer hat", "antlers": "Antler crown"}
+## Character styles: "classic" (hero.glb) or "carved" (carved.glb: chunky and big-headed, whittled and
+## painted like the world's faceted trees). Both wear the same parts and colours.
+const STYLES := ["classic", "carved"]
+const STYLE_NAMES := {"classic": "Classic", "carved": "Carved"}
+const STYLE_BLURBS := {"classic": "Tall, with fine detail.", "carved": "Chunky and charming, whittled from wood and painted."}
+## Choices the carved style doesn't model, and what it shows instead (anything else it lacks falls
+## back to the slot's first choice: masks show nothing). See CharacterVisual._shown_choice.
+const CARVED_FALLBACK := {"beard": {"chinstrap": "short"}, "head": {"sunhat": "straw", "wayfarer": "hat"},
+	"back": {"leafcloak": "cape"}}
 ## Body shape ranges (the picker's sliders): height and build scale the whole character.
 const HEIGHT_RANGE := Vector2(0.9, 1.1)
 const BUILD_RANGE := Vector2(0.88, 1.14)
@@ -113,6 +122,7 @@ var parts := {"eyes": "calm", "brows": "soft", "mouth": "smile", "nose": "straig
 var colors := {"Eyes": 0, "Skin": 2, "Hair": 0, "Main": 3, "Second": 0, "Cloth": 0, "Accent": 0, "Leather": 0, "Marks": 0}   # palette indices
 var height := 1.0
 var build := 1.0
+var style := "classic"
 
 
 func color(slot: String) -> Color:
@@ -122,6 +132,10 @@ func color(slot: String) -> Color:
 ## The picker's name for a choice.
 static func choice_name(choice: String) -> String:
 	return CHOICE_NAMES.get(choice, choice.capitalize())
+
+
+func cycle_style(step: int) -> void:
+	style = STYLES[posmod(STYLES.find(style) + step, STYLES.size())]
 
 
 func set_part(slot: String, choice: String) -> void:
@@ -178,6 +192,7 @@ func save() -> void:
 	cfg.set_value("look", "colors", colors)
 	cfg.set_value("look", "height", height)
 	cfg.set_value("look", "build", build)
+	cfg.set_value("look", "style", style)
 	SafeFile.save_config(cfg, SAVE_PATH)
 
 
@@ -198,4 +213,6 @@ static func load_saved() -> CharacterLook:
 				look.set_color(slot, saved_colors[slot])
 		look.height = clampf(cfg.get_value("look", "height", 1.0), HEIGHT_RANGE.x, HEIGHT_RANGE.y)
 		look.build = clampf(cfg.get_value("look", "build", 1.0), BUILD_RANGE.x, BUILD_RANGE.y)
+		var saved_style: String = str(cfg.get_value("look", "style", "classic"))
+		look.style = saved_style if STYLES.has(saved_style) else "classic"
 	return look

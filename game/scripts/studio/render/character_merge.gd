@@ -73,9 +73,9 @@ func _merge() -> void:
 	var parts: Array = visual.get("_parts")
 	if skeleton == null or parts.is_empty():
 		return              # before the visual's _ready: its own call there comes next
-	var model: String = visual.get("body_model")
+	var model: String = visual.call("hero_model") if visual.has_method("hero_model") else String(visual.get("body_model"))
 	if model == "":
-		model = CharacterVisual.HERO
+		model = CharacterVisual.HERO      # hero_model(): the look's style picks hero.glb or carved.glb
 	var names: Array[String] = []
 	var colors := {}        # slot -> the colour his slot material holds
 	var shown: Array[MeshInstance3D] = []
@@ -98,7 +98,7 @@ func _merge() -> void:
 		merged.name = "StudioMerged"
 		skeleton.add_child(merged)
 		merged.skeleton = NodePath("..")
-		merged.skin = VillagerBody.model_parts(model)["skin"]
+	merged.skin = VillagerBody.model_parts(model)["skin"]   # each time: a style change swaps the model
 	merged.cast_shadow = shown[0].cast_shadow     # a far bandit's parts cast none (bandit.gd); the body follows them
 	_drop_own()                                   # copies of the last look's materials
 	merged.mesh = VillagerBody.merged_mesh(model, names, colors)
@@ -113,7 +113,8 @@ func _merge() -> void:
 ## same frame can be drawn both ways.
 func show_parts(on: bool) -> void:
 	for mi in _hidden:
-		mi.visible = on
+		if is_instance_valid(mi):
+			mi.visible = on
 	if merged != null:
 		merged.visible = not on
 
