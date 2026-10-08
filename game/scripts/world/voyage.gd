@@ -358,7 +358,7 @@ func _process(delta: float) -> void:
 	_ship.rotation = Vector3(atan2(bow - stern, 8.0), _heading, atan2(star - port, 4.0) + steer * 0.06)
 	if _sail:
 		_sail.scale = Vector3(1.0, 1.0, 1.0 + 0.06 * sin(_t * 2.3))
-	player.global_position = _ship.global_transform * Vector3(0, 1.05, 3.6)
+	player.global_position = _ship.global_transform * Vector3(0, 1.0, 4.6)
 	player.visual.rotation.y = _heading + PI
 	_bar.value = _travelled / _length * 100.0
 	_update_serpent(delta)
@@ -450,6 +450,10 @@ func _build_ship() -> void:
 	if ResourceLoader.exists(path):
 		_ship = TREASURE._solid((load(path) as PackedScene).instantiate())
 		_sail = _ship.find_child("Sail", true, false) as Node3D
+		if _sail:                                  # a mirrored copy, so the sail shows from behind too
+			var back := _sail.duplicate() as Node3D
+			_sail.get_parent().add_child(back)
+			back.transform = _sail.transform.scaled_local(Vector3(1, 1, -1))
 	else:
 		_ship = MeshInstance3D.new()
 		var box := BoxMesh.new()

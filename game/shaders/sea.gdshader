@@ -52,7 +52,7 @@ void fragment() {
 	c = mix(c, deep, smoothstep(0.3, 0.95, depth));
 	float ripple = sin(p.x * 0.9 + TIME * 1.3) * sin(p.y * 0.7 - TIME * 1.1);
 	float shore = use_depth ? (1.0 - smoothstep(0.0, 0.05 + ripple * 0.012, depth)) : 0.0;
-	float cap = smoothstep(0.62, 0.95, crest + ripple * 0.15) * 0.6;
+	float cap = smoothstep(0.82, 1.05, crest + ripple * 0.1) * 0.3;
 	c.rgb = mix(c.rgb, foam.rgb, max(shore * 0.85, cap));
 	c.a = max(c.a, shore);
 	c.rgb *= 1.0 - darken * 0.55;
