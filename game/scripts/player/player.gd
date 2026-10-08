@@ -444,8 +444,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			sneak()
 		elif event.physical_keycode == KEY_T:
 			Gear.swap_weapon()
-		elif event.physical_keycode == KEY_4 and Classes.abilities().size() > 3:
-			abilities.use(Classes.abilities()[3])
 		elif event.physical_keycode in [KEY_Z, KEY_X, KEY_V, KEY_1, KEY_2, KEY_3]:
 			var slot: int = [KEY_Z, KEY_X, KEY_V, KEY_1, KEY_2, KEY_3].find(event.physical_keycode) % 3
 			if Classes.abilities().size() > slot:

@@ -40,7 +40,6 @@ var _touch_test := false
 var _start_at := Vector2.INF
 var _showcase := false
 var _lineup := false
-var _phoenix := false
 var _gather_test := false
 var _fight_test := false
 var _tell_test := false
@@ -330,9 +329,6 @@ func _ready() -> void:
 			get_tree().create_timer(0.5).timeout.connect(func() -> void: get_node("../HUD").open_class_panel(true))
 		elif arg == "--sealtest":                     # with --region=forest: Varek drops Morrow's seal
 			add_child(preload("res://scripts/dev/seal_test.gd").new())
-		elif arg == "--phoenix":                      # be a Pyromancer with two foes near, cast Phoenix Wings; --shot catches it mid-leap
-			Classes.choose.call_deferred("pyromancer")
-			_phoenix = true
 		elif arg == "--pyro":                         # be a Pyromancer (abilities on Z/X too)
 			Classes.choose.call_deferred("pyromancer")
 		elif arg == "--cave" or arg.begins_with("--cave="):   # (with --region=forest) straight down into Glimmerdeep; =x,z to stand there
@@ -481,29 +477,11 @@ func _process(_delta: float) -> void:
 	if _touch_test:
 		_run_touch_test()
 		return
-	if _phoenix and _frames == 90:
-		_cast_phoenix()
 	if _frames == _shot_frame and OS.get_cmdline_user_args().has("--census"):
 		print("DRAWS ", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME))
-	if _frames == _shot_frame and _shot_path != "" and not _phoenix:
+	if _frames == _shot_frame and _shot_path != "":
 		get_viewport().get_texture().get_image().save_png(_shot_path)
 		get_tree().quit()
-
-
-## --phoenix: Phoenix Wings now; with --shot, the picture is taken mid-leap (by time, not frames: slow on xvfb).
-func _cast_phoenix() -> void:
-	var player := get_node("../Player")
-	Classes.start_cooldown("phoenix_wings", 0.0)
-	if _shot_path != "":                         # a wide view, back to the camera, so the wings show
-		get_node("../CameraRig").set_view(14.0, -6.0, Vector3.ZERO, 0.01)
-		var cam := get_viewport().get_camera_3d()
-		var fwd := -cam.global_basis.z
-		player.visual.rotation.y = atan2(fwd.x, fwd.z)
-	player.abilities.use("phoenix_wings")
-	if _shot_path != "":
-		get_tree().create_timer(Abilities.PHOENIX_RISE * 0.7).timeout.connect(func() -> void:
-			get_viewport().get_texture().get_image().save_png(_shot_path)
-			get_tree().quit())
 
 
 ## Hunting test (--hunt): by the butcher's rack with the ox cart, a stag body beside you and a live stag.

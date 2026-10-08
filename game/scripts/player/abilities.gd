@@ -9,8 +9,6 @@ extends Node
 ## - Meteor: a glowing ring marks the nearest enemy (or the ground ahead), and a burning star falls on
 ##   it: a big blast that throws enemies back (breaks shield guards), sets them alight and leaves the
 ##   ground burning.
-## - Phoenix Wings: great wings of fire burst from your back, you leap high (untouchable), then slam down
-##   in a firestorm: a blast, a ring of fire pillars, burning ground; everyone near is hit, thrown and set alight.
 
 const DASH_DISTANCE := 7.5
 const DASH_TIME := 0.3
@@ -28,12 +26,6 @@ const POP_POWER := 4.0            # an enemy that was already burning explodes f
 const POP_SPREAD := 3.5           # and sets alight everyone this close to it
 const POP_HEAL := 1               # hearts back from each explosion
 const POP_HEAL_MAX := 3
-const PHOENIX_RADIUS := 6.5
-const PHOENIX_POWER := 4.0
-const PHOENIX_HEIGHT := 2.4       # how high the leap lifts you (the body stays down; the visual flies)
-const PHOENIX_RISE := 0.55
-const PHOENIX_HANG := 0.35
-const PHOENIX_DIVE := 0.18
 const SOUNDS := {
 	"burst": preload("res://assets/sounds/fire_burst.wav"),
 	"cast": preload("res://assets/sounds/fire_cast.wav"),
@@ -119,8 +111,6 @@ func use(ability: String, aim: Dictionary = {}) -> void: # studio: prepared glyp
 			_meteor(aim) # studio: same ability, explicit preparation
 		"cinderburst":
 			_cinderburst(aim) # studio: same ability, explicit preparation
-		"phoenix_wings":
-			phoenix_wings()
 		"shadow_dance":
 			shade.shadow_dance()
 		"mirage":
@@ -391,73 +381,6 @@ func _spark_home(from: Vector3) -> void:
 		if Classes.has_talent("feed_the_flames"): # studio: C1 unit 4 - each spark takes Balance.RECOVERY.feed_cut off Flame Dash's cooldown (was: a stamina refill)
 			Classes.start_cooldown("flame_dash", maxf(0.0, Classes.cooldown_left("flame_dash") * Classes.cooldown_of("flame_dash") - Balance.RECOVERY["feed_cut"])) # studio:
 		player.get_node("Effects").glow_burst(Color(1.0, 0.7, 0.3), 16))
-
-
-## Phoenix Wings: wings burst out, a leap into the air, then a slam in a firestorm (see the top).
-func phoenix_wings() -> void:
-	var root := player.get_parent()
-	var vis: Node3D = player.visual
-	var total := PHOENIX_RISE + PHOENIX_HANG + PHOENIX_DIVE
-	player.hold_still(total + 0.1)                   # untouchable, held in place while airborne
-	var wings := PhoenixWings.new()
-	vis.add_child(wings)
-	wings.unfurl(0.3)
-	player.get_node("Effects").glow_burst(Color(1.0, 0.55, 0.15), 50)
-	FireFX.flames(root, player.global_position + Vector3(0, 0.3, 0), 1.0, 24, 0.6, true, 0.5)   # the burst of take-off
-	_play("cast", 0.8, 0.0)
-	_play("burst", 1.4, -4.0)
-	vis.play_action("Jump_Start", 1.0)
-	var trail := FireFX.flames(vis, Vector3(0, 0.6, 0), 0.25, 18, 0.45, false, 0.4)
-	var base_y: float = vis.position.y
-	var t := vis.create_tween()
-	t.tween_property(vis, "position:y", base_y + PHOENIX_HEIGHT, PHOENIX_RISE).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	t.tween_callback(func() -> void:
-		wings.flap_speed = 4.0
-		vis.play_action("Spell_Simple_Shoot", 1.0))
-	t.tween_property(vis, "position:y", base_y + PHOENIX_HEIGHT + 0.25, PHOENIX_HANG).set_trans(Tween.TRANS_SINE)
-	t.tween_callback(func() -> void: wings.flap_speed = 14.0)
-	t.tween_property(vis, "position:y", base_y, PHOENIX_DIVE).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	t.tween_callback(func() -> void:
-		vis.position.y = base_y
-		trail.emitting = false
-		get_tree().create_timer(0.7).timeout.connect(trail.queue_free)
-		wings.dissolve(0.45)
-		_phoenix_lands(player.global_position))
-
-
-func _phoenix_lands(at: Vector3) -> void:
-	var root := player.get_parent()
-	FireFX.blast(root, at, PHOENIX_RADIUS)
-	FireFX.blast(root, at, PHOENIX_RADIUS * 0.5)
-	FireFX.flames(root, at + Vector3(0, 0.4, 0), PHOENIX_RADIUS * 0.7, 90, 0.8, true, 0.9)
-	for i in 10:                                         # a ring of fire pillars racing outward
-		var a := TAU * i / 10.0
-		var d := PHOENIX_RADIUS * 0.75
-		var p := at + Vector3(cos(a) * d, 0.2, sin(a) * d)
-		get_tree().create_timer(0.04 * (i % 3)).timeout.connect(func() -> void:
-			var pillar := FireFX.flames(root, p, 0.45, 26, 0.9, true, 0.9)
-			pillar.initial_velocity_min = 5.0
-			pillar.initial_velocity_max = 9.0
-			pillar.spread = 10.0)
-	FireFX.burning_ground(root, at, PHOENIX_RADIUS * 0.7, 4.0, 1)
-	_play("burst", 0.6, 3.0)
-	_play("thud", 0.45, 1.0)
-	get_tree().call_group("camera_rig", "shake", 0.45)
-	var hit := false
-	for e in get_tree().get_nodes_in_group("enemy"):
-		if e.get_meta("crowd_ignore", false) or not e.is_alive():
-			continue
-		var d: float = (e as Node3D).global_position.distance_to(at)
-		if d > PHOENIX_RADIUS:
-			continue
-		var dmg := maxi(1, roundi(Gear.hit_damage(PHOENIX_POWER)[0] * lerpf(1.0, 0.5, d / PHOENIX_RADIUS)))
-		e.take_hit(at, dmg, 3.0)
-		FloatText.spawn(get_tree(), (e as Node3D).global_position + Vector3(0, 1.6, 0), str(dmg) + "!", Color(1.0, 0.5, 0.15), true)
-		FireFX.ignite(e, 5.0)
-		hit = true
-	if hit:
-		Engine.time_scale = 0.1
-		get_tree().create_timer(0.1, true, false, true).timeout.connect(func() -> void: Engine.time_scale = 1.0)
 
 
 ## The closest living enemy within `reach`; if `ahead` is given, only ones roughly that way.
