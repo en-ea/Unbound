@@ -20,6 +20,9 @@ var _players := {}                         # track -> AudioStreamPlayer
 var _want := ""
 var _fight_left := 0.0
 static var _stinger: AudioStreamPlayer
+## The story takes the music over for a set-piece (story/awakening.gd): a track name, "none" for a hard
+## silence, or "" to give it back. Changes fade fast, so a cut lands with the moment.
+static var story := ""
 
 
 func _ready() -> void:
@@ -46,16 +49,19 @@ static func sting(stream: AudioStream, volume_db := -2.0) -> void:
 
 func _process(delta: float) -> void:
 	_want = _pick(delta) if Settings.music_on else ""
+	if story != "":
+		_want = "" if story == "none" or not Settings.music_on else story
+	var fade := 0.7 if story != "" else FADE
 	var night: float = day_night.night if day_night else 0.0
 	var indoors: bool = day_night.indoors if day_night else false
 	var scale := lerpf(1.0, 0.6, night) * (0.45 if indoors else 1.0)
-	if _stinger.playing:
+	if _stinger.playing and story == "":
 		scale *= 0.35
 	for track: String in _players:
 		var p: AudioStreamPlayer = _players[track]
 		var now := db_to_linear(p.volume_db)
 		var goal: float = LEVEL[track] * scale if track == _want else 0.0
-		now = move_toward(now, goal, delta / FADE)
+		now = move_toward(now, goal, delta / fade)
 		p.volume_db = linear_to_db(maxf(now, 0.0001))
 		if now > 0.001 and not p.playing:
 			p.play()
