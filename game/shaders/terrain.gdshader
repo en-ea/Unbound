@@ -7,7 +7,7 @@ uniform sampler2D cloud_noise : filter_linear, repeat_enable;
 uniform sampler2D shade_map : filter_linear, hint_default_white;   // baked soft shade (1 = open)
 uniform float world_half = 80.0;
 uniform float cloud_strength = 0.12;
-uniform vec2 path_points[12];
+uniform vec2 path_points[16];
 uniform int path_count = 0;
 uniform vec2 pond_center;
 uniform float pond_radius = 10.0;

@@ -41,12 +41,29 @@ const REGIONS := {
 		"pond": Vector2(30.0, 20.0), "pond_r": 9.0, "hill": Vector2(-30.0, 30.0), "hill_r": 30.0, "hill_h": 11.0,
 		"spawn": Vector2(16.0, -86.0), "rough": 8.5, "seed": 47,
 		"path": [Vector2(18, -125), Vector2(16, -100), Vector2(14, -80), Vector2(6, -58), Vector2(10, -36), Vector2(2, -16),
-			Vector2(-6, 2), Vector2(-14, 14)],
+			Vector2(-6, 2), Vector2(-14, 14),
+			Vector2(-6, 2), Vector2(14, 30), Vector2(30, 66), Vector2(40, 92), Vector2(40, 125)],   # back, and down to the harbour
 		"clearings": [Vector3(15, -83, 5.0), Vector3(60, -50, 8.0), Vector3(-20, -45, 7.0),      # arrival + the places
 			Vector3(-7.5, -46.0, 3.2)],                                                       # the waystone
 		"keep_clear": [Vector3(55, -30, 4.0), Vector3(-62, 62, 1.5), Vector3(70, 60, 1.5)],
 	},
+	# Sunreach, the second land: a sun-baked coast with the sea to the south and east, banded mesas
+	# closing the north and west, Saffra (the harbour town) by the pier, an oasis, a great dune.
+	"sands": {
+		"pond": Vector2(-36.0, -38.0), "pond_r": 9.0, "hill": Vector2(44.0, -48.0), "hill_r": 22.0, "hill_h": 7.0,
+		"spawn": Vector2(12.0, 58.0), "rough": 2.6, "seed": 83, "coast": true,
+		"path": [Vector2(12, 64), Vector2(10, 50), Vector2(6, 36), Vector2(2, 18), Vector2(-4, -2), Vector2(-6, -12),
+			Vector2(-20, -26), Vector2(-30, -32), Vector2(-48, -56), Vector2(-60, -80), Vector2(-62, -125)],
+		"clearings": [Vector3(6, 36, 9.0), Vector3(-9, 28, 4.5), Vector3(-8, 46, 4.5), Vector3(21, 29, 4.5),
+			Vector3(-14, 38, 4.0), Vector3(7, 21, 5.0), Vector3(24, 44, 5.0), Vector3(-30, 70, 6.0),
+			Vector3(14, 58, 5.0), Vector3(-2.0, 54.0, 3.2)],      # Saffra, the lighthouse, the quay, the waystone
+		"keep_clear": [Vector3(-5, -10, 9.0), Vector3(44, -48, 6.0)],     # the sand arch, the dune top
+	},
 }
+
+## Sunreach's shoreline: land where z < shore_z(x). A headland for the lighthouse; the east bends north.
+static func shore_z(x: float) -> float:
+	return 64.0 - 0.011 * maxf(x - 30.0, 0.0) ** 2 + 13.0 * exp(-pow((x + 30.0) / 11.0, 2.0)) + 4.0 * sin(x * 0.07)
 
 static var region := "meadow"
 static var POND_CENTER := Vector2(24.0, -6.0)
@@ -62,6 +79,8 @@ static var path := PackedVector2Array()
 static var clearings := []
 ## Spots kept free of scatter without flattening the ground (ruins, treasure chests): (x, z, radius).
 static var keep_clear := []
+## A coast region (Sunreach): the sea instead of hills on the open sides.
+static var coast := false
 
 var _noise := FastNoiseLite.new()
 var _detail := FastNoiseLite.new()
@@ -89,6 +108,7 @@ static func use(id: String) -> void:
 	path = PackedVector2Array(r["path"])
 	clearings = r["clearings"]
 	keep_clear = r["keep_clear"]
+	coast = r.get("coast", false)
 
 
 func height_at(x: float, z: float) -> float:
@@ -98,8 +118,13 @@ func height_at(x: float, z: float) -> float:
 	var h := (_noise.get_noise_2d(x, z) * 0.5 + 0.5) * ROUGH * lerpf(0.35, 1.0, smoothstep(1.5, 6.0, path_d))
 	# Hills rise around the edges and close the meadow in.
 	var edge := maxf(absf(x), absf(z)) / HALF_SIZE
-	# The path out of the region cuts a notch through them (the way to the next region).
-	h += smoothstep(0.6, 1.0, edge) * 16.0 * lerpf(0.2, 1.0, smoothstep(3.0, 12.0, path_d))
+	if coast:
+		edge = maxf(-x, -z) / HALF_SIZE              # mesas only to the north and west
+		var rise := smoothstep(0.55, 0.95, edge) * 22.0 * lerpf(0.15, 1.0, smoothstep(3.0, 12.0, path_d))
+		h += floorf(rise / 3.2) * 3.2 + smoothstep(0.0, 1.0, fmod(rise, 3.2) / 3.2) * 0.6    # banded terraces
+	else:
+		# The path out of the region cuts a notch through them (the way to the next region).
+		h += smoothstep(0.6, 1.0, edge) * 16.0 * lerpf(0.2, 1.0, smoothstep(3.0, 12.0, path_d))
 	# The hill with the old tree.
 	var hill_d := p.distance_to(HILL_CENTER)
 	h += (1.0 - smoothstep(HILL_RADIUS * 0.4, HILL_RADIUS, hill_d)) * HILL_HEIGHT
@@ -112,6 +137,10 @@ func height_at(x: float, z: float) -> float:
 	# The pond bowl (knee-deep water), with a wobbly shore.
 	var pond_d := pond_distance(p)
 	h = lerpf(h, -1.05, 1.0 - smoothstep(POND_RADIUS * 0.35, POND_RADIUS + 2.5, pond_d))
+	if coast:                                         # a low beach, then the sea floor falling away
+		var out := z - shore_z(x) + _detail.get_noise_2d(x, z) * 2.0
+		h = lerpf(h, 0.35, smoothstep(-16.0, -2.0, out))
+		h = lerpf(h, -5.0, smoothstep(-1.0, 16.0, out))
 	return h
 
 

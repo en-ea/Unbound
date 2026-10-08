@@ -11,6 +11,16 @@ func _ready() -> void:
 	var first_load := Region.arrive == Vector2.INF
 	if first_load:
 		Region.current = SaveGame.saved_region()
+	if Region.current == "sea":                     # the voyage between the lands: only the sea and your ship
+		var voyage := Node3D.new()
+		voyage.set_script(preload("res://scripts/world/voyage.gd"))
+		voyage.player = player
+		voyage.camera_rig = camera_rig
+		voyage.day_night = $WorldEnvironment
+		add_child(voyage)
+		voyage.build()
+		Region.arrived(true)
+		return
 	var meadow := Region.current == "meadow"
 	var shape := WorldShape.new()
 	terrain.build(shape)
@@ -36,7 +46,7 @@ func _ready() -> void:
 	var fire := Node3D.new()
 	fire.set_script(preload("res://scripts/world/campfire.gd"))
 	add_child(fire)
-	fire.build(shape, Vector2(-4.5, 17.0) if meadow else Vector2(4.0, -81.5))
+	fire.build(shape, Vector2(-4.5, 17.0) if meadow else (Vector2(-3.0, 52.0) if WorldShape.coast else Vector2(4.0, -81.5)))
 	for id: String in Projects.DEFS:
 		if Projects.DEFS[id]["region"] == Region.current:
 			var site := Node3D.new()
@@ -115,6 +125,12 @@ func _ready() -> void:
 	fishing.player = player
 	add_child(fishing)
 	fishing.build(shape)
+	if WorldShape.coast:                           # Sunreach: Saffra, the pier and your ship, the lighthouse
+		var sunreach := Node3D.new()
+		sunreach.set_script(preload("res://scripts/world/sunreach.gd"))
+		sunreach.player = player
+		add_child(sunreach)
+		sunreach.build(shape)
 	if Region.current == "forest":                 # Glimmerdeep, under the Cave Mouth
 		var cave := Node3D.new()
 		cave.set_script(preload("res://scripts/world/cave.gd"))
@@ -153,7 +169,7 @@ func _ready() -> void:
 	VillageSession.attach(self) # studio: persistent authority, disposable presentation
 	StaticBatch.attach(self) # studio: proposal (graphics S1)
 	if arrive != Vector2.INF:          # came through a gate: stand just inside it, facing in
-		player.global_position = Vector3(arrive.x, shape.height_at(arrive.x, arrive.y) + 0.3, arrive.y)
+		player.global_position = Vector3(arrive.x, maxf(shape.height_at(arrive.x, arrive.y), WorldShape.WATER_Y + 1.2) + 0.3, arrive.y)
 		player.visual.rotation.y = atan2(-arrive.x, -arrive.y)
 	camera_rig.snap()
 	Region.arrived(not first_load)

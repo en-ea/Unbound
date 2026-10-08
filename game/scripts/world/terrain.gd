@@ -4,6 +4,7 @@ extends StaticBody3D
 const STEP := 2.0            # big triangles: the faceted low-poly look
 const TERRAIN_SHADER := preload("res://shaders/terrain.gdshader")
 const WATER_SHADER := preload("res://shaders/water.gdshader")
+const SEA_SHADER := preload("res://shaders/sea.gdshader")
 
 # Ground colours (sRGB).
 const GRASS_LIGHT := Color(0.58, 0.68, 0.38)
@@ -67,6 +68,12 @@ func build(shape: WorldShape) -> void:
 	material.set_shader_parameter("pond_center", WorldShape.POND_CENTER)
 	material.set_shader_parameter("pond_radius", WorldShape.POND_RADIUS)
 	material.set_shader_parameter("water_y", WorldShape.WATER_Y)
+	if WorldShape.coast:                       # Sunreach: sun-bleached path, warm sand patches
+		material.set_shader_parameter("dirt_color", Color(0.86, 0.74, 0.55))
+		material.set_shader_parameter("dirt_edge", Color(0.74, 0.6, 0.42))
+		material.set_shader_parameter("patch_warm", Color(0.95, 0.74, 0.46))
+		material.set_shader_parameter("patch_cool", Color(0.78, 0.68, 0.52))
+		material.set_shader_parameter("sand_color", Color(0.9, 0.8, 0.58))
 	mesh.surface_set_material(0, material)
 
 	var mi := MeshInstance3D.new()
@@ -85,6 +92,8 @@ func build(shape: WorldShape) -> void:
 
 	_build_walls()
 	_build_water()
+	if WorldShape.coast:
+		_build_sea(shape, heights, n)
 
 
 ## Grass shades and rock on steep slopes. The path and pond shore are drawn by the shader,
@@ -114,6 +123,8 @@ func bake_shade(spots: Array[Vector4]) -> void:
 
 
 func _ground_color(shape: WorldShape, x: float, z: float, h: float, up: float) -> Color:
+	if WorldShape.coast:
+		return _sand_color(shape, x, z, h, up)
 	if WorldShape.region == "highlands":
 		return _highland_color(shape, x, z, h, up)
 	var forest := WorldShape.region == "forest"
@@ -132,6 +143,20 @@ func _highland_color(shape: WorldShape, x: float, z: float, h: float, up: float)
 	# Snow with a ragged edge, blue in its hollows.
 	var snow := Color(0.82, 0.87, 0.95).lerp(Color(0.97, 0.98, 1.0), n)
 	return c.lerp(snow, smoothstep(7.8, 9.6, h + (n - 0.5) * 3.0) * smoothstep(0.6, 0.82, up))
+
+
+## Sunreach: pale gold sand with rippled dunes, green round the oasis, banded ochre and rust on the
+## mesas, wet dark sand at the waterline.
+func _sand_color(shape: WorldShape, x: float, z: float, h: float, up: float) -> Color:
+	var n := shape.meadow_noise(x, z)
+	var c := Color(0.93, 0.8, 0.56).lerp(Color(0.86, 0.66, 0.42), n)
+	var oasis := 1.0 - smoothstep(WorldShape.POND_RADIUS + 3.0, WorldShape.POND_RADIUS + 11.0, shape.pond_distance(Vector2(x, z)))
+	c = c.lerp(Color(0.46, 0.6, 0.3), oasis * 0.85)
+	var band := fposmod(h * 0.62, 1.0)
+	var rock := Color(0.78, 0.46, 0.28).lerp(Color(0.9, 0.66, 0.42), smoothstep(0.3, 0.7, band)).lerp(Color(0.62, 0.32, 0.22), smoothstep(0.85, 1.0, band))
+	c = c.lerp(rock, smoothstep(0.88, 0.7, up) * smoothstep(1.5, 4.0, h))
+	c = c.lerp(Color(0.66, 0.55, 0.4), 1.0 - smoothstep(0.0, 0.5, h))        # wet sand
+	return c.lerp(Color(0.55, 0.62, 0.55), 1.0 - smoothstep(-1.2, -0.3, h))   # under the water
 
 
 func _cloud_texture() -> NoiseTexture2D:
@@ -170,3 +195,46 @@ func _build_water() -> void:
 	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	water.position = Vector3(WorldShape.POND_CENTER.x, WorldShape.WATER_Y, WorldShape.POND_CENTER.y)
 	add_child(water)
+
+
+## The sea round Sunreach: one big plane out to the horizon, coloured by how deep the water is (a baked
+## map), and walls a little way out from the beach so you wade but never walk off the sea floor.
+func _build_sea(shape: WorldShape, heights: PackedFloat32Array, n: int) -> void:
+	var data := PackedByteArray()
+	data.resize(n * n)
+	for i in n * n:
+		data[i] = int(clampf((WorldShape.WATER_Y - heights[i]) / 6.0, 0.0, 1.0) * 255.0)
+	var img := Image.create_from_data(n, n, false, Image.FORMAT_L8, data)
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(900, 900)
+	plane.subdivide_width = 110
+	plane.subdivide_depth = 110
+	var mat := ShaderMaterial.new()
+	mat.shader = SEA_SHADER
+	mat.set_shader_parameter("depth_map", ImageTexture.create_from_image(img))
+	mat.set_shader_parameter("use_depth", true)
+	mat.set_shader_parameter("world_half", WorldShape.HALF_SIZE)
+	mat.set_shader_parameter("swell", 0.22)
+	plane.material = mat
+	var sea := MeshInstance3D.new()
+	sea.mesh = plane
+	sea.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	sea.position = Vector3(0, WorldShape.WATER_Y, 0)
+	add_child(sea)
+	# Walls where the water gets chest deep (a gap for the pier: world/sunreach.gd builds its rails).
+	var last := Vector3.INF
+	var x := -WorldShape.PLAY_HALF
+	while x <= WorldShape.PLAY_HALF:
+		var z := WorldShape.shore_z(x)
+		while z < WorldShape.PLAY_HALF + 40.0 and shape.height_at(x, z) > WorldShape.WATER_Y - 1.0:
+			z += 1.0
+		var p := Vector3(x, 0, z)
+		if last != Vector3.INF and not (absf(x - 12.0) < 3.5 and absf(last.x - 12.0) < 3.5):
+			var box := BoxShape3D.new()
+			box.size = Vector3(0.6, 40.0, last.distance_to(p) + 0.6)
+			var col := CollisionShape3D.new()
+			col.shape = box
+			col.transform = Transform3D(Basis.looking_at(p - last, Vector3.UP), (last + p) * 0.5)
+			add_child(col)
+		last = p
+		x += 3.0

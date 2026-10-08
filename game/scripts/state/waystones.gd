@@ -11,6 +11,7 @@ const STONES := {
 	"meadow": {"name": "Village Waystone", "at": Vector2(-6.0, 44.0)},
 	"forest": {"name": "Fernhollow Waystone", "at": Vector2(-11.0, 9.0)},
 	"highlands": {"name": "Shepherd's Waystone", "at": Vector2(-7.5, -46.0)},
+	"sands": {"name": "Saffra Waystone", "at": Vector2(-2.0, 54.0)},
 }
 const ARRIVE := Vector2(0.0, 2.6)            # where you step out, from the stone (towards its front)
 

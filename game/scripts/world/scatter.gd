@@ -44,7 +44,9 @@ func build(shape: WorldShape) -> void:
 	_rng.seed = 1234
 	_colliders = StaticBody3D.new()
 	add_child(_colliders)
-	if WorldShape.region == "forest":
+	if WorldShape.coast:
+		_scatter_sands()
+	elif WorldShape.region == "forest":
 		_scatter_forest_trees()
 	elif WorldShape.region == "highlands":
 		_scatter_highland_trees()
@@ -342,6 +344,8 @@ func _scatter_ores() -> void:
 		var p := Vector2(_rng.randf_range(-30, 40), _rng.randf_range(-52, -36)) if WorldShape.region == "meadow" \
 			else (Vector2(_rng.randf_range(-70, -20), _rng.randf_range(-15, 10)) if WorldShape.region == "highlands" \
 			else Vector2(_rng.randf_range(-48, -14), _rng.randf_range(34, 52)))
+		if WorldShape.coast:                   # Sunreach: iron in the mesa feet
+			p = Vector2(_rng.randf_range(-75, -40), _rng.randf_range(-40, 0))
 		if _clear_of_features(p, 2.5, 9.0) and not _near_tree(p, 2.5):
 			_place("ore_iron", "rock", p, _rng.randf_range(0.7, 0.9), 0.2, "iron_rock")
 			_ore_spots.append(p)
@@ -349,7 +353,7 @@ func _scatter_ores() -> void:
 
 
 func _scatter_rocks() -> void:
-	var rocks := ["rock_1", "rock_2", "rock_3"]
+	var rocks := SAND_ROCKS if WorldShape.coast else ["rock_1", "rock_2", "rock_3"]
 	# Around the hill and the pond shore, plus a few loose ones.
 	for i in 10:
 		var ang := _rng.randf() * TAU
@@ -393,6 +397,9 @@ func _plant_at(p: Vector2) -> void:
 			return
 	var m := _shape.meadow_noise(p.x, p.y)
 	var near_tree := _near_tree(p, 3.5)
+	if WorldShape.coast:
+		_sand_plant_at(p, m)
+		return
 	if WorldShape.region == "forest":
 		_forest_plant_at(p, m, near_tree)
 		return
@@ -448,6 +455,83 @@ func _forest_plant_at(p: Vector2, m: float, near_tree: bool) -> void:
 		_place("fern_1", "small", p, _rng.randf_range(0.8, 1.2), 0.2)
 	elif m > 0.6 and r < 0.3:
 		_place(_pick(["flower_2", "flower_4"]), "small", p, _rng.randf_range(0.85, 1.1), 0.2, "flower")
+
+
+# --- Sunreach (the second land) ------------------------------------------------
+
+const SR := "sunreach/%s"
+const SAND_ROCKS := ["sunreach/rock_sand_a", "sunreach/rock_sand_b", "sunreach/rock_sand_c"]
+
+
+## Palms along the beach, thick round the oasis and dotted through town; cactus out on the sand;
+## mesas on the skyline; sea rocks and palm islets out in the water.
+func _scatter_sands() -> void:
+	var palms := [SR % "palm_a", SR % "palm_b", SR % "palm_a", SR % "palm_small"]
+	for i in 14000:
+		if _trees.size() >= 260:
+			break
+		var p := _random_point(WorldShape.PLAY_HALF - 4.0)
+		var h := _shape.height_at(p.x, p.y)
+		if h < WorldShape.WATER_Y + 0.5 or not _clear_of_features(p, 3.0, 6.0):
+			continue
+		var beach := WorldShape.shore_z(p.x) - p.y
+		var oasis := _shape.pond_distance(p) - WorldShape.POND_RADIUS
+		var chance := 0.01
+		if beach > 3.0 and beach < 16.0:
+			chance = 0.3
+		elif oasis < 12.0:
+			chance = 0.7
+		if h > 3.0 or _rng.randf() > chance or _near_tree(p, 4.0):
+			continue
+		_add_tree(p)
+		_place(_pick(palms), "tree", p, _rng.randf_range(0.8, 1.25), 0.12, "tree")
+	for i in 900:                                 # cactus groves out on the open sand
+		var p := _random_point(WorldShape.PLAY_HALF - 6.0)
+		var beach := WorldShape.shore_z(p.x) - p.y
+		if beach < 20.0 or _shape.height_at(p.x, p.y) > 3.0 or _rng.randf() > 0.12 				or not _clear_of_features(p, 3.0, 8.0) or _near_tree(p, 3.0):
+			continue
+		_add_tree(p)
+		_place(_pick([SR % "cactus_a", SR % "cactus_b"]), "tree", p, _rng.randf_range(0.8, 1.3), 0.08)
+	for i in 70:                                  # banded mesas round the north and west skyline
+		var t := _rng.randf()
+		var along := _rng.randf_range(-120.0, 120.0)
+		var out := _rng.randf_range(100.0, 122.0)
+		var p := Vector2(-out, along) if t < 0.5 else Vector2(along, -out)
+		var at := Vector3(p.x, _shape.height_at(p.x, p.y) - 1.5, p.y)
+		_place_free(SR % "mesa_big", at, Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(1.0, 2.2)), 0.0)
+	for i in 40:                                  # rocks breaking the surf; palm islets far out
+		var x := _rng.randf_range(-110.0, 128.0)
+		var z := WorldShape.shore_z(x) + _rng.randf_range(14.0, 60.0)
+		if absf(x - 12.0) < 10.0 and z < 110.0:    # keep the harbour mouth open
+			continue
+		var model := SR % ("islet" if i % 4 == 0 else "sea_rock")
+		_place_free(model, Vector3(x, WorldShape.WATER_Y, z), Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * _rng.randf_range(0.7, 1.5)), 0.0)
+	_place_free(SR % "sand_arch", Vector3(-5.0, _shape.height_at(-5.0, -8.0) - 0.4, -8.0), Basis(Vector3.UP, 0.2), 0.0)
+	for side in [-1.0, 1.0]:                     # the arch's legs block you; walk under it
+		var leg: Vector2 = Vector2(-5.0, -8.0) + Vector2(cos(0.2), -sin(0.2)) * 6.0 * side
+		_add_collider(Vector3(leg.x, _shape.height_at(leg.x, leg.y), leg.y), 1.6)
+
+
+func _sand_plant_at(p: Vector2, m: float) -> void:
+	var h := _shape.height_at(p.x, p.y)
+	if h < WorldShape.WATER_Y + 0.25 or h > 4.0:
+		return
+	var r := _rng.randf()
+	var oasis := _shape.pond_distance(p) - WorldShape.POND_RADIUS
+	if oasis < 10.0:                              # the oasis: lush
+		if r < 0.3:
+			_place(_pick(["grass_1", "grass_2", "grass_3"]), "small", p, _rng.randf_range(0.9, 1.4), 0.2)
+		elif r < 0.36:
+			_place(_pick(["flower_1", "flower_3"]), "small", p, _rng.randf_range(0.85, 1.1), 0.2, "flower")
+		elif r < 0.4:
+			_place(_pick(["bush_1", "bush_flower_1"]), "bush", p, _rng.randf_range(0.8, 1.1), 0.1)
+		return
+	if r < 0.035 + m * 0.04:
+		_place(SR % "dune_grass", "small", p, _rng.randf_range(0.8, 1.4), 0.15)
+	elif r < 0.05:
+		_place(SR % "desert_shrub", "bush", p, _rng.randf_range(0.7, 1.2), 0.1)
+	elif r < 0.054:
+		_place(_pick(SAND_ROCKS), "rock", p, _rng.randf_range(0.35, 0.8), 0.3, "rock")
 
 
 # --- helpers -------------------------------------------------------------------
@@ -593,7 +677,7 @@ func _mesh_for(model: String, kind_name: String) -> Mesh:
 	var key := model + "|" + kind_name
 	if _meshes.has(key):
 		return _meshes[key]
-	var scene := (load(OWN % model) as PackedScene).instantiate()
+	var scene := (load(("res://assets/%s.glb" % model) if "/" in model else OWN % model) as PackedScene).instantiate()
 	var src := scene.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
 	var mesh := src.mesh.duplicate() as Mesh
 	scene.free()

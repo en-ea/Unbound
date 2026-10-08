@@ -16,6 +16,8 @@ func build(shape: WorldShape) -> void:
 	_gates = Region.GATES.get(Region.current, [])
 	for g: Dictionary in _gates:
 		var at: Vector2 = g["at"]
+		if g["to"] == "sea" and WorldShape.coast:  # Sunreach's way out is the ship at the end of the pier
+			continue
 		var p := at + at.normalized() * ARCH_OUTSET
 		var arch := TREASURE._solid(ARCH.instantiate())
 		add_child(arch)
@@ -30,7 +32,7 @@ func build(shape: WorldShape) -> void:
 			body.add_child(col)
 			arch.add_child(body)
 		var sign := Label3D.new()                  # painted on the hanging board
-		sign.text = Region.NAMES[g["to"]]
+		sign.text = "Harbour: Sunreach" if g["to"] == "sea" else Region.NAMES[g["to"]]
 		sign.font_size = 48
 		sign.outline_size = 6
 		sign.pixel_size = 0.0045

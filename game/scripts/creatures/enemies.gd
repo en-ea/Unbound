@@ -17,6 +17,9 @@ const HOMES := {
 		"wolves": [Vector2(40, -60), Vector2(-50, -50), Vector2(60, 30), Vector2(-20, 60)],
 		"shadow": [Vector2(-60, 40), Vector2(70, 70)],
 		"stags": [Vector2(30, -20), Vector2(-40, -10), Vector2(50, 50)]},
+	"sands": {"boars": [Vector2(-50, 10), Vector2(40, -10), Vector2(-20, -60)],
+		"wolves": [Vector2(-60, -20), Vector2(30, -70), Vector2(60, -30), Vector2(-30, 0)],
+		"shadow": [Vector2(-70, -70)], "stags": []},
 }
 
 @export var player: Node3D

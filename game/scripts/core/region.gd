@@ -5,17 +5,25 @@ extends Node
 
 signal leaving(to: String, arrive: Vector2)
 
-const NAMES := {"meadow": "Home Meadow", "forest": "Whispering Wood", "highlands": "Stonecrest Highlands"}
+const NAMES := {"meadow": "Home Meadow", "forest": "Whispering Wood", "highlands": "Stonecrest Highlands",
+	"sands": "Sunreach", "sea": "The Open Sea"}
+## Regions on the second land (Sunreach). The rest are the mainland. "sea" is the voyage between them.
+const SECOND_LAND := ["sands"]
 ## Gates: region -> [{to, at (x, z) of the gate trigger, arrive (x, z) in the other region, radius}].
 const GATES := {
 	"meadow": [{"to": "forest", "at": Vector2(-0.4, 93.5), "arrive": Vector2(-0.2, -86.0), "radius": 3.0}],
 	"forest": [{"to": "meadow", "at": Vector2(2.0, -93.5), "arrive": Vector2(1.5, 86.0), "radius": 3.0},
 		{"to": "highlands", "at": Vector2(18.0, 93.5), "arrive": Vector2(16.0, -86.0), "radius": 3.0}],
-	"highlands": [{"to": "forest", "at": Vector2(16.5, -93.5), "arrive": Vector2(18.5, 86.0), "radius": 3.0}],
+	"highlands": [{"to": "forest", "at": Vector2(16.5, -93.5), "arrive": Vector2(18.5, 86.0), "radius": 3.0},
+		{"to": "sea", "at": Vector2(40.0, 93.5), "arrive": Vector2.INF, "radius": 3.0}],
+	"sands": [{"to": "sea", "at": Vector2(12.0, 87.0), "arrive": Vector2.INF, "radius": 2.6}],
 }
+## Where the voyage puts you ashore.
+const HARBOURS := {"sands": Vector2(12.0, 63.0), "highlands": Vector2(40.0, 86.0)}
 
 var current := "meadow"
 var arrive := Vector2.INF       # where to stand after a trip (INF = the saved spot or the spawn)
+var voyage_to := "sands"        # where the ship is bound while you're at sea (world/voyage.gd)
 var _busy := false
 var _fade: ColorRect
 var _title: Label
@@ -50,6 +58,8 @@ func _ready() -> void:
 func travel(to: String, arrive_at: Vector2) -> void:
 	if _busy or not NAMES.has(to):
 		return
+	if to == "sea":
+		voyage_to = "highlands" if current in SECOND_LAND else "sands"
 	if SaveGame.save_game()!=OK: # studio: park captured memories/load location before locking or disposing bodies
 		return
 	_busy = true

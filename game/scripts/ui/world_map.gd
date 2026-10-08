@@ -105,6 +105,8 @@ func _refresh() -> void:
 	for c in _list.get_children():
 		c.queue_free()
 	for r: String in Region.NAMES:
+		if not Waystones.STONES.has(r):             # the open sea has no waystone
+			continue
 		var card := PanelContainer.new()
 		var box := StyleBoxFlat.new()
 		box.bg_color = Color(1, 1, 1, 0.12 if r == _region else 0.05)
