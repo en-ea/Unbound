@@ -14,6 +14,10 @@ var night := 0.0
 var indoors := false
 var village_clock := false # studio: one logical clock for light and consequences
 var cave := false                  # down in a cave (world/cave.gd): no sun or moon, cold dim light, close dark fog
+## 0..1: the sky gone wrong (the story's set-piece, story/awakening.gd): a bruised violet sky, the sun
+## choked to a red ember, close dark fog. 0 is the normal world.
+var dread := 0.0
+var _fog_kept := Vector2.ZERO       # the fog's begin/end before the dread came (given back after)
 
 const UPDATE_EVERY := 0.2
 
@@ -97,6 +101,12 @@ func set_time(t: float) -> void:
 	_apply()
 
 
+## The story turns the sky wrong (1) or gives it back (0); applied at once so a tween reads smoothly.
+func set_dread(v: float) -> void:
+	dread = clampf(v, 0.0, 1.0)
+	_apply()
+
+
 ## Jumps the clock forward (dev button).
 func skip(fraction: float) -> void:
 	WorldClock.advance(fraction * 1440.0) # studio: merge - the village catches up to the one world clock
@@ -142,6 +152,27 @@ func _apply() -> void:
 		env.ambient_light_color = Color(0.5, 0.58, 0.75)
 		env.ambient_light_energy = 0.9
 		env.fog_light_color = Color(0.0, 0.004, 0.012)
+	if dread > 0.0 and not cave:
+		if _fog_kept == Vector2.ZERO:
+			_fog_kept = Vector2(env.fog_depth_begin, env.fog_depth_end)
+		var k := dread
+		_sky_mat.sky_top_color = _sky_mat.sky_top_color.lerp(Color(0.05, 0.02, 0.08), k)
+		_sky_mat.sky_horizon_color = horizon.lerp(Color(0.32, 0.08, 0.14), k)
+		_sky_mat.ground_horizon_color = _sky_mat.sky_horizon_color
+		_sky_mat.ground_bottom_color = _sky_mat.ground_bottom_color.lerp(Color(0.03, 0.01, 0.04), k)
+		sun.light_energy = lerpf(sun.light_energy, 0.35, k)
+		sun.light_color = sun.light_color.lerp(Color(1.0, 0.32, 0.26), k)
+		env.ambient_light_color = env.ambient_light_color.lerp(Color(0.42, 0.3, 0.55), k)
+		env.ambient_light_energy = lerpf(env.ambient_light_energy, 0.6, k)
+		env.fog_light_color = env.fog_light_color.lerp(Color(0.12, 0.04, 0.12), k)
+		env.fog_depth_begin = lerpf(_fog_kept.x, 10.0, k)
+		env.fog_depth_end = lerpf(_fog_kept.y, 120.0, k)
+		env.adjustment_saturation = lerpf(1.0, 0.72, k)
+	elif _fog_kept != Vector2.ZERO:
+		env.fog_depth_begin = _fog_kept.x
+		env.fog_depth_end = _fog_kept.y
+		env.adjustment_saturation = 1.0
+		_fog_kept = Vector2.ZERO
 	if terrain and terrain.get("material"):
 		terrain.material.set_shader_parameter("cloud_strength", 0.12 * clampf(sun_e, 0.0, 1.0))
 
