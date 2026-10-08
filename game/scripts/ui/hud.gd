@@ -16,6 +16,7 @@ const BUTTONS := {
 	"heavy": [Vector2(262, 222), 42.0], "parry": [Vector2(190, 282), 42.0], "sneak": [Vector2(100, 282), 32.0],
 	"swap": [Vector2(70, 368), 30.0],
 	"ability1": [Vector2(380, 212), 44.0], "ability2": [Vector2(318, 318), 44.0], "ability3": [Vector2(212, 380), 44.0],
+	"ability4": [Vector2(440, 100), 44.0],
 }
 ## Each button's own colour (its ring and inner glow); the abilities take the class's colour.
 const ACCENTS := {"attack": Color(1.0, 0.8, 0.42), "roll": Color(0.5, 0.85, 0.42), "heavy": Color(1.0, 0.5, 0.24),
@@ -117,7 +118,7 @@ func _ready() -> void:
 			player.guard())
 	Settings.changed.connect(_show_heavy)
 	Settings.changed.connect(_place_buttons)
-	for i in 3:
+	for i in 4:
 		var b := _button("ability%d" % (i + 1), "", "", BUTTONS["ability%d" % (i + 1)])
 		b.font_size = 17
 		b.sweep = true

@@ -12,7 +12,7 @@ const CLASSES := {
 	"pyromancer": {"name": "Pyromancer", "color": Color(1.0, 0.5, 0.18),
 		"blurb": "The fire under the stones chose you. Burn a path through them, then bring the sky down.",
 		"trait": "Kindled: your blows land a third harder on anything burning, and at night or underground you glow with your own warm light.",
-		"abilities": ["flame_dash", "meteor", "cinderburst"]},
+		"abilities": ["flame_dash", "meteor", "cinderburst", "phoenix_wings"]},
 	"delver": {"name": "Delver", "color": Color(0.36, 0.86, 0.72), "take": "Take the claws",
 		"answer": "The deep earth answers you",
 		"blurb": "Claws, not steel. Hunt them from below and drag the weak down with you.",
@@ -49,6 +49,8 @@ const ABILITIES := {
 		"desc": "Trade places with your double, shadow bursting where you both stood. With no double out, you burst and vanish: enemies lose you for a moment."},
 	"cinderburst": {"name": "Cinderburst", "short": "Burst", "cooldown": 14.0,
 		"desc": "A ring of fire bursts out around you and sets everyone in it alight. Anyone who was already burning explodes, spreading the fire, and each explosion sends a spark of life back to you. Set them burning first, then pop them."},
+	"phoenix_wings": {"name": "Phoenix Wings", "short": "Wings", "cooldown": 20.0,
+		"desc": "Wings of fire burst from your back and you leap high, untouchable, then slam down in a firestorm that throws back and sets alight everyone near."},
 	"drown": {"name": "Drown", "short": "Drown", "cooldown": 10.0, # studio: water class
 		"desc": "A sphere of water swallows the marked enemy and lifts it into the air. It thrashes and chokes for five seconds, then the water slams it into the ground and splashes everyone near."}, # studio: water class
 	"tempest": {"name": "Tempest", "short": "Storm", "cooldown": 16.0, # studio: water class
