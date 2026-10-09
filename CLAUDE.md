@@ -5,6 +5,7 @@ The owner doesn't code: they direct and playtest, and Claude builds. Keep replie
 - `docs/DESIGN.md`: what the game is. Read it before design work.
 - `docs/PLAN.md`: milestones, how we work, performance rules. Read it every session.
 - `docs/GAME_PLAN.md`: the decided big shape (lands, regions, classes, rarities, money, companions, build order).
+- **The shared board with Hilmi's studio: [Issues](https://github.com/en-ea/Unbound/issues)** (how it works: #5). Read it every session before changing code. The `now` items say who is working on what: `gh issue list -R en-ea/Unbound -l now`, or https://api.github.com/repos/en-ea/Unbound/issues?labels=now. If your files overlap the other side's `now` item, comment there first. Claim your work (assign, label `now`, one comment: what, files, branch, until when) and release it (`Fixes #N` in the commit, or unassign). Add the bugs you find, and change or add goals where the code or play justifies it, saying why. The story and the lands' goals are the owner's to lay out there.
 - `docs/studio/START-HERE.md` (on the `studio` branch): proposals from Hilmi's studio. Read it when asked to look at that branch. Nothing in it is decided until the owner says so, and it is never merged into `main` without the owner's OK.
 
 ## Layout
